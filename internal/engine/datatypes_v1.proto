@@ -1,0 +1,124 @@
+syntax = 'proto3';
+
+package engine;
+
+message PayoutPB {
+    int32 symbol = 1;
+    int32 count = 2;
+    int32 multiplier = 3;
+}
+
+message PrizePB {
+    PayoutPB payout = 1;
+    int32 multiplier = 2;
+    repeated int32 symbol_positions = 3;
+    int32 winline = 4;
+}
+
+enum Ccy {
+  DEFAULT = 0;
+  CNY = 1;
+  USD = 2;
+  GBP = 3;
+  EUR = 4;
+  JPY = 6;
+  THB = 7;
+  MYR = 8;
+  VND = 9;
+  KRW = 10;
+  IDR = 11;
+  ZAR = 12;
+  XBT = 13;
+  TRY = 14;
+}
+
+message WalletTransactionPB {
+  string id = 1;
+  int64 amount = 2;
+  enum Type {
+  DEFAULT = 0;
+  WAGER = 1;
+  PAYOUT = 2;
+  ENDROUND = 3;
+  }
+  Type type = 3;
+  Ccy currency = 4;
+}
+
+message GamestatePB {
+  enum GameID {
+  DEFAULT = 0;
+  THE_YEAR_OF_ZHU = 1;
+  ZODIAC = 2;
+  CAT_THIEF = 3;
+  THREE_KINGDOM_SHU = 4;
+  THREE_KINGDOM_WEI = 5;
+  THREE_KINGDOM_WU = 6;
+  CRIMSON_MASQUERADE = 7;
+  JUNGLE_SAGA = 8;
+  CANDY_GIRLS = 9;
+  WUKONG_TREASURES = 10;
+  STREET_RACER = 11;
+  BABAKS_QUEST = 12;
+  ASTRO_GEMS = 13;
+  PANDA = 14;
+  KING_OF_GAMBLERS = 15;
+  ART_OF_THE_FIST = 16;
+  SEASONS_WINTER = 17;
+  SEASONS_SPRING = 18;
+  SEASONS_SUMMER = 19;
+  SEASONS_AUTUMN = 20;
+  SEASONS = 21;
+  FRUITY_VERSE = 22;
+  A_FAIRY_TALE = 23;
+  A_HIDDEN_FOREST = 24;
+  BATTLEMECH = 25;
+  A_MILLION_LIGHTS = 26;
+  BISTRO = 27;
+  CLOUD9 = 28;
+  LANTERN_FESTIVAL = 29;
+  A_CANDY_GIRLS_CHRISTMAS = 30;
+  SKY_JEWELS = 31;
+  PEARL_FISHER = 32;
+  GOAL = 33;
+  DAYTONA = 34;
+  }
+  GameID game_id = 1;
+  int32 engine_def = 2;
+  int64 bet_per_line = 3;
+  Ccy currency = 4;
+  bytes previous_gamestate = 5;
+  bytes next_gamestate = 6;
+  enum Action {
+  base = 0;
+  finish = 1;
+  freespin = 2;
+  pickSpins = 3;
+  respin = 4;
+  freespin2 = 5;
+  freespin3 = 6;
+  freespin4 = 7;
+  freespin5 = 8;
+  freespin10 = 9;
+  freespin25 = 10;
+  }
+  Action action = 7;
+
+  message Reel {
+      repeated int32 symbols = 1;
+  }
+  repeated Reel symbol_grid = 8;
+  repeated PrizePB prizes = 9;
+  repeated int32 selected_win_lines = 10;
+  int32 relative_payout = 11;
+  int32 multiplier = 12;
+  repeated int32 stop_list = 13;
+  repeated Action next_actions = 14;
+
+  message Gamification {
+      int32 level = 1;
+      int32 stage = 2;
+      int32 remaining_spins = 3;
+  }
+  Gamification gamification = 15;
+}

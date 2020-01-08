@@ -1,0 +1,71 @@
+version: 2.0
+rtp: .959821
+volatility: 230.91701
+#CONFIRMED
+
+EngineDefs:
+  - name: base
+    WinType: ways
+    StakeDivisor: 30
+    function: BaseRound
+    Reels:
+      - [7, 4, 8, 1, 6, 9, 0, 5, 8, 2, 6, 5, 0, 9, 6, 1, 11, 0, 9, 2, 5, 3, 6, 4, 7, 3, 10, 2, 5, 1, 7, 4, 8, 1, 6, 7, 0, 5, 8, 2, 9, 11, 3]
+      - [4, 8, 3, 0, 6, 1, 0, 9, 3, 7, 2, 6, 4, 8, 1, 2, 10, 3, 1, 7, 4, 5, 6, 0, 7, 9, 1, 11, 5, 7, 4, 9, 2, 0, 6, 1, 0, 9, 3, 7, 2, 5, 4, 8, 0, 2, 8, 3, 1, 6]
+      - [2, 0, 9, 1, 2, 8, 4, 3, 7, 1, 2, 9, 0, 7, 4, 5, 3, 8, 0, 4, 10, 2, 0, 11, 1, 3, 6, 2, 5, 3, 0, 6, 9, 1, 2, 8, 4, 0, 7, 1, 2, 9, 0, 7, 4, 5, 3, 8, 0, 4, 6, 1, 4, 11, 1, 3, 6, 2, 5, 3]
+      - [6, 5, 1, 9, 7, 3, 6, 0, 4, 7, 3, 11, 2, 9, 4, 8, 0, 3, 6, 5, 1, 8, 2, 10, 1, 5, 8, 4, 6, 7, 2, 5, 9, 1, 7, 3, 6, 2, 4, 7, 0, 11, 2, 9, 4, 8, 0, 9, 3, 5, 1, 8]
+      - [5, 3, 9, 2, 7, 3, 8, 1, 6, 5, 0, 7, 9, 3, 8, 4, 11, 2, 8, 5, 0, 9, 6, 1, 8, 4, 10, 0, 7, 2, 9, 5, 4, 1, 6, 3, 7, 4, 1]
+    ViewSize: [3,3,3,3,3]
+    wilds:
+      - symbol: 10
+        multiplier: {multipliers: [1], probabilities: [1]}
+    Payouts:
+      - {Symbol: 0, Count: 3, Multiplier: 5}
+      - {Symbol: 0, Count: 4, Multiplier: 30}
+      - {Symbol: 0, Count: 5, Multiplier: 100}
+      - {Symbol: 1, Count: 3, Multiplier: 5}
+      - {Symbol: 1, Count: 4, Multiplier: 30}
+      - {Symbol: 1, Count: 5, Multiplier: 100}
+      - {Symbol: 2, Count: 3, Multiplier: 5}
+      - {Symbol: 2, Count: 4, Multiplier: 30}
+      - {Symbol: 2, Count: 5, Multiplier: 100}
+      - {Symbol: 3, Count: 3, Multiplier: 10}
+      - {Symbol: 3, Count: 4, Multiplier: 40}
+      - {Symbol: 3, Count: 5, Multiplier: 120}
+      - {Symbol: 4, Count: 3, Multiplier: 10}
+      - {Symbol: 4, Count: 4, Multiplier: 40}
+      - {Symbol: 4, Count: 5, Multiplier: 120}
+      - {Symbol: 5, Count: 3, Multiplier: 10}
+      - {Symbol: 5, Count: 4, Multiplier: 50}
+      - {Symbol: 5, Count: 5, Multiplier: 150}
+      - {Symbol: 6, Count: 3, Multiplier: 15}
+      - {Symbol: 6, Count: 4, Multiplier: 60}
+      - {Symbol: 6, Count: 5, Multiplier: 200}
+      - {Symbol: 7, Count: 3, Multiplier: 15}
+      - {Symbol: 7, Count: 4, Multiplier: 70}
+      - {Symbol: 7, Count: 5, Multiplier: 300}
+      - {Symbol: 8, Count: 3, Multiplier: 20}
+      - {Symbol: 8, Count: 4, Multiplier: 80}
+      - {Symbol: 8, Count: 5, Multiplier: 500}
+      - {Symbol: 9, Count: 3, Multiplier: 25}
+      - {Symbol: 9, Count: 4, Multiplier: 90}
+      - {Symbol: 9, Count: 5, Multiplier: 1000}
+      - {Symbol: 10, Count: 5, Multiplier: 1000}
+
+    SpecialPayouts:
+      - {Payout: {Symbol: 11, Count: 5, Multiplier: 400}, Index: "freespin:15", Multiplier: 1}
+      - {Payout: {Symbol: 11, Count: 4, Multiplier: 20}, Index: "freespin:15", Multiplier: 1}
+      - {Payout: {Symbol: 11, Count: 3, Multiplier: 5}, Index: "freespin:15", Multiplier: 1}
+
+  #freespin reels are different, each reel is drawn from the following depending on whether it shows wilds or not
+  #index of reel is equal to number of wilds present on the reel [0-3]
+  - name: freespin
+    function: DynamicWildWaysRound
+    Reels:
+      - [9, 4, 2, 3, 6, 1, 5, 0, 2, 8, 3, 0, 5, 1, 4, 7, 2, 1, 5, 4, 3]
+      - [10, 5, 0, 10, 4, 1, 10, 3, 2, 10, 1, 5, 10, 0, 4, 10, 2, 3]
+      - [10, 10, 5, 10, 10, 4, 10, 10, 3, 10, 10, 2, 10, 10, 1, 10, 10, 0]
+      - [10,10,10]
+    SpecialPayouts: # no scatter symbols on reels anyway
+      - {Payout: {Symbol: 12, Count: 0, Multiplier: 0}, Index: "sham", Multiplier: 0}
+
+

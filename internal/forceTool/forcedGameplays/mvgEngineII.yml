@@ -1,0 +1,27 @@
+#this file contains the forced outcomes for engine ii
+
+- id: 3scatter
+  action: base
+  reelsetId: 0
+  stopList: [16, 26, 21, 0, 0]
+
+- id: 4scatter
+  action: base
+  reelsetId: 0
+  stopList: [16, 26, 21, 10, 0]
+
+- id: 5scatter
+  action: base
+  reelsetId: 0
+  stopList: [16, 26, 21, 10, 16]
+
+- id: scatterAndPay
+  action: base
+  reelsetId: 0
+  stopList: [4, 2, 21, 10, 16]
+
+- id: 5wilds
+  action: base
+  reelsetId: 0
+  stopList: [25, 15, 19, 22, 25]
+

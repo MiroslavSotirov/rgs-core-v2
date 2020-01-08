@@ -1,0 +1,17 @@
+version:  '3'
+services:
+  rgs:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - memcached
+    environment:
+      - MCROUTER=memcached:11211
+    restart: unless-stopped
+
+  memcached:
+    image: memcached
+    ports:
+      - "11211:11211"
+    command: memcached -m 64

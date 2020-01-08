@@ -1,0 +1,15 @@
+# development mode
+devmode: true
+local: true
+
+# Log levels
+# debug, info, warn, error, fatal
+logging: debug
+
+# mcrouter address
+mcrouter: "127.0.0.1:11211"
+
+# server configuration
+server:
+  host: "0.0.0.0"
+  port: 3000

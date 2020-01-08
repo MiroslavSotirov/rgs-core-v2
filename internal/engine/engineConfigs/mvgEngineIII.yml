@@ -1,0 +1,146 @@
+version: 2.0
+rtp: .959716
+volatility: 74.10328
+# CONFIRMED
+
+EngineDefs:
+  - name: base
+    WinType: lines
+    StakeDivisor: 30
+    function: BaseRound
+    Reels:
+      - [11,5,0,7,4,1,6,5,0,7,3,2,10,5,4,6,2,3,9,0,1,7,2,5,11,2,0,6,3,1,8,3,2,10,1,4,8,0,4]
+      - [6,3,2,9,4,0,8,1,2,7,5,2,6,1,0,10,2,3,9,0,1,7,4,0,11,1,0,6,3,5,7,1,5,8,2,5,10,4,3,8,1,0]
+      - [9,5,0,6,3,2,8,0,1,9,0,3,11,2,1,9,2,4,6,1,5,10,0,1,8,3,2,7,1,4,11,0,4,6,5,2,7,0,3,8,4,1]
+      - [10,4,3,6,1,0,7,3,2,9,1,0,10,2,4,6,5,2,7,1,0,10,2,5,6,4,1,8,5,0,11,3,0,7,3,5,9,1,4,8,2,5]
+      - [11,5,3,9,4,1,8,5,0,6,3,2,10,5,4,7,2,3,8,0,1,9,2,4,10,2,5,7,0,1,8,3,2,10,1,4,9,0,4,6,5,3,8,1,0]
+    ViewSize: [3,3,3,3,3]
+    WinLines:
+      - [1,1,1,1,1]
+      - [0,0,0,0,0]
+      - [2,2,2,2,2]
+      - [0,1,2,1,0]
+      - [2,1,0,1,2]
+      - [0,0,1,0,0]
+      - [2,2,1,2,2]
+      - [1,0,0,0,1]
+      - [1,2,2,2,1]
+      - [0,1,1,1,0]
+      - [2,1,1,1,2]
+      - [0,1,0,1,0]
+      - [2,1,2,1,2]
+      - [1,0,1,0,1]
+      - [1,2,1,2,1]
+      - [1,1,0,1,1]
+      - [1,1,2,1,1]
+      - [0,2,0,2,0]
+      - [2,0,2,0,2]
+      - [1,0,2,0,1]
+      - [1,2,0,2,1]
+      - [0,0,2,0,0]
+      - [2,2,0,2,2]
+      - [0,2,2,2,0]
+      - [2,0,0,0,2]
+      - [2,0,1,0,2]
+      - [0,2,1,2,0]
+      - [2,1,0,0,1]
+      - [0,1,2,2,1]
+      - [1,0,1,2,1]
+    wilds:
+      - symbol: 10
+        multiplier: {multipliers: [1], probabilities: [1.0]}
+    Payouts:
+      - {Symbol: 0, Count: 3, Multiplier: 5}
+      - {Symbol: 0, Count: 4, Multiplier: 20}
+      - {Symbol: 0, Count: 5, Multiplier: 100}
+      - {Symbol: 1, Count: 3, Multiplier: 5}
+      - {Symbol: 1, Count: 4, Multiplier: 20}
+      - {Symbol: 1, Count: 5, Multiplier: 100}
+      - {Symbol: 2, Count: 3, Multiplier: 10}
+      - {Symbol: 2, Count: 4, Multiplier: 30}
+      - {Symbol: 2, Count: 5, Multiplier: 125}
+      - {Symbol: 3, Count: 3, Multiplier: 10}
+      - {Symbol: 3, Count: 4, Multiplier: 30}
+      - {Symbol: 3, Count: 5, Multiplier: 125}
+      - {Symbol: 4, Count: 3, Multiplier: 15}
+      - {Symbol: 4, Count: 4, Multiplier: 40}
+      - {Symbol: 4, Count: 5, Multiplier: 150}
+      - {Symbol: 5, Count: 3, Multiplier: 15}
+      - {Symbol: 5, Count: 4, Multiplier: 40}
+      - {Symbol: 5, Count: 5, Multiplier: 150}
+      - {Symbol: 6, Count: 3, Multiplier: 30}
+      - {Symbol: 6, Count: 4, Multiplier: 50}
+      - {Symbol: 6, Count: 5, Multiplier: 200}
+      - {Symbol: 7, Count: 3, Multiplier: 40}
+      - {Symbol: 7, Count: 4, Multiplier: 60}
+      - {Symbol: 7, Count: 5, Multiplier: 300}
+      - {Symbol: 8, Count: 3, Multiplier: 50}
+      - {Symbol: 8, Count: 4, Multiplier: 70}
+      - {Symbol: 8, Count: 5, Multiplier: 400}
+      - {Symbol: 9, Count: 2, Multiplier: 5}
+      - {Symbol: 9, Count: 3, Multiplier: 100}
+      - {Symbol: 9, Count: 4, Multiplier: 500}
+      - {Symbol: 9, Count: 5, Multiplier: 1000}
+      - {Symbol: 10, Count: 5, Multiplier: 1000} #5 wilds equals max payout
+
+    SpecialPayouts:
+      - {Payout: {Symbol: 11, Count: 5, Multiplier: 25}, Index: "pickSpins:1", Multiplier: 1}
+      - {Payout: {Symbol: 11, Count: 4, Multiplier: 5}, Index: "pickSpins:1", Multiplier: 1}
+      - {Payout: {Symbol: 11, Count: 3, Multiplier: 2}, Index: "pickSpins:1", Multiplier: 1}
+
+  - name: pickSpins
+    Reels:
+    function: SelectPrize
+    SpecialPayouts:
+      - {Index: "freespin5:5", Multiplier: 1}
+      - {Index: "freespin10:10", Multiplier: 1}
+      - {Index: "freespin25:25", Multiplier: 1}
+
+  - name: freespin5
+    Reels:
+      - [11,5,0,7,4,1,6,5,0,7,3,2,10,0,1,6,2,3,9,0,1,7,2,4,11,2,0,6,3,1,8,3,2,7,1,4,8,0,4,6,5,1]
+      - [11,1,0,6,3,5,7,1,5,6,2,5,10,4,3,8,1,0,6,3,2,9,4,0,8,1,2,7,5,2,6,1,0,7,2,3,8,0,1,7,4,0]
+      - [11,0,4,6,5,2,7,0,3,8,4,1,9,5,0,7,3,2,8,0,1,6,0,3,11,2,1,9,2,4,6,1,5,10,0,1,8,3,2,7,1,4,6,5,3]
+      - [11,3,0,7,3,5,6,1,4,8,2,5,10,4,3,6,1,0,7,3,2,9,1,0,7,2,1,6,0,2,7,1,0,10,2,5,6,4,1,8,5,0]
+      - [11,5,3,7,4,1,8,5,0,6,3,2,10,0,1,7,2,3,6,0,1,9,2,4,8,2,5,7,0,1,8,3,2,6,1,4,9,0,4,6,5,3,8,1,0,6,4,5,7,3,2,9,0,1]
+    wilds:
+      - symbol: 10
+        multiplier: {multipliers: [3], probabilities: [1.0]}
+    SpecialPayouts:
+      - {Payout: {Symbol: 11, Count: 5, Multiplier: 25}, Index: "scatterWin:0", Multiplier: 1}
+      - {Payout: {Symbol: 11, Count: 4, Multiplier: 5}, Index: "scatterWin:0", Multiplier: 1}
+      - {Payout: {Symbol: 11, Count: 3, Multiplier: 2}, Index: "scatterWin:0", Multiplier: 1}
+    multiplier: {multipliers: [10], probabilities: [1]}
+
+  - name: freespin10
+    Reels:
+      - [11,5,0,7,4,1,6,5,0,7,3,2,10,0,1,6,2,3,9,0,1,7,2,4,11,2,0,6,3,1,8,3,2,7,1,4,8,0,4,6,5,1]
+      - [11,1,0,6,3,5,7,1,5,6,2,5,10,4,3,8,1,0,6,3,2,9,4,0,8,1,2,7,5,2,6,1,0,7,2,3,8,0,1,7,4,0]
+      - [11,0,4,6,5,2,7,0,3,8,4,1,9,5,0,7,3,2,8,0,1,6,0,3,11,2,1,9,2,4,6,1,5,10,0,1,8,3,2,7,1,4,6,5,3]
+      - [11,3,0,7,3,5,6,1,4,8,2,5,10,4,3,6,1,0,7,3,2,9,1,0,7,2,1,6,0,2,7,1,0,10,2,5,6,4,1,8,5,0]
+      - [11,5,3,7,4,1,8,5,0,6,3,2,10,0,1,7,2,3,6,0,1,9,2,4,8,2,5,7,0,1,8,3,2,6,1,4,9,0,4,6,5,3,8,1,0,6,4,5,7,3,2,9,0,1]
+    wilds:
+      - symbol: 10
+        multiplier: {multipliers: [3], probabilities: [1.0]}
+    SpecialPayouts:
+      - {Payout: {Symbol: 11, Count: 5, Multiplier: 25}, Index: "scatterWin:0", Multiplier: 1}
+      - {Payout: {Symbol: 11, Count: 4, Multiplier: 5}, Index: "scatterWin:0", Multiplier: 1}
+      - {Payout: {Symbol: 11, Count: 3, Multiplier: 2}, Index: "scatterWin:0", Multiplier: 1}
+    multiplier: {multipliers: [5], probabilities: [1]}
+
+
+  - name: freespin25
+    Reels:
+      - [11,5,0,7,4,1,6,5,0,7,3,2,10,0,1,6,2,3,9,0,1,7,2,4,11,2,0,6,3,1,8,3,2,7,1,4,8,0,4,6,5,1]
+      - [11,1,0,6,3,5,7,1,5,6,2,5,10,4,3,8,1,0,6,3,2,9,4,0,8,1,2,7,5,2,6,1,0,7,2,3,8,0,1,7,4,0]
+      - [11,0,4,6,5,2,7,0,3,8,4,1,9,5,0,7,3,2,8,0,1,6,0,3,11,2,1,9,2,4,6,1,5,10,0,1,8,3,2,7,1,4,6,5,3]
+      - [11,3,0,7,3,5,6,1,4,8,2,5,10,4,3,6,1,0,7,3,2,9,1,0,7,2,1,6,0,2,7,1,0,10,2,5,6,4,1,8,5,0]
+      - [11,5,3,7,4,1,8,5,0,6,3,2,10,0,1,7,2,3,6,0,1,9,2,4,8,2,5,7,0,1,8,3,2,6,1,4,9,0,4,6,5,3,8,1,0,6,4,5,7,3,2,9,0,1]
+    wilds:
+      - symbol: 10
+        multiplier: {multipliers: [3], probabilities: [1.0]}
+    SpecialPayouts:
+      - {Payout: {Symbol: 11, Count: 5, Multiplier: 25}, Index: "scatterWin:0", Multiplier: 1}
+      - {Payout: {Symbol: 11, Count: 4, Multiplier: 5}, Index: "scatterWin:0", Multiplier: 1}
+      - {Payout: {Symbol: 11, Count: 3, Multiplier: 2}, Index: "scatterWin:0", Multiplier: 1}
+    multiplier: {multipliers: [2], probabilities: [1]}

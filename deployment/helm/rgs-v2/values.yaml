@@ -1,0 +1,141 @@
+# Default values for rgs-v2.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: harbor.maverick-ops.com/mvg_rgs
+  pullPolicy: IfNotPresent
+  version: v2.0.0
+
+imagePullSecrets:
+  - name: harborcred
+
+nameOverride: ""
+fullnameOverride: ""
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/http2-push-preload: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    field.cattle.io/ingressState: "{}"
+    nginx.ingress.kubernetes.io/configuration-snippet: "more_set_headers \"Access-Control-Expose-Headers: ETag\";"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: true
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Content-Type, If-Match"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS, PUT"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-max-age: 151200
+    nginx.ingress.kubernetes.io/enable-cors: true
+  hosts:
+    - host:
+      paths:
+        - "/v2"
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+config:
+  devmode: true
+  local: false
+  logging: debug
+  mcrouter: "mcrouter-mcrouter.default:5000"
+  server:
+    host: "0.0.0.0"
+    port: 3000
+  storeurl: "https://gnrc-api.dashur.io/v1/gnrc/maverick"
+  storeappid: "VrCLq4UqYBf39rJt"
+  storeapppass: "V6Kg9muzJxsz3nWFvJeyccU7"
+  defaultlanguage: "en"
+  defaultplatform: "html5"
+  demotokenprefix: "demo-token-ezVVKaEv2nY7kP2gMCX7vfCH"
+  democurrency: "USD"
+
+gameConfig:
+  - engineID: mvgEngineI
+    games:
+      - the-year-of-zhu
+      - cat-thief
+      - lantern-festival
+      - crimson-masquerade
+      - babaks-quest
+      - astro-gems
+      - jungle-saga
+      - wukong-treasures
+      - three-kingdom-shu
+  - engineID: mvgEngineII
+    games:
+      - zodiac
+      - street-racer
+      - panda
+      - three-kingdom-wu
+      - candy-girls
+      - bistro
+  - engineID: mvgEngineIII
+    games:
+      - three-kingdom-wei
+      - king-of-gamblers
+      - a-million-lights
+  - engineID: mvgEngineV
+    games:
+      - a-fairy-tale
+      - a-candy-girls-christmas
+  - engineID: mvgEngineVII
+    games:
+      - art-of-the-fist
+      - battlemech
+  - engineID: mvgEngineIX
+    games:
+      - fruity-verse
+      - a-hidden-forest
+      - daytona
+  - engineID: mvgEngineX
+    games:
+      - seasons-winter
+      - seasons-spring
+      - seasons-summer
+      - seasons-autumn
+      - seasons
+  - engineID: mvgEngineXII
+    games:
+      - cloud9
+      - pearl-fisher
+  - engineID: mvgEngineXIII
+    games:
+      - sky-jewels
+      - goal

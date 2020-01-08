@@ -1,0 +1,53 @@
+
+- engineID: mvgEngineI
+  games:
+    - the-year-of-zhu
+    - cat-thief
+    - lantern-festival
+    - crimson-masquerade
+    - babaks-quest
+    - astro-gems
+    - jungle-saga
+    - wukong-treasures
+    - three-kingdom-shu
+- engineID: mvgEngineII
+  games:
+    - zodiac
+    - street-racer
+    - panda
+    - three-kingdom-wu
+    - candy-girls
+    - bistro
+- engineID: mvgEngineIII
+  games:
+    - three-kingdom-wei
+    - king-of-gamblers
+    - a-million-lights
+- engineID: mvgEngineV
+  games:
+    - a-fairy-tale
+    - a-candy-girls-christmas
+- engineID: mvgEngineVII
+  games:
+    - art-of-the-fist
+    - battlemech
+- engineID: mvgEngineIX
+  games:
+    - fruity-verse
+    - a-hidden-forest
+    - daytona
+- engineID: mvgEngineX
+  games:
+    - seasons-winter
+    - seasons-spring
+    - seasons-summer
+    - seasons-autumn
+    - seasons
+- engineID: mvgEngineXII
+  games:
+    - cloud9
+    - pearl-fisher
+- engineID: mvgEngineXIII
+  games:
+    - sky-jewels
+    - goal

@@ -1,0 +1,61 @@
+version: 2.0
+rtp: .941217
+volatility: 100 #sham
+# CONFIRMED
+
+EngineDefs:
+  - name: base
+    WinType: ways
+    StakeDivisor: 40
+    function: BaseRound
+    Reels:
+      - [2,2,7,4,0,3,7,4,4,6,3,0,7,2,2,4,6,0,5,6,4,5,5,7,4,2,8,2,6,4,4,0,8,3,3,4,3,5,0,3,0,11,2,2,7,4,3,4,6,4,5,0,0,8,2,4,6,4,5,0,3,7,0,3,6,2,3,1,4,5,0,6,3,2,3]
+      - [1,8,3,5,10,3,2,11,1,8,5,7,5,1,3,3,7,1,5,7,5,3,8,5,0,1,5,5,8,1,7,3,7,1,5,1,7,1,4,1,7,5,6,5,1,5,11]
+      - [2,4,6,4,0,3,6,2,2,4,3,7,0,8,1,6,4,8,3,4,7,4,3,2,7,3,8,3,4,6,5,3,8,2,7,3,3,4,6,5,3,11]
+      - [2,10,4,8,2,0,1,6,3,5,1,6,2,4,1,0,6,2,8,1,6,5,11,1,6,5,0,1,2,6,4,1,5,6,0,4,1,2,6,5,4,2,0,1,5,6,0,1,5,6,0,4,7,2,1,4,6,5,2,1,0,5,2,4,6,0,5,1,6,0,11,4,8]
+      - [3,1,6,5,3,1,4,7,0,1,3,7,2,1,3,7,2,1,3,4,2,8,1,11,5,4,2]
+    ViewSize: [4,4,4,4,4]
+    wilds:
+      - symbol: 9
+        multiplier: {multipliers: [1], probabilities: [1.0]}
+      - symbol: 10
+        multiplier: {multipliers: [1], probabilities: [1.0]}
+    Payouts:
+      - {Symbol: 0, Count: 3, Multiplier: 10} # A
+      - {Symbol: 0, Count: 4, Multiplier: 40}
+      - {Symbol: 0, Count: 5, Multiplier: 125}
+      - {Symbol: 1, Count: 3, Multiplier: 5}  # K
+      - {Symbol: 1, Count: 4, Multiplier: 40}
+      - {Symbol: 1, Count: 5, Multiplier: 100}
+      - {Symbol: 2, Count: 3, Multiplier: 5}  # Q
+      - {Symbol: 2, Count: 4, Multiplier: 40}
+      - {Symbol: 2, Count: 5, Multiplier: 75}
+      - {Symbol: 3, Count: 3, Multiplier: 5}  # J
+      - {Symbol: 3, Count: 4, Multiplier: 10}
+      - {Symbol: 3, Count: 5, Multiplier: 50}
+      - {Symbol: 4, Count: 3, Multiplier: 5}  # 10
+      - {Symbol: 4, Count: 4, Multiplier: 10}
+      - {Symbol: 4, Count: 5, Multiplier: 50}
+      - {Symbol: 5, Count: 3, Multiplier: 5}  # 9
+      - {Symbol: 5, Count: 4, Multiplier: 10}
+      - {Symbol: 5, Count: 5, Multiplier: 50}
+      - {Symbol: 6, Count: 3, Multiplier: 50}  # LILY
+      - {Symbol: 6, Count: 4, Multiplier: 80}
+      - {Symbol: 6, Count: 5, Multiplier: 250}
+      - {Symbol: 7, Count: 3, Multiplier: 75}  # TURTLE
+      - {Symbol: 7, Count: 4, Multiplier: 200}
+      - {Symbol: 7, Count: 5, Multiplier: 750}
+      - {Symbol: 8, Count: 3, Multiplier: 100}  # FISH
+      - {Symbol: 8, Count: 4, Multiplier: 250}
+      - {Symbol: 8, Count: 5, Multiplier: 1000}
+    SpecialPayouts:
+      - {Payout: {Symbol: 11, Count: 5, Multiplier: 125}, Index: "freespin:20", Multiplier: 1}
+      - {Payout: {Symbol: 11, Count: 4, Multiplier: 5}, Index: "freespin:10", Multiplier: 1}
+      - {Payout: {Symbol: 11, Count: 3, Multiplier: 1}, Index: "freespin:5", Multiplier: 1}
+  - name: freespin
+    Reels:
+      - [2,2,7,4,0,7,3,4,4,8,3,0,7,3,2,4,8,0,5,6,4,5,5,7,3,2,5,2,6,4,4,0,8,3,3,4,3,5,0,3,0,11,2,2,7,4,3,4,6,4,5,0,0,8,2,4,6,4,5,0,3,7,0,3,6,2,3,1,5,5,0,6,3,2,3]
+      - [1,3,8,5,10,3,8,5,11,2,1,5,9,2,1,5,6,3,1,9,6,3,1,8,3,4,9,8,3,4,5,3,5,0,9,3,5,0,4,1,5,9,4,1,5,1,7,1,9,1,7,1,5,5,2,9,5,5,2,6,11]
+      - [2,6,4,9,2,6,4,0,3,5,4,9,3,5,4,1,2,4,9,1,2,4,3,7,1,9,3,7,1,5,6,3,9,5,6,3,0,8,2,9,0,8,2,3,7,4,9,3,7,4,1,3,2,9,1,3,2,8,4,6,5,11]
+      - [2,10,4,8,2,6,0,3,9,6,0,3,5,11,1,8,4,9,1,8,4,5,6,1,9,5,6,1,11,2,8,1,9,2,8,1,6,4,0,1,9,4,0,1,5,8,2,9,5,8,2,1,6,5,3,1,2,7,0,1,2,4,6,5,0,2,4,5,6,2,1,0,6,2,4,5,0,1,8,5,0,1,7,2,4,6,5,2,0,1,4,2,0,5,1,2,0,5,6,4,8]
+      - [2,5,1,3,6,0,1,2,5,3,1,2,7,5,1,4,8,7,1,4,11,3,0]

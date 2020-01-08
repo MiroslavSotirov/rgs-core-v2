@@ -1,0 +1,5 @@
+apiVersion: v2
+name: rgs-v2
+description: A Helm chart for Kubernetes to deploy RGSv2
+type: application
+version: 1.0.0

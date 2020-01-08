@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Maverick Play History</title>
+</head>
+<body>
+<p>Game Round ID : {{.Gamestate.Id}} || Game and ReelSetID : {{.Gamestate.GameID}}</p>
+<p>Action : {{.Gamestate.Action}}</p>
+<p>Wager : {{.Wager}} {{.Currency}}</p>
+<p>Payout : {{.Payout}} {{.Currency}}</p>
+<p>BetPerLine : {{.BetPerLine}} {{.Currency}}</p>
+<p>PreviousGamestate : {{.Gamestate.PreviousGamestate}}</p>
+<table style="width:100%">
+    {{range $x := $.SymbolGrid}}
+
+	<tr>
+        {{range $y := $x}}
+			<td><img src={{printf "https://dev06.maverick-ops.com/symbols/%v/icon%v.png" $.GameID $y}} alt="Noimage"></td>
+        {{end}}
+	</tr>
+    {{end}}
+
+</table>
+
+<p>Wins</p>
+{{range $x := .Gamestate.Prizes}}
+<p>Symbol: {{$x.Payout.Symbol}} || Count: {{$x.Payout.Count}} || WinLine: {{$x.Winline}}  </p>
+{{end}}
+<p>Selected Win Lines : {{.Gamestate.SelectedWinLines}}</p>
+<p>Relative Payout : {{.Gamestate.RelativePayout}}</p>
+<p>Round Multiplier : {{.Gamestate.Multiplier}}</p>
+<p>Stop List : {{.Gamestate.StopList}}</p>
+<p>Next Actions : {{.Gamestate.NextActions}}</p>
+
+</body>
+</html>

@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rgs-v2.fullname" . }}
+  labels:
+    {{- include "rgs-v2.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "rgs-v2.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "rgs-v2.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.version }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: rgs
+              containerPort: 3000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: rgs
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: rgs
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /internal/engine/engineConfigs/
+              name: engineConfigs
+            - mountPath: /config/
+              name: baseConfigs
+            - mountPath: /internal/parameterSelector/
+              name: parameterConfig
+            - mountPath: /internal/forceTool/forcedGameplays/
+              name: forceTool
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - configMap:
+            name: engineConfigs
+          name: engineConfigs
+        - configMap:
+            name: baseConfigs
+          name: baseConfigs
+        - configMap:
+            name: parameterConfig
+          name: parameterConfig
+        - configMap:
+            name: forceTool
+          name: forceTool
