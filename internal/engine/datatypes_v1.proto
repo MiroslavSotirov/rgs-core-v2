@@ -82,6 +82,7 @@ message GamestatePB {
   PEARL_FISHER = 32;
   GOAL = 33;
   DAYTONA = 34;
+  A_YEAR_OF_LAOSHU = 35;
   }
   GameID game_id = 1;
   int32 engine_def = 2;
