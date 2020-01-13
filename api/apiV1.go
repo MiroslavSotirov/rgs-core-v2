@@ -53,7 +53,16 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	wallet := chi.URLParam(request, "wallet")
 	memID := strings.Split(authHeader, "\"")[1]
 	logger.Debugf("request: %v", request)
-	player, previousGamestateStore, err := store.ServLocal.PlayerByToken(store.Token(memID), store.ModeDemo, gameSlug)
+	var player store.PlayerStore
+	var previousGamestateStore store.GameStateStore
+	var err *store.Error
+	switch wallet {
+	case "demo":
+		player, previousGamestateStore, err = store.ServLocal.PlayerByToken(store.Token(memID), store.ModeDemo, gameSlug)
+	case "dashur":
+		player, previousGamestateStore, err = store.Serv.PlayerByToken(store.Token(memID), store.ModeReal, gameSlug)
+
+	}
 	var previousGamestate engine.Gamestate
 
 	if err != nil {
