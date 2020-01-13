@@ -18,12 +18,15 @@ import (
 
 //connect to memcache only for dev mode
 var MC *memcache.Client
-var Serv LocalService
+var ServLocal LocalService
+var Serv Service
+
 
 func Init() rgserror.IRGSError {
 
-	//Serv = New(&config.GlobalConfig)
-	Serv = NewLocal()
+	//ServLocal = New(&config.GlobalConfig)
+	ServLocal = NewLocal()
+	Serv = New(&config.GlobalConfig)
 	if config.GlobalConfig.DevMode {
 		MC = memcache.New(config.GlobalConfig.MCRouter)
 	}
@@ -117,7 +120,7 @@ func GetAssociatedGamestates(auth Token, previousGS engine.Gamestate) ([]engine.
 	var associatedGamestates []engine.Gamestate
 	for currentGS := previousGS; currentGS.Action != "base" && currentGS.Action != "maxBase" && currentGS.Action != "init"; currentGS = previousGS {
 		logger.Warnf("current GS: %#v", currentGS)
-		previousgsStore, err := Serv.GamestateById(previousGS.PreviousGamestate)
+		previousgsStore, err := ServLocal.GamestateById(previousGS.PreviousGamestate)
 
 		if err != nil {
 			logger.Errorf("Error retrieving associated gamestates: %v", err)

@@ -224,7 +224,7 @@ func Routes() *chi.Mux {
 			}
 		})
 
-		r.Post("/play/{gameSlug:[A-Za-z0-9-]+}/{gamestateID:[A-Za-z0-9-]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Post("/play/{gameSlug:[A-Za-z0-9-]+}/{gamestateID:[A-Za-z0-9-]+}/{wallet:[A-Z,a-z0-9-]+}", func(w http.ResponseWriter, r *http.Request) {
 			gameplay, err := renderNextGamestate(r)
 
 			if err != nil {
@@ -316,15 +316,23 @@ func Routes() *chi.Mux {
 			}
 		})
 
-		r.Put("/clientstate/{gamestateID:[A-Za-z0-9-_]+}/{token:[A-Za-z0-9-_]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Put("/clientstate/{gamestateID:[A-Za-z0-9-_]+}/{token:[A-Za-z0-9-_]+}/{wallet:[A-Za-z0-9-_]+}", func(w http.ResponseWriter, r *http.Request) {
 			token := chi.URLParam(r, "token")
 			gamestateID := chi.URLParam(r, "gamestateID")
-			gamestate, err := store.Serv.GamestateById(gamestateID)
+			wallet := chi.URLParam(r, "wallet")
+			gamestate, err := store.ServLocal.GamestateById(gamestateID)
+
 			if err != nil {
 				fmt.Fprint(w, []byte("ERROR"))
 			}
-			gameID, _ := engine.GetGameIDAndReelset(store.DeserializeGamestateFromBytes(gamestate.GameState).GameID)
-			_, err = store.Serv.CloseRound(store.Token(token), store.ModeDemo, gameID, gamestateID)
+			gsItem := store.DeserializeGamestateFromBytes(gamestate.GameState)
+			gameID, _ := engine.GetGameIDAndReelset(gsItem.GameID)
+			switch wallet {
+			case "demo":
+				_, err = store.ServLocal.CloseRound(store.Token(token), store.ModeDemo, gameID, gamestateID)
+			case "dashur":
+				_, err = store.Serv.CloseRound(store.Token(token), store.ModeReal, gameID, gamestateID)
+			}
 			if err != nil {
 				fmt.Fprint(w, []byte("ERROR"))
 			}

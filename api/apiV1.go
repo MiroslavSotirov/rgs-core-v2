@@ -8,7 +8,6 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"net/http"
@@ -16,7 +15,6 @@ import (
 	"time"
 )
 
-// legacy client game init, to be deleted
 func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, engine.Gamestate, rgserror.IRGSError) {
 	// get refresh token from auth header if applicable
 	gameSlug := chi.URLParam(request, "gameSlug")
@@ -33,19 +31,9 @@ func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, en
 		return store.PlayerStore{}, engine.EngineConfig{}, engine.Gamestate{}, err
 	}
 	wallet := chi.URLParam(request, "wallet")
-	// session := session{}
-	switch wallet {
-	case "demo":
-		if authToken == "" {
-			authToken = rng.RandStringRunes(6)
-		}
-		latestGamestate, player, err := store.InitPlayerGS(authToken, authToken, gameSlug, "maverick", currency)
-		return player, engineConfig, latestGamestate, err
-	case "dashur":
-		//we don't use this right now so hack:
-		return store.PlayerStore{}, engine.EngineConfig{}, engine.Gamestate{}, rgserror.ErrInvalidCredentials
-	}
-	return store.PlayerStore{}, engine.EngineConfig{}, engine.Gamestate{}, rgserror.ErrInvalidCredentials
+	latestGamestate, player, err := store.InitPlayerGS(authToken, authToken, gameSlug, "maverick", currency, wallet)
+	return player, engineConfig, latestGamestate, err
+
 }
 
 func renderNextGamestate(request *http.Request) (GameplayResponse, rgserror.IRGSError) {
@@ -62,9 +50,10 @@ func renderNextGamestate(request *http.Request) (GameplayResponse, rgserror.IRGS
 func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceResponse, engine.EngineConfig, rgserror.IRGSError) {
 	authHeader := request.Header.Get("Authorization")
 	gameSlug := chi.URLParam(request, "gameSlug")
+	wallet := chi.URLParam(request, "wallet")
 	memID := strings.Split(authHeader, "\"")[1]
 	logger.Debugf("request: %v", request)
-	player, previousGamestateStore, err := store.Serv.PlayerByToken(store.Token(memID), store.ModeDemo, gameSlug)
+	player, previousGamestateStore, err := store.ServLocal.PlayerByToken(store.Token(memID), store.ModeDemo, gameSlug)
 	var previousGamestate engine.Gamestate
 
 	if err != nil {
@@ -160,20 +149,22 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	}
 	gamestate.PreviousGamestate = previousGamestate.Id
 
-	// settle transactions (all in demo mode for now
+	// settle transactions
 	var balance store.BalanceStore
 	token := player.Token
 	for _, transaction := range gamestate.Transactions {
 		var gs []byte
+		status := store.RoundStatusOpen
 		if transaction.Type == "WAGER" {
 			gs = store.SerializeGamestateToBytes(gamestate)
+		} else if transaction.Type == "ENDROUND" {
+			status = store.RoundStatusClose
 		}
-		balance, err = store.Serv.Transaction(token, store.ModeDemo, store.TransactionStore{
+		txStore := store.TransactionStore{
 			TransactionId:       transaction.Id,
 			Token:               token,
-			Mode:                store.ModeDemo,
 			Category:            store.Category(transaction.Type),
-			RoundStatus:         store.RoundStatusOpen,
+			RoundStatus:         status,
 			PlayerId:            player.PlayerId,
 			GameId:              gameSlug,
 			RoundId:             gamestate.Id,
@@ -181,7 +172,18 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			ParentTransactionId: "",
 			TxTime:              time.Now(),
 			GameState:           gs,
-		})
+		}
+		switch wallet {
+		case "demo":
+			logger.Warnf("DEMO MODE")
+			txStore.Mode = store.ModeDemo
+			balance, err = store.ServLocal.Transaction(token, store.ModeDemo, txStore)
+		case "dashur":
+			logger.Warnf("DASHUR MODE")
+			txStore.Mode = store.ModeReal
+			balance, err = store.Serv.Transaction(token, store.ModeReal, txStore)
+		}
+
 		if err != nil {
 			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrDasInsufficientFundError
 		}

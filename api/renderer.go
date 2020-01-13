@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
@@ -697,8 +698,7 @@ func BuildForm(g engine.Gamestate, engineID string, showFeature ...bool) FormRes
 func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance BalanceResponse, engineConf engine.EngineConfig, playerStore store.PlayerStore) GameplayResponse {
 	// generate gamestate response
 	operator := request.FormValue("operator")
-	mode := request.FormValue("mode")
-
+	mode := chi.URLParam(request, "wallet")
 	authID := playerStore.Token
 	gameID := strings.Split(gamestate.GameID, ":")[0]
 	engineID, _ := config.GetEngineFromGame(gameID)
@@ -744,16 +744,14 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 				Rel:  "self",
 			},
 			{
-				Href:   fmt.Sprintf("%s%s/%s/rgs/play/%s/%s", urlScheme, request.Host, APIVersion, gameID, gamestate.Id),
+				Href:   fmt.Sprintf("%s%s/%s/rgs/play/%s/%s/%s", urlScheme, request.Host, APIVersion, gameID, gamestate.Id, mode),
 				Method: "POST",
 				Rel:    "new-game",
-				//Id: "nextround",
 				Type: "application/vnd.maverick.slots.spin-v1+json",
 			}, {
-				Href:   fmt.Sprintf("%s%s/%s/rgs/clientstate/%s/%s", urlScheme, request.Host, APIVersion, gamestate.Id, authID),
+				Href:   fmt.Sprintf("%s%s/%s/rgs/clientstate/%s/%s/%s", urlScheme, request.Host, APIVersion, gamestate.Id, authID, mode),
 				Method: "PUT",
 				Rel:    "gameplay-client-state-save",
-				//Id:     "updategamestate",
 				Type: "application/octet-stream",
 			},
 		},

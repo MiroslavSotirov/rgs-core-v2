@@ -137,7 +137,6 @@ func TestPrepareActions(t *testing.T) {
 	}
 
 }
-
 func TestPrepareTransactions(t *testing.T) {
 	// test relativepayout == 0 : should be no PAYOUT transaction
 	// payout can have a preexisting transaction, if so this should remain
@@ -147,46 +146,64 @@ func TestPrepareTransactions(t *testing.T) {
 	// this may change with respin games, where we might want to start only adding endround if the gamestate's action is "finish"
 
 	gsTest := Gamestate{RelativePayout: 5, Multiplier: 2, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}}
-	gsTest.PrepareTransactions()
+	gsTest.PrepareTransactions(Gamestate{}, false)
 	if gsTest.Transactions[0].Amount.Amount != 10000 || gsTest.Transactions[0].Amount.Currency != "USD" || gsTest.Transactions[0].Type != "PAYOUT" || len(gsTest.Transactions[0].Id) != 8 {
 		t.Errorf("payout improperly processed")
 	}
-	if gsTest.Transactions[1].Amount.Amount != 0 || gsTest.Transactions[1].Amount.Currency != "USD" || gsTest.Transactions[1].Type != "ENDROUND" || len(gsTest.Transactions[0].Id) != 8 {
-		t.Errorf("endround improperly processed %v", gsTest.Transactions[1])
+	if len(gsTest.Transactions[0].Id) != 8 {
+		t.Errorf("bad ID set %v", gsTest.Transactions[0].Id)
+	}
+	if gsTest.PlaySequence != 0 {
+		t.Errorf("failed processing play sequence, expected 0, got %v", gsTest.PlaySequence)
+	}
+	if gsTest.CumulativeWin !=10000 {
+		t.Errorf("failed processing cumulative win, expected 10000, got %v", gsTest.CumulativeWin)
 	}
 
 	// test relativepayout zero explicitly
 	gsTest = Gamestate{RelativePayout: 0, Multiplier: 1, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}}
-	gsTest.PrepareTransactions()
+	gsTest.PrepareTransactions(Gamestate{}, false)
 
-	if len(gsTest.Transactions) != 1 || gsTest.Transactions[0].Type != "ENDROUND" {
-		t.Errorf("expected only one endround transaction")
+	if len(gsTest.Transactions) != 0 {
+		t.Errorf("expected no transaction")
 	}
 
 	// test relativepayout zero implicitly and future actions
 	gsTest = Gamestate{Multiplier: 1, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"freespin", "finish"}}
-	gsTest.PrepareTransactions()
+	gsTest.PrepareTransactions(Gamestate{}, false)
 
 	if len(gsTest.Transactions) != 0 {
-		t.Errorf("expected no ransaction")
+		t.Errorf("expected no transaction")
 	}
 
 	// test multiplier zero explicitly
 	gsTest = Gamestate{RelativePayout: 1, Multiplier: 0, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}}
-	gsTest.PrepareTransactions()
+	gsTest.PrepareTransactions(Gamestate{}, false)
 
-	if len(gsTest.Transactions) != 1 || gsTest.Transactions[0].Type != "ENDROUND" {
-		t.Errorf("expected only one endround transaction")
+	if len(gsTest.Transactions) != 0 {
+		t.Errorf("expected no transaction")
 	}
 
 	// test multiplier zero implicitly and preexisting transaction
 	gsTest = Gamestate{RelativePayout: 1, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}, Transactions: []WalletTransaction{{Amount: Money{Amount: 5000, Currency: "USD"}, Type: "WAGER", Id: "ABCDEFGH"}}}
-	gsTest.PrepareTransactions()
+	gsTest.PrepareTransactions(Gamestate{}, false)
 
-	if len(gsTest.Transactions) != 2 || gsTest.Transactions[0].Type != "WAGER" || gsTest.Transactions[1].Type != "ENDROUND" {
+	if len(gsTest.Transactions) != 1 || gsTest.Transactions[0].Type != "WAGER" {
 		t.Errorf("expected one wager tx and one endround tx")
 	}
+
+	// test cumulative win addition
+	gsTest = Gamestate{RelativePayout: 5, Multiplier: 2, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}}
+	gsTest.PrepareTransactions(Gamestate{CumulativeWin:5000, PlaySequence: 5}, true)
+
+	if gsTest.CumulativeWin != 15000 {
+		t.Errorf("cumulative win calculation failed, expected 15000, got %v", gsTest.CumulativeWin)
+	}
+	if gsTest.PlaySequence != 6 {
+		t.Errorf("play sequence calculation failed, expected 6, got %v", gsTest.PlaySequence)
+	}
 }
+
 
 func TestDetermineLineWins(t *testing.T) {
 	testGrid := [][]int{{1, 1, 1}, {1, 1, 1}, {1, 1, 1}, {1, 1, 1}, {1, 1, 1}}
