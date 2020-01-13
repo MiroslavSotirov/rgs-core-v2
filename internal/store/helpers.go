@@ -112,25 +112,3 @@ func DeserializeGamestateFromBytes(serialized []byte) engine.Gamestate {
 	}
 	return deserializedGS.Convert(deserializedTX)
 }
-
-func GetAssociatedGamestates(auth Token, previousGS engine.Gamestate) ([]engine.Gamestate, error) {
-	// from an endpoint gamestate, returns previous gamestates by Gamestate.PreviousGamestate reference until finish is reached (i.e. previous spin)
-
-	logger.Infof("Getting associated gamestates %#v", previousGS.Id)
-	var associatedGamestates []engine.Gamestate
-	for currentGS := previousGS; currentGS.Action != "base" && currentGS.Action != "maxBase" && currentGS.Action != "init"; currentGS = previousGS {
-		logger.Warnf("current GS: %#v", currentGS)
-		previousgsStore, err := ServLocal.GamestateById(previousGS.PreviousGamestate)
-
-		if err != nil {
-			logger.Errorf("Error retrieving associated gamestates: %v", err)
-			return []engine.Gamestate{}, rgserror.ErrBalanceStoreError
-		}
-		previousGS = DeserializeGamestateFromBytes(previousgsStore.GameState)
-		if len(previousGS.NextActions) == 1 && previousGS.NextActions[0] == "finish" {
-			break
-		}
-		associatedGamestates = append(associatedGamestates, previousGS)
-	}
-	return associatedGamestates, nil
-}

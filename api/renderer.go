@@ -348,11 +348,7 @@ type WinResponse struct {
 }
 
 func fillGamestateResponse(auth store.Token, engineConf engine.EngineConfig, gamestate engine.Gamestate) GamestateResponse {
-	associatedGamestates, err := store.GetAssociatedGamestates(auth, gamestate) // this only gets previous gamestates, length is proxy for currentplay
-	if err != nil {
-		logger.Errorf("Failed fetching related gamestates: %v", err)
-		return GamestateResponse{}
-	}
+
 	view := make([][]string, len(gamestate.SymbolGrid[0]))
 	for _, row := range gamestate.SymbolGrid {
 		//viewRow := make([]string, len(row.Symbols))
@@ -514,11 +510,7 @@ func fillGamestateResponse(auth store.Token, engineConf engine.EngineConfig, gam
 	if gamestate.Action != "base" {
 		currentStake = gamestate.BetPerLine.Amount.Mul(engine.NewFixedFromInt(engineConf.EngineDefs[0].StakeDivisor))
 	}
-	totalWinnings := currentWinnings
-	for _, previousGamestate := range associatedGamestates {
-		previousWinnings, _ := engine.GetCurrentWinAndStake(previousGamestate)
-		totalWinnings = totalWinnings.Add(previousWinnings)
-	}
+	totalWinnings := gamestate.CumulativeWin
 	logger.Debugf("selected winlines: %v", gamestate.SelectedWinLines)
 	selectedWinLines := make([]string, 0)
 	for _, el := range gamestate.SelectedWinLines {
@@ -530,7 +522,7 @@ func fillGamestateResponse(auth store.Token, engineConf engine.EngineConfig, gam
 	gsResponse := GamestateResponse{
 		Id:                   gamestate.Id,
 		Action:               action,
-		CurrentPlay:          len(associatedGamestates),
+		CurrentPlay:          gamestate.PlaySequence,
 		CurrentWinnings:      currentWinnings.ValueAsFloat(),
 		NumFreeSpins:         numFs,
 		FreeSpinWinnings:     0.00,
