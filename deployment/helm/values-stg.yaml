@@ -34,7 +34,6 @@ ingress:
   enabled: true
   annotations:
     nginx.ingress.kubernetes.io/http2-push-preload: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
     field.cattle.io/ingressState: "{}"
     nginx.ingress.kubernetes.io/configuration-snippet: "more_set_headers \"Access-Control-Expose-Headers: ETag\";"
     nginx.ingress.kubernetes.io/cors-allow-credentials: true

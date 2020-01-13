@@ -12,20 +12,20 @@ test:
   stage: test
   script: make test
 
-#build:
-#  image: docker:17
-#  services:
-#    - docker:dind
-#  before_script:
-#    - apk add --update make
-#    - docker login -u "${MVRK_OPS_HARBOR_USER}"  -p "${MVRK_OPS_HARBOR_PWD}" "${MVRK_OPS_HARBOR_URI}"
-#  stage: build
-#  variables:
-#    BUILDVERSION: ${CI_COMMIT_SHORT_SHA}
-#  script:
-#    - make build
-#    - make push
-#    - make latest
+build:
+  image: docker:17
+  services:
+    - docker:dind
+  before_script:
+    - apk add --update make
+    - docker login -u "${MVRK_OPS_HARBOR_USER}"  -p "${MVRK_OPS_HARBOR_PWD}" "${MVRK_OPS_HARBOR_URI}"
+  stage: build
+  variables:
+    BUILDVERSION: ${CI_COMMIT_SHORT_SHA}
+  script:
+    - make build
+    - make push
+    - make latest
 
 #deploy_dev:
 #  image: harbor.maverick-ops.com/base/kubernetes-cli:latest
