@@ -2,7 +2,7 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: baseConfigs
+  name: baseconfigs
   labels:
   {{- include "rgs-v2.labels" . | nindent 4 }}
 data:
