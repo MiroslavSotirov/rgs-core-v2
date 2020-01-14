@@ -5,12 +5,12 @@
 replicaCount: 1
 
 image:
-  repository: harbor.maverick-ops.com/mvg_rgs
+  repository: harbor.inf01.activeops.io/maverick/mvg_rgs
   pullPolicy: IfNotPresent
   version: v2.0.0
 
 imagePullSecrets:
-  - name: harborcred
+  - name: harborcred2
 
 nameOverride: ""
 fullnameOverride: ""
@@ -36,12 +36,12 @@ ingress:
     nginx.ingress.kubernetes.io/http2-push-preload: "true"
     field.cattle.io/ingressState: "{}"
     nginx.ingress.kubernetes.io/configuration-snippet: "more_set_headers \"Access-Control-Expose-Headers: ETag\";"
-    nginx.ingress.kubernetes.io/cors-allow-credentials: true
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
     nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Content-Type, If-Match"
     nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS, PUT"
     nginx.ingress.kubernetes.io/cors-allow-origin: "*"
-    nginx.ingress.kubernetes.io/cors-max-age: 151200
-    nginx.ingress.kubernetes.io/enable-cors: true
+    nginx.ingress.kubernetes.io/cors-max-age: "151200"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
   hosts:
     - host:
       paths:
@@ -68,6 +68,18 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+livenessProbe:
+  path: /v2/rgs/healthcheck
+  port: rgs
+  initialDelaySeconds: 1
+  periodSeconds: 10
+
+readinessProbe:
+  path: /v2/rgs/healthcheck
+  port: rgs
+  initialDelaySeconds: 1
+  periodSeconds: 10
 
 config:
   devmode: false

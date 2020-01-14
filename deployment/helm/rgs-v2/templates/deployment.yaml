@@ -32,23 +32,27 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: v2/rgs/healthcheck
-              port: rgs
+              path: {{ .Values.livenessProbe.path }}
+              port: {{ .Values.livenessProbe.port }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
           readinessProbe:
             httpGet:
-              path: v2/rgs/healthcheck
-              port: rgs
+              path: {{ .Values.readinessProbe.path }}
+              port: {{ .Values.readinessProbe.port }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - mountPath: /internal/engine/engineConfigs/
-              name: engineConfigs
+              name: engineconfigs
             - mountPath: /config/
-              name: baseConfigs
+              name: baseconfigs
             - mountPath: /internal/parameterSelector/
-              name: parameterConfig
+              name: parameterconfig
             - mountPath: /internal/forceTool/forcedGameplays/
-              name: forceTool
+              name: forcetool
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -63,14 +67,14 @@ spec:
     {{- end }}
       volumes:
         - configMap:
-            name: engineConfigs
-          name: engineConfigs
+            name: engineconfigs
+          name: engineconfigs
         - configMap:
-            name: baseConfigs
-          name: baseConfigs
+            name: baseconfigs
+          name: baseconfigs
         - configMap:
-            name: parameterConfig
-          name: parameterConfig
+            name: parameterconfig
+          name: parameterconfig
         - configMap:
-            name: forceTool
-          name: forceTool
+            name: forcetool
+          name: forcetool
