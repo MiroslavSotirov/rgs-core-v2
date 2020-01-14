@@ -69,6 +69,18 @@ tolerations: []
 
 affinity: {}
 
+livenessProbe:
+  path: /v2/rgs/healthcheck
+  port: rgs
+  initialDelaySeconds: 5
+  periodSeconds: 30
+
+readinessProbe:
+  path: /v2/rgs/healthcheck
+  port: rgs
+  initialDelaySeconds: 5
+  periodSeconds: 30
+
 config:
   devmode: true
   local: false
