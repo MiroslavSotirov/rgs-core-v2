@@ -41,7 +41,7 @@ func renderNextGamestate(request *http.Request) (GameplayResponse, rgserror.IRGS
 	if err != nil {
 		return GameplayResponse{}, err
 	}
-
+	logger.Warnf("balance: %#v", balance)
 	return renderGamestate(request, gamestate, balance, engineConf, player), nil
 }
 
@@ -162,13 +162,8 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	var balance store.BalanceStore
 	token := player.Token
 	for _, transaction := range gamestate.Transactions {
-		var gs []byte
+		gs := store.SerializeGamestateToBytes(gamestate)
 		status := store.RoundStatusOpen
-		if transaction.Type == "WAGER" {
-			gs = store.SerializeGamestateToBytes(gamestate)
-		} else if transaction.Type == "ENDROUND" {
-			status = store.RoundStatusClose
-		}
 		txStore := store.TransactionStore{
 			TransactionId:       transaction.Id,
 			Token:               token,
@@ -199,10 +194,12 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		token = balance.Token
 	}
 	player.Token = token
-
+	player.Balance = balance.Balance
 	balanceResponse := BalanceResponse{
-		Amount:   balance.Balance.Amount.ValueAsFloat(),
+		Amount:   balance.Balance.Amount.ValueAsString(),
 		Currency: balance.Balance.Currency,
 	}
+	logger.Infof("end of PLAY, balance: %v", player.Balance)
+
 	return gamestate, player, balanceResponse, engineConf, nil
 }

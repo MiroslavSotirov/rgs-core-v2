@@ -128,7 +128,10 @@ type (
 		GameStateByGameId(token Token, mode Mode, gameId string) (GameStateStore, *Error)
 
 		// close round.
-		CloseRound(token Token, mode Mode, gameId string, roundId string) (BalanceStore, *Error)
+		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, *Error)
+
+		//// gamestate by id
+		//GamestateById(gamestateId string) (GameStateStore, *Error)
 	}
 
 	RemoteServiceImpl struct {
@@ -149,7 +152,7 @@ type (
 		Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, *Error)
 		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, *Error)
 		GameStateByGameId(token Token, mode Mode, gameId string) (GameStateStore, *Error)
-		CloseRound(token Token, mode Mode, gameId string, roundId string) (BalanceStore, *Error)
+		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, *Error)
 		GamestateById(gamestateId string) (GameStateStore, *Error)
 	}
 
@@ -506,8 +509,6 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 		token = Token(i.demoToken())
 	}
 
-	//logger.Infof("token :[%v] - [%v]", mode, token)
-
 	authRq := restAuthenticateRequest{
 		ReqId:    uuid.NewV4().String(),
 		Token:    string(token),
@@ -546,6 +547,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 	if finalErr != nil {
 		return PlayerStore{}, GameStateStore{}, finalErr
 	}
+	logger.Debugf("PlayerByToken -- LAST GS: %#v", authResp.LastGameState)
 
 	if len(authResp.LastGameState) > 0 {
 		gameState, err = base64.StdEncoding.DecodeString(authResp.LastGameState)
@@ -563,7 +565,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 			Username: authResp.Username,
 			Balance: engine.Money{
 				Currency: authResp.Currency,
-				Amount:   engine.NewFixedFromFloat(float32(authResp.Balance / 100)),
+				Amount:   engine.Fixed(authResp.Balance * 10000),
 			},
 			NoOfFreeSpins:       authResp.FreeGames.NrGames,
 			BetLimitSettingCode: authResp.BetLimit,
@@ -671,7 +673,7 @@ func (i *RemoteServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore
 		Token:    Token(balResp.Token),
 		Balance: engine.Money{
 			Currency: balResp.Currency,
-			Amount:   engine.NewFixedFromFloat(float32(balResp.Balance / 100)),
+			Amount:   engine.Fixed(balResp.Balance * 10000),
 		},
 	}, nil
 }
@@ -737,6 +739,7 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 	if transaction.GameState != nil {
 		gameState = base64.StdEncoding.EncodeToString(transaction.GameState)
 	}
+	logger.Infof("SENDING TX RQ : %#v", transaction)
 
 	txRq := restTransactionRequest{
 		ReqId:       uuid.NewV4().String(),
@@ -746,7 +749,7 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 		Mode:        strings.ToLower(string(mode)),
 		Session:     transaction.RoundId,
 		Currency:    transaction.Amount.Currency,
-		Amount:      int64(transaction.Amount.Amount * 100),
+		Amount:      int64(transaction.Amount.Amount / 10000), // Dashur expects amount in cents, transaction.Amount.Amount is type fixed (6decimals)
 		BonusAmount: 0,
 		JpAmount:    0,
 		Category:    string(transaction.Category),
@@ -779,18 +782,18 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 	}
 
 	txResp := i.restTransactionResponse(resp)
-
+	logger.Infof("TX RESPONSE: %#v", txResp)
 	finalErr = i.errorResponseCode(txResp.ResponseCode)
 	if finalErr != nil {
 		return BalanceStore{}, finalErr
 	}
-
+	logger.Warnf("BALANCE: %v , div 10000: %v", txResp.Balance, engine.Fixed(txResp.Balance*10000))
 	return BalanceStore{
 		PlayerId: txResp.PlayerId,
 		Token:    Token(txResp.Token),
 		Balance: engine.Money{
 			Currency: txResp.Currency,
-			Amount:   engine.NewFixedFromFloat(float32(txResp.Balance / 100)),
+			Amount:   engine.Fixed(txResp.Balance * 10000),
 		},
 	}, nil
 }
@@ -804,7 +807,7 @@ func (i *RemoteServiceImpl) restTransactionResponse(response *http.Response) res
 }
 
 func (i *LocalServiceImpl) GamestateById(gamestateId string) (GameStateStore, *Error) {
-	logger.Debugf("LocalServiceImpl.GamestateById([%v], [%v], [%v])", gamestateId)
+	logger.Debugf("LocalServiceImpl.GamestateById([%v])", gamestateId)
 	transaction, ok := i.getTransaction(gamestateId)
 	if !ok {
 		return GameStateStore{}, &Error{ErrorCodeGeneralError, "bad gamestate ID"}
@@ -907,7 +910,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		RoundId:       queryResp.Round,
 		Amount: engine.Money{
 			Currency: queryResp.Currency,
-			Amount:   engine.NewFixedFromFloat(float32(queryResp.Amount / 100)),
+			Amount:   engine.Fixed(queryResp.Amount * 10000),
 		},
 		ParentTransactionId: "",         //TODO: fix this
 		TxTime:              time.Now(), //TODO: fix this
@@ -994,7 +997,7 @@ func (i *RemoteServiceImpl) restGameStateResponse(response *http.Response) restG
 	return data
 }
 
-func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string) (BalanceStore, *Error) {
+func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, *Error) {
 	playerId, _ := i.getToken(token)
 	player, _ := i.getPlayer(playerId)
 
@@ -1013,7 +1016,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 		},
 		ParentTransactionId: "",
 		TxTime:              time.Now(),
-		GameState:           []byte{},
+		GameState:      gamestate,
 	})
 
 	if err != nil {
@@ -1025,7 +1028,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 	return balance, nil
 }
 
-func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string) (BalanceStore, *Error) {
+func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, *Error) {
 	closeRound := true
 
 	txRq := restTransactionRequest{
@@ -1041,6 +1044,7 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 		CloseRound:  closeRound,
 		Round:       roundId,
 		TxRef:       roundId,
+		GameState:      base64.StdEncoding.EncodeToString(gamestate),
 	}
 
 	b := new(bytes.Buffer)
@@ -1077,7 +1081,7 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 		Token:    Token(txResp.Token),
 		Balance: engine.Money{
 			Currency: txResp.Currency,
-			Amount:   engine.NewFixedFromFloat(float32(txResp.Balance / 100)),
+			Amount:   engine.Fixed(txResp.Balance * 10000),
 		},
 	}, nil
 }

@@ -256,7 +256,7 @@ type LevelResponse struct {
 
 // BalanceResponse ...
 type BalanceResponse struct {
-	Amount   float32 `json:"amount"`
+	Amount   string `json:"amount"`
 	Currency string  `json:"currency"`
 }
 
@@ -347,16 +347,13 @@ type WinResponse struct {
 	//Type string `json:"type"`
 }
 
-func fillGamestateResponse(auth store.Token, engineConf engine.EngineConfig, gamestate engine.Gamestate) GamestateResponse {
+func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Gamestate) GamestateResponse {
 
 	view := make([][]string, len(gamestate.SymbolGrid[0]))
 	for _, row := range gamestate.SymbolGrid {
-		//viewRow := make([]string, len(row.Symbols))
 		for j, symbol := range row {
 			view[j] = append(view[j], strconv.Itoa(int(symbol)))
-			//viewRow[j] = strconv.Itoa(int(symbol))
 		}
-		//view[i] = viewRow
 	}
 	numFs := 0
 	for _, action := range gamestate.NextActions {
@@ -373,6 +370,12 @@ func fillGamestateResponse(auth store.Token, engineConf engine.EngineConfig, gam
 		winType = "line"
 	}
 
+	stakeDivisor := engine.NewFixedFromInt(engineConf.EngineDefs[0].StakeDivisor)
+	if len(gamestate.SelectedWinLines) > 0 {
+		stakeDivisor = engine.NewFixedFromInt(len(gamestate.SelectedWinLines))
+	}
+
+	stake := gamestate.BetPerLine.Amount.Mul(stakeDivisor)
 	wins := make([]WinResponse, len(gamestate.Prizes))
 	for i, p := range gamestate.Prizes {
 		p.Index = engineConf.DetectSpecialWins(rsID, p)
@@ -428,12 +431,6 @@ func fillGamestateResponse(auth store.Token, engineConf engine.EngineConfig, gam
 		}
 
 		winnings := engine.NewFixedFromInt(p.Payout.Multiplier * p.Multiplier * gamestate.Multiplier).Mul(gamestate.BetPerLine.Amount)
-		stakeDivisor := engine.NewFixedFromInt(engineConf.EngineDefs[0].StakeDivisor)
-		if len(gamestate.SelectedWinLines) > 0 {
-			stakeDivisor = engine.NewFixedFromInt(len(gamestate.SelectedWinLines))
-		}
-
-		stake := gamestate.BetPerLine.Amount.Mul(stakeDivisor)
 
 		win := WinResponse{
 			ID:              p.Index,
@@ -517,7 +514,6 @@ func fillGamestateResponse(auth store.Token, engineConf engine.EngineConfig, gam
 		selectedWinLines = append(selectedWinLines, strconv.Itoa(el))
 	}
 
-	totalStake := gamestate.BetPerLine.Amount.Mul(engine.NewFixedFromInt(len(gamestate.SelectedWinLines)))
 
 	gsResponse := GamestateResponse{
 		Id:                   gamestate.Id,
@@ -529,7 +525,7 @@ func fillGamestateResponse(auth store.Token, engineConf engine.EngineConfig, gam
 		View:                 view,
 		Stake:                currentStake.ValueAsFloat(),
 		StakePerLine:         gamestate.BetPerLine.Amount.ValueAsFloat(),
-		TotalStake:           totalStake.ValueAsFloat(),
+		TotalStake:           stake.ValueAsFloat(),
 		WildSingleMultiplier: gamestate.Multiplier,
 		Wins:                 wins,
 		TotalWinnings:        totalWinnings.ValueAsFloat(),
@@ -696,7 +692,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 	engineID, _ := config.GetEngineFromGame(gameID)
 	urlScheme := GetURLScheme(request)
 	status := "FINISHED"
-
+	logger.Warnf("Balance: %#v", balance)
 	if gamestate.NextActions[0] != "finish" {
 		status = "OPEN"
 	}
@@ -727,7 +723,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 		Game:          *gameInfo,
 		Schema:        DefaultSchema,
 		Player:        player,
-		GamestateInfo: fillGamestateResponse(authID, engineConf, gamestate),
+		GamestateInfo: fillGamestateResponse(engineConf, gamestate),
 		Status:        status,
 		Parameters:    ParameterResponse{SessionID: authID},
 		Links: []LinkResponse{
@@ -741,7 +737,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 				Rel:    "new-game",
 				Type: "application/vnd.maverick.slots.spin-v1+json",
 			}, {
-				Href:   fmt.Sprintf("%s%s/%s/rgs/clientstate/%s/%s/%s", urlScheme, request.Host, APIVersion, gamestate.Id, authID, mode),
+				Href:   fmt.Sprintf("%s%s/%s/rgs/clientstate/%s/%s/%s/%s", urlScheme, request.Host, APIVersion, gamestate.Id, authID, gameID, mode),
 				Method: "PUT",
 				Rel:    "gameplay-client-state-save",
 				Type: "application/octet-stream",

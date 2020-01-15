@@ -96,7 +96,7 @@ func DeserializeGamestateFromBytes(serialized []byte) engine.Gamestate {
 	err := proto.Unmarshal(data[0], &deserializedGS)
 	// Decode (receive) the value.
 	if err != nil {
-		logger.Errorf("Error deserializing gamestate from bytes")
+		logger.Errorf("Error deserializing gamestate from bytes: %v", err)
 		return engine.Gamestate{}
 	}
 	deserializedTX := make([]*engine.WalletTransactionPB, len(data)-1)
@@ -105,7 +105,7 @@ func DeserializeGamestateFromBytes(serialized []byte) engine.Gamestate {
 		var deserialized engine.WalletTransactionPB
 		err := proto.Unmarshal(data[i], &deserialized)
 		if err != nil {
-			logger.Errorf("Error deserializing gamestate from bytes")
+			logger.Errorf("Error deserializing transaction from bytes: %v", err)
 			return engine.Gamestate{}
 		}
 		deserializedTX[i-1] = &deserialized
