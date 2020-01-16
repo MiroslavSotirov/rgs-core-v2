@@ -147,6 +147,7 @@ gameConfig:
     games:
       - cloud9
       - pearl-fisher
+      - dragon-myst
   - engineID: mvgEngineXIII
     games:
       - sky-jewels

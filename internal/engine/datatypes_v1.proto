@@ -83,6 +83,7 @@ message GamestatePB {
   GOAL = 33;
   DAYTONA = 34;
   A_YEAR_OF_LAOSHU = 35;
+  DRAGON_MYST = 36;
   }
   GameID game_id = 1;
   int32 engine_def = 2;
