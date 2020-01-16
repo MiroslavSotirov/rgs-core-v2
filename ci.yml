@@ -1,0 +1,60 @@
+name: Test And Deploy RGS
+
+on:
+  push:
+    # Publish `master` as Docker `latest` image.
+    branches:
+      - master
+
+    # Publish `v1.2.3` tags as releases.
+    tags:
+      - v*
+
+  # Run tests for any PRs.
+  pull_request:
+
+env:
+  IMAGE_NAME: golang:1.13
+
+jobs:
+  # See also https://docs.docker.com/docker-hub/builds/automated-testing/
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Run tests
+        run: |
+          if [ -f docker-compose.test.yml ]; then
+            docker-compose --file docker-compose.test.yml build
+            docker-compose --file docker-compose.test.yml run sut
+          else
+            docker build . --file Dockerfile
+          fi
+  # Push image to GitHub Package Registry.
+  # See also https://docs.docker.com/docker-hub/builds/
+  push:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@master
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@master
+        # taken from https://itnext.io/creating-a-github-action-to-tag-commits-2722f1560dec
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: mvk-tech
+
+      - name: Build and push image
+        run: |
+        # get latest tag
+        export BUILDVERSION=$(git describe --tags `git rev-list --tags --max-count=1`)
+        # print latest
+        echo $BUILDVERSION
+        docker login -u "${MVRK_OPS_HARBOR_USER}"  -p "${MVRK_OPS_HARBOR_PWD}" "${MVRK_OPS_HARBOR_URI}"
+        make build
+        make push
+

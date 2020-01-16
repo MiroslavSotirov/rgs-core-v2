@@ -55,13 +55,15 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	logger.Debugf("request: %v", request)
 	var player store.PlayerStore
 	var previousGamestateStore store.GameStateStore
+	var txStore store.TransactionStore
 	var err *store.Error
 	switch wallet {
 	case "demo":
 		player, previousGamestateStore, err = store.ServLocal.PlayerByToken(store.Token(memID), store.ModeDemo, gameSlug)
+		txStore, err = store.ServLocal.TransactionByGameId(store.Token(memID), store.ModeDemo, gameSlug)
 	case "dashur":
 		player, previousGamestateStore, err = store.Serv.PlayerByToken(store.Token(memID), store.ModeReal, gameSlug)
-
+		txStore, err = store.Serv.TransactionByGameId(store.Token(memID), store.ModeReal, gameSlug)
 	}
 	var previousGamestate engine.Gamestate
 
@@ -73,12 +75,13 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		logger.Warnf("No previous gameplay")
 		// this should never happen as on first round init a sham gamestate is stored
 		return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
-	} else {
-		previousGamestate = store.DeserializeGamestateFromBytes(previousGamestateStore.GameState)
 	}
+
+	previousGamestate = store.DeserializeGamestateFromBytes(previousGamestateStore.GameState)
 
 	// check that previous gamestate matches what the client expects
 	clientID := chi.URLParam(request, "gamestateID")
+	logger.Debugf("Previous id: %v, requested id: %v", previousGamestate.Id, clientID)
 	if clientID != previousGamestate.Id {
 		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrSpinSequence
 	}
@@ -123,6 +126,12 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		logger.Debugf("setting zero stake value for %v round", data.Action)
 		data.Stake = 0
 	} else {
+
+		// check that previous TX was endround
+		if txStore.RoundStatus != store.RoundStatusClose {
+			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrSpinSequence
+		}
+
 		stakeValues, _, err := parameterSelector.GetGameplayParameters(0, player, gameSlug)
 		if err != nil {
 			logger.Warnf("Error: %v", err)
@@ -179,11 +188,9 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		}
 		switch wallet {
 		case "demo":
-			logger.Warnf("DEMO MODE")
 			txStore.Mode = store.ModeDemo
 			balance, err = store.ServLocal.Transaction(token, store.ModeDemo, txStore)
 		case "dashur":
-			logger.Warnf("DASHUR MODE")
 			txStore.Mode = store.ModeReal
 			balance, err = store.Serv.Transaction(token, store.ModeReal, txStore)
 		}
@@ -199,7 +206,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		Amount:   balance.Balance.Amount.ValueAsString(),
 		Currency: balance.Balance.Currency,
 	}
-	logger.Infof("end of PLAY, balance: %v", player.Balance)
+	logger.Debugf("end of PLAY, balance: %v", player.Balance)
 
 	return gamestate, player, balanceResponse, engineConf, nil
 }

@@ -547,7 +547,6 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 	if finalErr != nil {
 		return PlayerStore{}, GameStateStore{}, finalErr
 	}
-	logger.Debugf("PlayerByToken -- LAST GS: %#v", authResp.LastGameState)
 
 	if len(authResp.LastGameState) > 0 {
 		gameState, err = base64.StdEncoding.DecodeString(authResp.LastGameState)
