@@ -7,7 +7,7 @@ replicaCount: 1
 image:
   repository: harbor.inf01.activeops.io/maverick/mvg_rgs
   pullPolicy: IfNotPresent
-  version: v2.0.0
+  version: v2.0.2
 
 imagePullSecrets:
   - name: harborcred2
