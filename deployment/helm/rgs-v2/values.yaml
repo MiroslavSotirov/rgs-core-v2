@@ -34,7 +34,6 @@ ingress:
   enabled: true
   annotations:
     nginx.ingress.kubernetes.io/http2-push-preload: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
     field.cattle.io/ingressState: "{}"
     nginx.ingress.kubernetes.io/configuration-snippet: "more_set_headers \"Access-Control-Expose-Headers: ETag\";"
     nginx.ingress.kubernetes.io/cors-allow-credentials: true
@@ -69,6 +68,18 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+livenessProbe:
+  path: /v2/rgs/healthcheck
+  port: rgs
+  initialDelaySeconds: 5
+  periodSeconds: 30
+
+readinessProbe:
+  path: /v2/rgs/healthcheck
+  port: rgs
+  initialDelaySeconds: 5
+  periodSeconds: 30
 
 config:
   devmode: true
@@ -136,7 +147,9 @@ gameConfig:
     games:
       - cloud9
       - pearl-fisher
+      - dragon-myst
   - engineID: mvgEngineXIII
     games:
       - sky-jewels
       - goal
+      - cookoff-champion

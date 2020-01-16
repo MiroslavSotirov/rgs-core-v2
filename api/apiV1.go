@@ -113,7 +113,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 
 	}
 	// bugfix for skyjewels
-	if gameSlug == "sky-jewels" || gameSlug == "goal" && len(data.SelectedWinLines) == 49 {
+	if gameSlug == "sky-jewels" || gameSlug == "goal" || gameSlug == "cookoff-champion" && len(data.SelectedWinLines) == 49 {
 		swl := make([]int, 50)
 		for i := 0; i < 50; i++ {
 			swl[i] = i
