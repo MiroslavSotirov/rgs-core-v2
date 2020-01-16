@@ -439,7 +439,7 @@ func (gamestate *Gamestate) UpdateGamification(gameSlug string) {
 		}
 	case "sky-jewels":
 		gamestate.Gamification.IncrementSpins(randomRangeInt32(), 6)
-	case "goal":
+	case "goal", "cookoff-champion":
 		gamestate.Gamification.IncrementSpins(randomRangeInt32(), 3)
 	}
 }
