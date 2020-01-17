@@ -692,17 +692,13 @@ func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction Trans
 	player, _ := i.getPlayer(playerId)
 	i.setTransaction(transaction.TransactionId, transaction)
 
+	key := player.PlayerId + "::" + transaction.GameId
+	i.setTransactionByPlayerGame(key, transaction)
 	if transaction.Category == CategoryWager {
-		key := player.PlayerId + "::" + transaction.GameId
-		i.setTransactionByPlayerGame(key, transaction)
 		player.Balance.Amount = player.Balance.Amount - transaction.Amount.Amount
-	}
-
-	if transaction.Category == CategoryPayout {
+	} else if transaction.Category == CategoryPayout {
 		player.Balance.Amount = player.Balance.Amount + transaction.Amount.Amount
-	}
-
-	if transaction.Category == CategoryRefund {
+	} else if transaction.Category == CategoryRefund {
 		parentTx, _ := i.getTransaction(transaction.ParentTransactionId)
 
 		if parentTx.Category == CategoryWager {
@@ -823,11 +819,10 @@ func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId st
 	key := player.PlayerId + "::" + gameId
 
 	transaction, _ := i.getTransactionByPlayerGame(key)
-	newToken := i.renewToken(token)
 
 	return TransactionStore{
 		TransactionId: transaction.TransactionId,
-		Token:         newToken,
+		Token:         token,
 		Mode:          transaction.Mode,
 		Category:      transaction.Category,
 		RoundStatus:   transaction.RoundStatus,
