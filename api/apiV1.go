@@ -60,7 +60,8 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	switch wallet {
 	case "demo":
 		player, previousGamestateStore, err = store.ServLocal.PlayerByToken(store.Token(memID), store.ModeDemo, gameSlug)
-		txStore, err = store.ServLocal.TransactionByGameId(store.Token(memID), store.ModeDemo, gameSlug)
+		txStore, err = store.ServLocal.TransactionByGameId(player.Token, store.ModeDemo, gameSlug)
+		player.Token = txStore.Token
 	case "dashur":
 		player, previousGamestateStore, err = store.Serv.PlayerByToken(store.Token(memID), store.ModeReal, gameSlug)
 		txStore, err = store.Serv.TransactionByGameId(store.Token(memID), store.ModeReal, gameSlug)
@@ -129,6 +130,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 
 		// check that previous TX was endround
 		if txStore.RoundStatus != store.RoundStatusClose {
+			logger.Warnf("last TX: %#v", txStore)
 			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrSpinSequence
 		}
 

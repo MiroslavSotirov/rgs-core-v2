@@ -196,11 +196,9 @@ func (initResp *GameInitResponseV2) FillEngineInfo(config engine.EngineConfig) {
 
 			//reels[reel] = reelResponse
 		}
-		logger.Debugf("made reel response: %v", reels)
 
 		reelResp[def.ID] = reels
 	}
-	logger.Debugf("made reel response: %v", reelResp)
 	initResp.ReelSets = reelResp
 	return
 }
