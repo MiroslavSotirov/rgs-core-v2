@@ -7,7 +7,7 @@ GOGET=$(GOCMD) get
 GORUN=$(GOCMD) run
 CONTAINER_NAME=rgs-core
 PACKAGE_NAME=gitlab.maverick-ops.com/maverick/rgs-core-v2
-IMAGE=harbor.maverick-ops.com/maverick/mvg_rgs
+IMAGE=harbor.inf01.activeops.io/maverick/mvg_rgs
 
 
 .PHONY: build test start push run stop latest test_all

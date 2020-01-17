@@ -25,7 +25,7 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 	gameplayID := chi.URLParam(request, "gameplayID")
 	logger.Debugf("retrieving playcheck for %v", gameplayID)
 
-	gamestateStore, serr := store.Serv.GamestateById(gameplayID)
+	gamestateStore, serr := store.ServLocal.GamestateById(gameplayID)
 	if serr != nil {
 		logger.Errorf("Error getting gamestate item : %v", serr)
 		return

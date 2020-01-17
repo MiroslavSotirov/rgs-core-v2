@@ -8,7 +8,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
@@ -73,7 +72,7 @@ func Routes() *chi.Mux {
 			}
 			balanceResponse := BalanceResponse{
 				Currency: player.Balance.Currency,
-				Amount:   player.Balance.Amount.ValueAsFloat(),
+				Amount:   player.Balance.Amount.ValueAsString(),
 			}
 			logger.Debugf("lastgamestate nextactions: %v", previousGamestate.NextActions)
 			var gamestateResponse GameplayResponse
@@ -86,9 +85,9 @@ func Routes() *chi.Mux {
 				return
 			}
 
-			stakeValuesString := fmt.Sprintf("%v", stakeValues[0].ValueAsFloat())
+			stakeValuesString := fmt.Sprintf("%v", stakeValues[0].ValueAsString())
 			for i := 1; i < len(stakeValues); i++ {
-				stakeValuesString += fmt.Sprintf(" %v", stakeValues[i].ValueAsFloat())
+				stakeValuesString += fmt.Sprintf(" %v", stakeValues[i].ValueAsString())
 			}
 
 			parameters := ParameterResponse{
@@ -224,7 +223,7 @@ func Routes() *chi.Mux {
 			}
 		})
 
-		r.Post("/play/{gameSlug:[A-Za-z0-9-]+}/{gamestateID:[A-Za-z0-9-]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Post("/play/{gameSlug:[A-Za-z0-9-]+}/{gamestateID:[A-Za-z0-9-_]+}/{wallet:[A-Za-z0-9-]+}", func(w http.ResponseWriter, r *http.Request) {
 			gameplay, err := renderNextGamestate(r)
 
 			if err != nil {
@@ -316,15 +315,27 @@ func Routes() *chi.Mux {
 			}
 		})
 
-		r.Put("/clientstate/{gamestateID:[A-Za-z0-9-_]+}/{token:[A-Za-z0-9-_]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Put("/clientstate/{gamestateID:[A-Za-z0-9-_]+}/{token:[A-Za-z0-9-_.:,]+}/{gameSlug:[A-Za-z0-9-]+}/{wallet:[A-Za-z0-9-_]+}", func(w http.ResponseWriter, r *http.Request) {
 			token := chi.URLParam(r, "token")
+			gameSlug := chi.URLParam(r, "gameSlug")
+			wallet := chi.URLParam(r, "wallet")
 			gamestateID := chi.URLParam(r, "gamestateID")
-			gamestate, err := store.Serv.GamestateById(gamestateID)
-			if err != nil {
-				fmt.Fprint(w, []byte("ERROR"))
+			var gamestate store.GameStateStore
+			var err *store.Error
+			switch wallet {
+			case "demo":
+				gamestate, err = store.ServLocal.GameStateByGameId(store.Token(token), store.ModeDemo, gameSlug)
+			case "dashur":
+				gamestate, err = store.Serv.GameStateByGameId(store.Token(token), store.ModeReal, gameSlug)
+
 			}
-			gameID, _ := engine.GetGameIDAndReelset(store.DeserializeGamestateFromBytes(gamestate.GameState).GameID)
-			_, err = store.Serv.CloseRound(store.Token(token), store.ModeDemo, gameID, gamestateID)
+
+			switch wallet {
+			case "demo":
+				_, err = store.ServLocal.CloseRound(store.Token(token), store.ModeDemo, gameSlug, gamestateID, gamestate.GameState)
+			case "dashur":
+				_, err = store.Serv.CloseRound(store.Token(token), store.ModeReal, gameSlug, gamestateID, gamestate.GameState)
+			}
 			if err != nil {
 				fmt.Fprint(w, []byte("ERROR"))
 			}

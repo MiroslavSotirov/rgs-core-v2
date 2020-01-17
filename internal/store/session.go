@@ -9,9 +9,17 @@ import (
 	"time"
 )
 
-func InitPlayerGS(refreshToken string, playerID string, gameName string, host string, currency string) (engine.Gamestate, PlayerStore, rgserror.IRGSError) {
+func InitPlayerGS(refreshToken string, playerID string, gameName string, host string, currency string, wallet string) (engine.Gamestate, PlayerStore, rgserror.IRGSError) {
+	var newPlayer PlayerStore
+	var latestGamestateStore GameStateStore
+	var err *Error
 
-	newPlayer, latestGamestateStore, err := Serv.PlayerByToken(Token(refreshToken), ModeDemo, gameName)
+	switch wallet {
+	case "dashur":
+		newPlayer, latestGamestateStore, err = Serv.PlayerByToken(Token(refreshToken), ModeReal, gameName)
+	case "demo":
+		newPlayer, latestGamestateStore, err = ServLocal.PlayerByToken(Token(refreshToken), ModeDemo, gameName)
+	}
 	logger.Debugf("newPlayer: %v, latestGS: %v", newPlayer, latestGamestateStore)
 	if err != nil {
 		logger.Errorf("got err : %v from player retrieval", err)
@@ -21,8 +29,10 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, host st
 	var balance BalanceStore
 	if len(latestGamestateStore.GameState) == 0 {
 		// assume this is first gameplay
-		newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, engine.Money{5000000000, currency}, host, 0, "www.google.com", "www.maverickslots.com"}
-		newPlayer, err = Serv.PlayerSave(Token(refreshToken), ModeDemo, newPlayer)
+		if wallet == "demo" {
+			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, engine.Money{5000000000, currency}, host, 0, "www.google.com", "www.maverickslots.com"}
+			newPlayer, err = ServLocal.PlayerSave(Token(refreshToken), ModeDemo, newPlayer)
+		}
 		gsID := newPlayer.PlayerId + gameName + "GSinit"
 		latestGamestate = engine.Gamestate{Transactions: []engine.WalletTransaction{{
 			Id:     gsID,
@@ -32,12 +42,11 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, host st
 		if strings.Contains(gameName, "seasons") {
 			latestGamestate.SelectedWinLines = []int{0, 1, 2}
 		}
-		balance, err = Serv.Transaction(newPlayer.Token, ModeDemo, TransactionStore{
+		shamTx := TransactionStore{
 			TransactionId:       latestGamestate.Id,
 			Token:               newPlayer.Token,
-			Mode:                ModeDemo,
 			Category:            CategoryWager,
-			RoundStatus:         "CLOSE",
+			RoundStatus:         RoundStatusClose,
 			PlayerId:            newPlayer.PlayerId,
 			GameId:              gameName,
 			RoundId:             latestGamestate.Id,
@@ -45,13 +54,21 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, host st
 			ParentTransactionId: "",
 			TxTime:              time.Now(),
 			GameState:           SerializeGamestateToBytes(latestGamestate),
-		})
+		}
+		switch wallet {
+		case "demo":
+			shamTx.Mode = ModeDemo
+			balance, err = ServLocal.Transaction(newPlayer.Token, ModeDemo, shamTx)
+		case "dashur":
+			shamTx.Mode = ModeReal
+			balance, err = Serv.Transaction(newPlayer.Token, ModeReal, shamTx)
+		}
 		newPlayer.Balance = balance.Balance
 		newPlayer.Token = balance.Token
-		// todo check if this happens, and if so, deal with it
 
 	} else {
 		latestGamestate = DeserializeGamestateFromBytes(latestGamestateStore.GameState)
 	}
+	logger.Infof("end of INIT, balance: %v", newPlayer.Balance)
 	return latestGamestate, newPlayer, nil
 }

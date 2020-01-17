@@ -94,25 +94,15 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		}
 	}
 
-	previousGameplays, err := store.GetAssociatedGamestates(balance.Token, gamestate)
-	if err != nil {
-		logger.Debugf("No gamestates associated with gamestate %v", gamestate.Id)
-	}
-	for _, pg := range previousGameplays {
-		for _, tx := range pg.Transactions {
-			if tx.Type == "PAYOUT" {
-				cumWin += tx.Amount.Amount
-			}
-		}
-	}
+
 
 	resp := GameplayResponseV2{
 		SessionID:   balance.Token,
 		Currency:    balance.Balance.Currency,
 		Stake:       stake,
 		Win:         win,
-		CumWin:      cumWin,
-		CurrentSpin: len(previousGameplays),         // zero-indexed
+		CumWin:      gamestate.CumulativeWin,
+		CurrentSpin: gamestate.PlaySequence,         // zero-indexed
 		FSRemaining: len(gamestate.NextActions) - 1, // for now, assume all future actions besides finish are fs (perhaps change this to bonusRdsRemaining in future)
 		Balance:     balance.Balance.Amount,         // this may be irrelevant for this particular response
 		View:        gamestate.SymbolGrid,

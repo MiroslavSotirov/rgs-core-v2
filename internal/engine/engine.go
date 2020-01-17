@@ -353,6 +353,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	totalBet := Money{Amount: betPerLine.Mul(NewFixedFromInt(engineConf.EngineDefs[0].StakeDivisor)), Currency: currency}
 	var transactions []WalletTransaction
 	var actions []string
+	isContinuation := true
 	//relativePayout := StrToDec("0.000")
 	if len(previousGamestate.NextActions) == 1 && previousGamestate.NextActions[0] == "finish" {
 		// if this is a respin, special case:
@@ -370,6 +371,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 			parameters.previousGamestate = previousGamestate
 		} else {
 			// new gameplay round
+			isContinuation = false
 			transactions = append(transactions, WalletTransaction{Id: previousGamestate.NextGamestate, Type: "WAGER", Amount: totalBet})
 			// if this is engine X or any other offering maxBase, check if max winlines are selected
 			if parameters.Action == "maxBase" {
@@ -424,7 +426,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 
 	nextID := rng.RandStringRunes(8)
 	gamestate.NextGamestate = nextID
-	gamestate.PrepareTransactions()
+	gamestate.PrepareTransactions(previousGamestate, isContinuation)
 
 	return gamestate, engineConf
 }
@@ -476,23 +478,24 @@ func (gamestate *Gamestate) CalculateRelativePayout() {
 	gamestate.RelativePayout = relativePayout
 }
 
-func (gamestate *Gamestate) PrepareTransactions() {
+func (gamestate *Gamestate) PrepareTransactions(previousGamestate Gamestate, isContinuation bool) {
 	relativePayout := NewFixedFromInt(gamestate.RelativePayout * gamestate.Multiplier)
+	var gamestateWin Money
 	if relativePayout != 0 {
 		// add win transaction
-		gamestateWin := Money{Amount: relativePayout.Mul(gamestate.BetPerLine.Amount), Currency: gamestate.BetPerLine.Currency} // this is in fixed notation i.e. 1.00 == 1000000
+		gamestateWin = Money{Amount: relativePayout.Mul(gamestate.BetPerLine.Amount), Currency: gamestate.BetPerLine.Currency} // this is in fixed notation i.e. 1.00 == 1000000
 		gamestate.Transactions = append(gamestate.Transactions, WalletTransaction{Id: rng.RandStringRunes(8), Amount: gamestateWin, Type: "PAYOUT"})
 	}
 
-	// if finish is only remaining action, add endround transaction
-	if len(gamestate.NextActions) == 1 && gamestate.NextActions[0] == "finish" {
-		gamestate.Transactions = append(gamestate.Transactions, WalletTransaction{
-			Id:     rng.RandStringRunes(8),
-			Amount: Money{Amount: 0, Currency: gamestate.BetPerLine.Currency}, // todo do we want to set this to avoid unmarshalling of null values into something unsavory?
-			Type:   "ENDROUND",
-		})
+	if isContinuation == true {
+		gamestate.PlaySequence = previousGamestate.PlaySequence + 1
+		gamestate.CumulativeWin = previousGamestate.CumulativeWin + gamestateWin.Amount
+	} else {
+		gamestate.PlaySequence = 0
+		gamestate.CumulativeWin = gamestateWin.Amount
 	}
 }
+
 
 func (gamestate *Gamestate) PrepareActions(previousActions []string) {
 	logger.Debugf("Preparing actions, Previous: %v || New: %v", previousActions, gamestate.NextActions)

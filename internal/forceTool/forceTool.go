@@ -147,7 +147,7 @@ func smartForceFromID(previousGamestate engine.Gamestate, gameID string, forceID
 			gamestate.Id = previousGamestate.NextGamestate
 			nextID := rng.RandStringRunes(8)
 			gamestate.NextGamestate = nextID
-			gamestate.PrepareTransactions()
+			gamestate.PrepareTransactions(previousGamestate, false)
 
 		}
 	}

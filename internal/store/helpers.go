@@ -18,12 +18,15 @@ import (
 
 //connect to memcache only for dev mode
 var MC *memcache.Client
-var Serv LocalService
+var ServLocal LocalService
+var Serv Service
+
 
 func Init() rgserror.IRGSError {
 
-	//Serv = New(&config.GlobalConfig)
-	Serv = NewLocal()
+	//ServLocal = New(&config.GlobalConfig)
+	ServLocal = NewLocal()
+	Serv = New(&config.GlobalConfig)
 	if config.GlobalConfig.DevMode {
 		MC = memcache.New(config.GlobalConfig.MCRouter)
 	}
@@ -93,7 +96,7 @@ func DeserializeGamestateFromBytes(serialized []byte) engine.Gamestate {
 	err := proto.Unmarshal(data[0], &deserializedGS)
 	// Decode (receive) the value.
 	if err != nil {
-		logger.Errorf("Error deserializing gamestate from bytes")
+		logger.Errorf("Error deserializing gamestate from bytes: %v", err)
 		return engine.Gamestate{}
 	}
 	deserializedTX := make([]*engine.WalletTransactionPB, len(data)-1)
@@ -102,32 +105,10 @@ func DeserializeGamestateFromBytes(serialized []byte) engine.Gamestate {
 		var deserialized engine.WalletTransactionPB
 		err := proto.Unmarshal(data[i], &deserialized)
 		if err != nil {
-			logger.Errorf("Error deserializing gamestate from bytes")
+			logger.Errorf("Error deserializing transaction from bytes: %v", err)
 			return engine.Gamestate{}
 		}
 		deserializedTX[i-1] = &deserialized
 	}
 	return deserializedGS.Convert(deserializedTX)
-}
-
-func GetAssociatedGamestates(auth Token, previousGS engine.Gamestate) ([]engine.Gamestate, error) {
-	// from an endpoint gamestate, returns previous gamestates by Gamestate.PreviousGamestate reference until finish is reached (i.e. previous spin)
-
-	logger.Infof("Getting associated gamestates %#v", previousGS.Id)
-	var associatedGamestates []engine.Gamestate
-	for currentGS := previousGS; currentGS.Action != "base" && currentGS.Action != "maxBase" && currentGS.Action != "init"; currentGS = previousGS {
-		logger.Warnf("current GS: %#v", currentGS)
-		previousgsStore, err := Serv.GamestateById(previousGS.PreviousGamestate)
-
-		if err != nil {
-			logger.Errorf("Error retrieving associated gamestates: %v", err)
-			return []engine.Gamestate{}, rgserror.ErrBalanceStoreError
-		}
-		previousGS = DeserializeGamestateFromBytes(previousgsStore.GameState)
-		if len(previousGS.NextActions) == 1 && previousGS.NextActions[0] == "finish" {
-			break
-		}
-		associatedGamestates = append(associatedGamestates, previousGS)
-	}
-	return associatedGamestates, nil
 }

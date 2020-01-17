@@ -53,17 +53,8 @@ func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 	}
 	var player store.PlayerStore
 	var latestGamestate engine.Gamestate
-	switch wallet {
-	case "demo":
-		if authToken == "" {
-			authToken = rng.RandStringRunes(6)
-		}
-		latestGamestate, player, err = store.InitPlayerGS(authToken, authToken, gameSlug, operator, currency)
+	latestGamestate, player, err = store.InitPlayerGS(authToken, authToken, gameSlug, operator, currency, wallet)
 
-	case "dashur":
-		//we don't use this right now so hack:
-		return GameInitResponseV2{}, rgserror.ErrInvalidCredentials
-	}
 	if err != nil {
 		return GameInitResponseV2{}, err
 	}
@@ -90,7 +81,7 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 	logger.Debugf("Auth string: %v", authHeader)
 	memID := strings.Trim(strings.Split(authHeader, " ")[1], "\"")
 	logger.Debugf("memID: %v", memID)
-	player, previousGamestateStore, err := store.Serv.PlayerByToken(store.Token(memID), store.ModeDemo, gameSlug)
+	player, previousGamestateStore, err := store.ServLocal.PlayerByToken(store.Token(memID), store.ModeDemo, gameSlug)
 	if err != nil {
 		logger.Errorf("Error retrieving player: %v", err)
 		// may also be spin sequence mismatch
@@ -136,7 +127,7 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 	var balance store.BalanceStore
 	gamestate.PreviousGamestate = previousGamestate.Id
 	for _, transaction := range gamestate.Transactions {
-		balance, err = store.Serv.Transaction(player.Token, store.ModeDemo, store.TransactionStore{
+		balance, err = store.ServLocal.Transaction(player.Token, store.ModeDemo, store.TransactionStore{
 			TransactionId:       transaction.Id,
 			Token:               player.Token,
 			Mode:                store.ModeDemo,

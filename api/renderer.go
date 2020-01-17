@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
@@ -255,7 +256,7 @@ type LevelResponse struct {
 
 // BalanceResponse ...
 type BalanceResponse struct {
-	Amount   float32 `json:"amount"`
+	Amount   string `json:"amount"`
 	Currency string  `json:"currency"`
 }
 
@@ -346,20 +347,13 @@ type WinResponse struct {
 	//Type string `json:"type"`
 }
 
-func fillGamestateResponse(auth store.Token, engineConf engine.EngineConfig, gamestate engine.Gamestate) GamestateResponse {
-	associatedGamestates, err := store.GetAssociatedGamestates(auth, gamestate) // this only gets previous gamestates, length is proxy for currentplay
-	if err != nil {
-		logger.Errorf("Failed fetching related gamestates: %v", err)
-		return GamestateResponse{}
-	}
+func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Gamestate) GamestateResponse {
+
 	view := make([][]string, len(gamestate.SymbolGrid[0]))
 	for _, row := range gamestate.SymbolGrid {
-		//viewRow := make([]string, len(row.Symbols))
 		for j, symbol := range row {
 			view[j] = append(view[j], strconv.Itoa(int(symbol)))
-			//viewRow[j] = strconv.Itoa(int(symbol))
 		}
-		//view[i] = viewRow
 	}
 	numFs := 0
 	for _, action := range gamestate.NextActions {
@@ -376,6 +370,12 @@ func fillGamestateResponse(auth store.Token, engineConf engine.EngineConfig, gam
 		winType = "line"
 	}
 
+	stakeDivisor := engine.NewFixedFromInt(engineConf.EngineDefs[0].StakeDivisor)
+	if len(gamestate.SelectedWinLines) > 0 {
+		stakeDivisor = engine.NewFixedFromInt(len(gamestate.SelectedWinLines))
+	}
+
+	stake := gamestate.BetPerLine.Amount.Mul(stakeDivisor)
 	wins := make([]WinResponse, len(gamestate.Prizes))
 	for i, p := range gamestate.Prizes {
 		p.Index = engineConf.DetectSpecialWins(rsID, p)
@@ -431,12 +431,6 @@ func fillGamestateResponse(auth store.Token, engineConf engine.EngineConfig, gam
 		}
 
 		winnings := engine.NewFixedFromInt(p.Payout.Multiplier * p.Multiplier * gamestate.Multiplier).Mul(gamestate.BetPerLine.Amount)
-		stakeDivisor := engine.NewFixedFromInt(engineConf.EngineDefs[0].StakeDivisor)
-		if len(gamestate.SelectedWinLines) > 0 {
-			stakeDivisor = engine.NewFixedFromInt(len(gamestate.SelectedWinLines))
-		}
-
-		stake := gamestate.BetPerLine.Amount.Mul(stakeDivisor)
 
 		win := WinResponse{
 			ID:              p.Index,
@@ -513,30 +507,25 @@ func fillGamestateResponse(auth store.Token, engineConf engine.EngineConfig, gam
 	if gamestate.Action != "base" {
 		currentStake = gamestate.BetPerLine.Amount.Mul(engine.NewFixedFromInt(engineConf.EngineDefs[0].StakeDivisor))
 	}
-	totalWinnings := currentWinnings
-	for _, previousGamestate := range associatedGamestates {
-		previousWinnings, _ := engine.GetCurrentWinAndStake(previousGamestate)
-		totalWinnings = totalWinnings.Add(previousWinnings)
-	}
+	totalWinnings := gamestate.CumulativeWin
 	logger.Debugf("selected winlines: %v", gamestate.SelectedWinLines)
 	selectedWinLines := make([]string, 0)
 	for _, el := range gamestate.SelectedWinLines {
 		selectedWinLines = append(selectedWinLines, strconv.Itoa(el))
 	}
 
-	totalStake := gamestate.BetPerLine.Amount.Mul(engine.NewFixedFromInt(len(gamestate.SelectedWinLines)))
 
 	gsResponse := GamestateResponse{
 		Id:                   gamestate.Id,
 		Action:               action,
-		CurrentPlay:          len(associatedGamestates),
+		CurrentPlay:          gamestate.PlaySequence,
 		CurrentWinnings:      currentWinnings.ValueAsFloat(),
 		NumFreeSpins:         numFs,
 		FreeSpinWinnings:     0.00,
 		View:                 view,
 		Stake:                currentStake.ValueAsFloat(),
 		StakePerLine:         gamestate.BetPerLine.Amount.ValueAsFloat(),
-		TotalStake:           totalStake.ValueAsFloat(),
+		TotalStake:           stake.ValueAsFloat(),
 		WildSingleMultiplier: gamestate.Multiplier,
 		Wins:                 wins,
 		TotalWinnings:        totalWinnings.ValueAsFloat(),
@@ -697,14 +686,13 @@ func BuildForm(g engine.Gamestate, engineID string, showFeature ...bool) FormRes
 func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance BalanceResponse, engineConf engine.EngineConfig, playerStore store.PlayerStore) GameplayResponse {
 	// generate gamestate response
 	operator := request.FormValue("operator")
-	mode := request.FormValue("mode")
-
+	mode := chi.URLParam(request, "wallet")
 	authID := playerStore.Token
 	gameID := strings.Split(gamestate.GameID, ":")[0]
 	engineID, _ := config.GetEngineFromGame(gameID)
 	urlScheme := GetURLScheme(request)
 	status := "FINISHED"
-
+	logger.Warnf("Balance: %#v", balance)
 	if gamestate.NextActions[0] != "finish" {
 		status = "OPEN"
 	}
@@ -735,7 +723,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 		Game:          *gameInfo,
 		Schema:        DefaultSchema,
 		Player:        player,
-		GamestateInfo: fillGamestateResponse(authID, engineConf, gamestate),
+		GamestateInfo: fillGamestateResponse(engineConf, gamestate),
 		Status:        status,
 		Parameters:    ParameterResponse{SessionID: authID},
 		Links: []LinkResponse{
@@ -744,16 +732,14 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 				Rel:  "self",
 			},
 			{
-				Href:   fmt.Sprintf("%s%s/%s/rgs/play/%s/%s", urlScheme, request.Host, APIVersion, gameID, gamestate.Id),
+				Href:   fmt.Sprintf("%s%s/%s/rgs/play/%s/%s/%s", urlScheme, request.Host, APIVersion, gameID, gamestate.Id, mode),
 				Method: "POST",
 				Rel:    "new-game",
-				//Id: "nextround",
 				Type: "application/vnd.maverick.slots.spin-v1+json",
 			}, {
-				Href:   fmt.Sprintf("%s%s/%s/rgs/clientstate/%s/%s", urlScheme, request.Host, APIVersion, gamestate.Id, authID),
+				Href:   fmt.Sprintf("%s%s/%s/rgs/clientstate/%s/%s/%s/%s", urlScheme, request.Host, APIVersion, gamestate.Id, authID, gameID, mode),
 				Method: "PUT",
 				Rel:    "gameplay-client-state-save",
-				//Id:     "updategamestate",
 				Type: "application/octet-stream",
 			},
 		},

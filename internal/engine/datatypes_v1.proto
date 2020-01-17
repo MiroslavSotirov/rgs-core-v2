@@ -124,4 +124,6 @@ message GamestatePB {
       int32 remaining_spins = 3;
   }
   Gamification gamification = 15;
+  int64 cumulative_win = 16;
+  int32 play_sequence = 17;
 }
