@@ -696,13 +696,17 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 	if gamestate.NextActions[0] != "finish" {
 		status = "OPEN"
 	}
-	logger.Debugf("Rendering gamestate \n %#v", gamestate)
-	level, stage := gamestate.Gamification.GetLevelAndStage()
-	remainingSpins := gamestate.Gamification.GetSpins()
+
 	var lobbyURL, bankingURL string
 	// try to extract lobby/banking url from player store
 	lobbyURL = playerStore.LobbyUrl
 	bankingURL = playerStore.BankingUrl
+
+	level, stage := gamestate.Gamification.GetLevelAndStage()
+	remainingSpins := gamestate.Gamification.GetSpins()
+	stageUpSpins := gamestate.Gamification.GetSpinsToStageUp()
+	totalSpins := gamestate.Gamification.GetTotalSpins()
+
 	player := PlayerResponse{
 		ID:         playerStore.PlayerId,
 		Balance:    balance,
@@ -713,8 +717,8 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 			Stage:          stage,
 			MaxLevel:       1000000,
 			RemainingSpins: remainingSpins,
-			SpinsToStageUp: 67,
-			TotalSpins:     67 - remainingSpins,
+			SpinsToStageUp: stageUpSpins,
+			TotalSpins:     totalSpins,
 		},
 	}
 

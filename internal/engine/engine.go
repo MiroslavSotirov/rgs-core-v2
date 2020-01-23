@@ -416,9 +416,9 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	gamestate.Action = actions[0]
 	gamestate.BetPerLine = Money{betPerLine, currency}
 	gamestate.Transactions = transactions
-	gamestate.Gamification = previousGamestate.Gamification
-	gamestate.UpdateGamification(gameID)
 	gamestate.PrepareActions(actions)
+	gamestate.Gamification = previousGamestate.Gamification
+	gamestate.UpdateGamification(previousGamestate, gameID)
 	logger.Debugf("Next actions after processing: %v", gamestate.NextActions)
 
 	gamestate.GameID = gameID + gamestate.GameID // engineDef should be set in method
@@ -431,18 +431,29 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	return gamestate, engineConf
 }
 
-func (gamestate *Gamestate) UpdateGamification(gameSlug string) {
+func (gamestate *Gamestate) UpdateGamification(previousGS Gamestate, gameSlug string) {
 	// update gamification status
 	// this must happen before nextactions is handled
+	logger.Debugf("UpdateGamification: CurrentGS: %+v  PreviousGS: %+v", gamestate.NextActions, previousGS.NextActions)
 	switch gameSlug {
 	case "a-fairy-tale", "a-candy-girls-christmas", "battlemech":
-		if len(gamestate.NextActions) > 0 {
+		// trigger only on freespin,
+		if len(gamestate.NextActions) > len(previousGS.NextActions) {
+			logger.Debugf("Increment: a-fairy-tale, a-candy-girls-christmas, battlemech")
 			gamestate.Gamification.Increment(3)
 		}
 	case "sky-jewels":
-		gamestate.Gamification.IncrementSpins(randomRangeInt32(), 6)
+		// ignore freespin
+		if  len(previousGS.NextActions) == 1 && len(gamestate.NextActions) == 1 && gamestate.NextActions[0] == "finish" { // 1 means NextActions:[finish]
+			logger.Debugf("IncrementSpins: sky-jewels")
+			gamestate.Gamification.IncrementSpins(randomRangeInt32(), 6)
+		}
 	case "goal", "cookoff-champion":
-		gamestate.Gamification.IncrementSpins(randomRangeInt32(), 3)
+		// ignore freespin
+		if len(previousGS.NextActions) == 1 && len(gamestate.NextActions) == 1 && gamestate.NextActions[0] == "finish" { // 1 means NextActions:[finish]
+			logger.Debugf("IncrementSpins: goal, cookoff-champion")
+			gamestate.Gamification.IncrementSpins(randomRangeInt32(), 3)
+		}
 	}
 }
 
@@ -495,7 +506,6 @@ func (gamestate *Gamestate) PrepareTransactions(previousGamestate Gamestate, isC
 		gamestate.CumulativeWin = gamestateWin.Amount
 	}
 }
-
 
 func (gamestate *Gamestate) PrepareActions(previousActions []string) {
 	logger.Debugf("Preparing actions, Previous: %v || New: %v", previousActions, gamestate.NextActions)
