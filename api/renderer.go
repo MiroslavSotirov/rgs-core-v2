@@ -257,7 +257,7 @@ type LevelResponse struct {
 // BalanceResponse ...
 type BalanceResponse struct {
 	Amount   string `json:"amount"`
-	Currency string  `json:"currency"`
+	Currency string `json:"currency"`
 }
 
 // Render game init response
@@ -514,7 +514,6 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 		selectedWinLines = append(selectedWinLines, strconv.Itoa(el))
 	}
 
-
 	gsResponse := GamestateResponse{
 		Id:                   gamestate.Id,
 		Action:               action,
@@ -739,12 +738,12 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 				Href:   fmt.Sprintf("%s%s/%s/rgs/play/%s/%s/%s", urlScheme, request.Host, APIVersion, gameID, gamestate.Id, mode),
 				Method: "POST",
 				Rel:    "new-game",
-				Type: "application/vnd.maverick.slots.spin-v1+json",
+				Type:   "application/vnd.maverick.slots.spin-v1+json",
 			}, {
 				Href:   fmt.Sprintf("%s%s/%s/rgs/clientstate/%s/%s/%s/%s", urlScheme, request.Host, APIVersion, gamestate.Id, authID, gameID, mode),
 				Method: "PUT",
 				Rel:    "gameplay-client-state-save",
-				Type: "application/octet-stream",
+				Type:   "application/octet-stream",
 			},
 		},
 	}

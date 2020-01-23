@@ -71,7 +71,7 @@ func (num Fixed) ValueAsString() string {
 	// prints number with max 2 decimal places
 
 	s := fmt.Sprintf("%d", num/fixedExp)
-	d := fmt.Sprintf(".%06d", num % fixedExp)
+	d := fmt.Sprintf(".%06d", num%fixedExp)
 
 	return s + d[:3]
 

@@ -156,7 +156,7 @@ func TestPrepareTransactions(t *testing.T) {
 	if gsTest.PlaySequence != 0 {
 		t.Errorf("failed processing play sequence, expected 0, got %v", gsTest.PlaySequence)
 	}
-	if gsTest.CumulativeWin !=10000 {
+	if gsTest.CumulativeWin != 10000 {
 		t.Errorf("failed processing cumulative win, expected 10000, got %v", gsTest.CumulativeWin)
 	}
 
@@ -194,7 +194,7 @@ func TestPrepareTransactions(t *testing.T) {
 
 	// test cumulative win addition
 	gsTest = Gamestate{RelativePayout: 5, Multiplier: 2, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}}
-	gsTest.PrepareTransactions(Gamestate{CumulativeWin:5000, PlaySequence: 5}, true)
+	gsTest.PrepareTransactions(Gamestate{CumulativeWin: 5000, PlaySequence: 5}, true)
 
 	if gsTest.CumulativeWin != 15000 {
 		t.Errorf("cumulative win calculation failed, expected 15000, got %v", gsTest.CumulativeWin)
@@ -203,7 +203,6 @@ func TestPrepareTransactions(t *testing.T) {
 		t.Errorf("play sequence calculation failed, expected 6, got %v", gsTest.PlaySequence)
 	}
 }
-
 
 func TestDetermineLineWins(t *testing.T) {
 	testGrid := [][]int{{1, 1, 1}, {1, 1, 1}, {1, 1, 1}, {1, 1, 1}, {1, 1, 1}}

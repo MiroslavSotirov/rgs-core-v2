@@ -15,11 +15,11 @@ import (
 
 func testRemoteServiceForGameStateByGameId(url string) Service {
 	return New(&config.Config{
-		DevMode:         false,
+		DevMode: false,
 		DashurConfig: config.StoreConfig{
-			StoreRemoteUrl:  url + "/v1/gnrc/maverick",
-			StoreAppId:      "store-app-id",
-			StoreAppPass:    "P@ssw0rd^^",
+			StoreRemoteUrl: url + "/v1/gnrc/maverick",
+			StoreAppId:     "store-app-id",
+			StoreAppPass:   "P@ssw0rd^^",
 		},
 		DefaultPlatform: "html5",
 		DefaultLanguage: "en",

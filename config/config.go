@@ -26,9 +26,9 @@ type Server struct {
 }
 
 type StoreConfig struct {
-	StoreRemoteUrl  string `yaml:"storeurl" cfg:"storeurl" cfgDefault:"https://gnrc-api.dashur.io/v1/gnrc/maverick"`
-	StoreAppId      string `yaml:"storeappid" cfg:"storeappid" cfgDefault:"maverick_user"`
-	StoreAppPass    string `yaml:"storeapppass" cfg:"storeapppass" cfgDefault:"Passw0rd!"`
+	StoreRemoteUrl string `yaml:"storeurl" cfg:"storeurl" cfgDefault:"https://gnrc-api.dashur.io/v1/gnrc/maverick"`
+	StoreAppId     string `yaml:"storeappid" cfg:"storeappid" cfgDefault:"maverick_user"`
+	StoreAppPass   string `yaml:"storeapppass" cfg:"storeapppass" cfgDefault:"Passw0rd!"`
 }
 
 // Config structure
@@ -36,13 +36,13 @@ type Config struct {
 	DevMode         bool   `yaml:"devmode" cfg:"devmode" cfgDefault:"false"`
 	MCRouter        string `yaml:"mcrouter" cfg:"mcrouter" cfgDefault:"10.42.0.86:5000"`
 	Server          `yaml:"server"`
-	Local           bool   `yaml:"local" cfg:"local" cfgDefault:"false"`
-	Logging         string `yaml:"logging" cfg:"logging" cfgDefault:"debug"`
-	DashurConfig 	StoreConfig `yaml:"dashurconf"`
-	DefaultPlatform string `yaml:"defaultplatform" cfg:"defaultplatform" cfgDefault:"html5"`
-	DefaultLanguage string `yaml:"defaultlanguage" cfg:"defaultlanguage" cfgDefault:"en"`
-	DemoTokenPrefix string `yaml:"demotokenprefix" cfg:"demotokenprefix" cfgDefault:"demo-token"`
-	DemoCurrency    string `yaml:"democurrency" cfg:"democurrency" cfgDefault:"USD"`
+	Local           bool        `yaml:"local" cfg:"local" cfgDefault:"false"`
+	Logging         string      `yaml:"logging" cfg:"logging" cfgDefault:"debug"`
+	DashurConfig    StoreConfig `yaml:"dashurconf"`
+	DefaultPlatform string      `yaml:"defaultplatform" cfg:"defaultplatform" cfgDefault:"html5"`
+	DefaultLanguage string      `yaml:"defaultlanguage" cfg:"defaultlanguage" cfgDefault:"en"`
+	DemoTokenPrefix string      `yaml:"demotokenprefix" cfg:"demotokenprefix" cfgDefault:"demo-token"`
+	DemoCurrency    string      `yaml:"democurrency" cfg:"democurrency" cfgDefault:"USD"`
 }
 
 // Game config structure

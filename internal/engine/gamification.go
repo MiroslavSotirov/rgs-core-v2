@@ -32,7 +32,7 @@ func (data *GamestatePB_Gamification) IncrementSpins(spinsToStageup int32, stage
 		data.Level++
 		data.Stage = 0
 	}
-	data.TotalSpins ++
+	data.TotalSpins++
 }
 
 func (data GamestatePB_Gamification) GetLevelAndStage() (int32, int32) {
@@ -42,7 +42,7 @@ func (data *GamestatePB_Gamification) GetSpins() int32 {
 	// for initialization only
 	if data.TotalSpins == 0 {
 		initVal := randomRangeInt32()
-		data.Level, data.Stage, data.SpinsToStageUp, data.TotalSpins, data.RemainingSpins  = 0, 0, initVal, 0, initVal
+		data.Level, data.Stage, data.SpinsToStageUp, data.TotalSpins, data.RemainingSpins = 0, 0, initVal, 0, initVal
 		logger.Debugf("Initialize Gamification: %+v", data)
 	}
 	return data.RemainingSpins

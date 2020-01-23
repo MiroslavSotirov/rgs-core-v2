@@ -21,7 +21,6 @@ var MC *memcache.Client
 var ServLocal LocalService
 var Serv Service
 
-
 func Init() rgserror.IRGSError {
 
 	//ServLocal = New(&config.GlobalConfig)
