@@ -66,11 +66,13 @@ func GetGameplayParameters(lastBet engine.Fixed, player store.PlayerStore, gameI
 		betconfigerr.AppendErrorText("Unknown Bet Multiplier")
 		return []engine.Fixed{}, engine.Fixed(0), rgserror.ErrBetConfig
 	}
+	logger.Debugf("getting profile %v", player.BetLimitSettingCode)
 	profile, ok := betConf.HostProfiles[player.BetLimitSettingCode]
 	if !ok {
 		profile = "base"
+		logger.Debugf("setting to base")
 	}
-
+	logger.Debugf("set profile: %#v", betConf.Profiles[profile])
 	// get default value
 	defaultIndex, ok := betConf.Profiles[profile]["default"]
 	if !ok {
@@ -100,7 +102,7 @@ func GetGameplayParameters(lastBet engine.Fixed, player store.PlayerStore, gameI
 		logger.Errorf("No such game found: %v", gameID)
 		return []engine.Fixed{}, engine.Fixed(0), rgserror.ErrEngineNotFound
 	}
-	switch string(engineID) {
+	switch engineID {
 	case "mvgEngineX":
 		// select minimum parameter for this game
 		baseVal := fixedStakeValues[0]
@@ -122,7 +124,7 @@ func GetGameplayParameters(lastBet engine.Fixed, player store.PlayerStore, gameI
 		logger.Warnf("defaultStake too high, setting to max stakeValue")
 		defaultStake = fixedStakeValues[len(fixedStakeValues)-1]
 	}
-
+	logger.Warnf("stake values: %v; default stake: %v", fixedStakeValues, defaultStake)
 	return fixedStakeValues, defaultStake, nil
 
 }
