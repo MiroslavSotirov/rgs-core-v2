@@ -691,7 +691,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 	engineID, _ := config.GetEngineFromGame(gameID)
 	urlScheme := GetURLScheme(request)
 	status := "FINISHED"
-	logger.Warnf("Balance: %#v", balance)
+
 	if gamestate.NextActions[0] != "finish" {
 		status = "OPEN"
 	}
@@ -749,6 +749,8 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 	}
 	// add freespin link and form if applicable
 	if len(gamestate.NextActions) > 1 {
+		// hack to display balance as pre-spin amount
+		gpResponse.Player.Balance.Amount = removeCumulativeWinFromBalance(gpResponse.Player.Balance.Amount, gpResponse.GamestateInfo.CurrentWinnings)
 		gpResponse.Links[1].Rel = "option"
 		if strings.Contains(gamestate.NextActions[0], "freespin") {
 			gpResponse.Links[1].Type = "application/vnd.maverick.slots.freespin-v1+json"
@@ -760,4 +762,15 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 	forms := BuildForm(gamestate, engineID, true)
 	gpResponse.Forms = forms
 	return gpResponse
+}
+
+
+func removeCumulativeWinFromBalance(balance string, cumulativeWin float32) string {
+	// for legacy client, balance returned on freespin should be initial balance on round commencement
+	balanceFloat, err := strconv.ParseFloat(balance, 32)
+	if err != nil {
+		logger.Errorf("Error converting balance to pre-freegame value: %v", err)
+		return balance
+	}
+	return fmt.Sprintf("%.2f", float32(balanceFloat)-cumulativeWin)
 }
