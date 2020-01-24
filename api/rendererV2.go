@@ -94,8 +94,6 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		}
 	}
 
-
-
 	resp := GameplayResponseV2{
 		SessionID:   balance.Token,
 		Currency:    balance.Balance.Currency,

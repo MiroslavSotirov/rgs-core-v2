@@ -1010,7 +1010,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 		},
 		ParentTransactionId: "",
 		TxTime:              time.Now(),
-		GameState:      gamestate,
+		GameState:           gamestate,
 	})
 
 	if err != nil {
@@ -1038,7 +1038,7 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 		CloseRound:  closeRound,
 		Round:       roundId,
 		TxRef:       roundId,
-		GameState:      base64.StdEncoding.EncodeToString(gamestate),
+		GameState:   base64.StdEncoding.EncodeToString(gamestate),
 	}
 
 	b := new(bytes.Buffer)

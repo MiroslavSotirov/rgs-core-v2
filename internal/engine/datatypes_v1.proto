@@ -122,6 +122,8 @@ message GamestatePB {
       int32 level = 1;
       int32 stage = 2;
       int32 remaining_spins = 3;
+      int32 spins_to_stage_up = 4;
+      int32 total_spins = 5;
   }
   Gamification gamification = 15;
   int64 cumulative_win = 16;

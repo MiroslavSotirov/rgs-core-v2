@@ -142,7 +142,7 @@ func smartForceFromID(previousGamestate engine.Gamestate, gameID string, forceID
 			gamestate.BetPerLine = previousGamestate.BetPerLine
 			gamestate.SelectedWinLines = previousGamestate.SelectedWinLines
 			gamestate.Gamification = previousGamestate.Gamification
-			gamestate.UpdateGamification(gameID)
+			gamestate.UpdateGamification(previousGamestate, gameID)
 			gamestate.PrepareActions(actions)
 			gamestate.Id = previousGamestate.NextGamestate
 			nextID := rng.RandStringRunes(8)
