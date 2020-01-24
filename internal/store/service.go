@@ -68,8 +68,6 @@ type (
 		Balance             engine.Money
 		BetLimitSettingCode string
 		NoOfFreeSpins       int
-		LobbyUrl            string
-		BankingUrl          string
 	}
 
 	GameStateStore struct {
@@ -345,8 +343,6 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 					},
 					NoOfFreeSpins:       player.NoOfFreeSpins,
 					BetLimitSettingCode: player.BetLimitSettingCode,
-					LobbyUrl:            player.LobbyUrl,
-					BankingUrl:          player.BankingUrl,
 				},
 				GameStateStore{GameState: tx.GameState},
 				nil
@@ -362,8 +358,6 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 					},
 					NoOfFreeSpins:       player.NoOfFreeSpins,
 					BetLimitSettingCode: player.BetLimitSettingCode,
-					LobbyUrl:            player.LobbyUrl,
-					BankingUrl:          player.BankingUrl,
 				},
 				GameStateStore{},
 				nil
@@ -389,8 +383,6 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 						},
 						NoOfFreeSpins:       player.NoOfFreeSpins,
 						BetLimitSettingCode: player.BetLimitSettingCode,
-						LobbyUrl:            player.LobbyUrl,
-						BankingUrl:          player.BankingUrl,
 					},
 					GameStateStore{GameState: tx.GameState},
 					nil
@@ -406,8 +398,6 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 						},
 						NoOfFreeSpins:       player.NoOfFreeSpins,
 						BetLimitSettingCode: player.BetLimitSettingCode,
-						LobbyUrl:            player.LobbyUrl,
-						BankingUrl:          player.BankingUrl,
 					},
 					GameStateStore{},
 					nil
@@ -426,8 +416,6 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 				},
 				NoOfFreeSpins:       0,
 				BetLimitSettingCode: "maverick",
-				LobbyUrl:            "www.google.com",
-				BankingUrl:          "www.maverickslots.com",
 			}
 			i.setPlayer(playerId, player)
 			i.setToken(newToken, playerId)
@@ -599,8 +587,6 @@ func (i *LocalServiceImpl) PlayerSave(token Token, mode Mode, player PlayerStore
 		},
 		NoOfFreeSpins:       player.NoOfFreeSpins,
 		BetLimitSettingCode: player.BetLimitSettingCode,
-		LobbyUrl:            player.LobbyUrl,
-		BankingUrl:          player.BankingUrl,
 	}, nil
 }
 
@@ -1192,7 +1178,6 @@ func (i *LocalServiceImpl) getTransactionByPlayerGame(key string) (TransactionSt
 
 	ld.Lock.RLock()
 	defer ld.Lock.RUnlock()
-	logger.Debugf("tx store: %#v", ld.TransactionByPlayerGame)
 	tx, ok := ld.TransactionByPlayerGame[key]
 
 	return tx, ok

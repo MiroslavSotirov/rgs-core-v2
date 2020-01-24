@@ -239,8 +239,6 @@ type ParameterResponse struct {
 // PlayerResponse ..
 type PlayerResponse struct {
 	ID         string          `json:"id"`
-	LobbyURL   string          `json:"lobby,omitempty"`
-	BankingURL string          `json:"banking,omitempty"`
 	Balance    BalanceResponse `json:"balance"`
 	Level      LevelResponse   `json:"level"`
 }
@@ -507,6 +505,7 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 	if gamestate.Action != "base" {
 		currentStake = gamestate.BetPerLine.Amount.Mul(engine.NewFixedFromInt(engineConf.EngineDefs[0].StakeDivisor))
 	}
+	logger.Warnf("CUMULATIVE WIN: %v", gamestate.CumulativeWin)
 	totalWinnings := gamestate.CumulativeWin
 	logger.Debugf("selected winlines: %v", gamestate.SelectedWinLines)
 	selectedWinLines := make([]string, 0)
@@ -696,11 +695,6 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 		status = "OPEN"
 	}
 
-	var lobbyURL, bankingURL string
-	// try to extract lobby/banking url from player store
-	lobbyURL = playerStore.LobbyUrl
-	bankingURL = playerStore.BankingUrl
-
 	level, stage := gamestate.Gamification.GetLevelAndStage()
 	remainingSpins := gamestate.Gamification.GetSpins()
 	stageUpSpins := gamestate.Gamification.GetSpinsToStageUp()
@@ -709,8 +703,6 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 	player := PlayerResponse{
 		ID:         playerStore.PlayerId,
 		Balance:    balance,
-		LobbyURL:   lobbyURL,
-		BankingURL: bankingURL,
 		Level: LevelResponse{
 			Level:          level,
 			Stage:          stage,
@@ -721,7 +713,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 		},
 	}
 
-	gameInfo := &GameInfoResponse{CCY: "USD", HostName: operator, InterfaceName: mode, GameName: gameID, Version: "2"}
+	gameInfo := &GameInfoResponse{CCY: player.Balance.Currency, HostName: operator, InterfaceName: mode, GameName: gameID, Version: "2"}
 	gpResponse := GameplayResponse{
 		Game:          *gameInfo,
 		Schema:        DefaultSchema,
@@ -748,9 +740,11 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 		},
 	}
 	// add freespin link and form if applicable
+
 	if len(gamestate.NextActions) > 1 {
 		// hack to display balance as pre-spin amount
-		gpResponse.Player.Balance.Amount = removeCumulativeWinFromBalance(gpResponse.Player.Balance.Amount, gpResponse.GamestateInfo.CurrentWinnings)
+		gpResponse.Player.Balance.Amount = removeCumulativeWinFromBalance(gpResponse.Player.Balance.Amount, gpResponse.GamestateInfo.TotalWinnings)
+
 		gpResponse.Links[1].Rel = "option"
 		if strings.Contains(gamestate.NextActions[0], "freespin") {
 			gpResponse.Links[1].Type = "application/vnd.maverick.slots.freespin-v1+json"
@@ -772,5 +766,6 @@ func removeCumulativeWinFromBalance(balance string, cumulativeWin float32) strin
 		logger.Errorf("Error converting balance to pre-freegame value: %v", err)
 		return balance
 	}
+	logger.Debugf("converted initial balance %v to final balance %v (diff of cumulativewin %v", balance, fmt.Sprintf("%.2f", float32(balanceFloat)-cumulativeWin), cumulativeWin)
 	return fmt.Sprintf("%.2f", float32(balanceFloat)-cumulativeWin)
 }

@@ -30,7 +30,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, host st
 	if len(latestGamestateStore.GameState) == 0 {
 		// assume this is first gameplay
 		if wallet == "demo" {
-			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, engine.Money{5000000000, currency}, host, 0, "www.google.com", "www.maverickslots.com"}
+			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, engine.Money{5000000000, currency}, host, 0}
 			newPlayer, err = ServLocal.PlayerSave(Token(refreshToken), ModeDemo, newPlayer)
 		}
 		gsID := newPlayer.PlayerId + gameName + "GSinit"

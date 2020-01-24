@@ -56,7 +56,7 @@ func TestRemoteServiceImpl_CloseRound_1(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	balance, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr)
+	balance, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
 
 	if err != nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -90,7 +90,7 @@ func TestRemoteServiceImpl_CloseRound_2(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr)
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -117,7 +117,7 @@ func TestRemoteServiceImpl_CloseRound_3(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr)
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -144,7 +144,7 @@ func TestRemoteServiceImpl_CloseRound_4(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr)
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -171,7 +171,7 @@ func TestRemoteServiceImpl_CloseRound_5(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr)
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -210,7 +210,7 @@ func TestRemoteServiceImpl_CloseRound_6(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr)
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -249,7 +249,7 @@ func TestRemoteServiceImpl_CloseRound_7(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr)
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -288,7 +288,7 @@ func TestRemoteServiceImpl_CloseRound_8(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr)
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -327,7 +327,7 @@ func TestRemoteServiceImpl_CloseRound_9(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr)
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
