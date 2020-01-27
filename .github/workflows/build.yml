@@ -1,0 +1,50 @@
+name: Build Dev
+
+on:
+  push:
+    branches:
+      - master
+
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      uses: actions/checkout@v2
+      - name: Test
+        run: make test
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      uses: actions/checkout@v2
+      - name: Get Version Tag
+        uses: docker://gittools/gitversion:5.0.2-beta1-27-linux-centos-7-netcoreapp2.2
+        with:
+          args: /github/workspace /nofetch /exec /bin/sh /execargs "-c \"echo $GitVersion_FullSemVer > /github/workspace/version.txt\""
+  build:
+    runs-on: ubuntu-latest
+    needs:
+      - test
+      - version
+    steps:
+      uses: actions/checkout@v2
+      - name: Tag and push
+        env:
+          BUILDVERSION: $(cat /home/runner/work/AWSSamExample/AWSSamExample/version.txt)
+        run: |
+          - make build
+          - make push
+#      - name: Update Builder
+#        run: |
+#          - openssl base64 -in /github/workspace/version.txt
+#          - {
+#          -   "message": "a new commit message",
+#          -   "committer": {
+#          -     "name": "Monalisa Octocat",
+#          -     "email": "octocat@github.com"
+#          -   },
+#          -   "content": "bXkgdXBkYXRlZCBmaWxlIGNvbnRlbnRz",
+#          -   "sha": "95b966ae1c166bd92f8ae7d1c313e738c731dfc3"
+#          - }
+
+
