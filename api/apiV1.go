@@ -208,7 +208,6 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		Amount:   balance.Balance.Amount.ValueAsString(),
 		Currency: balance.Balance.Currency,
 	}
-	logger.Debugf("end of PLAY, balance: %v", player.Balance)
 
 	return gamestate, player, balanceResponse, engineConf, nil
 }
