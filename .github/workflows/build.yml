@@ -10,13 +10,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      uses: actions/checkout@v2
       - name: Test
+        uses: actions/checkout@v2
         run: make test
   version:
     runs-on: ubuntu-latest
     steps:
-      uses: actions/checkout@v2
       - name: Get Version Tag
         uses: docker://gittools/gitversion:5.0.2-beta1-27-linux-centos-7-netcoreapp2.2
         with:
@@ -27,8 +26,8 @@ jobs:
       - test
       - version
     steps:
-      uses: actions/checkout@v2
       - name: Tag and push
+        uses: actions/checkout@v2
         env:
           BUILDVERSION: $(cat /home/runner/work/AWSSamExample/AWSSamExample/version.txt)
         run: |
