@@ -24,7 +24,7 @@ func ClearForce(gameID string, playerID string) error {
 	return store.MC.Delete(playerID + "::" + gameID)
 }
 
-func GetForceValues(previousGamestate engine.Gamestate, gameID string, playerID string) (engine.Gamestate, error) {
+func GetForceValues(betPerLine engine.Fixed, previousGamestate engine.Gamestate, gameID string, playerID string) (engine.Gamestate, error) {
 	forceID, err := store.MC.Get(playerID + "::" + gameID)
 	if err != nil {
 		logger.Warnf("No force value set")
@@ -33,7 +33,7 @@ func GetForceValues(previousGamestate engine.Gamestate, gameID string, playerID 
 	// automatically clear the force once it has been used
 	_ = ClearForce(gameID, playerID)
 
-	forcedGamestate := smartForceFromID(previousGamestate, gameID, string(forceID.Value))
+	forcedGamestate := smartForceFromID(betPerLine, previousGamestate, gameID, string(forceID.Value))
 
 	logger.Warnf("Created forced gamestate: %v", forcedGamestate)
 	return forcedGamestate, nil
@@ -99,7 +99,7 @@ func generateSymbolGrid(stopList []int, engineID string, reelsetID int) [][]int 
 	return engine.GetSymbolGridFromStopList(engineDef.Reels, engineDef.ViewSize, stopList)
 }
 
-func smartForceFromID(previousGamestate engine.Gamestate, gameID string, forceID string) engine.Gamestate {
+func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestate, gameID string, forceID string) engine.Gamestate {
 	// build force gamestates
 	engineID, err := config.GetEngineFromGame(gameID)
 	if err != nil {
@@ -116,7 +116,7 @@ func smartForceFromID(previousGamestate engine.Gamestate, gameID string, forceID
 		if force.ID == forceID {
 			symbolGrid := generateSymbolGrid(force.StopList, engineID, force.ReelsetId)
 			engineDef := engineConf.EngineDefs[force.ReelsetId]
-			totalBet := engine.Money{previousGamestate.BetPerLine.Amount.Mul(engine.NewFixedFromInt(engineDef.StakeDivisor)), previousGamestate.BetPerLine.Currency}
+			totalBet := engine.Money{betPerLine.Mul(engine.NewFixedFromInt(engineDef.StakeDivisor)), previousGamestate.BetPerLine.Currency}
 
 			var transactions []engine.WalletTransaction
 			transactions = append(transactions, engine.WalletTransaction{Id: previousGamestate.NextGamestate, Type: "WAGER", Amount: totalBet})
@@ -139,7 +139,7 @@ func smartForceFromID(previousGamestate engine.Gamestate, gameID string, forceID
 			// Build gamestate
 			gamestate = engine.Gamestate{Action: force.Action, GameID: fmt.Sprintf("%v:%v", gameID, force.ReelsetId), SymbolGrid: symbolGrid, Prizes: wins, StopList: force.StopList, NextActions: nextActions, Multiplier: multiplier, RelativePayout: relativePayout, Transactions: transactions}
 			gamestate.Action = actions[0]
-			gamestate.BetPerLine = previousGamestate.BetPerLine
+			gamestate.BetPerLine = engine.Money{betPerLine, previousGamestate.BetPerLine.Currency}
 			gamestate.SelectedWinLines = previousGamestate.SelectedWinLines
 			gamestate.Gamification = previousGamestate.Gamification
 			gamestate.UpdateGamification(previousGamestate, gameID)
