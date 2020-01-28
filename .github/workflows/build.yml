@@ -12,8 +12,8 @@ jobs:
     steps:
       - name: Test
         run: |
-        - pwd
-        - make test
+          - pwd
+          - make test
   version:
     runs-on: ubuntu-latest
     steps:
