@@ -32,7 +32,7 @@ jobs:
         run: echo $(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
       - name: Tag and push
         env:
-          BUILDVERSION: $(cat /home/runner/work/AWSSamExample/AWSSamExample/version.txt)
+          BUILDVERSION: $(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
         run: |
           make build
           make push
