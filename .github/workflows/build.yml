@@ -29,11 +29,8 @@ jobs:
         with:
           args: /github/workspace /exec /bin/sh /execargs "-c \"echo $GitVersion_FullSemVer > /github/workspace/version.txt\""
       - name: Tag and push
-        env:
-          BUILDVERSION: $(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
         run: |
-          echo $BUILDVERSION
-          export BUILDVERSION=$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
+          export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
           echo $BUILDVERSION
           make build
           make push
