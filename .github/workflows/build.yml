@@ -12,8 +12,8 @@ jobs:
     steps:
       - name: Test
         run: |
-          - pwd
-          - make test
+          pwd
+          make test
   version:
     runs-on: ubuntu-latest
     steps:
@@ -31,8 +31,8 @@ jobs:
         env:
           BUILDVERSION: $(cat /home/runner/work/AWSSamExample/AWSSamExample/version.txt)
         run: |
-          - make build
-          - make push
+          make build
+          make push
 #      - name: Update Builder
 #        run: |
 #          - openssl base64 -in /github/workspace/version.txt
