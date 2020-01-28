@@ -22,8 +22,7 @@ jobs:
       - name: Checkout Master
         run: |
           git fetch --tags origin
-##          git branch
-##          git checkout master
+          git checkout master
       - name: Get Version Tag
         uses: docker://gittools/gitversion:5.0.2-beta1-27-linux-centos-7-netcoreapp2.2
         with:
