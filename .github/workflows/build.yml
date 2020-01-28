@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Test
         run: |
-          pwd
+          ls
           make test
   version:
     runs-on: ubuntu-latest
