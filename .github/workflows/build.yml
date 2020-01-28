@@ -12,6 +12,7 @@ jobs:
     steps:
       - name: Test
         run: |
+          cd ..
           ls
           make test
   version:
