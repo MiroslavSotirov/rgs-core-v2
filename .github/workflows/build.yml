@@ -1,9 +1,9 @@
 name: Build Dev
 
-on:
-  push:
-    branches:
-      - master
+on: [push]
+#  push:
+#    branches:
+#      - master
 
 
 jobs:
@@ -11,7 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Test
-        run: make test
+        run: |
+        - pwd
+        - make test
   version:
     runs-on: ubuntu-latest
     steps:
