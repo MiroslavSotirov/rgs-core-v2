@@ -111,9 +111,9 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 	}
 
 	gamestate, _ := engine.Play(previousGamestate, data.Stake, player.Balance.Currency, data)
-	//log.Printf("Previous Gamestate: %v \n New Gamestate: %v", previousGamestate, gamestate)
+
 	if config.GlobalConfig.DevMode == true {
-		forcedGamestate, err := forceTool.GetForceValues(previousGamestate, gameSlug, player.PlayerId)
+		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, gameSlug, player.PlayerId)
 		if err == nil {
 			logger.Warnf("Forcing gamestate: %v", forcedGamestate)
 			gamestate = forcedGamestate

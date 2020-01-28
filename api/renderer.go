@@ -505,7 +505,7 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 	if gamestate.Action != "base" {
 		currentStake = gamestate.BetPerLine.Amount.Mul(engine.NewFixedFromInt(engineConf.EngineDefs[0].StakeDivisor))
 	}
-	
+
 	totalWinnings := gamestate.CumulativeWin
 	selectedWinLines := make([]string, 0)
 	for _, el := range gamestate.SelectedWinLines {

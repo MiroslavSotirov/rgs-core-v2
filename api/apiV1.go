@@ -158,13 +158,13 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 
 	gamestate, engineConf := engine.Play(previousGamestate, data.Stake, player.Balance.Currency, data)
 	if config.GlobalConfig.DevMode == true {
-		forcedGamestate, err := forceTool.GetForceValues(previousGamestate, gameSlug, player.PlayerId)
+		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, gameSlug, player.PlayerId)
 		if err == nil {
 			logger.Warnf("Forcing gamestate: %v", forcedGamestate)
 			gamestate = forcedGamestate
 		} else {
 			//assume error is of memcache.ErrCacheMiss variety
-			logger.Debugf("No force value found for player %v", player.PlayerId)
+			logger.Warnf("No force value found for player %v", player.PlayerId)
 		}
 	}
 	gamestate.PreviousGamestate = previousGamestate.Id
