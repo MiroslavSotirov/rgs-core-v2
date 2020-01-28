@@ -20,7 +20,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Checkout Master
-        run: git fetch
+        run: |
+          git fetch
+          git branch
+          git checkout master
       - name: Get Version Tag
         uses: docker://gittools/gitversion:5.0.2-beta1-27-linux-centos-7-netcoreapp2.2
         with:
