@@ -436,10 +436,10 @@ func (gamestate *Gamestate) UpdateGamification(previousGS Gamestate, gameSlug st
 	// this must happen before nextactions is handled
 	logger.Debugf("UpdateGamification: CurrentGS: %+v  PreviousGS: %+v", gamestate.NextActions, previousGS.NextActions)
 	switch gameSlug {
-	case "a-fairy-tale", "a-candy-girls-christmas", "battlemech":
+	case "a-fairy-tale", "a-candy-girls-christmas", "battlemech", "candy-smash":
 		// trigger only on freespin,
 		if len(gamestate.NextActions) > len(previousGS.NextActions) {
-			logger.Debugf("Increment: a-fairy-tale, a-candy-girls-christmas, battlemech")
+			logger.Debugf("Increment: a-fairy-tale, a-candy-girls-christmas, battlemech, candy-smash")
 			gamestate.Gamification.Increment(3)
 		}
 	case "sky-jewels":
