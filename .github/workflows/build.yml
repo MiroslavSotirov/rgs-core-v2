@@ -19,9 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-#      - name: Checkout Master
-#        run: |
-#          git fetch --tags origin
+      - name: Checkout Master
+        run: |
+          git fetch --tags origin
 ##          git branch
 ##          git checkout master
       - name: Get Version Tag
