@@ -28,12 +28,13 @@ jobs:
         uses: docker://gittools/gitversion:5.0.2-beta1-27-linux-centos-7-netcoreapp2.2
         with:
           args: /github/workspace /exec /bin/sh /execargs "-c \"echo $GitVersion_FullSemVer > /github/workspace/version.txt\""
-      - name: Debug version store
-        run: echo $(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
       - name: Tag and push
         env:
           BUILDVERSION: $(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
         run: |
+          echo $BUILDVERSION
+          export BUILDVERSION=$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
+          echo $BUILDVERSION
           make build
           make push
 #      - name: Update Builder
