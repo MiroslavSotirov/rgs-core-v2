@@ -28,7 +28,7 @@ runvt:
 	$(GORUN) $(PACKAGE_NAME)/cmd -vt=true -logtostderr=true -engine=RNG
 
 push:
-	docker push $(IMAGE):$(BUILDVERSION)
+	docker push $(IMAGE):$(BUILDVERSION)  --config $(DOCKER_CONFIG)
 
 latest:
 	docker tag "$(IMAGE):$(BUILDVERSION)" "$(IMAGE):latest"

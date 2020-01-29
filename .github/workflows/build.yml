@@ -34,30 +34,31 @@ jobs:
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
       - name: Test Docker Creds
-        run: echo $DOCKER_CONFIG
-      - name: Build & Push to Docker Hub
-        uses: opspresso/action-docker@master
-        env:
-          USERNAME: ${{ secrets.HARBOR_USERNAME }}
-          PASSWORD: ${{ secrets.HARBOR_PASSWORD }}
-          REGISTRY: "harbor.inf01.activeops.io"
-          IMAGE_NAME: "maverick/mvg_rgs"
-          TAG_NAME: "test"
-          LATEST: "true"
+        run: cat $DOCKER_CONFIG
+      - name: Tag and push
+        run: |
+          export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
+          echo $BUILDVERSION
+          export BUILDVERSION=test
+          echo $BUILDVERSION
+          make build
+          make push
+#      - name: Build & Push to Docker Hub
+#        uses: opspresso/action-docker@master
+#        env:
+#          USERNAME: ${{ secrets.HARBOR_USERNAME }}
+#          PASSWORD: ${{ secrets.HARBOR_PASSWORD }}
+#          REGISTRY: "harbor.inf01.activeops.io"
+#          IMAGE_NAME: "maverick/mvg_rgs"
+#          TAG_NAME: "test"
+#          LATEST: "true"
 #- uses: mr-smithers-excellent/docker-build-push@v2
   #    with:
   #      image: repo/image
   #      tag: latest
   #      registry: registry-url.io
   #      dockerfile: Dockerfile.ci
-#      - name: Tag and push
-#        run: |
-#          export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
-#          echo $BUILDVERSION
-#          export BUILDVERSION=test
-#          echo $BUILDVERSION
-#          make build
-#          make push
+
 #      - name: Update Builder
 #        run: |
 #          - openssl base64 -in /github/workspace/version.txt
