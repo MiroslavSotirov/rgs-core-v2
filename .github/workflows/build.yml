@@ -36,7 +36,7 @@ jobs:
           echo $BUILDVERSION
           echo ${{ secrets.HARBOR_USERNAME }}
           echo ${{ secrets.HARBOR_PASSWORD }}
-          docker login harbor.inf01.activeops.io --username ${{ secrets.HARBOR_USERNAME }} --password ${{ secrets.HARBOR_PASSWORD }}
+          docker login https://harbor.inf01.activeops.io --username ${{ secrets.HARBOR_USERNAME }} --password ${{ secrets.HARBOR_PASSWORD }}
           make build
           make push
 #      - name: Update Builder
