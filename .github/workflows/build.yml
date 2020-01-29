@@ -37,7 +37,7 @@ jobs:
           docker push harbor.inf01.activeops.io/maverick/mvg_rgs:$BUILDVERSION
       - name: Update Builder
         run: |
-          git clone "https://${{ secrets.GITHUB_TOKEN }}@github.com/mvk-tech/rgs-builder.git"
+          git clone "https://${{ secrets.BUILDER_TOKEN }}@github.com/mvk-tech/rgs-builder.git"
           export CONTENT=$(openssl base64 -in /github/workspace/version.txt)
           cd rgs-builder/versions
           cp /github/workspace/version.txt version-dev.txt
