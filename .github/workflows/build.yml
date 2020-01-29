@@ -31,16 +31,15 @@ jobs:
       - run: |
           export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
           echo building rgs version $BUILDVERSION
-          export BUILDVERSION=test2
+          export BUILDVERSION=test
           docker login harbor.inf01.activeops.io -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build . -t harbor.inf01.activeops.io/maverick/mvg_rgs:$BUILDVERSION
           docker push harbor.inf01.activeops.io/maverick/mvg_rgs:$BUILDVERSION
       - name: Update Builder
         run: |
           git clone "https://${{ secrets.BUILDER_TOKEN }}@github.com/mvk-tech/rgs-builder.git"
-          export CONTENT=$(openssl base64 -in /github/workspace/version.txt)
           cd rgs-builder/versions
-          cp /github/workspace/version.txt version-dev.txt
+          cp /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt version-dev.txt
           git checkout -b feature/deploy-dev-$BUILDVERSION
           git add version-dev.txt
           git commit -m "Update dev version to $BUILDVERSION"
