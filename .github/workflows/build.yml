@@ -1,10 +1,9 @@
 name: Build Dev
 
-on: [push]
-#  push:
-#    branches:
-#      - master
-
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   test:
@@ -31,7 +30,6 @@ jobs:
       - run: |
           export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
           echo building rgs version $BUILDVERSION
-          export BUILDVERSION=test
           docker login harbor.inf01.activeops.io -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build . -t harbor.inf01.activeops.io/maverick/mvg_rgs:$BUILDVERSION
           docker push harbor.inf01.activeops.io/maverick/mvg_rgs:$BUILDVERSION
@@ -39,17 +37,21 @@ jobs:
         run: |
           git clone "https://${{ secrets.BUILDER_TOKEN }}@github.com/mvk-tech/rgs-builder.git"
           cd rgs-builder/versions
-          cp /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt version-dev.txt
+          echo updating dev build version
           git checkout -b feature/deploy-dev-$BUILDVERSION
+          cp /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt version-dev.txt
           git add version-dev.txt
           git commit -m "Update dev version to $BUILDVERSION"
           git push
-#          curl -X PUT -d '{"message": "Update dev version to $BUILDVERSION", "committer": {"name": "Miura Hawkins", "email": "miura@maverickslots.com"}, "content": $CONTENT, "sha": ${{ secrets.DEV_VERSION_SHA }}}' https://github.com/mvk-tech/rgs-builder.git/content/versions/version-dev.txt
-#      - name: publish:starters
-#        uses: johno/actions-push-subdirectories@master
-#        env:
-#          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          args: /github/workspace miura-mvk
-
+          echo updating stg build version
+          git checkout master
+          cp /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt version-stg.txt
+          git add version-stg.txt
+          git commit -m "Update stg version to $BUILDVERSION"
+          git push
+          echo updating prd build version
+          git checkout master
+          cp /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt version-prd.txt
+          git add version-prd.txt
+          git commit -m "Update prd version to $BUILDVERSION"
+          git push
