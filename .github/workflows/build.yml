@@ -29,7 +29,7 @@ jobs:
         with:
           args: /github/workspace /exec /bin/sh /execargs "-c \"echo $GitVersion_FullSemVer > /github/workspace/version.txt\""
       - run: |
-          docker login harbor.inf01.activeops.io -u $secrets.DOCKER_USER -p $secrets.DOCKER_PASSWORD
+          docker login harbor.inf01.activeops.io -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build . -t harbor.inf01.activeops.io/maverick/mvg_rgs:test
           docker push harbor.inf01.activeops.io/maverick/mvg_rgs:test
 #      - name: Tag and push
