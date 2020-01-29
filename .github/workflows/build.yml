@@ -28,14 +28,8 @@ jobs:
         uses: docker://gittools/gitversion:5.0.2-beta1-27-linux-centos-7-netcoreapp2.2
         with:
           args: /github/workspace /exec /bin/sh /execargs "-c \"echo $GitVersion_FullSemVer > /github/workspace/version.txt\""
-      - uses: azure/docker-login@v1
-        with:
-          login-server: harbor.inf01.activeops.io
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
       - run: |
-          more $DOCKER_CONFIG/config.json
-          docker login harbor.inf01.activeops.io
+          docker login harbor.inf01.activeops.io -u $secrets.DOCKER_USER -p $secrets.DOCKER_PASSWORD
           docker build . -t harbor.inf01.activeops.io/maverick/mvg_rgs:test
           docker push harbor.inf01.activeops.io/maverick/mvg_rgs:test
 #      - name: Tag and push
