@@ -32,6 +32,8 @@ jobs:
         run: |
           export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
           echo $BUILDVERSION
+          export BUILDVERSION=test
+          echo $BUILDVERSION
           make build
           make push
 #      - name: Update Builder
