@@ -33,22 +33,28 @@ jobs:
           login-server: 'harbor.inf01.activeops.io'
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
-      - uses: jerray/publish-docker-action@master
-        with:
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-          registry: harbor.inf01.activeops.io
-          repository: maverick/mvg_rgs
-          tags: test,v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
-#      - name: Build & Push to Docker Hub
-#        uses: opspresso/action-docker@master
-#        env:
-#          USERNAME: ${{ secrets.DOCKER_USERNAME }}
-#          PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-#          # IMAGE_NAME: "user_id/image_name"
-#          TAG_NAME: "v0.0.1"
-#          LATEST: "true"
-#
+#      - uses: jerray/publish-docker-action@master
+#        with:
+#          username: ${{ secrets.HARBOR_USERNAME }}
+#          password: ${{ secrets.HARBOR_PASSWORD }}
+#          registry: harbor.inf01.activeops.io
+#          repository: maverick/mvg_rgs
+#          tags: test,v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
+      - name: Build & Push to Docker Hub
+        uses: opspresso/action-docker@master
+        env:
+          USERNAME: ${{ secrets.HARBOR_USERNAME }}
+          PASSWORD: ${{ secrets.HARBOR_PASSWORD }}
+          REGISTRY: "harbor.inf01.activeops.io"
+          IMAGE_NAME: "maverick/mvg_rgs"
+          TAG_NAME: "test"
+          LATEST: "true"
+#- uses: mr-smithers-excellent/docker-build-push@v2
+  #    with:
+  #      image: repo/image
+  #      tag: latest
+  #      registry: registry-url.io
+  #      dockerfile: Dockerfile.ci
 #      - name: Tag and push
 #        run: |
 #          export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
