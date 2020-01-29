@@ -33,8 +33,7 @@ jobs:
           export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
           echo $BUILDVERSION
           docker --version
-          sudo apt-get update
-          sudo apt-get upgrade docker-ce
+          sudo apt install docker-ce
           docker --version
           make build
           make push
