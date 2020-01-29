@@ -40,6 +40,8 @@ jobs:
 #          registry: harbor.inf01.activeops.io
 #          repository: maverick/mvg_rgs
 #          tags: test,v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
+      - name: Test Docker Creds
+        - run: echo $DOCKER_CONFIG
       - name: Build & Push to Docker Hub
         uses: opspresso/action-docker@master
         env:
