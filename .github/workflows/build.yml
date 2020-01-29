@@ -29,51 +29,32 @@ jobs:
         with:
           args: /github/workspace /exec /bin/sh /execargs "-c \"echo $GitVersion_FullSemVer > /github/workspace/version.txt\""
       - run: |
-          docker login harbor.inf01.activeops.io -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build . -t harbor.inf01.activeops.io/maverick/mvg_rgs:test
-          docker push harbor.inf01.activeops.io/maverick/mvg_rgs:test
-#      - name: Tag and push
-#        run: |
-#          export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
-#          echo $BUILDVERSION
-#          export BUILDVERSION=test
-#          echo $BUILDVERSION
-#          docker info
-#          make build
-#      - uses: Docker@2
-#        name: Push image
-#        with:
-#          containerRegistry: 'harbor.inf01.activeops.io'
-#          repository: maverick/mvg_rgs
-#          command: push
-#          tags: test
-#      - name: Build & Push to Docker Hub
-#        uses: opspresso/action-docker@master
-#        env:
-#          USERNAME: ${{ secrets.HARBOR_USERNAME }}
-#          PASSWORD: ${{ secrets.HARBOR_PASSWORD }}
-#          REGISTRY: "harbor.inf01.activeops.io"
-#          IMAGE_NAME: "maverick/mvg_rgs"
-#          TAG_NAME: "test"
-#          LATEST: "true"
-#- uses: mr-smithers-excellent/docker-build-push@v2
-  #    with:
-  #      image: repo/image
-  #      tag: latest
-  #      registry: registry-url.io
-  #      dockerfile: Dockerfile.ci
+          export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
+          echo building rgs version $BUILDVERSION
+          export BUILDVERSION=test2
+          docker login harbor.inf01.activeops.io -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build . -t harbor.inf01.activeops.io/maverick/mvg_rgs:$BUILDVERSION
+          docker push harbor.inf01.activeops.io/maverick/mvg_rgs:$BUILDVERSION
+      - name: publish:starters
+        uses: johno/actions-push-subdirectories@master
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: /github/workspace miura-mvk
+      - name: Clone Builder
+        uses: actions/checkout@v2
+        with:
+          repository: 'mvk-tech/rgs-builder'
+      - name: Update Builder
+        run: |
+          export CONTENT=$(openssl base64 -in /github/workspace/version.txt)
+          cd rgs-builder/versions
+          cp /github/workspace/version.txt version-dev.txt
+          git add version-dev.txt
+          git commit -m "Update dev version to $BUILDVERSION"
+          git push
+#          curl -X PUT -d '{"message": "Update dev version to $BUILDVERSION", "committer": {"name": "Miura Hawkins", "email": "miura@maverickslots.com"}, "content": $CONTENT, "sha": ${{ secrets.DEV_VERSION_SHA }}}' https://github.com/mvk-tech/rgs-builder.git/content/versions/version-dev.txt
 
-#      - name: Update Builder
-#        run: |
-#          - openssl base64 -in /github/workspace/version.txt
-#          - {
-#          -   "message": "a new commit message",
-#          -   "committer": {
-#          -     "name": "Monalisa Octocat",
-#          -     "email": "octocat@github.com"
-#          -   },
-#          -   "content": "bXkgdXBkYXRlZCBmaWxlIGNvbnRlbnRz",
-#          -   "sha": "95b966ae1c166bd92f8ae7d1c313e738c731dfc3"
-#          - }
 
 
