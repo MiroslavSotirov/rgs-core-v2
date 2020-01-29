@@ -35,13 +35,9 @@ jobs:
           docker login harbor.inf01.activeops.io -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build . -t harbor.inf01.activeops.io/maverick/mvg_rgs:$BUILDVERSION
           docker push harbor.inf01.activeops.io/maverick/mvg_rgs:$BUILDVERSION
-
-      - name: Clone Builder
-        uses: actions/checkout@v2
-        with:
-          repository: 'mvk-tech/rgs-builder'
       - name: Update Builder
         run: |
+          git clone "https://$GITHUB_TOKEN@github.com/mvk-tech/rgs-builder.git"
           export CONTENT=$(openssl base64 -in /github/workspace/version.txt)
           cd rgs-builder/versions
           cp /github/workspace/version.txt version-dev.txt
