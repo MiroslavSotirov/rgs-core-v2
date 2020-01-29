@@ -22,6 +22,11 @@ dashurconf:
 
 defaultlanguage: en
 defaultplatform: html5
-
+#dashurconf:
+# this is for prod version of dashur
+#  storeurl: https://gnrc-api.maverick-ops.com/v1/gnrc/maverick
+#  storeappid: HAAJ6njttH
+#  storeapppass: WKXUZWTzNzvmTqYxiHnH9hKc
+#demotokenprefix: demo-token-e6ENjpt76fe8gun9vccRpEPN
 demotokenprefix: demo-token-ezVVKaEv2nY7kP2gMCX7vfCH
 democurrency: USD
