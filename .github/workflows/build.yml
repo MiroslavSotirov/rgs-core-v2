@@ -28,11 +28,11 @@ jobs:
         uses: docker://gittools/gitversion:5.0.2-beta1-27-linux-centos-7-netcoreapp2.2
         with:
           args: /github/workspace /exec /bin/sh /execargs "-c \"echo $GitVersion_FullSemVer > /github/workspace/version.txt\""
-#      - uses: azure/docker-login@v1
-#        with:
-#          login-server: 'harbor.inf01.activeops.io'
-#          username: ${{ secrets.HARBOR_USERNAME }}
-#          password: ${{ secrets.HARBOR_PASSWORD }}
+      - uses: azure/docker-login@v1
+        with:
+          login-server: 'harbor.inf01.activeops.io'
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
       - uses: jerray/publish-docker-action@master
         with:
           username: ${{ secrets.HARBOR_USERNAME }}
