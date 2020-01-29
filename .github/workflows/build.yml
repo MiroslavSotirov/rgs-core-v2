@@ -51,6 +51,7 @@ jobs:
           export CONTENT=$(openssl base64 -in /github/workspace/version.txt)
           cd rgs-builder/versions
           cp /github/workspace/version.txt version-dev.txt
+          git checkout -b feature/deploy-dev-$BUILDVERSION
           git add version-dev.txt
           git commit -m "Update dev version to $BUILDVERSION"
           git push
