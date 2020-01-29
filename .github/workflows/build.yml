@@ -35,13 +35,7 @@ jobs:
           docker login harbor.inf01.activeops.io -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build . -t harbor.inf01.activeops.io/maverick/mvg_rgs:$BUILDVERSION
           docker push harbor.inf01.activeops.io/maverick/mvg_rgs:$BUILDVERSION
-      - name: publish:starters
-        uses: johno/actions-push-subdirectories@master
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: /github/workspace miura-mvk
+
       - name: Clone Builder
         uses: actions/checkout@v2
         with:
@@ -56,6 +50,11 @@ jobs:
           git commit -m "Update dev version to $BUILDVERSION"
           git push
 #          curl -X PUT -d '{"message": "Update dev version to $BUILDVERSION", "committer": {"name": "Miura Hawkins", "email": "miura@maverickslots.com"}, "content": $CONTENT, "sha": ${{ secrets.DEV_VERSION_SHA }}}' https://github.com/mvk-tech/rgs-builder.git/content/versions/version-dev.txt
-
-
+#      - name: publish:starters
+#        uses: johno/actions-push-subdirectories@master
+#        env:
+#          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          args: /github/workspace miura-mvk
 
