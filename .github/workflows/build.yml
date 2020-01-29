@@ -33,14 +33,13 @@ jobs:
           login-server: 'harbor.inf01.activeops.io'
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
-      - name: Test Docker Creds
-        run: ls $DOCKER_CONFIG
       - name: Tag and push
         run: |
           export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
           echo $BUILDVERSION
           export BUILDVERSION=test
           echo $BUILDVERSION
+          docker info
           make build
           make push
 #      - name: Build & Push to Docker Hub
