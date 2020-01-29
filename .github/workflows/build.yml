@@ -32,22 +32,24 @@ jobs:
       - name: Update Builder
         run: |
           git clone "https://${{ secrets.BUILDER_TOKEN }}@github.com/mvk-tech/rgs-builder.git"
-          cd rgs-builder/versions
+          cd rgs-builder/deployment/helm
           echo updating dev build version
           git checkout -b feature/deploy-dev-$BUILDVERSION
-          cp /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt version-dev.txt
-          git add version-dev.txt
+          sed -i "" "s/version.*/version: $BUILDVERSION/" values-dev.yaml
+          git add values-dev.yaml
           git commit -m "Update dev version to $BUILDVERSION"
           git push
           echo updating stg build version
           git checkout master
-          cp /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt version-stg.txt
-          git add version-stg.txt
+          sed -i "" "s/version.*/version: $BUILDVERSION/" values-stg.yaml
+          git checkout -b feature/deploy-stg-$BUILDVERSION
+          git add values-stg.yaml
           git commit -m "Update stg version to $BUILDVERSION"
           git push
           echo updating prd build version
           git checkout master
-          cp /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt version-prd.txt
-          git add version-prd.txt
+          sed -i "" "s/version.*/version: $BUILDVERSION/" values-prd.yaml
+          git checkout -b feature/deploy-prd-$BUILDVERSION
+          git add values-prd.yaml
           git commit -m "Update prd version to $BUILDVERSION"
           git push
