@@ -30,18 +30,27 @@ jobs:
           args: /github/workspace /exec /bin/sh /execargs "-c \"echo $GitVersion_FullSemVer > /github/workspace/version.txt\""
       - uses: azure/docker-login@v1
         with:
-          login-server: 'harbor.inf01.activeops.io'
+          login-server: harbor.inf01.activeops.io
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
-      - name: Tag and push
-        run: |
-          export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
-          echo $BUILDVERSION
-          export BUILDVERSION=test
-          echo $BUILDVERSION
-          docker info
-          make build
-          make push
+      - run: |
+          docker build . -t harbor.inf01.activeops.io/maverick/mvg_rgs:test
+          docker push harbor.inf01.activeops.io/maverick/mvg_rgs:test
+#      - name: Tag and push
+#        run: |
+#          export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
+#          echo $BUILDVERSION
+#          export BUILDVERSION=test
+#          echo $BUILDVERSION
+#          docker info
+#          make build
+#      - uses: Docker@2
+#        name: Push image
+#        with:
+#          containerRegistry: 'harbor.inf01.activeops.io'
+#          repository: maverick/mvg_rgs
+#          command: push
+#          tags: test
 #      - name: Build & Push to Docker Hub
 #        uses: opspresso/action-docker@master
 #        env:
