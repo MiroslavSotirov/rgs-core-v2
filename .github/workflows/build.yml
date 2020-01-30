@@ -29,6 +29,10 @@ jobs:
           docker login harbor.inf01.activeops.io -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build . -t harbor.inf01.activeops.io/maverick/mvg_rgs:$BUILDVERSION
           docker push harbor.inf01.activeops.io/maverick/mvg_rgs:$BUILDVERSION
+      - uses: azure/setup-helm@v1
+        with:
+          version: 'v3.0.2'
+        id: install
       - name: Deploy Dev and Stg
         run: |
           export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
