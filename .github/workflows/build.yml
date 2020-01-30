@@ -51,7 +51,7 @@ jobs:
           git checkout -b feature/deploy-dev-$BUILDVERSION
           git add dev/
           git commit -m "Deploy dev $BUILDVERSION"
-          git push --set-upstream origin feature/deploy-$BUILDVERSION
+          git push --set-upstream origin feature/deploy-dev-$BUILDVERSION
           git checkout master
           git checkout -b feature/deploy-stg-$BUILDVERSION
           git add stg/
