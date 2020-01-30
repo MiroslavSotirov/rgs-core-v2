@@ -51,12 +51,12 @@ jobs:
           git checkout -b feature/deploy-dev-$BUILDVERSION
           git add dev/
           git commit -m "Deploy dev $BUILDVERSION"
-          git push
+          git push --set-upstream origin feature/deploy-$BUILDVERSION
           git checkout master
           git checkout -b feature/deploy-stg-$BUILDVERSION
           git add stg/
           git commit -m "Deploy stg $BUILDVERSION"
-          git push
+          git push --set-upstream origin feature/deploy-stg-$BUILDVERSION
 #
 #
 #      - name: Update Builder
