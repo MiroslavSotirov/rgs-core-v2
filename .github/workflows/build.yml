@@ -41,12 +41,13 @@ jobs:
           sed -i "s/version.*/version: $BUILDVERSION/" values-stg.yaml
           sed -i "s/version.*/version: $BUILDVERSION/" values-prd.yaml
           git clone "https://${{ secrets.BUILDER_TOKEN }}@github.com/mvk-tech/mvk-deploy-dev.git"
-          helm version
           mkdir mvk-deploy-dev/dev
           mkdir mvk-deploy-dev/stg
           helm template rgs-v2/ -f values-dev.yaml --output-dir mvk-deploy-dev/dev
           helm template rgs-v2/ -f values-stg.yaml --output-dir mvk-deploy-dev/stg
           cd mvk-deploy-dev
+          git config user.email "miura@maverickslots.com"
+          git config user.name "MEH Bot"
           git checkout -b feature/deploy-dev-$BUILDVERSION
           git add dev/
           git commit -m "Deploy dev $BUILDVERSION"
