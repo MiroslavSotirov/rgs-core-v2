@@ -55,29 +55,3 @@ jobs:
           git add stg/
           git commit -m "Deploy stg $BUILDVERSION"
           git push --set-upstream origin feature/deploy-stg-$BUILDVERSION
-#
-#
-#      - name: Update Builder
-#        run: |
-#          git clone "https://${{ secrets.BUILDER_TOKEN }}@github.com/mvk-tech/rgs-builder.git"
-#          cd rgs-builder/deployment/helm
-#          echo updating dev build version
-#          git checkout -b feature/deploy-dev-$BUILDVERSION
-#          sed -i "" "s/version.*/version: $BUILDVERSION/" values-dev.yaml
-#          git add values-dev.yaml
-#          git commit -m "Update dev version to $BUILDVERSION"
-#          git push
-#          echo updating stg build version
-#          git checkout master
-#          sed -i "" "s/version.*/version: $BUILDVERSION/" values-stg.yaml
-#          git checkout -b feature/deploy-stg-$BUILDVERSION
-#          git add values-stg.yaml
-#          git commit -m "Update stg version to $BUILDVERSION"
-#          git push
-#          echo updating prd build version
-#          git checkout master
-#          sed -i "" "s/version.*/version: $BUILDVERSION/" values-prd.yaml
-#          git checkout -b feature/deploy-prd-$BUILDVERSION
-#          git add values-prd.yaml
-#          git commit -m "Update prd version to $BUILDVERSION"
-#          git push
