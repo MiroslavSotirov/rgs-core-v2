@@ -1,0 +1,44 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: baseconfigs
+  labels:
+  {{- include "rgs-v2.labels" . | nindent 4 }}
+data:
+  config.yml: |
+    # development mode
+    devmode: {{ .Values.config.devmode }}
+    local: {{ .Values.config.local }}
+
+    # Log levels
+    # debug, info, warn, error, fatal
+    logging: {{ .Values.config.logging }}
+
+    # mcrouter address
+    mcrouter: {{ .Values.config.mcrouter }}
+
+    # server configuration
+    server:
+      host: {{ .Values.config.server.host }}
+      port: {{ .Values.config.server.port }}
+
+    # dashur configuration
+    dashurconf:
+      storeurl: {{ .Values.config.storeurl }}
+      storeappid: {{ .Values.config.storeappid }}
+      storeapppass: {{ .Values.config.storeapppass }}
+
+    defaultlanguage: {{ .Values.config.defaultlanguage }}
+    defaultplatform: {{ .Values.config.defaultplatform }}
+
+    demotokenprefix: {{ .Values.config.demotokenprefix }}
+    democurrency: {{ .Values.config.democurrency }}
+  gameConfig.yml: |
+    {{- range $i, $engine := .Values.gameConfig }}
+    - engineID: {{ $engine.engineID }}
+      games:
+      {{- range $i2, $game := $engine.games }}
+        - {{ $game -}}
+      {{- end }}
+    {{- end }}
