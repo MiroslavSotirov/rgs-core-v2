@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Unshallow Fetch
-        run: get fetch --unshallow
+        run: git fetch --unshallow
       - name: Get Version Tag
         uses: docker://gittools/gitversion:5.0.2-beta1-27-linux-centos-7-netcoreapp2.2
         with:
