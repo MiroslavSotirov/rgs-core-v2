@@ -73,20 +73,21 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
 	}
 	if len(previousGamestateStore.GameState) == 0 {
-		logger.Warnf("No previous gameplay")
-		// this should never happen as on first round init a sham gamestate is stored
-		return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
+		logger.Warnf("No previous gameplay, first gameplay for this player")
+		if txStore.RoundId != "" {
+			return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
+		}
+		previousGamestate = store.CreateInitGS(player, gameSlug)
+		txStore.RoundStatus = store.RoundStatusClose
+	} else {
+		previousGamestate = store.DeserializeGamestateFromBytes(previousGamestateStore.GameState)
 	}
-
-	previousGamestate = store.DeserializeGamestateFromBytes(previousGamestateStore.GameState)
-
 	// check that previous gamestate matches what the client expects
 	clientID := chi.URLParam(request, "gamestateID")
 	logger.Debugf("Previous id: %v, requested id: %v", previousGamestate.Id, clientID)
 	if clientID != previousGamestate.Id {
 		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrSpinSequence
 	}
-
 	logger.Debugf("Previous Gamestate: %v", previousGamestate)
 	// get parameters from post form (perhaps this should be handled POST func)
 	decoder := json.NewDecoder(request.Body)

@@ -530,8 +530,9 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 
 	var gameState []byte = nil
 	authResp := i.restAuthenticateResponse(resp)
-
+	logger.Debugf("response: %#v", authResp)
 	finalErr = i.errorResponseCode(authResp.ResponseCode)
+	logger.Debugf("error: %v", finalErr)
 	if finalErr != nil {
 		return PlayerStore{}, GameStateStore{}, finalErr
 	}
@@ -540,6 +541,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 		gameState, err = base64.StdEncoding.DecodeString(authResp.LastGameState)
 
 		finalErr = i.errorBase64(err)
+		logger.Debugf("error: %v", finalErr)
 		if finalErr != nil {
 			return PlayerStore{}, GameStateStore{}, finalErr
 		}
