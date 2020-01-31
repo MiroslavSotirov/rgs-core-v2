@@ -55,3 +55,10 @@ jobs:
           git add stg/
           git commit -m "Deploy stg $BUILDVERSION"
           git push --set-upstream origin feature/deploy-stg-$BUILDVERSION
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
