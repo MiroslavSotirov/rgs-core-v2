@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "rgs-v2.fullname" . }}
+  namespace: maverick
   labels:
     {{- include "rgs-v2.labels" . | nindent 4 }}
 spec:
