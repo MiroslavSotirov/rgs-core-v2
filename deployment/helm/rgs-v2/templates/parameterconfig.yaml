@@ -1,0 +1,66 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: parameterconfig
+  namespace: maverick
+  labels:
+  {{- include "rgs-v2.labels" . | nindent 4 }}
+data:
+  parameterConfig.yml: |
+    # default range of stake values
+
+    stakeValues:
+      - 1
+      - 2
+      - 3
+      - 5
+      - 10
+      - 20
+      - 30
+      - 50
+      - 100
+      - 200
+      - 300
+      - 500
+      - 1000
+      - 2000
+      - 3000
+      - 5000
+
+    defaultBet: 5 # index of stakeValues
+
+    ccyMultipliers:
+      USD: 0.01
+      CNY: 0.04
+      EUR: 0.01
+      GBP: 0.01
+      VND: 100
+      KRW: 10
+      ZAR: 0.1
+      JPY: 1
+      THB: 0.2
+      MYR: 0.02
+      IDR: 100
+      XBT: 0.004
+      TRY: 0.05
+      BRL: 0.04
+      SEK: 0.01
+      RUB: 0.5
+      KZT: 3.5
+      NOK: 0.01
+
+    profiles:
+      low:
+        max: 11
+        default: 2
+      high:
+        min: 5
+        default: 10
+      base:
+        default: 2
+        max: 10
+
+    hostProfiles:
+      maverick: low
+
