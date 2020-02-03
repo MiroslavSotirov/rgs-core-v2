@@ -28,7 +28,13 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, host st
 
 	if len(latestGamestateStore.GameState) == 0 {
 		if wallet == "demo" {
-			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, engine.Money{5000000000, currency}, host, 0}
+			// todo: get this per currency
+			balance := engine.NewFixedFromInt(5000)
+			// solution for testing low balance
+			if playerID == "lowbalance" {
+				balance = 0
+			}
+			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, engine.Money{balance, currency}, host, 0}
 			newPlayer, err = ServLocal.PlayerSave(newPlayer.Token, ModeDemo, newPlayer)
 		}
 		latestGamestate = CreateInitGS(newPlayer, gameName)

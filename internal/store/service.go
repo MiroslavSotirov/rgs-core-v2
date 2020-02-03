@@ -403,8 +403,17 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 					nil
 			}
 		} else {
+			// TODO: THIS IS NOT CURRENTLY USED BECUASE IT ISN'T FLEXIBLE ENOUGH IN SETTING CURRENCY AND BETSETTINGS
+			// NEW PLAYERS ARE CREATED FOR DEMO WALLET IN SESSION INIT
 			newToken := Token(uuid.NewV4().String())
 			playerId := uuid.NewV4().String()
+			balance := engine.NewFixedFromInt(1000000)
+			// solution for testing low balance
+			if token == "lowbalance" {
+				playerId = "lowbalance"
+				balance = 0
+			}
+
 			player := PlayerStore{
 				PlayerId: playerId,
 				Token:    newToken,
@@ -412,7 +421,7 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 				Username: playerId,
 				Balance: engine.Money{
 					Currency: string(token)[:3],
-					Amount:   engine.NewFixedFromInt(1000000),
+					Amount:   balance,
 				},
 				NoOfFreeSpins:       0,
 				BetLimitSettingCode: "maverick",
@@ -678,10 +687,7 @@ func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction Trans
 
 	playerId, _ := i.getToken(token)
 	player, _ := i.getPlayer(playerId)
-	i.setTransaction(transaction.TransactionId, transaction)
 
-	key := player.PlayerId + "::" + transaction.GameId
-	i.setTransactionByPlayerGame(key, transaction)
 	if transaction.Category == CategoryWager {
 		player.Balance.Amount = player.Balance.Amount - transaction.Amount.Amount
 	} else if transaction.Category == CategoryPayout {
@@ -697,7 +703,12 @@ func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction Trans
 			player.Balance.Amount = player.Balance.Amount - transaction.Amount.Amount
 		}
 	}
-
+	if player.Balance.Amount < 0 {
+		return BalanceStore{}, &Error{ErrorCodeNotEnoughBalance, "Low Balance"}
+	}
+	i.setTransaction(transaction.TransactionId, transaction)
+	key := player.PlayerId + "::" + transaction.GameId
+	i.setTransactionByPlayerGame(key, transaction)
 	i.setPlayer(playerId, player)
 	newToken := i.renewToken(token)
 
