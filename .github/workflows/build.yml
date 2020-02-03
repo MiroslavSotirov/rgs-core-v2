@@ -57,7 +57,7 @@ jobs:
           git clone "https://${{ secrets.BUILDER_TOKEN }}@github.com/mvk-tech/mvk-deploy-prd.git"
           helm template rgs-v2/ -f values-prd.yaml --output-dir mvk-deploy-prd --name-template=rgs-v2
           cd mvk-deploy-prd
-          git add templates/
+          git add rgs-v2/
           git commit -m "Deploy prd $BUILDVERSION"
           git push --set-upstream origin feature/deploy-$BUILDVERSION
       - name: Create Release
