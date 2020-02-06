@@ -17,6 +17,7 @@ type PlaycheckFields struct {
 	Currency   string
 	BetPerLine float32
 	SymbolGrid [][]int
+	ColSize    int
 }
 
 func playcheck(request *http.Request, w http.ResponseWriter) {
@@ -32,7 +33,7 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 	}
 	gameplay := store.DeserializeGamestateFromBytes(gamestateStore.GameState)
 
-	t, err := template.ParseFiles("api/playcheck.html")
+	t, err := template.ParseFiles("templates/api/playcheck/playcheck.html")
 	if err != nil {
 		logger.Errorf("template parsing error: ", err)
 		return
@@ -55,7 +56,8 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 	symbolGrid := engine.TransposeGrid(gameplay.SymbolGrid)
 	currency := gameplay.Transactions[0].Amount.Currency
 	betPerLine := gameplay.BetPerLine.Amount.ValueAsFloat()
-	fields := PlaycheckFields{gameplay, gameID, wager, payout, currency, betPerLine, symbolGrid}
+	colSize := len(symbolGrid[0])
+	fields := PlaycheckFields{gameplay, gameID, wager, payout, currency, betPerLine, symbolGrid, colSize}
 	err = t.Execute(w, fields)
 	if err != nil {
 		logger.Errorf("template executing error: ", err)
