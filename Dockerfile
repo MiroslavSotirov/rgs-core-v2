@@ -11,7 +11,7 @@ RUN apk --no-cache add ca-certificates
 # copy rgs binary
 COPY --from=builder /rgs ./
 #copy playcheck template
-COPY --from=builder /go/src/rgs-core-v2/api/playcheck.html ./api/playcheck.html
+COPY --from=builder /go/src/rgs-core-v2/templates/api/playcheck/playcheck.html ./templates/api/playcheck/playcheck.html
 RUN chmod +x ./rgs
 ENTRYPOINT ["./rgs", "-logtostderr=true"]
 EXPOSE 3000
