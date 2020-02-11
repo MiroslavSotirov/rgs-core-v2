@@ -46,11 +46,11 @@ jobs:
           git config --global user.email "miura@maverickslots.com"
           git config --global user.name "MEH Bot"
           git add dev/
-          git commit -m "Deploy dev ${{ steps.tag.outputs.new_tag }}"
+          git commit -m "Deploy dev RGS ${{ steps.tag.outputs.new_tag }}"
           git push
           git checkout -b feature/deploy-stg-${{ steps.tag.outputs.new_tag }}
           git add stg/
-          git commit -m "Deploy stg ${{ steps.tag.outputs.new_tag }}"
+          git commit -m "Deploy stg RGS ${{ steps.tag.outputs.new_tag }}"
           git push --set-upstream origin feature/deploy-stg-${{ steps.tag.outputs.new_tag }}
           cd ..
           git clone "https://${{ secrets.BUILDER_TOKEN }}@github.com/mvk-tech/mvk-deploy-prd.git"
@@ -58,6 +58,6 @@ jobs:
           cd mvk-deploy-prd
           git checkout -b feature/deploy-rgs-${{ steps.tag.outputs.new_tag }}
           git add prd/rgs-v2/
-          git commit -m "Deploy prd ${{ steps.tag.outputs.new_tag }}"
-          git push --set-upstream origin feature/deploy-${{ steps.tag.outputs.new_tag }}
+          git commit -m "Deploy RGS ${{ steps.tag.outputs.new_tag }}"
+          git push --set-upstream origin feature/deploy-rgs-${{ steps.tag.outputs.new_tag }}
 
