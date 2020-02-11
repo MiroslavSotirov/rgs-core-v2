@@ -541,7 +541,6 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 	authResp := i.restAuthenticateResponse(resp)
 	logger.Debugf("response: %#v", authResp)
 	finalErr = i.errorResponseCode(authResp.ResponseCode)
-	logger.Debugf("error: %v", finalErr)
 	if finalErr != nil {
 		return PlayerStore{}, GameStateStore{}, finalErr
 	}
@@ -817,7 +816,11 @@ func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId st
 	player, _ := i.getPlayer(playerId)
 	key := player.PlayerId + "::" + gameId
 
-	transaction, _ := i.getTransactionByPlayerGame(key)
+	transaction, ok := i.getTransactionByPlayerGame(key)
+
+	if !ok {
+		return TransactionStore{}, &Error{ErrorCodeEntityNotFound, "No such transaction"}
+	}
 
 	return TransactionStore{
 		TransactionId: transaction.TransactionId,
@@ -874,7 +877,13 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 
 	finalErr = i.errorResponseCode(queryResp.ResponseCode)
 	if finalErr != nil {
-		return TransactionStore{}, finalErr
+
+			// special handling for err does not exists
+		if queryResp.ResponseCode == ResponseCodeUnknownError && strings.Contains(queryResp.Message, "E-CODE: [004:1003]") {
+			return TransactionStore{},  &Error{ErrorCodeEntityNotFound, "Not Found"}
+		} else {
+			return TransactionStore{}, finalErr
+		}
 	}
 
 	roundStatus := RoundStatusOpen

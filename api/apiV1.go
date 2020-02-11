@@ -57,24 +57,34 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	var previousGamestateStore store.GameStateStore
 	var txStore store.TransactionStore
 	var err *store.Error
+	var previousGamestate engine.Gamestate
 	switch wallet {
 	case "demo":
 		player, previousGamestateStore, err = store.ServLocal.PlayerByToken(store.Token(memID), store.ModeDemo, gameSlug)
+		if err != nil {
+
+		}
 		txStore, err = store.ServLocal.TransactionByGameId(player.Token, store.ModeDemo, gameSlug)
-		player.Token = txStore.Token
+		if err == nil {
+			player.Token = txStore.Token
+		}
 	case "dashur":
 		player, previousGamestateStore, err = store.Serv.PlayerByToken(store.Token(memID), store.ModeReal, gameSlug)
+		if err != nil {
+			// no player with that token
+			logger.Debugf("error: %v",err)
+			return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
+		}
 		txStore, err = store.Serv.TransactionByGameId(store.Token(memID), store.ModeReal, gameSlug)
 	}
-	var previousGamestate engine.Gamestate
 
-	if err != nil {
-		// no player with that token
-		return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
-	}
+
 	if len(previousGamestateStore.GameState) == 0 {
 		logger.Warnf("No previous gameplay, first gameplay for this player")
-		if txStore.RoundId != "" {
+		// check that there is no last tx as well, if there is a previous tx then there should not be a GS and there is a problem
+		// we expect err = EntityNotFound
+		if err == nil || err.Code != store.ErrorCodeEntityNotFound {
+			logger.Debugf("Previous TX: %v", txStore)
 			return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
 		}
 		previousGamestate = store.CreateInitGS(player, gameSlug)
@@ -193,6 +203,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		case "demo":
 			txStore.Mode = store.ModeDemo
 			balance, err = store.ServLocal.Transaction(token, store.ModeDemo, txStore)
+			logger.Warnf("Error: %#v", err)
 		case "dashur":
 			txStore.Mode = store.ModeReal
 			balance, err = store.Serv.Transaction(token, store.ModeReal, txStore)
