@@ -83,12 +83,15 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		logger.Warnf("No previous gameplay, first gameplay for this player")
 		// check that there is no last tx as well, if there is a previous tx then there should not be a GS and there is a problem
 		// we expect err = EntityNotFound
-		if err == nil || err.Code != store.ErrorCodeEntityNotFound {
+		if err != nil && err.Code == store.ErrorCodeEntityNotFound {
+			previousGamestate = store.CreateInitGS(player, gameSlug)
+			txStore.RoundStatus = store.RoundStatusClose
+		} else {
+			logger.Debugf("Previous TX: %v", txStore)
 			logger.Debugf("Previous TX: %v", txStore)
 			return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
 		}
-		previousGamestate = store.CreateInitGS(player, gameSlug)
-		txStore.RoundStatus = store.RoundStatusClose
+
 	} else {
 		previousGamestate = store.DeserializeGamestateFromBytes(previousGamestateStore.GameState)
 	}
