@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Maverick Force Tool</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700&display=swap" rel="stylesheet">
+
+    <style>
+
+        html {
+            line-height: 1.15;
+            -webkit-text-size-adjust: 100%;
+        }
+        body {
+            margin: 0;
+        }
+
+        main {
+            display: block;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin: 0.67em 0;
+        }
+        hr {
+            box-sizing: content-box;
+            height: 0;
+            overflow: visible;
+        }
+
+        pre {
+            font-family: monospace, monospace;
+            font-size: 1em;
+        }
+
+        a {
+            background-color: transparent;
+        }
+
+
+        abbr[title] {
+            border-bottom: none;
+            text-decoration: underline;
+            text-decoration: underline dotted;
+        }
+        b,
+        strong {
+            font-weight: bolder;
+        }
+        code,
+        kbd,
+        samp {
+            font-family: monospace, monospace;
+            font-size: 1em;
+        }
+        small {
+            font-size: 80%;
+        }
+        sub,
+        sup {
+            font-size: 75%;
+            line-height: 0;
+            position: relative;
+            vertical-align: baseline;
+        }
+
+        sub {
+            bottom: -0.25em;
+        }
+
+        sup {
+            top: -0.5em;
+        }
+        img {
+            border-style: none;
+        }
+        button,
+        input,
+        optgroup,
+        select,
+        textarea {
+            font-family: inherit;
+            font-size: 100%;
+            line-height: 1.15;
+            margin: 0;
+        }
+        button,
+        input {
+            /* 1 */
+            overflow: visible;
+        }
+
+        button,
+        select {
+            text-transform: none;
+        }
+
+        button,
+        [type="button"],
+        [type="reset"],
+        [type="submit"] {
+            -webkit-appearance: button;
+        }
+        button::-moz-focus-inner,
+        [type="button"]::-moz-focus-inner,
+        [type="reset"]::-moz-focus-inner,
+        [type="submit"]::-moz-focus-inner {
+            border-style: none;
+            padding: 0;
+        }
+        button:-moz-focusring,
+        [type="button"]:-moz-focusring,
+        [type="reset"]:-moz-focusring,
+        [type="submit"]:-moz-focusring {
+            outline: 1px dotted ButtonText;
+        }
+
+        fieldset {
+            padding: 0.35em 0.75em 0.625em;
+        }
+
+        legend {
+            box-sizing: border-box;
+            color: inherit;
+            display: table;
+            max-width: 100%;
+            padding: 0;
+            white-space: normal;
+        }
+        progress {
+            vertical-align: baseline;
+        }
+
+        textarea {
+            overflow: auto;
+        }
+        [type="checkbox"],
+        [type="radio"] {
+            box-sizing: border-box;
+            padding: 0;
+        }
+        [type="number"]::-webkit-inner-spin-button,
+        [type="number"]::-webkit-outer-spin-button {
+            height: auto;
+        }
+        [type="search"] {
+            -webkit-appearance: textfield;
+            outline-offset: -2px;
+        }
+        [type="search"]::-webkit-search-decoration {
+            -webkit-appearance: none;
+        }
+        ::-webkit-file-upload-button {
+            -webkit-appearance: button;
+            font: inherit;
+        }
+        details {
+            display: block;
+        }
+        summary {
+            display: list-item;
+        }
+        template {
+            display: none;
+        }
+        body {
+
+            font-size: 18px;
+            font-family: 'Lato', sans-serif;
+            color: rgb(0, 0, 0);
+            line-height: 1.5;
+
+            background:#fafafa;
+
+        }
+        .custom-select {
+            position: relative;
+            font-family: 'Lato', sans-serif;
+            float: left;
+            margin-left: 20px;
+        }
+
+        .custom-select select {
+            display: block; /*hide original SELECT element: */
+        }
+
+        .select-items div,.select-selected {
+            color: #ffffff;
+            padding: 8px 16px;
+            border: 1px solid transparent;
+            border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent;
+            cursor: pointer;
+        }
+
+        .select-items div:hover, .same-as-selected {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            width:100%;
+            max-width: 900px;
+            margin: 50px auto;
+        }
+
+
+        input[type=text], select {
+            width: 200px;
+            padding: 12px 20px;
+            display: block;
+            border: 0px;
+            box-sizing: border-box;
+            background-color: #dbe2e6;
+            color: #000a14;
+            float: left;
+        }
+        input[type=submit] {
+            width: 100%;
+            background-color:#dbe2e6;
+            color: #000a14;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type=submit]:hover {
+            background-color: #ac2115;
+        }
+
+        ::-webkit-input-placeholder { /* Edge */
+            color: #000a14;
+        }
+
+        :-ms-input-placeholder { /* Internet Explorer 10-11 */
+            color: #000a14;
+        }
+
+        ::placeholder {
+            color:  #000a14;
+        }
+
+        .button {
+            background-color: #ac2215;
+            border: none;
+            color: white;
+            padding: 13.3px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-left: 20px;
+        }svg {
+             width: 150px;
+             display: block;
+             margin: 80px auto;
+         }
+
+        .msg-box {
+            height: 3.5rem;
+            margin: 20px 12px auto 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .msg-text {
+            display: block;
+            font-size: 2.0rem;
+            position: absolute;
+            top: 3px;
+            left: 30%;
+            color: #000000;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+
+    <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+         viewBox="0 0 239.4 239.4" style="enable-background:new 0 0 239.4 239.4;" xml:space="preserve">
+         <style type="text/css">
+             .st0{clip-path:url(#SVGID_2_);fill:#AC2216;}
+             .st1{clip-path:url(#SVGID_2_);fill:#FFFFFF;}
+
+         </style>
+        <g id="SyIgcIkqYdM_Hk8n15FOf" data-animator-group="true" data-animator-type="2">
+
+            <defs>
+                <rect id="SVGID_1_" width="239.4" height="239.4"/>
+            </defs>
+            <clipPath id="SVGID_2_">
+                <use xlink:href="#SVGID_1_"  style="overflow:visible;"/>
+            </clipPath>
+            <path class="st0" d="M239.4,119.7c0,66.1-53.6,119.7-119.7,119.7S0,185.8,0,119.7S53.6,0,119.7,0S239.4,53.6,239.4,119.7"/>
+            <path class="st1" d="M204.1,61c-46.1,5.9-84.4,64.6-84.4,64.6S81.5,66.9,35.3,61c0,0-46.1,63.9,25.4,148.3
+                c-17.5-67.9,0-92.3,0-92.3s-3-10.5-7.9-13.5c8.2,1.6,50.4,27.4,66.9,76.5c16.5-49.1,58.7-74.8,66.9-76.5c-4.9,3-7.9,13.5-7.9,13.5
+                s17.5,24.4,0,92.3C250.2,124.9,204.1,61,204.1,61" id="SyIgcIkqYdM"/>
+        </g>
+        </svg>
+
+    <input type="text" id="playerID" name="playerID" placeholder="PlayerID" value="{{.PlayerID}}">
+    <!-- Surround the select box within a "custom-select" DIV element.
+Remember to set the width: -->
+    <div id="gamesSelectorContainer" class="custom-select games" style="width:200px;">
+        <select id="gameSelect" onchange="updateForceSelection()">
+            <option value="" selected>--- Games ---</option>
+        </select>
+    </div>
+
+    <div id="forceSelectorContainer"  class="custom-select forcetool" style="width:200px;">
+        <select id="forceSelect" >
+            <option value="" selected>--- Force Feature ---</option>
+        </select>
+    </div>
+
+    <button class="button" onclick="postForce()">Force</button>
+    <button class="button" onclick="clearForce()">Clear</button>
+
+    <section class="msg-box">
+        <div id="msg-text" class="msg-text"></div>
+    </section>
+
+</div>
+
+</body>
+<script language="JavaScript">
+    const gameSelect = document.getElementById('gameSelect');
+    const forceValSelect = document.getElementById('forceSelect');
+    const initialSelectedGame = "{{.SelectedGame}}";
+    const games = [
+        {{range .Games}}
+        createGame({{.Name}}, {{.Engine}}, {{.ID}}),
+        {{end}}
+    ];
+
+    const forceValues = [
+        {{range .ForceValues}}
+        createForceValues({{.Name}}, {{.ID}}, {{.Engine}}),
+        {{end}}
+    ];
+
+    function createGame(name, id, data) {
+        return {
+            name: name,
+            id: id,
+            data: data,
+        };
+    }
+
+    function createForceValues(name, id, engine) {
+        return {
+            name: name,
+            id: id,
+            engine: engine,
+        };
+    }
+
+    function removeOptions(select) {
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+        select.value = "";
+    }
+
+    function addOptions(select, options) {
+        options.forEach(function(option) {
+            const opt  = new Option(option.name, option.id);
+            opt.setAttribute("gid", option.data);
+            select.options[select.options.length] = opt;
+        });
+    }
+
+    function setSelected(name, select){
+        Array.from(select.options).forEach(function(option) {
+            if(option.getAttribute("gid") === name){
+                select.options[option.index].selected = true;
+            }
+        });
+    }
+
+    function updateForceSelection() {
+        const selectedEngine = gameSelect.value;
+        const filteredForceValues = forceValues.filter(function (f) {
+            return f.engine === selectedEngine;
+        });
+
+        const options = Array.from(new Set(filteredForceValues.map(fv => fv.id))).map(id => {return filteredForceValues.find( fv => fv.id === id )});
+        removeOptions(forceValSelect);
+        addOptions(forceValSelect, options);
+    }
+
+    const playerID =  document.getElementById('playerID').value;
+
+
+    const msgtxt = document.getElementById("msg-text");
+    function postForce(){
+
+        const gameSlug = gameSelect.options[gameSelect.selectedIndex].getAttribute("gid");
+        const forceID = forceValSelect.options[forceValSelect.selectedIndex].value;
+
+        const forceUrl = "/v2/rgs/force"
+        const payload = {playerID:playerID, gameSlug:gameSlug, forceID:forceID};
+        fetch(forceUrl, {
+            method: 'POST',
+            headers : {'Content-Type': 'application/json;charset=UTF-8'},
+            body : JSON.stringify(payload),
+        }).then((res) => res.text()
+            .then((body) => {
+                if (res.status === 200){
+                    msgtxt.textContent = forceID + " is currently active";
+                } else {
+                    msgtxt.textContent = "Error: " + body;
+                }
+            }
+            ).catch((e) => {
+                msgtxt.textContent = "Error: " + e.value;
+            }))
+    }
+
+    function clearForce(){
+        const gameSlug = gameSelect.options[gameSelect.selectedIndex].getAttribute("gid");
+        const forceID = forceValSelect.options[forceValSelect.selectedIndex].value;
+
+        const forceUrl = "/v2/rgs/force"
+        const payload = {playerID:playerID, gameSlug:gameSlug, forceID:forceID};
+        fetch(forceUrl, {
+            method: 'DELETE',
+            headers : {'Content-Type': 'application/json;charset=UTF-8'},
+            body : JSON.stringify(payload),
+        }).then((res) => res.text()
+            .then((body) => {
+                    if (res.status === 200){
+                        msgtxt.textContent =  "force feature disabled";
+                    } else {
+                        msgtxt.textContent = "Error: " + body;
+                    }
+                }
+            ).catch((e) => {
+                msgtxt.textContent = "Error: " + e.value;
+            }))
+    }
+
+    window.onload = function(){
+        addOptions(gameSelect, games);
+        if (initialSelectedGame  !== ""){
+            setSelected(initialSelectedGame, gameSelect);
+            updateForceSelection();
+        }
+    };
+
+</script>
+</html>
