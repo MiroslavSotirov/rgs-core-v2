@@ -62,7 +62,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	case "demo":
 		player, previousGamestateStore, err = store.ServLocal.PlayerByToken(store.Token(memID), store.ModeDemo, gameSlug)
 		if err != nil {
-
+			return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
 		}
 		txStore, err = store.ServLocal.TransactionByGameId(player.Token, store.ModeDemo, gameSlug)
 		if err == nil {
