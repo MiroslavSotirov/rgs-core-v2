@@ -88,7 +88,6 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			txStore.RoundStatus = store.RoundStatusClose
 		} else {
 			logger.Debugf("Previous TX: %v", txStore)
-			logger.Debugf("Previous TX: %v", txStore)
 			return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
 		}
 
@@ -206,7 +205,6 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		case "demo":
 			txStore.Mode = store.ModeDemo
 			balance, err = store.ServLocal.Transaction(token, store.ModeDemo, txStore)
-			logger.Warnf("Error: %#v", err)
 		case "dashur":
 			txStore.Mode = store.ModeReal
 			balance, err = store.Serv.Transaction(token, store.ModeReal, txStore)
