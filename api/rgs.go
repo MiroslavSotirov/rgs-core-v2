@@ -1,6 +1,8 @@
 package api
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -341,15 +343,81 @@ func Routes() *chi.Mux {
 			}
 			fmt.Fprint(w, []byte("OK"))
 		})
-		r.Get("/force/{gameSlug:[A-Za-z-]+}/{token:[A-Za-z0-9-_]+}/{forceID:[A-Za-z0-9]+}", func(w http.ResponseWriter, r *http.Request) {
-			gameSlug := chi.URLParam(r, "gameSlug")
-			forceID := chi.URLParam(r, "forceID")
-			token := chi.URLParam(r, "token")
-			if err := forceTool.SetForce(gameSlug, forceID, token); err != nil {
-				logger.Warnf("Force Tool Active : %v, %v", gameSlug, token)
+ 		//r.Get("/force/{gameSlug:[A-Za-z-]+}/{token:[A-Za-z0-9-_]+}/{forceID:[A-Za-z0-9]+}", func(w http.ResponseWriter, r *http.Request) {
+		//	gameSlug := chi.URLParam(r, "gameSlug")
+		//	forceID := chi.URLParam(r, "forceID")
+		//	token := chi.URLParam(r, "token")
+		//	if err := forceTool.SetForce(gameSlug, forceID, token); err != nil {
+		//		logger.Warnf("Force Tool Active : %v, %v", gameSlug, token)
+		//		fmt.Fprint(w, err.Error())
+		//	} else {
+		//		fmt.Fprint(w, "OK")
+		//	}
+		//})
+		r.Get("/force", func(w http.ResponseWriter, r *http.Request){
+			listForceTools(r, w)
+		})
+		r.Post("/force", func(w http.ResponseWriter, r *http.Request) {
+			var param forceTool.ForceToolParams
+			err := json.NewDecoder(r.Body).Decode(&param)
+			if err != nil {
+				w.WriteHeader(400)
+				fmt.Fprint(w, errors.New("failed to decode request"))
+				return
+			}
+			logger.Debugf("Game:%v ForceID:%v playerID: %v", param.GameSlug, param.ForceID, param.PlayerID)
+			var e error
+			if param.PlayerID == "" {
+				e = errors.New("missing field: player ID")
+			} else if param.GameSlug == "" {
+					e =  errors.New("missing field: game name")
+			} else if param.ForceID == "" {
+				e =  errors.New("missing field: force ID")
+			}
+			if e != nil {
+				w.WriteHeader(400)
+				fmt.Fprint(w, e)
+				return
+			}
+			if err := forceTool.SetForce(param.GameSlug, param.ForceID, param.PlayerID); err != nil {
+				w.WriteHeader(400)
+				logger.Infof("Force Tool Active : %v, %v %v", param.PlayerID, param.GameSlug, param.ForceID )
 				fmt.Fprint(w, err.Error())
+				return
 			} else {
+				w.WriteHeader(200)
 				fmt.Fprint(w, "OK")
+				return
+			}
+		})
+		r.Delete("/force", func(w http.ResponseWriter, r *http.Request) {
+			var param forceTool.ForceToolParams
+			err := json.NewDecoder(r.Body).Decode(&param)
+			if err != nil {
+				w.WriteHeader(400)
+				fmt.Fprint(w, errors.New("failed to decode request"))
+				return
+			}
+			var e error
+			if param.PlayerID == "" {
+				e = errors.New("missing field: player ID")
+			} else if param.GameSlug == "" {
+				e =  errors.New("missing field: game name")
+			}
+			if e != nil {
+				w.WriteHeader(400)
+				fmt.Fprint(w, e)
+				return
+			}
+			if err := forceTool.ClearForce(param.GameSlug, param.PlayerID); err != nil {
+				w.WriteHeader(400)
+				logger.Infof("Force Tool cleared : %v, %v %v", param.PlayerID, param.GameSlug)
+				fmt.Fprint(w, err.Error())
+				return
+			} else {
+				w.WriteHeader(200)
+				fmt.Fprint(w, "OK")
+				return
 			}
 		})
 		r.Get("/clearforce/{gameSlug:[A-Za-z-]+}/{playerID:[A-Za-z0-9-_]+}", func(w http.ResponseWriter, r *http.Request) {
