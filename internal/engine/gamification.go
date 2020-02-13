@@ -41,7 +41,7 @@ func (data GamestatePB_Gamification) GetLevelAndStage() (int32, int32) {
 func (data *GamestatePB_Gamification) GetSpins() int32 {
 	// for initialization only
 	if data.TotalSpins == 0 {
-		initVal := randomRangeInt32()
+		initVal := randomRangeInt32(70, 50)
 		data.Level, data.Stage, data.SpinsToStageUp, data.TotalSpins, data.RemainingSpins = 0, 0, initVal, 0, initVal
 		logger.Debugf("Initialize Gamification: %+v", data)
 	}

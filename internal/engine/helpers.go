@@ -15,12 +15,6 @@ import (
 	"strings"
 )
 
-// Gamification stage randomizer lower and upper bound
-const (
-	max = 70
-	min = 50
-)
-
 func SelectFromWeightedOptions(options []int, weights []int) int {
 	// This method is used for multipliers, which are always integers
 	// Select from a list (options) with weights (weights)
@@ -242,7 +236,7 @@ func GetHash(filePath string) (string, string, error) {
 	return MD5String, SHA1String, nil
 }
 
-func randomRangeInt32() int32 {
+func randomRangeInt32(max, min int) int32 {
 	// cast to int32
 	return int32(rng.RandFromRange(max-min+1) + min)
 }
