@@ -446,13 +446,13 @@ func (gamestate *Gamestate) UpdateGamification(previousGS Gamestate, gameSlug st
 		// ignore freespin
 		if len(previousGS.NextActions) == 1 && len(gamestate.NextActions) == 1 && gamestate.NextActions[0] == "finish" { // 1 means NextActions:[finish]
 			logger.Debugf("IncrementSpins: sky-jewels")
-			gamestate.Gamification.IncrementSpins(randomRangeInt32(), 6)
+			gamestate.Gamification.IncrementSpins(randomRangeInt32(50, 20), 6)
 		}
 	case "goal", "cookoff-champion":
 		// ignore freespin
 		if len(previousGS.NextActions) == 1 && len(gamestate.NextActions) == 1 && gamestate.NextActions[0] == "finish" { // 1 means NextActions:[finish]
 			logger.Debugf("IncrementSpins: goal, cookoff-champion")
-			gamestate.Gamification.IncrementSpins(randomRangeInt32(), 3)
+			gamestate.Gamification.IncrementSpins(randomRangeInt32(70, 50), 3)
 		}
 	}
 }
