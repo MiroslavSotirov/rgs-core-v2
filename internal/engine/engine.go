@@ -347,7 +347,7 @@ func determinePrimeAndFlopWins(symbolGrid [][]int, payouts []Payout, wilds []wil
 // Play ...
 func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parameters GameParams) (Gamestate, EngineConfig) {
 	logger.Debugf("Playing round with parameters: %#v", parameters)
-	gameID, _ := GetGameIDAndReelset(previousGamestate.GameID)
+	gameID, RS := GetGameIDAndReelset(previousGamestate.GameID)
 	engineID, err := config.GetEngineFromGame(gameID)
 	engineConf := BuildEngineDefs(engineID)
 	totalBet := Money{Amount: betPerLine.Mul(NewFixedFromInt(engineConf.EngineDefs[0].StakeDivisor)), Currency: currency}
@@ -356,7 +356,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	isContinuation := true
 	//relativePayout := StrToDec("0.000")
 	if len(previousGamestate.NextActions) == 1 && previousGamestate.NextActions[0] == "finish" {
-		// if this is a respin, special case:
+		// if this is a respin or cascade, special case:
 		if parameters.Action == "reSpin" {
 			// if action is respin, WAGER is dependent on reel configuration
 			// index of the reel to be respun must be passed
@@ -369,6 +369,9 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 			reelCost := engineConf.EngineDefs[engineConf.getDefIdByName(previousGamestate.Action)].GetRespinPriceReel(reelIndex, engineConf, previousGamestate)
 			transactions = append(transactions, WalletTransaction{Id: previousGamestate.NextGamestate, Type: "WAGER", Amount: Money{reelCost, currency}})
 			parameters.previousGamestate = previousGamestate
+		} else if parameters.Action == "cascade" {
+			parameters.previousGamestate = previousGamestate
+			betPerLine = previousGamestate.BetPerLine.Amount
 		} else {
 			// new gameplay round
 			isContinuation = false
@@ -401,7 +404,13 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 		}
 	}
 
-	method, err := engineConf.getEngineAndMethod(actions[0])
+	var method reflect.Value
+	if actions[0] == "cascade" || actions[0] == "reSpin" {
+		// action must be performed on the same engine as previous round
+		method = reflect.ValueOf(engineConf.EngineDefs[RS]).MethodByName(engineConf.EngineDefs[RS].Function)
+	} else {
+		method, err = engineConf.getEngineAndMethod(actions[0])
+	}
 
 	if err != nil {
 		panic(err)
@@ -587,9 +596,91 @@ func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 	return gamestate
 }
 
-//func (engine EngineDef) processWins(symbolGrid ) ([]Prize, int){
-//	// calculates wins by standard method and
-//}
+// Cascading round
+func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
+
+	previousGamestate := parameters.previousGamestate
+	// if previous gamestate contains a win, we need to cascade new tiles into the old space
+	symbolGrid := make([][]int, len(engine.ViewSize))
+	previousGrid := previousGamestate.SymbolGrid
+	remainingGrid := [][]int{}
+	stopList := make([]int, len(engine.ViewSize))
+	//determine map of symbols to disappear
+	for i:=0; i< len(previousGamestate.Prizes); i++{
+		for j:=0; j<len(previousGamestate.Prizes[i].SymbolPositions);j++{
+			previousGrid[i][j] = -1
+		}
+	}
+
+	for i:=0; i< len(previousGrid); i++{
+		remainingReel := []int{}
+		// remove winning symbols from the view
+		for j:=0; j<len(previousGrid[i]); j++ {
+			if previousGrid[i][j] >= 0 {
+				remainingReel = append(remainingReel, previousGrid[i][j])
+			}
+		}
+		remainingGrid = append(remainingGrid, remainingReel)
+	}
+
+	// return grid to full size by filling in empty spaces
+	for i:=0; i<len(engine.ViewSize); i++{
+		numToAdd := engine.ViewSize[i] - len(remainingGrid[i])
+		symbolGrid[i] = append(engine.Reels[i][previousGamestate.StopList[i]-numToAdd:previousGamestate.StopList[i]], remainingGrid[i]...)
+		stopList[i] = previousGamestate.StopList[i]-numToAdd
+	}
+
+	// calculate wins
+	wins, relativePayout := engine.DetermineWins(symbolGrid)
+	// calculate specialWin
+	var nextActions []string
+	specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
+	if specialWin.Index != "" {
+		var specialPayout int
+		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+		relativePayout += specialPayout
+		wins = append(wins, specialWin)
+	}
+	// if any win is present, next action should be cascade
+	if len(wins) > 0 || specialWin.Index != ""{
+		nextActions = append([]string{"cascade",}, nextActions...)
+	}
+	// get first Multiplier
+	multiplier := 1
+	if len(engine.Multiplier.Multipliers) > 0 {
+		//multiplier = SelectFromWeightedOptions(engine.Multiplier.Multipliers, engine.Multiplier.Probabilities)
+		multiplier = engine.Multiplier.Multipliers[0]
+	}
+
+	// Build gamestate
+	gamestate := Gamestate{GameID: fmt.Sprintf(":%v", engine.Index), Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: multiplier, StopList: stopList, NextActions: nextActions, SelectedWinLines: parameters.SelectedWinLines}
+	return gamestate
+}
+
+func (engine EngineDef) CascadeMultiply(parameters GameParams) Gamestate {
+	// multiplier increments for each cascade, up to 10
+	gamestate := engine.Cascade(parameters)
+	// get next multiplier
+	prevIndex := getIndex(parameters.previousGamestate.Multiplier, engine.Multiplier.Multipliers)
+	gamestate.Multiplier = minInt(engine.Multiplier.Multipliers[prevIndex+1], engine.Multiplier.Multipliers[len(engine.Multiplier.Multipliers)-1])
+	return gamestate
+}
+
+func getIndex(a int, s []int) int {
+	for i:=0; i<len(s); i++ {
+		if a == s[i] {
+			return i
+		}
+	}
+	return 0
+}
+
+func minInt(a int, b int) int {
+	if a>b {
+		return b
+	}
+	return a
+}
 
 // Prize selection round
 func (engine EngineDef) SelectPrize(parameters GameParams) Gamestate {
