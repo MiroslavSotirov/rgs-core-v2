@@ -623,10 +623,15 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 		remainingGrid = append(remainingGrid, remainingReel)
 	}
 
+	// adjust reels in case need to cascase symbols from the end of the strip
+	adjustedReels := engine.Reels
+	for i:=0; i<len(adjustedReels); i++ {
+		adjustedReels[i] = append(adjustedReels[i][len(adjustedReels)-engine.ViewSize[i]:],adjustedReels[i]...)
+	}
 	// return grid to full size by filling in empty spaces
 	for i:=0; i<len(engine.ViewSize); i++{
 		numToAdd := engine.ViewSize[i] - len(remainingGrid[i])
-		symbolGrid[i] = append(engine.Reels[i][previousGamestate.StopList[i]-numToAdd:previousGamestate.StopList[i]], remainingGrid[i]...)
+		symbolGrid[i] = append(adjustedReels[i][previousGamestate.StopList[i]-numToAdd+engine.ViewSize[i]:previousGamestate.StopList[i]+engine.ViewSize[i]], remainingGrid[i]...)
 		stopList[i] = previousGamestate.StopList[i]-numToAdd
 	}
 
@@ -658,11 +663,17 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 }
 
 func (engine EngineDef) CascadeMultiply(parameters GameParams) Gamestate {
-	// multiplier increments for each cascade, up to 10
+	// multiplier increments for each cascade, up to the highest multiplier in the engine
 	gamestate := engine.Cascade(parameters)
 	// get next multiplier
 	prevIndex := getIndex(parameters.previousGamestate.Multiplier, engine.Multiplier.Multipliers)
-	gamestate.Multiplier = minInt(engine.Multiplier.Multipliers[prevIndex+1], engine.Multiplier.Multipliers[len(engine.Multiplier.Multipliers)-1])
+	if prevIndex < 0 {
+		// fallback to first multiplier
+		gamestate.Multiplier = engine.Multiplier.Multipliers[0]
+	} else {
+		gamestate.Multiplier = minInt(engine.Multiplier.Multipliers[prevIndex+1], engine.Multiplier.Multipliers[len(engine.Multiplier.Multipliers)-1])
+
+	}
 	return gamestate
 }
 
@@ -672,7 +683,7 @@ func getIndex(a int, s []int) int {
 			return i
 		}
 	}
-	return 0
+	return -1
 }
 
 func minInt(a int, b int) int {
