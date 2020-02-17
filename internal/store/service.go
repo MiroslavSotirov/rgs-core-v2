@@ -370,7 +370,7 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 			newToken := i.renewToken(token)
 			key := player.PlayerId + "::" + gameId
 			tx, txExists := i.getTransactionByPlayerGame(key)
-
+			logger.Debugf("PLAYERBYTOKEN TX: %#v", tx)
 			if txExists && tx.GameState != nil && len(tx.GameState) > 0 {
 				return PlayerStore{
 						PlayerId: player.PlayerId,
@@ -387,6 +387,8 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 					GameStateStore{GameState: tx.GameState},
 					nil
 			} else {
+				// this is likely an error, if player exists, there should be a previous gameplay unless init was called and never spun, which will throw an error
+				logger.Warnf("DEMO WALLET PLAYER EXISTS BUT NO PREVIOUS TX")
 				return PlayerStore{
 						PlayerId: player.PlayerId,
 						Token:    newToken,
@@ -403,33 +405,8 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 					nil
 			}
 		} else {
-			// TODO: THIS IS NOT CURRENTLY USED BECUASE IT ISN'T FLEXIBLE ENOUGH IN SETTING CURRENCY AND BETSETTINGS
-			// NEW PLAYERS ARE CREATED FOR DEMO WALLET IN SESSION INIT
-			newToken := Token(uuid.NewV4().String())
-			playerId := uuid.NewV4().String()
-			balance := engine.NewFixedFromInt(1000000)
-			// solution for testing low balance
-			if token == "lowbalance" {
-				playerId = "lowbalance"
-				balance = 0
-			}
-
-			player := PlayerStore{
-				PlayerId: playerId,
-				Token:    newToken,
-				Mode:     ModeDemo,
-				Username: playerId,
-				Balance: engine.Money{
-					Currency: string(token)[:3],
-					Amount:   balance,
-				},
-				NoOfFreeSpins:       0,
-				BetLimitSettingCode: "maverick",
-			}
-			i.setPlayer(playerId, player)
-			i.setToken(newToken, playerId)
-
-			return player, GameStateStore{}, nil
+			logger.Warnf("NO PLAYER EXISTS")
+			return PlayerStore{}, GameStateStore{}, nil
 		}
 	} else {
 		return PlayerStore{}, GameStateStore{}, &Error{Code: ErrorCodeGeneralError, Message: "Unknown mode"}
@@ -1109,7 +1086,8 @@ func (i *LocalServiceImpl) deleteToken(token Token) {
 	ld.Lock.Lock()
 	defer ld.Lock.Unlock()
 	_, ok := ld.Token[token]
-	if ok {
+	// don't delete the token if it matches the player id
+	if ok && string(token) != ld.Token[token] {
 		delete(ld.Token, token)
 	}
 }

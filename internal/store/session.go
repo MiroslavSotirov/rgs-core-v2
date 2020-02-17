@@ -19,7 +19,6 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, host st
 	case "demo":
 		newPlayer, latestGamestateStore, err = ServLocal.PlayerByToken(Token(refreshToken), ModeDemo, gameName)
 	}
-	logger.Debugf("newPlayer: %v, latestGS: %v", newPlayer, latestGamestateStore)
 	if err != nil {
 		logger.Errorf("got err : %v from player retrieval", err)
 		return engine.Gamestate{}, PlayerStore{}, rgserror.ErrBalanceStoreError
@@ -33,6 +32,8 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, host st
 			// solution for testing low balance
 			if playerID == "lowbalance" {
 				balance = 0
+			} else if playerID == "" {
+				playerID = rng.RandStringRunes(8)
 			}
 			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, engine.Money{balance, currency}, host, 0}
 			newPlayer, err = ServLocal.PlayerSave(newPlayer.Token, ModeDemo, newPlayer)
