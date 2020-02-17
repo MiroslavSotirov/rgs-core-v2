@@ -370,7 +370,7 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 			newToken := i.renewToken(token)
 			key := player.PlayerId + "::" + gameId
 			tx, txExists := i.getTransactionByPlayerGame(key)
-			logger.Debugf("PLAYERBYTOKEN TX: %#v", tx)
+
 			if txExists && tx.GameState != nil && len(tx.GameState) > 0 {
 				return PlayerStore{
 						PlayerId: player.PlayerId,
