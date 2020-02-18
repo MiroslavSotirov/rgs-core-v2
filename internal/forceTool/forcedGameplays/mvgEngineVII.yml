@@ -13,8 +13,3 @@
   action: base
   reelsetId: 0
   stopList: [7, 3, 13, 11, 0]
-
-- id: retrigger
-  action: freespin2
-  reelsetId: 1
-  stopList: [21,17,38,28,39]
