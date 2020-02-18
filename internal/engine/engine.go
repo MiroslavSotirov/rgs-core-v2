@@ -393,11 +393,11 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 		transactions = append(transactions, WalletTransaction{Id: previousGamestate.NextGamestate, Type: "WAGER", Amount: Money{0, currency}})
 
 		actions = previousGamestate.NextActions
-		// todo: do we want to insist that betperline be the same as previous gamestate?
+
 		if actions[0] != "base" {
 			betPerLine = previousGamestate.BetPerLine.Amount
 		}
-		// todo: be smarter in passing on parameters, but for now just add selectedWinLines if it existed previously and this request has no parameters
+
 		if len(previousGamestate.SelectedWinLines) > 0 && len(parameters.SelectedWinLines) == 0 {
 			// assume this is a line game and info should be propogated
 			parameters.SelectedWinLines = previousGamestate.SelectedWinLines
@@ -593,47 +593,55 @@ func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 	}
 	// Build gamestate
 	gamestate := Gamestate{GameID: fmt.Sprintf(":%v", engine.Index), Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: multiplier, StopList: stopList, NextActions: nextActions, SelectedWinLines: parameters.SelectedWinLines}
+
 	return gamestate
 }
 
 // Cascading round
 func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
-
-	previousGamestate := parameters.previousGamestate
-	// if previous gamestate contains a win, we need to cascade new tiles into the old space
 	symbolGrid := make([][]int, len(engine.ViewSize))
-	previousGrid := previousGamestate.SymbolGrid
-	remainingGrid := [][]int{}
 	stopList := make([]int, len(engine.ViewSize))
-	//determine map of symbols to disappear
-	for i:=0; i< len(previousGamestate.Prizes); i++{
-		for j:=0; j<len(previousGamestate.Prizes[i].SymbolPositions);j++{
-			previousGrid[i][j] = -1
-		}
-	}
+	if parameters.Action == "cascade" {
+		previousGamestate := parameters.previousGamestate
+		// if previous gamestate contains a win, we need to cascade new tiles into the old space
+		previousGrid := previousGamestate.SymbolGrid
 
-	for i:=0; i< len(previousGrid); i++{
-		remainingReel := []int{}
-		// remove winning symbols from the view
-		for j:=0; j<len(previousGrid[i]); j++ {
-			if previousGrid[i][j] >= 0 {
-				remainingReel = append(remainingReel, previousGrid[i][j])
+		remainingGrid := [][]int{}
+		//determine map of symbols to disappear
+		for i:=0; i< len(previousGamestate.Prizes); i++{
+			for j:=0; j<len(previousGamestate.Prizes[i].SymbolPositions);j++{
+				previousGrid[j][previousGamestate.Prizes[i].SymbolPositions[j]] = -1
 			}
 		}
-		remainingGrid = append(remainingGrid, remainingReel)
+
+		for i:=0; i< len(previousGrid); i++{
+			remainingReel := []int{}
+			// remove winning symbols from the view
+			for j:=0; j<len(previousGrid[i]); j++ {
+				if previousGrid[i][j] >= 0 {
+					remainingReel = append(remainingReel, previousGrid[i][j])
+				}
+			}
+			remainingGrid = append(remainingGrid, remainingReel)
+		}
+
+		// adjust reels in case need to cascase symbols from the end of the strip
+		adjustedReels := make([][]int, len(engine.Reels))
+
+		for i:=0; i<len(engine.Reels); i++ {
+			adjustedReels[i] = append(engine.Reels[i][len(engine.Reels[i])-engine.ViewSize[i]:],engine.Reels[i]...)
+		}
+
+		// return grid to full size by filling in empty spaces
+		for i:=0; i<len(engine.ViewSize); i++{
+			numToAdd := engine.ViewSize[i] - len(remainingGrid[i])
+			symbolGrid[i] = append(adjustedReels[i][previousGamestate.StopList[i]-numToAdd+engine.ViewSize[i]:previousGamestate.StopList[i]+engine.ViewSize[i]], remainingGrid[i]...)
+			stopList[i] = previousGamestate.StopList[i]-numToAdd
+		}
+	} else {
+		symbolGrid, stopList = Spin(engine.Reels, engine.ViewSize)
 	}
 
-	// adjust reels in case need to cascase symbols from the end of the strip
-	adjustedReels := engine.Reels
-	for i:=0; i<len(adjustedReels); i++ {
-		adjustedReels[i] = append(adjustedReels[i][len(adjustedReels)-engine.ViewSize[i]:],adjustedReels[i]...)
-	}
-	// return grid to full size by filling in empty spaces
-	for i:=0; i<len(engine.ViewSize); i++{
-		numToAdd := engine.ViewSize[i] - len(remainingGrid[i])
-		symbolGrid[i] = append(adjustedReels[i][previousGamestate.StopList[i]-numToAdd+engine.ViewSize[i]:previousGamestate.StopList[i]+engine.ViewSize[i]], remainingGrid[i]...)
-		stopList[i] = previousGamestate.StopList[i]-numToAdd
-	}
 
 	// calculate wins
 	wins, relativePayout := engine.DetermineWins(symbolGrid)
