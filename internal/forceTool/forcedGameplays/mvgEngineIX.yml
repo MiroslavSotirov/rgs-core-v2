@@ -1,0 +1,45 @@
+#this file contains the forced outcomes for engine ix
+- id: 3scatter
+  action: base
+  reelsetId: 0
+  stopList: [1,7,2]
+
+- id: PicAWild
+  action: base
+  reelsetId: 0
+  stopList: [14,5,12]
+
+- id: PicBWild
+  action: base
+  reelsetId: 0
+  stopList: [9,9,12]
+
+- id: PicCWild
+  action: base
+  reelsetId: 0
+  stopList: [3,1,12]
+
+- id: PicDWild
+  action: base
+  reelsetId: 0
+  stopList: [0,0,12]
+
+- id: 3PicA
+  action: base
+  reelsetId: 0
+  stopList: [14,5,4]
+
+- id: 3PicB
+  action: base
+  reelsetId: 0
+  stopList: [9,9,10]
+
+- id: 3PicC
+  action: base
+  reelsetId: 0
+  stopList: [3,1,1]
+
+- id: 3PicD
+  action: base
+  reelsetId: 0
+  stopList: [0,0,0]
