@@ -5,6 +5,7 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"html/template"
 	"net/http"
+	"sort"
 	"strings"
 )
 
@@ -79,6 +80,10 @@ func listForceTools(r *http.Request, w http.ResponseWriter) {
 		}
 
 	}
+	
+	sort.Slice(games, func(i, j int) bool {
+		return games[i].ID < games[j].ID
+	})
 
 	forceValuesList =  removeDuplicates(forceValuesList)
 	data := ForceToolData{
