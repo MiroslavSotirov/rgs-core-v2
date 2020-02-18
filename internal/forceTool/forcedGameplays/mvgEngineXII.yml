@@ -1,0 +1,156 @@
+#this file contains the forced outcomes for engine xii
+
+- id: 3scatter
+  action: base
+  reelsetId: 0
+  stopList: [41, 6, 39, 0, 0]
+
+- id: 4scatter
+  action: base
+  reelsetId: 0
+  stopList: [41, 5, 40, 19, 0]
+
+- id: 5scatter
+  action: base
+  reelsetId: 0
+  stopList: [38, 7, 39, 19, 20]
+
+- id: scatterAndPay
+  action: base
+  reelsetId: 0
+  stopList: [41,5,15,15,16]
+
+- id: 3PicA
+  action: base
+  reelsetId: 0
+  stopList: [4,22,3,8,0]
+
+- id: 3PicB
+  action: base
+  reelsetId: 0
+  stopList: [65,8,13,2,24]
+
+- id: 3PicC
+  action: base
+  reelsetId: 0
+  stopList: [10,6,8,7,5]
+
+- id: 3PicD
+  action: base
+  reelsetId: 0
+  stopList: [64,18,27,47,6]
+
+- id: 3PicE
+  action: base
+  reelsetId: 0
+  stopList: [8,37,6,3,14]
+
+- id: 3PicF
+  action: base
+  reelsetId: 0
+  stopList: [35,44,36,4,10]
+
+- id: 3PicG
+  action: base
+  reelsetId: 0
+  stopList: [9,40,6,3,7]
+
+- id: 3PicH
+  action: base
+  reelsetId: 0
+  stopList: [58,40,19,45,23]
+
+- id: 3PicI
+  action: base
+  reelsetId: 0
+  stopList: [23,28,12,4,26]
+
+- id: 4PicA
+  action: base
+  reelsetId: 0
+  stopList: [4,22,3,3,0]
+
+- id: 4PicB
+  action: base
+  reelsetId: 0
+  stopList: [64,7,12,3,24]
+
+- id: 4PicC
+  action: base
+  reelsetId: 0
+  stopList: [10,6,8,10,5]
+
+- id: 4PicD
+  action: base
+  reelsetId: 0
+  stopList: [64,18,27,8,6]
+
+- id: 4PicE
+  action: base
+  reelsetId: 0
+  stopList: [8,37,6,12,14]
+
+- id: 4PicF
+  action: base
+  reelsetId: 0
+  stopList: [35,44,36,55,10]
+
+- id: 4PicG
+  action: base
+  reelsetId: 0
+  stopList: [9,40,6,4,7]
+
+- id: 4PicH
+  action: base
+  reelsetId: 0
+  stopList: [58,40,19,49,23]
+
+- id: 4PicI
+  action: base
+  reelsetId: 0
+  stopList: [24,28,12,3,26]
+
+- id: 5PicA
+  action: base
+  reelsetId: 0
+  stopList: [4,23,2,2,5]
+
+- id: 5PicB
+  action: base
+  reelsetId: 0
+  stopList: [64,7,14,4,7]
+
+- id: 5PicC
+  action: base
+  reelsetId: 0
+  stopList: [10,6,8,10,12]
+
+- id: 5PicD
+  action: base
+  reelsetId: 0
+  stopList: [64,18,27,8,7]
+
+- id: 5PicE
+  action: base
+  reelsetId: 0
+  stopList: [8,37,6,12,3]
+
+- id: 5PicF
+  action: base
+  reelsetId: 0
+  stopList: [35,44,36,55,1]
+
+- id: 5PicG
+  action: base
+  reelsetId: 0
+  stopList: [9,40,6,4,1]
+
+- id: 5PicH
+  action: base
+  reelsetId: 0
+  stopList: [58,40,19,49,5]
+
+- id: 5PicI
+  action: base
+  reelsetId: 0
+  stopList: [26,25,13,3,19]
