@@ -43,6 +43,7 @@ type Config struct {
 	DefaultLanguage string      `yaml:"defaultlanguage" cfg:"defaultlanguage" cfgDefault:"en"`
 	DemoTokenPrefix string      `yaml:"demotokenprefix" cfg:"demotokenprefix" cfgDefault:"demo-token"`
 	DemoCurrency    string      `yaml:"democurrency" cfg:"democurrency" cfgDefault:"USD"`
+	LogAccount		string		`yaml:"logaccount" cfg:"logaccount" cfgDefault:"145472021_144443389"`
 }
 
 // Game config structure

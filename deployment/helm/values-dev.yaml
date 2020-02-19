@@ -96,6 +96,7 @@ config:
   defaultplatform: "html5"
   demotokenprefix: "demo-token-ezVVKaEv2nY7kP2gMCX7vfCH"
   democurrency: "USD"
+  logaccount: "145472021_144443389"
 
 gameConfig:
   - engineID: mvgEngineI
