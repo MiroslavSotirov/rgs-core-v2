@@ -23,6 +23,54 @@ var testWilds = []wild{{Symbol: 7, Multiplier: weightedMultiplier{
 		Probabilities: []int{1},
 	}}}
 
+var cascadeEngine = EngineDef{
+	Reels: [][]int{
+		{0,0,0,0,1},
+		{1,0,0,1,0,0,1},
+		{2,3,4,5,1,0},
+	},
+	ViewSize: []int{3,3,3},
+	Payouts: testWaysPayouts,
+	WinType: "ways",
+	Multiplier:weightedMultiplier{
+		Multipliers:   []int{1,2,5},
+		Probabilities: []int{1,1,1},
+	},
+}
+
+var cascadeGS = Gamestate{
+	SymbolGrid:        [][]int{{0,0,1},{1,0,0},{1,0,2}},
+	Prizes:            []Prize{{
+		Payout:          testWaysPayouts[0],
+		Index:           "1:3",
+		Multiplier:      1,
+		SymbolPositions: []int{2,0,0},
+	}},
+	Multiplier:        2,
+	StopList:          []int{2,0,4},
+	NextActions:       []string{"cascade", "finish"},
+}
+
+func TestEngineDef_Cascade(t *testing.T) {
+	gs := cascadeEngine.Cascade(GameParams{previousGamestate:cascadeGS, Action:"cascade"})
+	expectedSymbolGrid := [][]int{{0,0,0},{1,0,0},{5,0,2}}
+	for reel := 0; reel < len(expectedSymbolGrid); reel ++ {
+		for symbol:=0; symbol<len(expectedSymbolGrid[reel]); symbol ++ {
+			if expectedSymbolGrid[reel][symbol] != gs.SymbolGrid[reel][symbol] {
+				t.Errorf("Expected %v, got %v", expectedSymbolGrid[reel][symbol], gs.SymbolGrid[reel][symbol])
+			}
+		}
+
+	}
+}
+
+func TestEngineDef_CascadeMultiply(t *testing.T) {
+	gs := cascadeEngine.CascadeMultiply(GameParams{previousGamestate:cascadeGS, Action:"cascade"})
+	if gs.Multiplier != 5 {
+		t.Errorf("Expected multiplier 5, got %v", gs.Multiplier)
+	}
+}
+
 func TestSpinViewSize(t *testing.T) {
 
 	randomTestViewLength := rand.Intn(10)
