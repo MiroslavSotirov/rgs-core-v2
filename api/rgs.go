@@ -343,19 +343,10 @@ func Routes() *chi.Mux {
 			}
 			fmt.Fprint(w, []byte("OK"))
 		})
- 		//r.Get("/force/{gameSlug:[A-Za-z-]+}/{token:[A-Za-z0-9-_]+}/{forceID:[A-Za-z0-9]+}", func(w http.ResponseWriter, r *http.Request) {
-		//	gameSlug := chi.URLParam(r, "gameSlug")
-		//	forceID := chi.URLParam(r, "forceID")
-		//	token := chi.URLParam(r, "token")
-		//	if err := forceTool.SetForce(gameSlug, forceID, token); err != nil {
-		//		logger.Warnf("Force Tool Active : %v, %v", gameSlug, token)
-		//		fmt.Fprint(w, err.Error())
-		//	} else {
-		//		fmt.Fprint(w, "OK")
-		//	}
-		//})
 		r.Get("/force", func(w http.ResponseWriter, r *http.Request){
-			listForceTools(r, w)
+			if config.GlobalConfig.DevMode == true {
+				listForceTools(r, w)
+			}
 		})
 		r.Post("/force", func(w http.ResponseWriter, r *http.Request) {
 			var param forceTool.ForceToolParams
