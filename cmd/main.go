@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/go-chi/chi"
-	"github.com/golang/glog"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/api"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
@@ -71,5 +70,5 @@ func main() {
 
 	srv := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: router}
 	logger.Infof("Starting RGS Core on port: %d", port)
-	glog.Fatal(srv.ListenAndServe())
+	logger.Fatalf("%v",srv.ListenAndServe())
 }
