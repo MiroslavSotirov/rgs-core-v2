@@ -18,7 +18,6 @@ import (
 func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, engine.Gamestate, rgserror.IRGSError) {
 	// get refresh token from auth header if applicable
 	gameSlug := chi.URLParam(request, "gameSlug")
-	logger.Debugf("request: %#v", request)
 	currency := request.FormValue("currency")
 	engineID, err := config.GetEngineFromGame(gameSlug)
 	if err != nil {
@@ -41,7 +40,6 @@ func renderNextGamestate(request *http.Request) (GameplayResponse, rgserror.IRGS
 	if err != nil {
 		return GameplayResponse{}, err
 	}
-	logger.Warnf("balance: %#v", balance)
 	return renderGamestate(request, gamestate, balance, engineConf, player), nil
 }
 
