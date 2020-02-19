@@ -49,7 +49,7 @@ func parseBetConfig() (betConfig, error) {
 
 func GetGameplayParameters(lastBet engine.Fixed, player store.PlayerStore, gameID string) ([]engine.Fixed, engine.Fixed, rgserror.IRGSError) {
 	// returns stakeValues and defaultBet based on host and player configuration
-	logger.Warnf("getting %v stake params for player: %#v", gameID, player)
+	logger.Debugf("getting %v stake params for player: %#v", gameID, player)
 	betConf, err := parseBetConfig()
 	//logger.Debugf("Bet Configuration: %#v", betConf)
 	if err != nil {
@@ -66,13 +66,12 @@ func GetGameplayParameters(lastBet engine.Fixed, player store.PlayerStore, gameI
 		betconfigerr.AppendErrorText("Unknown Bet Multiplier")
 		return []engine.Fixed{}, engine.Fixed(0), rgserror.ErrBetConfig
 	}
-	logger.Debugf("getting profile %v", player.BetLimitSettingCode)
+
 	profile, ok := betConf.HostProfiles[player.BetLimitSettingCode]
 	if !ok {
 		profile = "base"
-		logger.Debugf("setting to base")
 	}
-	logger.Debugf("set profile: %#v", betConf.Profiles[profile])
+
 	// get default value
 	defaultIndex, ok := betConf.Profiles[profile]["default"]
 	if !ok {
@@ -113,7 +112,6 @@ func GetGameplayParameters(lastBet engine.Fixed, player store.PlayerStore, gameI
 
 	// if lastBet is not in stakeValues then use defaultBet
 	if lastBet >= fixedStakeValues[0] && lastBet <= fixedStakeValues[len(fixedStakeValues)-1] {
-		logger.Debugf("Last bet falls within range, setting default to %v", lastBet)
 		defaultStake = lastBet
 	}
 
@@ -124,7 +122,7 @@ func GetGameplayParameters(lastBet engine.Fixed, player store.PlayerStore, gameI
 		logger.Warnf("defaultStake too high, setting to max stakeValue")
 		defaultStake = fixedStakeValues[len(fixedStakeValues)-1]
 	}
-	logger.Warnf("stake values: %v; default stake: %v", fixedStakeValues, defaultStake)
+	logger.Debugf("stake values: %v; default stake: %v", fixedStakeValues, defaultStake)
 	return fixedStakeValues, defaultStake, nil
 
 }
