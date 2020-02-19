@@ -1,8 +1,7 @@
 version: 2.0
 rtp: .9518
 volatility: 100 #sham
-#CONFIRMED
-
+#UNCONFIRMED
 
 EngineDefs:
   - name: base
