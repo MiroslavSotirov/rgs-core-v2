@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/go-chi/chi"
+	"github.com/golang/protobuf/proto"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
@@ -50,48 +51,30 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	gameSlug := chi.URLParam(request, "gameSlug")
 	wallet := chi.URLParam(request, "wallet")
 	memID := strings.Split(authHeader, "\"")[1]
-	logger.Debugf("request: %v", request)
-	var player store.PlayerStore
-	var previousGamestateStore store.GameStateStore
+
 	var txStore store.TransactionStore
 	var err *store.Error
 	var previousGamestate engine.Gamestate
 	switch wallet {
 	case "demo":
-		player, previousGamestateStore, err = store.ServLocal.PlayerByToken(store.Token(memID), store.ModeDemo, gameSlug)
-		if err != nil {
-			return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
-		}
-		txStore, err = store.ServLocal.TransactionByGameId(player.Token, store.ModeDemo, gameSlug)
-		if err == nil {
-			player.Token = txStore.Token
-		}
+		txStore, err = store.ServLocal.TransactionByGameId(store.Token(memID), store.ModeDemo, gameSlug)
 	case "dashur":
-		player, previousGamestateStore, err = store.Serv.PlayerByToken(store.Token(memID), store.ModeReal, gameSlug)
-		if err != nil {
-			// no player with that token
-			logger.Debugf("error: %v",err)
-			return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
-		}
 		txStore, err = store.Serv.TransactionByGameId(store.Token(memID), store.ModeReal, gameSlug)
 	}
-
-
-	if len(previousGamestateStore.GameState) == 0 {
-		logger.Warnf("No previous gameplay, first gameplay for this player")
-		// check that there is no last tx as well, if there is a previous tx then there should not be a GS and there is a problem
-		// we expect err = EntityNotFound
-		if err != nil && err.Code == store.ErrorCodeEntityNotFound {
-			previousGamestate = store.CreateInitGS(player, gameSlug)
+	if err != nil {
+		if err.Code == store.ErrorCodeEntityNotFound {
+			// we can expect error here on first gameplay, if error is entity not found then we can assume this is the first round
+			logger.Warnf("No previous gameplay, first gameplay for this player")
+			previousGamestate = store.CreateInitGS(txStore.PlayerId, gameSlug)
 			txStore.RoundStatus = store.RoundStatusClose
 		} else {
-			logger.Debugf("Previous TX: %v", txStore)
-			return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
+			//otherwise this is an actual error
+			return previousGamestate, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
 		}
-
 	} else {
-		previousGamestate = store.DeserializeGamestateFromBytes(previousGamestateStore.GameState)
+		previousGamestate = store.DeserializeGamestateFromBytes(txStore.GameState)
 	}
+
 	// check that previous gamestate matches what the client expects
 	clientID := chi.URLParam(request, "gamestateID")
 	logger.Debugf("Previous id: %v, requested id: %v", previousGamestate.Id, clientID)
@@ -167,22 +150,22 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		}
 	}
 
-	gamestate, engineConf := engine.Play(previousGamestate, data.Stake, player.Balance.Currency, data)
+	gamestate, engineConf := engine.Play(previousGamestate, data.Stake, txStore.Amount.Currency, data)
 	if config.GlobalConfig.DevMode == true {
-		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, gameSlug, player.PlayerId)
+		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, gameSlug, txStore.PlayerId)
 		if err == nil {
 			logger.Warnf("Forcing gamestate: %v", forcedGamestate)
 			gamestate = forcedGamestate
 		} else {
 			//assume error is of memcache.ErrCacheMiss variety
-			logger.Warnf("No force value found for player %v", player.PlayerId)
+			logger.Warnf("No force value found for player %v", txStore.PlayerId)
 		}
 	}
 	gamestate.PreviousGamestate = previousGamestate.Id
 
 	// settle transactions
 	var balance store.BalanceStore
-	token := player.Token
+	token := txStore.Token
 	for _, transaction := range gamestate.Transactions {
 		gs := store.SerializeGamestateToBytes(gamestate)
 		status := store.RoundStatusOpen
@@ -191,7 +174,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			Token:               token,
 			Category:            store.Category(transaction.Type),
 			RoundStatus:         status,
-			PlayerId:            player.PlayerId,
+			PlayerId:            txStore.PlayerId,
 			GameId:              gameSlug,
 			RoundId:             gamestate.Id,
 			Amount:              transaction.Amount,
@@ -213,8 +196,8 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		}
 		token = balance.Token
 	}
-	player.Token = token
-	player.Balance = balance.Balance
+	player := store.PlayerStore{Token: token, PlayerId: txStore.PlayerId}
+
 	balanceResponse := BalanceResponse{
 		Amount:   balance.Balance.Amount.ValueAsString(),
 		Currency: balance.Balance.Currency,

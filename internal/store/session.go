@@ -38,7 +38,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, host st
 			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, engine.Money{balance, currency}, host, 0}
 			newPlayer, err = ServLocal.PlayerSave(newPlayer.Token, ModeDemo, newPlayer)
 		}
-		latestGamestate = CreateInitGS(newPlayer, gameName)
+		latestGamestate = CreateInitGS(newPlayer.PlayerId, gameName)
 
 	} else {
 		latestGamestate = DeserializeGamestateFromBytes(latestGamestateStore.GameState)
@@ -47,9 +47,9 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, host st
 	return latestGamestate, newPlayer, nil
 }
 
-func CreateInitGS(newPlayer PlayerStore, gameName string) (latestGamestate engine.Gamestate) {
-	logger.Debugf("First gameplay for player %v, creating sham gamestate", newPlayer)
-	gsID := newPlayer.PlayerId + gameName + "GSinit"
+func CreateInitGS(playerId string, gameName string) (latestGamestate engine.Gamestate) {
+	logger.Debugf("First gameplay for player %v, creating sham gamestate", playerId)
+	gsID := playerId + gameName + "GSinit"
 	//todo: initialize gamification properly
 	latestGamestate = engine.Gamestate{GameID: gameName + ":0", Id: gsID, NextActions: []string{"finish"}, Action: "init", Gamification: &engine.GamestatePB_Gamification{}, SymbolGrid: [][]int{{0, 0, 0}, {0, 0, 0}}, NextGamestate: rng.RandStringRunes(8)}
 	if strings.Contains(gameName, "seasons") {
