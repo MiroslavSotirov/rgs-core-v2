@@ -597,12 +597,12 @@ type GamestateSizeResponse struct {
 
 // LinkResponse Link reponse struct
 type LinkResponse struct {
-	Href   string `json:"href"`   // "https://dev06.maverick-ops.com/rgs/v1.0/game/1?ccy=GBP"
-	Method string `json:"method"` // "POST"
-	Rel    string `json:"rel"`    //"new-game"
+	Href   string `json:"href"`
+	Method string `json:"method"`
+	Rel    string `json:"rel"`
 	ID     string `json:"id"`
 	Type   string `json:"type"`
-	// {"$schema": "http://json-schemas.maverick.com/general/maverick-v1.json", "game": {"version": "0+unknown", "name": "the-year-of-zhu", "host": "maverick", "interface": "dev_wallet", "currency": "GBP", "_links": [{"href": "https://dev06.maverick-ops.com/rgs/v1.0/game/1?ccy=GBP", "method": "GET", "rel": "host-game"}]}, "status": "FINISHED", "player": {"balance": {"currency": "GBP", "amount": 15160437.000}, "_links": [{"href": "https://dev06.maverick-ops.com/rgs/v1.0/game/1/client_state", "type": "", "method": "GET", "rel": "player-client-state"}, {"href": "https://dev06.maverick-ops.com/rgs/v1.0/game/1/client_state", "type": "application/octet-stream", "method": "PUT", "rel": "player-client-state-save"}]}, "parameters": {}, "_links": [{"href": "https://dev06.maverick-ops.com/rgs/v1.0/gameplay/109967", "method": "GET", "rel": "self"}, {"href": "https://dev06.maverick-ops.com/rgs/v1.0/game/1?ccy=GBP", "type": "application/vnd.maverick.slots.spin-v1+json", "method": "POST", "rel": "new-game"}, {"href": "https://dev06.maverick-ops.com/rgs/v1.0/gameplay/109967/client_state", "type": "application/octet-stream", "method": "PUT", "rel": "gameplay-client-state-save"}], "_forms": {"application/vnd.maverick.slots.spin-v1+json": {"action": "spin", "perLine": true, "$schema": "http://json-schemas.maverick.com/slots/spin-v1.json", "stake": null, "selectedWinLines": []}, "application/vnd.maverick.slots.freespin-v1+json": {"action": "freespin", "$schema": "http://json-schemas.maverick.com/slots/freespin-v1.json"}, "application/octet-stream": ""}, "gamestate": {"stake": 2.5, "win": 1.0, "action": "spin", "currentPlay": 0, "currentWinnings": 1.0, "totalWinnings": 1.0, "freespinWinnings": 0, "numFreeSpins": 0, "stakePerLine": 0.1, "selectedWinLines": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"], "totalStake": 2.5, "reelSetIndex": 0, "wildSingleMultiplier": 1.0, "stopList": [9, 28, 16, 8, 10], "view": [["5", "2", "1", "8", "6"], ["6", "10", "11", "5", "4"], ["2", "4", "2", "9", "7"]], "wilds": [{"symbolRef": "10", "symbolPos": "6", "factor": 1.0}], "wins": [{"id": "2:3", "type": "line", "payoutFactor": 5.0, "winnings": 0.5, "symbolPos": ["10", "6", "12"], "stake": 0.1, "winLine": "12", "wildMultiplier": 1.0}, {"id": "2:3", "type": "line", "payoutFactor": 5.0, "winnings": 0.5, "symbolPos": ["10", "1", "12"], "stake": 0.1, "winLine": "18", "wildMultiplier": 1.0}]}}
+
 }
 
 //FormResponse ...

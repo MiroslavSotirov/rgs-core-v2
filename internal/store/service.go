@@ -140,6 +140,7 @@ type (
 		defaultLanguage string
 		demoTokenPrefix string
 		demoCurrency    string
+		logAccount		string
 	}
 
 	// local service eq implemenation of service. so that unit test of services can be easily mocked.
@@ -324,9 +325,10 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 		panic(err)
 	}
 
-	if ModeReal == mode {
-		playerId, _ := i.getToken(token)
-		player, _ := i.getPlayer(playerId)
+	storePlayerId, playerIdExists := i.getToken(token)
+	logger.Debugf("player id: %v", storePlayerId)
+	if playerIdExists {
+		player, _ := i.getPlayer(storePlayerId)
 		newToken := i.renewToken(token)
 		key := player.PlayerId + "::" + gameId
 		tx, txExists := i.getTransactionByPlayerGame(key)
@@ -347,6 +349,8 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 				GameStateStore{GameState: tx.GameState},
 				nil
 		} else {
+			// this is likely an error, if player exists, there should be a previous gameplay unless init was called and never spun, which will throw an error
+			logger.Warnf("DEMO WALLET PLAYER EXISTS BUT NO PREVIOUS TX")
 			return PlayerStore{
 					PlayerId: player.PlayerId,
 					Token:    newToken,
@@ -362,62 +366,22 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 				GameStateStore{},
 				nil
 		}
-	} else if ModeDemo == mode {
-		storePlayerId, playerIdExists := i.getToken(token)
-		logger.Debugf("player id: %v", storePlayerId)
-		if playerIdExists {
-			player, _ := i.getPlayer(storePlayerId)
-			newToken := i.renewToken(token)
-			key := player.PlayerId + "::" + gameId
-			tx, txExists := i.getTransactionByPlayerGame(key)
-
-			if txExists && tx.GameState != nil && len(tx.GameState) > 0 {
-				return PlayerStore{
-						PlayerId: player.PlayerId,
-						Token:    newToken,
-						Mode:     player.Mode,
-						Username: player.Username,
-						Balance: engine.Money{
-							Currency: player.Balance.Currency,
-							Amount:   player.Balance.Amount,
-						},
-						NoOfFreeSpins:       player.NoOfFreeSpins,
-						BetLimitSettingCode: player.BetLimitSettingCode,
-					},
-					GameStateStore{GameState: tx.GameState},
-					nil
-			} else {
-				// this is likely an error, if player exists, there should be a previous gameplay unless init was called and never spun, which will throw an error
-				logger.Warnf("DEMO WALLET PLAYER EXISTS BUT NO PREVIOUS TX")
-				return PlayerStore{
-						PlayerId: player.PlayerId,
-						Token:    newToken,
-						Mode:     player.Mode,
-						Username: player.Username,
-						Balance: engine.Money{
-							Currency: player.Balance.Currency,
-							Amount:   player.Balance.Amount,
-						},
-						NoOfFreeSpins:       player.NoOfFreeSpins,
-						BetLimitSettingCode: player.BetLimitSettingCode,
-					},
-					GameStateStore{},
-					nil
-			}
-		} else {
-			logger.Warnf("NO PLAYER EXISTS")
-			return PlayerStore{}, GameStateStore{}, nil
-		}
 	} else {
-		return PlayerStore{}, GameStateStore{}, &Error{Code: ErrorCodeGeneralError, Message: "Unknown mode"}
+		logger.Warnf("NO PLAYER EXISTS")
+		return PlayerStore{}, GameStateStore{}, nil
 	}
+
 }
 
-func (i *RemoteServiceImpl) request(apiType ApiType, body io.Reader) *http.Request {
+func (i *RemoteServiceImpl) request(apiType ApiType, body io.Reader) (resp *http.Response, err error) {
 	req, _ := http.NewRequest("POST", i.serverUrl+"/"+string(apiType), body)
 	req.Header.Add("Content-Type", "application/json")
 	req.SetBasicAuth(i.appId, i.appCredential)
-	return req
+	start := time.Now()
+	client := i.httpClient()
+	resp, err = client.Do(req)
+	logger.Debugf("%v request took %v", apiType, time.Now().Sub(start).String())
+	return
 }
 
 func (i *RemoteServiceImpl) httpClient() http.Client {
@@ -499,10 +463,8 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 	if finalErr != nil {
 		return PlayerStore{}, GameStateStore{}, finalErr
 	}
-
-	req := i.request(ApiTypeAuth, b)
-	client := i.httpClient()
-	resp, err := client.Do(req)
+	start := time.Now()
+	resp, err := i.request(ApiTypeAuth, b)
 
 	finalErr = i.errorRest(err)
 	if finalErr != nil {
@@ -513,10 +475,8 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 	if finalErr != nil {
 		return PlayerStore{}, GameStateStore{}, finalErr
 	}
-
 	var gameState []byte = nil
 	authResp := i.restAuthenticateResponse(resp)
-	logger.Debugf("response: %#v", authResp)
 	finalErr = i.errorResponseCode(authResp.ResponseCode)
 	if finalErr != nil {
 		return PlayerStore{}, GameStateStore{}, finalErr
@@ -526,12 +486,13 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 		gameState, err = base64.StdEncoding.DecodeString(authResp.LastGameState)
 
 		finalErr = i.errorBase64(err)
-		logger.Debugf("error: %v", finalErr)
 		if finalErr != nil {
 			return PlayerStore{}, GameStateStore{}, finalErr
 		}
 	}
-
+	if authResp.Id == i.logAccount {
+		logger.Infof("%v request took %v for account %v", ApiTypeAuth, time.Now().Sub(start).String(), authResp.Id)
+	}
 	return PlayerStore{
 			PlayerId: authResp.Id,
 			Token:    Token(authResp.Token),
@@ -618,10 +579,8 @@ func (i *RemoteServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore
 	if finalErr != nil {
 		return BalanceStore{}, finalErr
 	}
-
-	req := i.request(ApiTypeBalance, b)
-	client := i.httpClient()
-	resp, err := client.Do(req)
+	start := time.Now()
+	resp, err := i.request(ApiTypeBalance, b)
 
 	finalErr = i.errorRest(err)
 	if finalErr != nil {
@@ -639,7 +598,9 @@ func (i *RemoteServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore
 	if finalErr != nil {
 		return BalanceStore{}, finalErr
 	}
-
+	if balResp.PlayerId == i.logAccount {
+		logger.Infof("%v request took %v for account %v", ApiTypeBalance, time.Now().Sub(start).String(), balResp.PlayerId)
+	}
 	return BalanceStore{
 		PlayerId: balResp.PlayerId,
 		Token:    Token(balResp.Token),
@@ -709,7 +670,6 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 	if transaction.GameState != nil {
 		gameState = base64.StdEncoding.EncodeToString(transaction.GameState)
 	}
-	logger.Infof("SENDING TX RQ : %#v", transaction)
 
 	txRq := restTransactionRequest{
 		ReqId:       uuid.NewV4().String(),
@@ -736,10 +696,8 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 	if finalErr != nil {
 		return BalanceStore{}, finalErr
 	}
-
-	req := i.request(ApiTypeTransaction, b)
-	client := i.httpClient()
-	resp, err := client.Do(req)
+	start := time.Now()
+	resp, err := i.request(ApiTypeTransaction, b)
 
 	finalErr = i.errorRest(err)
 	if finalErr != nil {
@@ -752,12 +710,13 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 	}
 
 	txResp := i.restTransactionResponse(resp)
-	logger.Infof("TX RESPONSE: %#v", txResp)
 	finalErr = i.errorResponseCode(txResp.ResponseCode)
 	if finalErr != nil {
 		return BalanceStore{}, finalErr
 	}
-	logger.Warnf("BALANCE: %v , div 10000: %v", txResp.Balance, engine.Fixed(txResp.Balance*10000))
+	if txResp.PlayerId == i.logAccount {
+		logger.Infof("%v request took %v for account %v", ApiTypeTransaction, time.Now().Sub(start).String(), txResp.PlayerId)
+	}
 	return BalanceStore{
 		PlayerId: txResp.PlayerId,
 		Token:    Token(txResp.Token),
@@ -834,10 +793,8 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 	if finalErr != nil {
 		return TransactionStore{}, finalErr
 	}
-
-	req := i.request(ApiTypeQuery, b)
-	client := i.httpClient()
-	resp, err := client.Do(req)
+	//start := time.Now()
+	resp, err := i.request(ApiTypeQuery, b)
 
 	finalErr = i.errorRest(err)
 	if finalErr != nil {
@@ -877,7 +834,9 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 			return TransactionStore{}, finalErr
 		}
 	}
-
+	//if queryResp.PlayerId == i.logAccount {
+	//	logger.Infof("%v request took %v for account %v", ApiTypeBalance, time.Now().Sub(start).String(), balResp.PlayerId)
+	//}
 	return TransactionStore{
 		TransactionId: "", //TODO: fix this
 		Token:         Token(queryResp.Token),
@@ -932,9 +891,7 @@ func (i *RemoteServiceImpl) GameStateByGameId(token Token, mode Mode, gameId str
 		return GameStateStore{}, finalErr
 	}
 
-	req := i.request(ApiTypeGameState, b)
-	client := i.httpClient()
-	resp, err := client.Do(req)
+	resp, err := i.request(ApiTypeGameState, b)
 
 	finalErr = i.errorRest(err)
 	if finalErr != nil {
@@ -1033,10 +990,8 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 	if finalErr != nil {
 		return BalanceStore{}, finalErr
 	}
-
-	req := i.request(ApiTypeTransaction, b)
-	client := i.httpClient()
-	resp, err := client.Do(req)
+	start := time.Now()
+	resp, err := i.request(ApiTypeTransaction, b)
 
 	finalErr = i.errorRest(err)
 	if finalErr != nil {
@@ -1054,7 +1009,9 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 	if finalErr != nil {
 		return BalanceStore{}, finalErr
 	}
-
+	if txResp.PlayerId == i.logAccount {
+			logger.Infof("%v request took %v for account %v", ApiTypeTransaction, time.Now().Sub(start).String(), txResp.PlayerId)
+	}
 	return BalanceStore{
 		PlayerId: txResp.PlayerId,
 		Token:    Token(txResp.Token),
@@ -1231,6 +1188,7 @@ func New(c *config.Config) Service {
 		defaultPlatform: c.DefaultPlatform,
 		demoTokenPrefix: c.DemoTokenPrefix,
 		demoCurrency:    c.DemoCurrency,
+		logAccount:		 c.LogAccount,
 	}
 }
 

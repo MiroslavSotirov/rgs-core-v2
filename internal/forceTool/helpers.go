@@ -41,6 +41,9 @@ func ReadForcedGameplays(gameName string) []ForceGPList {
 	}
 
 	for _, f := range files {
+		if f.IsDir() {
+			continue
+		}
 		var c []ForceGP
 
 		forceDef := filepath.Join(forceDefDir, f.Name())
