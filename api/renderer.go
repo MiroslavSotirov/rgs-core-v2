@@ -166,7 +166,7 @@ func GetEngineDefResponse(engineConf engine.EngineConfig, engineID string) map[s
 
 	resp := make(map[string]EngineDefResponse)
 	switch engineID {
-	case "mvgEngineI", "mvgEngineIII", "mvgEngineV", "mvgEngineVII", "mvgEngineIX", "mvgEngineXII":
+	case "mvgEngineI", "mvgEngineIII", "mvgEngineV", "mvgEngineVII", "mvgEngineIX", "mvgEngineXII", "mvgEngineXIV":
 		for i := 0; i < len(engineConf.EngineDefs); i++ {
 			reelsetType := engineConf.EngineDefs[i].ID
 			if reelsetType == "freespin" {
