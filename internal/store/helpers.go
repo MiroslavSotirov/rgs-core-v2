@@ -38,8 +38,6 @@ func Init() rgserror.IRGSError {
 }
 
 
-// todo: make these interface functions
-
 func SerializeGamestateToBytes(deserialized engine.Gamestate) []byte {
 	// turns session information into a byte slice
 	if len(deserialized.Transactions) == 0 {
@@ -60,8 +58,6 @@ func SerializeGamestateToBytes(deserialized engine.Gamestate) []byte {
 		data = append(data, delimiter...)
 		data = append(data, dataTx...)
 	}
-	logger.Warnf("Gamestate in bytes: %v", data)
-	logger.Warnf("Gamestate in string: %v", string(data))
 	return data
 }
 
