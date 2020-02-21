@@ -745,7 +745,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 		gpResponse.Player.Balance.Amount = removeCumulativeWinFromBalance(gpResponse.Player.Balance.Amount, gpResponse.GamestateInfo.TotalWinnings)
 
 		gpResponse.Links[1].Rel = "option"
-		if strings.Contains(gamestate.NextActions[0], "freespin") {
+		if strings.Contains(gamestate.NextActions[0], "freespin") ||  strings.Contains(gamestate.NextActions[0], "cascade"){
 			gpResponse.Links[1].Type = "application/vnd.maverick.slots.freespin-v1+json"
 		} else if strings.Contains(gamestate.NextActions[0], "pick") {
 			gpResponse.Links[1].Type = "application/vnd.maverick.slots.feature-select-v1+json"
