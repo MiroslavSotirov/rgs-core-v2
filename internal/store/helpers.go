@@ -2,8 +2,6 @@ package store
 
 import (
 	"bytes"
-	"encoding/base64"
-	"fmt"
 	"github.com/bradfitz/gomemcache/memcache"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
@@ -39,29 +37,6 @@ func Init() rgserror.IRGSError {
 	return nil
 }
 
-func SerializeGamestateToString(deserialized engine.Gamestate) string {
-	// serializes gamestate and transaction info to string with delimiter "::"
-	// format: <Gamestate>::<TXWAGER>::<TXPAYOUT(optional)>::<TXENDROUND(optional)>
-
-	deserializedPBType, deserializedTXPBType := deserialized.Convert()
-	dataGS, err := proto.Marshal(&deserializedPBType)
-	if err != nil {
-		logger.Errorf("Error serializing Gamestate to String")
-		return ""
-	}
-	returnStr := base64.StdEncoding.EncodeToString(dataGS)
-
-	var dataTX []byte
-	for _, tx := range deserializedTXPBType {
-		dataTX, err = proto.Marshal(tx)
-		if err != nil {
-			logger.Errorf("Error serializing Gamestate to String")
-			return ""
-		}
-		returnStr += fmt.Sprintf("::%v", base64.StdEncoding.EncodeToString(dataTX))
-	}
-	return returnStr
-}
 
 // todo: make these interface functions
 
@@ -85,6 +60,8 @@ func SerializeGamestateToBytes(deserialized engine.Gamestate) []byte {
 		data = append(data, delimiter...)
 		data = append(data, dataTx...)
 	}
+	logger.Warnf("Gamestate in bytes: %v", data)
+	logger.Warnf("Gamestate in string: %v", string(data))
 	return data
 }
 
