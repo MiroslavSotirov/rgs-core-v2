@@ -25,13 +25,11 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 	// gets state for a certain gameplay
 
 	gameplayID := chi.URLParam(request, "gameplayID")
-	logger.Debugf("retrieving playcheck for %v", gameplayID)
-	logger.Debugf("request: %#v", request)
 
 	gamestate := request.FormValue("state")
 	var gsbytes []byte
 	var err error
-	logger.Infof("gamestate: %v",gamestate)
+
 	if gamestate == "" {
 		gamestateStore, serr := store.ServLocal.GamestateById(gameplayID)
 		if serr != nil {
