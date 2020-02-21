@@ -52,9 +52,10 @@ func Routes() *chi.Mux {
 	router.Handle("/metrics", promhttp.Handler())
 
 	router.Route("/v2/rgs", func(r chi.Router) {
+
 		// TODO: These endpoints will be deprecated with new client release
 		r.Get("/init/{gameSlug:[0-9a-z-]+}/{wallet:[a-z-]+}", func(w http.ResponseWriter, r *http.Request) {
-			logger.Debugf("Request: %v", r.Header)
+
 			gameSlug := chi.URLParam(r, "gameSlug")
 			engineID, err := config.GetEngineFromGame(gameSlug)
 
@@ -79,7 +80,7 @@ func Routes() *chi.Mux {
 			logger.Debugf("lastgamestate nextactions: %v", previousGamestate.NextActions)
 			var gamestateResponse GameplayResponse
 			gamestateResponse = renderGamestate(r, previousGamestate, balanceResponse, engineConfig, player)
-			logger.Debugf("Links: %v", gamestateResponse.Links)
+
 			engineDefs := engineConfig.EngineDefs
 			stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine.Amount, player, gameSlug)
 			if err != nil {
