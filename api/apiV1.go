@@ -209,7 +209,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		}
 
 		if err != nil {
-			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrDasInsufficientFundError
+			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInsufficientFundError
 		}
 		token = balance.Token
 	}
