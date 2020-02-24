@@ -163,3 +163,23 @@
   action: base
   reelsetId: 0
   stopList: [22,15,60,52,2]
+
+- id: retrigger1
+  action: freespin2
+  reelsetId: 5
+  stopList: [21,17,38,0,0]
+
+- id: retrigger2
+  action: freespin3
+  reelsetId: 6
+  stopList: [21,17,38,0,0]
+
+- id: retrigger3
+  action: freespin4
+  reelsetId: 7
+  stopList: [21,17,38,0,0]
+
+- id: retrigger4
+  action: freespin5
+  reelsetId: 8
+  stopList: [21,17,38,0,0]

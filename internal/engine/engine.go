@@ -353,7 +353,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	totalBet := Money{Amount: betPerLine.Mul(NewFixedFromInt(engineConf.EngineDefs[0].StakeDivisor)), Currency: currency}
 	var transactions []WalletTransaction
 	var actions []string
-	isContinuation := true
+
 	//relativePayout := StrToDec("0.000")
 	if len(previousGamestate.NextActions) == 1 && previousGamestate.NextActions[0] == "finish" {
 		// if this is a respin or cascade, special case:
@@ -374,7 +374,6 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 			betPerLine = previousGamestate.BetPerLine.Amount
 		} else {
 			// new gameplay round
-			isContinuation = false
 			transactions = append(transactions, WalletTransaction{Id: previousGamestate.NextGamestate, Type: "WAGER", Amount: totalBet})
 			// if this is engine X or any other offering maxBase, check if max winlines are selected
 			if parameters.Action == "maxBase" {
@@ -435,7 +434,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 
 	nextID := rng.RandStringRunes(8)
 	gamestate.NextGamestate = nextID
-	gamestate.PrepareTransactions(previousGamestate, isContinuation)
+	gamestate.PrepareTransactions(previousGamestate)
 
 	return gamestate, engineConf
 }
@@ -498,7 +497,7 @@ func (gamestate *Gamestate) CalculateRelativePayout() {
 	gamestate.RelativePayout = relativePayout
 }
 
-func (gamestate *Gamestate) PrepareTransactions(previousGamestate Gamestate, isContinuation bool) {
+func (gamestate *Gamestate) PrepareTransactions(previousGamestate Gamestate) {
 	relativePayout := NewFixedFromInt(gamestate.RelativePayout * gamestate.Multiplier)
 	var gamestateWin Money
 	if relativePayout != 0 {
@@ -507,7 +506,7 @@ func (gamestate *Gamestate) PrepareTransactions(previousGamestate Gamestate, isC
 		gamestate.Transactions = append(gamestate.Transactions, WalletTransaction{Id: rng.RandStringRunes(8), Amount: gamestateWin, Type: "PAYOUT"})
 	}
 
-	if isContinuation == true {
+	if gamestate.Action != "base" {
 		gamestate.PlaySequence = previousGamestate.PlaySequence + 1
 		gamestate.CumulativeWin = previousGamestate.CumulativeWin + gamestateWin.Amount
 	} else {

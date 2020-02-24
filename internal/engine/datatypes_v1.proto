@@ -131,4 +131,5 @@ message GamestatePB {
   Gamification gamification = 15;
   int64 cumulative_win = 16;
   int32 play_sequence = 17;
+  repeated WalletTransactionPB transactions = 18;
 }

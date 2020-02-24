@@ -33,6 +33,9 @@ func GetForceValues(betPerLine engine.Fixed, previousGamestate engine.Gamestate,
 	// automatically clear the force once it has been used
 	_ = ClearForce(gameID, playerID)
 
+	if betPerLine == 0 && previousGamestate.Action != "base" {
+		betPerLine = previousGamestate.BetPerLine.Amount
+}
 	forcedGamestate := smartForceFromID(betPerLine, previousGamestate, gameID, string(forceID.Value))
 
 	logger.Warnf("Created forced gamestate: %v", forcedGamestate)
@@ -101,6 +104,7 @@ func generateSymbolGrid(stopList []int, engineID string, reelsetID int) [][]int 
 
 func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestate, gameID string, forceID string) engine.Gamestate {
 	// build force gamestates
+
 	engineID, err := config.GetEngineFromGame(gameID)
 	if err != nil {
 		return engine.Gamestate{}
@@ -147,7 +151,8 @@ func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestat
 			gamestate.Id = previousGamestate.NextGamestate
 			nextID := rng.RandStringRunes(8)
 			gamestate.NextGamestate = nextID
-			gamestate.PrepareTransactions(previousGamestate, false)
+
+			gamestate.PrepareTransactions(previousGamestate)
 
 		}
 	}
