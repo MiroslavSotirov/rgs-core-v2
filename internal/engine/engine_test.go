@@ -193,8 +193,8 @@ func TestPrepareTransactions(t *testing.T) {
 	// if there is only one action remaining and it is "finish" , there should be an endround transaction
 	// this may change with respin games, where we might want to start only adding endround if the gamestate's action is "finish"
 
-	gsTest := Gamestate{RelativePayout: 5, Multiplier: 2, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}}
-	gsTest.PrepareTransactions(Gamestate{}, false)
+	gsTest := Gamestate{Action: "base", RelativePayout: 5, Multiplier: 2, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}}
+	gsTest.PrepareTransactions(Gamestate{})
 	if gsTest.Transactions[0].Amount.Amount != 10000 || gsTest.Transactions[0].Amount.Currency != "USD" || gsTest.Transactions[0].Type != "PAYOUT" || len(gsTest.Transactions[0].Id) != 8 {
 		t.Errorf("payout improperly processed")
 	}
@@ -210,7 +210,7 @@ func TestPrepareTransactions(t *testing.T) {
 
 	// test relativepayout zero explicitly
 	gsTest = Gamestate{RelativePayout: 0, Multiplier: 1, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}}
-	gsTest.PrepareTransactions(Gamestate{}, false)
+	gsTest.PrepareTransactions(Gamestate{})
 
 	if len(gsTest.Transactions) != 0 {
 		t.Errorf("expected no transaction")
@@ -218,7 +218,7 @@ func TestPrepareTransactions(t *testing.T) {
 
 	// test relativepayout zero implicitly and future actions
 	gsTest = Gamestate{Multiplier: 1, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"freespin", "finish"}}
-	gsTest.PrepareTransactions(Gamestate{}, false)
+	gsTest.PrepareTransactions(Gamestate{})
 
 	if len(gsTest.Transactions) != 0 {
 		t.Errorf("expected no transaction")
@@ -226,7 +226,7 @@ func TestPrepareTransactions(t *testing.T) {
 
 	// test multiplier zero explicitly
 	gsTest = Gamestate{RelativePayout: 1, Multiplier: 0, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}}
-	gsTest.PrepareTransactions(Gamestate{}, false)
+	gsTest.PrepareTransactions(Gamestate{})
 
 	if len(gsTest.Transactions) != 0 {
 		t.Errorf("expected no transaction")
@@ -234,15 +234,15 @@ func TestPrepareTransactions(t *testing.T) {
 
 	// test multiplier zero implicitly and preexisting transaction
 	gsTest = Gamestate{RelativePayout: 1, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}, Transactions: []WalletTransaction{{Amount: Money{Amount: 5000, Currency: "USD"}, Type: "WAGER", Id: "ABCDEFGH"}}}
-	gsTest.PrepareTransactions(Gamestate{}, false)
+	gsTest.PrepareTransactions(Gamestate{})
 
 	if len(gsTest.Transactions) != 1 || gsTest.Transactions[0].Type != "WAGER" {
 		t.Errorf("expected one wager tx and one endround tx")
 	}
 
 	// test cumulative win addition
-	gsTest = Gamestate{RelativePayout: 5, Multiplier: 2, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}}
-	gsTest.PrepareTransactions(Gamestate{CumulativeWin: 5000, PlaySequence: 5}, true)
+	gsTest = Gamestate{Action: "freespin", RelativePayout: 5, Multiplier: 2, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}}
+	gsTest.PrepareTransactions(Gamestate{CumulativeWin: 5000, PlaySequence: 5})
 
 	if gsTest.CumulativeWin != 15000 {
 		t.Errorf("cumulative win calculation failed, expected 15000, got %v", gsTest.CumulativeWin)
