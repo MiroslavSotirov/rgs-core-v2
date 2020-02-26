@@ -443,11 +443,11 @@
 			border-color: rgb(255, 255, 255);
 			border-style: solid;
 			display: grid;
-			grid-template-columns: auto auto auto auto auto;
+			grid-template-columns:{{ range $_ := Iter .ColSize }} auto {{ end }};
 			grid-gap: 10px;
 			background-color: rgb(240, 240, 240);
 			padding: 10px;
-			grid-column: {{.ColSize}}};
+			grid-column: {{.ColSize}};
 
 		}
 
@@ -541,7 +541,7 @@
 	<div class="grid-container">
 		{{range $x := $.SymbolGrid}}
 			{{range $y := $x}}
-				<div class="grid-item"><img src={{printf "https://dev06.maverick-ops.com/symbols/%v/icon%v.png" $.GameID $y}} alt="Noimage"></div>
+				<div class="grid-item"><img src={{printf "https://symbols.maverick-ops.com/%v/icon%v.png" $.GameID $y}} alt="Noimage"></div>
 			{{end}}
 		{{end}}
 	</div>
