@@ -29,6 +29,15 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 	gamestate := request.FormValue("state")
 	var gsbytes []byte
 	var err error
+	var fm = template.FuncMap{
+		"Iter": func (s int) []int {
+			var Size []int
+			for x := 0; x < (s); x++ {
+				Size = append(Size, x)
+			}
+			return Size
+		},
+	}
 
 	if gamestate == "" {
 		gamestateStore, serr := store.ServLocal.GamestateById(gameplayID)
@@ -46,7 +55,9 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 		}
 	}
 	gameplay := store.DeserializeGamestateFromBytes(gsbytes)
-	t, err := template.ParseFiles("templates/api/playcheck/playcheck.html")
+
+	tpl := template.New("playcheck.html").Funcs(fm)
+	t, err := tpl.ParseFiles("templates/api/playcheck/playcheck.html")
 	if err != nil {
 		logger.Errorf("template parsing error: ", err)
 		return
