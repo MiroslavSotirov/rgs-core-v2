@@ -535,9 +535,11 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 		//another hack for the old client
 		gsResponse.ReelSetIndex = 0
 	}
-	if action == "freespin" {
+
+	if strings.HasPrefix(action, "freespin") {
 		// hack for old client support, in future just return round multiplier
 		gsResponse.FreeSpinMultiplier = gamestate.Multiplier
+
 		if err != nil {
 			logger.Errorf("error retrieving engine id")
 			return gsResponse
