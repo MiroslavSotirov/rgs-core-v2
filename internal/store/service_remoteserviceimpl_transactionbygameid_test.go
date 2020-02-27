@@ -50,12 +50,17 @@ func TestRemoteServiceImpl_TransactionByGameId_1(t *testing.T) {
 				BonusAmount:  0,
 				JpAmount:     0,
 				Category:     "",
-				CampaignRef:  "",
+				//CampaignRef:  "",
 				CloseRound:   false,
 				GameState:    "",
 				Round:        "",
 				TxRef:        "",
 				Description:  "",
+				FreeGames: restFreeGame{
+					CampaignRef: "",
+					NrGames:     0,
+				},
+				BetLimit: "",
 			}
 			b := new(bytes.Buffer)
 			json.NewEncoder(b).Encode(rs)

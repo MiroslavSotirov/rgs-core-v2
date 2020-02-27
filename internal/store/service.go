@@ -67,7 +67,7 @@ type (
 		Username            string
 		Balance             engine.Money
 		BetLimitSettingCode string
-		NoOfFreeSpins       int
+		FreeGames           FreeGamesStore
 	}
 
 	GameStateStore struct {
@@ -79,6 +79,7 @@ type (
 		Token    Token
 		Mode     Mode
 		Balance  engine.Money
+		FreeGames           FreeGamesStore
 	}
 
 	TransactionStore struct {
@@ -93,7 +94,14 @@ type (
 		Amount              engine.Money
 		ParentTransactionId string
 		TxTime              time.Time
+		BetLimitSettingCode string
 		GameState           []byte
+		FreeGames           FreeGamesStore
+	}
+
+	FreeGamesStore struct {
+		NoOfFreeSpins int
+		CampaignRef string
 	}
 
 	Error struct {
@@ -216,6 +224,7 @@ type (
 		Balance       int64             `json:"balance"`
 		Currency      string            `json:"currency"`
 		PlayerMessage restPlayerMessage `json:"player_message"`
+		FreeGames     restFreeGame      `json:"free_games"`
 	}
 
 	restGameStateRequest struct {
@@ -280,6 +289,7 @@ type (
 		Currency      string            `json:"currency"`
 		TxId          string            `json:"tx_id"`
 		PlayerMessage restPlayerMessage `json:"player_message"`
+		FreeGames     restFreeGame      `json:"free_games"`
 	}
 
 	restQueryRequest struct {
@@ -311,6 +321,8 @@ type (
 		Round        string       `json:"round"`
 		TxRef        string       `json:"tx_ref"`
 		Description  string       `json:"description"`
+		BetLimit      string            `json:"bet_limit"`
+		FreeGames     restFreeGame      `json:"free_games"`
 	}
 )
 
@@ -343,7 +355,7 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 						Currency: player.Balance.Currency,
 						Amount:   player.Balance.Amount,
 					},
-					NoOfFreeSpins:       player.NoOfFreeSpins,
+					FreeGames:       FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
 					BetLimitSettingCode: player.BetLimitSettingCode,
 				},
 				GameStateStore{GameState: tx.GameState},
@@ -360,7 +372,7 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 						Currency: player.Balance.Currency,
 						Amount:   player.Balance.Amount,
 					},
-					NoOfFreeSpins:       player.NoOfFreeSpins,
+					FreeGames:       FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
 					BetLimitSettingCode: player.BetLimitSettingCode,
 				},
 				GameStateStore{},
@@ -493,6 +505,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 	if authResp.Id == i.logAccount {
 		logger.Infof("%v request took %v for account %v", ApiTypeAuth, time.Now().Sub(start).String(), authResp.Id)
 	}
+	logger.Infof("auth resp: %#v", authResp)
 	return PlayerStore{
 			PlayerId: authResp.Id,
 			Token:    Token(authResp.Token),
@@ -502,7 +515,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 				Currency: authResp.Currency,
 				Amount:   engine.Fixed(authResp.Balance * 10000),
 			},
-			NoOfFreeSpins:       authResp.FreeGames.NrGames,
+			FreeGames:       FreeGamesStore{authResp.FreeGames.NrGames, authResp.FreeGames.CampaignRef},
 			BetLimitSettingCode: authResp.BetLimit,
 		},
 		GameStateStore{GameState: gameState},
@@ -533,7 +546,7 @@ func (i *LocalServiceImpl) PlayerSave(token Token, mode Mode, player PlayerStore
 			Currency: player.Balance.Currency,
 			Amount:   player.Balance.Amount,
 		},
-		NoOfFreeSpins:       player.NoOfFreeSpins,
+		FreeGames:       FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
 		BetLimitSettingCode: player.BetLimitSettingCode,
 	}, nil
 }
@@ -561,6 +574,7 @@ func (i *LocalServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore,
 			Currency: player.Balance.Currency,
 			Amount:   player.Balance.Amount,
 		},
+		FreeGames:       FreeGamesStore{0, ""},
 	}, nil
 }
 
@@ -608,6 +622,7 @@ func (i *RemoteServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore
 			Currency: balResp.Currency,
 			Amount:   engine.Fixed(balResp.Balance * 10000),
 		},
+		FreeGames:       FreeGamesStore{balResp.FreeGames.NrGames, balResp.FreeGames.CampaignRef},
 	}, nil
 }
 
@@ -656,6 +671,7 @@ func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction Trans
 			Currency: player.Balance.Currency,
 			Amount:   player.Balance.Amount,
 		},
+		FreeGames:       FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
 	}, nil
 }
 
@@ -687,6 +703,7 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 		GameState:   gameState,
 		Round:       transaction.RoundId,
 		TxRef:       transaction.TransactionId,
+		CampaignRef: transaction.FreeGames.CampaignRef,
 	}
 
 	b := new(bytes.Buffer)
@@ -724,6 +741,7 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 			Currency: txResp.Currency,
 			Amount:   engine.Fixed(txResp.Balance * 10000),
 		},
+		FreeGames:       FreeGamesStore{txResp.FreeGames.NrGames, txResp.FreeGames.CampaignRef},
 	}, nil
 }
 
@@ -746,6 +764,7 @@ func (i *LocalServiceImpl) GamestateById(gamestateId string) (GameStateStore, *E
 }
 
 func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, *Error) {
+	// Used at beginning of play() func to get previous gamestate, betlimit settings code, and free games info
 	logger.Debugf("LocalServiceImpl.TransactionByGameId([%v], [%v], [%v])", token, mode, gameId)
 
 	playerId, _ := i.getToken(token)
@@ -774,10 +793,14 @@ func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId st
 		ParentTransactionId: transaction.ParentTransactionId,
 		TxTime:              transaction.TxTime,
 		GameState:           transaction.GameState,
+		BetLimitSettingCode: "",
+		FreeGames:      FreeGamesStore{0, ""},
 	}, nil
 }
 
 func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, *Error) {
+	// Used at beginning of play() func to get previous gamestate, betlimit settings code, and free games info
+
 	queryRq := restQueryRequest{
 		ReqId:    uuid.NewV4().String(),
 		Token:    string(token),
@@ -853,6 +876,8 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		ParentTransactionId: "",         //TODO: fix this
 		TxTime:              time.Now(), //TODO: fix this
 		GameState:           gameState,
+		BetLimitSettingCode: queryResp.BetLimit,
+		FreeGames:      FreeGamesStore{queryResp.FreeGames.NrGames, queryResp.FreeGames.CampaignRef},
 	}, nil
 }
 
@@ -865,6 +890,7 @@ func (i *RemoteServiceImpl) restQueryResponse(response *http.Response) restQuery
 }
 
 func (i *LocalServiceImpl) GameStateByGameId(token Token, mode Mode, gameId string) (GameStateStore, *Error) {
+	// Used in ClientState call to retrieve Gamestate to send to endround
 	logger.Debugf("LocalServiceImpl.GameStateByGameId([%v], [%v], [%v])", token, mode, gameId)
 	transaction, _ := i.TransactionByGameId(token, mode, gameId)
 
@@ -875,6 +901,7 @@ func (i *LocalServiceImpl) GameStateByGameId(token Token, mode Mode, gameId stri
 }
 
 func (i *RemoteServiceImpl) GameStateByGameId(token Token, mode Mode, gameId string) (GameStateStore, *Error) {
+	// Used in ClientState call to retrieve Gamestate to send to endround
 	gameStateRq := restGameStateRequest{
 		ReqId:    uuid.NewV4().String(),
 		Token:    string(token),
@@ -934,6 +961,7 @@ func (i *RemoteServiceImpl) restGameStateResponse(response *http.Response) restG
 }
 
 func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, *Error) {
+	// Used in clientstate call
 	playerId, _ := i.getToken(token)
 	player, _ := i.getPlayer(playerId)
 
@@ -965,6 +993,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 }
 
 func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, *Error) {
+	// Used in clientstate call
 	closeRound := true
 
 	txRq := restTransactionRequest{
@@ -1019,6 +1048,7 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 			Currency: txResp.Currency,
 			Amount:   engine.Fixed(txResp.Balance * 10000),
 		},
+		FreeGames: FreeGamesStore{txResp.FreeGames.NrGames, txResp.FreeGames.CampaignRef},
 	}, nil
 }
 

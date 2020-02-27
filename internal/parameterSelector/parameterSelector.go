@@ -5,7 +5,6 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -47,9 +46,9 @@ func parseBetConfig() (betConfig, error) {
 	return conf, nil
 }
 
-func GetGameplayParameters(lastBet engine.Fixed, player store.PlayerStore, gameID string) ([]engine.Fixed, engine.Fixed, rgserror.IRGSError) {
+func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string) ([]engine.Fixed, engine.Fixed, rgserror.IRGSError) {
 	// returns stakeValues and defaultBet based on host and player configuration
-	logger.Debugf("getting %v stake params for player: %#v", gameID, player)
+	logger.Debugf("getting %v stake params for config %v (lastbet %#v)", gameID, betSettingsCode, lastBet)
 	betConf, err := parseBetConfig()
 	//logger.Debugf("Bet Configuration: %#v", betConf)
 	if err != nil {
@@ -60,14 +59,14 @@ func GetGameplayParameters(lastBet engine.Fixed, player store.PlayerStore, gameI
 	// get stakevalues based on host config
 	baseStakeValues := betConf.StakeValues
 
-	ccyMult, ok := betConf.CcyMultipliers[player.Balance.Currency]
+	ccyMult, ok := betConf.CcyMultipliers[lastBet.Currency]
 	if !ok {
 		betconfigerr := rgserror.ErrBetConfig
 		betconfigerr.AppendErrorText("Unknown Bet Multiplier")
 		return []engine.Fixed{}, engine.Fixed(0), rgserror.ErrBetConfig
 	}
 
-	profile, ok := betConf.HostProfiles[player.BetLimitSettingCode]
+	profile, ok := betConf.HostProfiles[betSettingsCode]
 	if !ok {
 		profile = "base"
 	}
@@ -111,8 +110,8 @@ func GetGameplayParameters(lastBet engine.Fixed, player store.PlayerStore, gameI
 	}
 
 	// if lastBet is not in stakeValues then use defaultBet
-	if lastBet >= fixedStakeValues[0] && lastBet <= fixedStakeValues[len(fixedStakeValues)-1] {
-		defaultStake = lastBet
+	if lastBet.Amount >= fixedStakeValues[0] && lastBet.Amount <= fixedStakeValues[len(fixedStakeValues)-1] {
+		defaultStake = lastBet.Amount
 	}
 
 	if defaultStake < fixedStakeValues[0] {

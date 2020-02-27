@@ -256,6 +256,7 @@ type LevelResponse struct {
 type BalanceResponse struct {
 	Amount   string `json:"amount"`
 	Currency string `json:"currency"`
+	FreeGames int    `json:"free_games"`
 }
 
 // Render game init response
@@ -713,7 +714,13 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 			TotalSpins:     totalSpins,
 		},
 	}
+	playHref := fmt.Sprintf("%s%s/%s/rgs/play/%s/%s/%s", urlScheme, request.Host, APIVersion, gameID, gamestate.Id, mode)
+	// determine if this is the first sham gamestate being rendered:
+	if len(gamestate.Transactions) == 0 {
+		playHref += fmt.Sprintf("?playerId=%v&ccy=%v", player.ID, player.Balance.Currency)
+		logger.Debugf("Rendering sham init gamestate: %v", playHref)
 
+	}
 	gameInfo := &GameInfoResponse{CCY: player.Balance.Currency, HostName: operator, InterfaceName: mode, GameName: gameID, Version: "2"}
 	gpResponse := GameplayResponse{
 		Game:          *gameInfo,
@@ -728,7 +735,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 				Rel:  "self",
 			},
 			{
-				Href:   fmt.Sprintf("%s%s/%s/rgs/play/%s/%s/%s", urlScheme, request.Host, APIVersion, gameID, gamestate.Id, mode),
+				Href:   playHref,
 				Method: "POST",
 				Rel:    "new-game",
 				Type:   "application/vnd.maverick.slots.spin-v1+json",

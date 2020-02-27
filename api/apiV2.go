@@ -66,7 +66,7 @@ func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 	links := make(map[string]string, 1)
 	links["new-game"] = fmt.Sprintf("%s%s/%s/play2/%s", GetURLScheme(request), request.Host, APIVersion, gameSlug)
 	giResp.Links = links
-	stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine.Amount, player, gameSlug)
+	stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine, player.BetLimitSettingCode, gameSlug)
 	if err != nil {
 		return GameInitResponseV2{}, err
 	}
