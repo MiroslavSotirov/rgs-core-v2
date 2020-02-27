@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func InitPlayerGS(refreshToken string, playerID string, gameName string, host string, currency string, wallet string) (engine.Gamestate, PlayerStore, rgserror.IRGSError) {
+func InitPlayerGS(refreshToken string, playerID string, gameName string, currency string, wallet string) (engine.Gamestate, PlayerStore, rgserror.IRGSError) {
 	var newPlayer PlayerStore
 	var latestGamestateStore GameStateStore
 	var err *Error
@@ -35,7 +35,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, host st
 			} else if playerID == "" {
 				playerID = rng.RandStringRunes(8)
 			}
-			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, engine.Money{balance, currency}, host, FreeGamesStore{0, ""}}
+			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, engine.Money{balance, currency}, "maverick", FreeGamesStore{0, ""}}
 			newPlayer, err = ServLocal.PlayerSave(newPlayer.Token, ModeDemo, newPlayer)
 		}
 		latestGamestate = CreateInitGS(newPlayer, gameName)

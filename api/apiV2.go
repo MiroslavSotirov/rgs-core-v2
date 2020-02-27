@@ -53,7 +53,7 @@ func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 	}
 	var player store.PlayerStore
 	var latestGamestate engine.Gamestate
-	latestGamestate, player, err = store.InitPlayerGS(authToken, authToken, gameSlug, operator, currency, wallet)
+	latestGamestate, player, err = store.InitPlayerGS(authToken, authToken, gameSlug, currency, wallet)
 
 	if err != nil {
 		return GameInitResponseV2{}, err

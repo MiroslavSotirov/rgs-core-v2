@@ -717,7 +717,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 	playHref := fmt.Sprintf("%s%s/%s/rgs/play/%s/%s/%s", urlScheme, request.Host, APIVersion, gameID, gamestate.Id, mode)
 	// determine if this is the first sham gamestate being rendered:
 	if len(gamestate.Transactions) == 0 {
-		playHref += fmt.Sprintf("?playerId=%v&ccy=%v", player.ID, player.Balance.Currency)
+		playHref += fmt.Sprintf("?playerId=%v&ccy=%v&betLimitCode=%v", player.ID, player.Balance.Currency, playerStore.BetLimitSettingCode)
 		logger.Debugf("Rendering sham init gamestate: %v", playHref)
 
 	}

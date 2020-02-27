@@ -30,7 +30,7 @@ func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, en
 		return store.PlayerStore{}, engine.EngineConfig{}, engine.Gamestate{}, err
 	}
 	wallet := chi.URLParam(request, "wallet")
-	latestGamestate, player, err := store.InitPlayerGS(authToken, authToken, gameSlug, "maverick", currency, wallet)
+	latestGamestate, player, err := store.InitPlayerGS(authToken, authToken, gameSlug, currency, wallet)
 	return player, engineConfig, latestGamestate, err
 
 }
@@ -93,6 +93,8 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			txStore.RoundStatus = store.RoundStatusClose
 			txStore.Token = store.Token(memID)
 			txStore.Amount.Currency = ccy
+			txStore.PlayerId = playerID
+			txStore.BetLimitSettingCode = request.FormValue("betLimitCode")
 		} else {
 			//otherwise this is an actual error
 			return previousGamestate, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
