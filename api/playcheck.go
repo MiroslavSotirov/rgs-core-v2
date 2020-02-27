@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/base64"
 	"github.com/go-chi/chi"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
@@ -24,16 +25,39 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 	// gets state for a certain gameplay
 
 	gameplayID := chi.URLParam(request, "gameplayID")
-	logger.Debugf("retrieving playcheck for %v", gameplayID)
 
-	gamestateStore, serr := store.ServLocal.GamestateById(gameplayID)
-	if serr != nil {
-		logger.Errorf("Error getting gamestate item : %v", serr)
-		return
+	gamestate := request.FormValue("state")
+	var gsbytes []byte
+	var err error
+	var fm = template.FuncMap{
+		"Iter": func (s int) []int {
+			var Size []int
+			for x := 0; x < (s); x++ {
+				Size = append(Size, x)
+			}
+			return Size
+		},
 	}
-	gameplay := store.DeserializeGamestateFromBytes(gamestateStore.GameState)
 
-	t, err := template.ParseFiles("templates/api/playcheck/playcheck.html")
+	if gamestate == "" {
+		gamestateStore, serr := store.ServLocal.GamestateById(gameplayID)
+		if serr != nil {
+			logger.Errorf("Error getting gamestate item : %v", serr)
+			return
+		}
+		gsbytes = gamestateStore.GameState
+
+	} else {
+		gsbytes, err = base64.StdEncoding.DecodeString(gamestate)
+		if err != nil {
+			logger.Errorf("Error decoding gs: %v", err)
+			return
+		}
+	}
+	gameplay := store.DeserializeGamestateFromBytes(gsbytes)
+
+	tpl := template.New("playcheck.html").Funcs(fm)
+	t, err := tpl.ParseFiles("templates/api/playcheck/playcheck.html")
 	if err != nil {
 		logger.Errorf("template parsing error: ", err)
 		return

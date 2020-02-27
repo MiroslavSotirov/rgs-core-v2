@@ -175,3 +175,7 @@
   reelsetId: 0
   stopList: [14,18,17,10,10]
 
+- id: retrigger3
+  action: freespin
+  reelsetId: 1
+  stopList: [0,34,34,34,0]

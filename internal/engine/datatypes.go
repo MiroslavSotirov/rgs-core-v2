@@ -284,8 +284,41 @@ func convertPrizesToPB(unconverted []Prize) []*PrizePB {
 	}
 	return converted
 }
+func (gamestatePB GamestatePB) Convert() Gamestate {
+	nextActions := make([]string, len(gamestatePB.NextActions))
+	for i, action := range gamestatePB.NextActions {
+		nextActions[i] = action.String()
+	}
+	// every set of transactions should begin with a WAGER. this ID is also the gamestate ID
+	if len(gamestatePB.Transactions) == 0 {
+		logger.Errorf("NO TX associated")
+		return Gamestate{}
+	}
 
-func (gamestatePB GamestatePB) Convert(transactions []*WalletTransactionPB) Gamestate {
+	// get Game ID
+	return Gamestate{
+		Id:                gamestatePB.Transactions[0].Id,
+		GameID:            fmt.Sprintf("%v:%v", GetGameIDFromPB(gamestatePB.GameId.String()), gamestatePB.EngineDef),
+		BetPerLine:        Money{Amount: Fixed(gamestatePB.BetPerLine), Currency: gamestatePB.Currency.String()},
+		Transactions:      convertTransactionsFromPB(gamestatePB.Transactions),
+		PreviousGamestate: string(gamestatePB.PreviousGamestate),
+		NextGamestate:     string(gamestatePB.NextGamestate),
+		Action:            gamestatePB.Action.String(),
+		SymbolGrid:        convertSymbolGridFromPB(gamestatePB.SymbolGrid),
+		Prizes:            convertPrizesFromPB(gamestatePB.Prizes, Fixed(gamestatePB.BetPerLine)),
+		SelectedWinLines:  convertInt32Int(gamestatePB.SelectedWinLines),
+		RelativePayout:    int(gamestatePB.RelativePayout),
+		Multiplier:        int(gamestatePB.Multiplier),
+		StopList:          convertInt32Int(gamestatePB.StopList),
+		NextActions:       nextActions,
+		Gamification:      gamestatePB.Gamification,
+		CumulativeWin:     Fixed(gamestatePB.CumulativeWin),
+		PlaySequence:      int(gamestatePB.PlaySequence),
+	}
+}
+
+
+func (gamestatePB GamestatePB) ConvertLegacy(transactions []*WalletTransactionPB) Gamestate {
 	nextActions := make([]string, len(gamestatePB.NextActions))
 	for i, action := range gamestatePB.NextActions {
 		nextActions[i] = action.String()
@@ -337,7 +370,36 @@ func GetEngineDefFromGame(gameID string) (EngineConfig, int, error) {
 	return BuildEngineDefs(engineID), rsID, nil
 }
 
-func (gamestate Gamestate) Convert() (GamestatePB, []*WalletTransactionPB) {
+func (gamestate Gamestate) Convert() (GamestatePB) {
+	nextActions := make([]GamestatePB_Action, len(gamestate.NextActions))
+	for i, action := range gamestate.NextActions {
+		nextActions[i] = GamestatePB_Action(GamestatePB_Action_value[action])
+	}
+	// every set of transactions should begin with a WAGER. this ID is also the gamestate ID
+	gameID, engineDef := GetGameIDAndReelset(gamestate.GameID)
+	return GamestatePB{
+		GameId:            GamestatePB_GameID(GamestatePB_GameID_value[GetPBFromGameID(gameID)]),
+		EngineDef:         int32(engineDef),
+		BetPerLine:        gamestate.BetPerLine.Amount.ValueRaw(),
+		Currency:          Ccy(Ccy_value[gamestate.BetPerLine.Currency]),
+		PreviousGamestate: []byte(gamestate.PreviousGamestate),
+		NextGamestate:     []byte(gamestate.NextGamestate),
+		Action:            GamestatePB_Action(GamestatePB_Action_value[gamestate.Action]),
+		SymbolGrid:        convertSymbolGridToPB(gamestate.SymbolGrid),
+		Prizes:            convertPrizesToPB(gamestate.Prizes),
+		SelectedWinLines:  convertIntInt32(gamestate.SelectedWinLines),
+		RelativePayout:    int32(gamestate.RelativePayout),
+		Multiplier:        int32(gamestate.Multiplier),
+		StopList:          convertIntInt32(gamestate.StopList),
+		NextActions:       nextActions,
+		Gamification:      gamestate.Gamification,
+		CumulativeWin:     gamestate.CumulativeWin.ValueRaw(),
+		PlaySequence:      int32(gamestate.PlaySequence),
+		Transactions:      convertTransactionsToPB(gamestate.Transactions),
+	}
+}
+
+func (gamestate Gamestate) ConvertLegacy() (GamestatePB, []*WalletTransactionPB) {
 	nextActions := make([]GamestatePB_Action, len(gamestate.NextActions))
 	for i, action := range gamestate.NextActions {
 		nextActions[i] = GamestatePB_Action(GamestatePB_Action_value[action])

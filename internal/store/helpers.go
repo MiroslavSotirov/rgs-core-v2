@@ -2,15 +2,12 @@ package store
 
 import (
 	"bytes"
-	"encoding/base64"
-	"fmt"
 	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/golang/protobuf/proto"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
-
-	"github.com/golang/protobuf/proto"
 )
 
 // set up local memcached server with:
@@ -39,31 +36,7 @@ func Init() rgserror.IRGSError {
 	return nil
 }
 
-func SerializeGamestateToString(deserialized engine.Gamestate) string {
-	// serializes gamestate and transaction info to string with delimiter "::"
-	// format: <Gamestate>::<TXWAGER>::<TXPAYOUT(optional)>::<TXENDROUND(optional)>
-
-	deserializedPBType, deserializedTXPBType := deserialized.Convert()
-	dataGS, err := proto.Marshal(&deserializedPBType)
-	if err != nil {
-		logger.Errorf("Error serializing Gamestate to String")
-		return ""
-	}
-	returnStr := base64.StdEncoding.EncodeToString(dataGS)
-
-	var dataTX []byte
-	for _, tx := range deserializedTXPBType {
-		dataTX, err = proto.Marshal(tx)
-		if err != nil {
-			logger.Errorf("Error serializing Gamestate to String")
-			return ""
-		}
-		returnStr += fmt.Sprintf("::%v", base64.StdEncoding.EncodeToString(dataTX))
-	}
-	return returnStr
-}
-
-// todo: make these interface functions
+var delimiter = []byte("...")
 
 func SerializeGamestateToBytes(deserialized engine.Gamestate) []byte {
 	// turns session information into a byte slice
@@ -71,29 +44,52 @@ func SerializeGamestateToBytes(deserialized engine.Gamestate) []byte {
 		logger.Errorf("ERROR: GAMESTATE HAS NO TX: %#v", deserialized)
 		return []byte{}
 	}
-	deserializedPBType, deserializedPBTXType := deserialized.Convert()
-	data, err := proto.Marshal(&deserializedPBType)
+
+	deserializedPB := deserialized.Convert()
+
+	data, err := proto.Marshal(&deserializedPB)
 	if err != nil {
 		logger.Errorf("Error serializing Gamestate to bytes")
 		return []byte{}
 	}
-	var dataTx []byte
-	delimiter := []byte("...")
 
-	for i := 0; i < len(deserializedPBTXType); i++ {
-		dataTx, err = proto.Marshal(deserializedPBTXType[i])
-		data = append(data, delimiter...)
-		data = append(data, dataTx...)
-	}
 	return data
 }
 
 func DeserializeGamestateFromBytes(serialized []byte) engine.Gamestate {
 	// turns serialized session information into session struct
 	var deserializedGS engine.GamestatePB
-	data := bytes.Split(serialized, []byte("..."))
+	err := proto.Unmarshal(serialized, &deserializedGS)
+	if err != nil {
+		logger.Warnf("Attempting old format deserialization")
+		return DeserializeGamestateFromBytesLegacy(serialized)
+	}
+	gs := deserializedGS.Convert()
+
+	if gs.Id == "" {
+		logger.Warnf("Conversion failed, attempting old format deserialization")
+		return DeserializeGamestateFromBytesLegacy(serialized)
+	}
+
+	return gs
+}
+
+
+func DeserializeGamestateFromBytesLegacy(serialized []byte) engine.Gamestate {
+	// turns serialized session information into session struct
+	var deserializedGS engine.GamestatePB
+
+
+
+	data := bytes.Split(serialized, delimiter)
+	if len(data) == 1 {
+		logger.Warnf("Attempting to deserialize old format")
+		data = bytes.Split(serialized, []byte("..."))
+	}
+
 	err := proto.Unmarshal(data[0], &deserializedGS)
 	// Decode (receive) the value.
+	logger.Debugf("GS %#v", deserializedGS)
 	if err != nil {
 		logger.Errorf("Error deserializing gamestate from bytes: %v", err)
 		return engine.Gamestate{}
@@ -109,5 +105,5 @@ func DeserializeGamestateFromBytes(serialized []byte) engine.Gamestate {
 		}
 		deserializedTX[i-1] = &deserialized
 	}
-	return deserializedGS.Convert(deserializedTX)
+	return deserializedGS.ConvertLegacy(deserializedTX)
 }

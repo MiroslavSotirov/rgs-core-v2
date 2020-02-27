@@ -166,7 +166,7 @@ func GetEngineDefResponse(engineConf engine.EngineConfig, engineID string) map[s
 
 	resp := make(map[string]EngineDefResponse)
 	switch engineID {
-	case "mvgEngineI", "mvgEngineIII", "mvgEngineV", "mvgEngineVII", "mvgEngineIX", "mvgEngineXII":
+	case "mvgEngineI", "mvgEngineIII", "mvgEngineV", "mvgEngineVII", "mvgEngineIX", "mvgEngineXII", "mvgEngineXIV":
 		for i := 0; i < len(engineConf.EngineDefs); i++ {
 			reelsetType := engineConf.EngineDefs[i].ID
 			if reelsetType == "freespin" {
@@ -535,9 +535,11 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 		//another hack for the old client
 		gsResponse.ReelSetIndex = 0
 	}
-	if action == "freespin" {
+
+	if strings.HasPrefix(action, "freespin") {
 		// hack for old client support, in future just return round multiplier
 		gsResponse.FreeSpinMultiplier = gamestate.Multiplier
+
 		if err != nil {
 			logger.Errorf("error retrieving engine id")
 			return gsResponse
@@ -745,7 +747,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 		gpResponse.Player.Balance.Amount = removeCumulativeWinFromBalance(gpResponse.Player.Balance.Amount, gpResponse.GamestateInfo.TotalWinnings)
 
 		gpResponse.Links[1].Rel = "option"
-		if strings.Contains(gamestate.NextActions[0], "freespin") {
+		if strings.Contains(gamestate.NextActions[0], "freespin") ||  strings.Contains(gamestate.NextActions[0], "cascade"){
 			gpResponse.Links[1].Type = "application/vnd.maverick.slots.freespin-v1+json"
 		} else if strings.Contains(gamestate.NextActions[0], "pick") {
 			gpResponse.Links[1].Type = "application/vnd.maverick.slots.feature-select-v1+json"

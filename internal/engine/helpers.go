@@ -226,7 +226,7 @@ func GetHash(filePath string) (string, string, error) {
 	logger.Infof("MD5: %v", hex.EncodeToString(hashInBytes1))
 	logger.Infof("SHA1: %v", hex.EncodeToString(hashInBytes2))
 
-	//Convert the bytes to a string
+	//ConvertLegacy the bytes to a string
 	MD5String := hex.EncodeToString(hashInBytes1)
 	SHA1String := hex.EncodeToString(hashInBytes2)
 	err = file.Close()
