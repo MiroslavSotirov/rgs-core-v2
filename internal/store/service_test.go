@@ -22,7 +22,7 @@ func TestLocalServiceImpl_Player(t *testing.T) {
 			Amount:   100,
 		},
 		BetLimitSettingCode: "DEFAULT",
-		NoOfFreeSpins:       0,
+		FreeGames:       FreeGamesStore{0,""},
 	}
 	player, _ = serv.PlayerSave(token, ModeReal, player)
 	serv2 := New(&config.Config{
@@ -54,8 +54,8 @@ func TestLocalServiceImpl_Player(t *testing.T) {
 		t.Errorf("Value not match [%v] <> [%v]", player.Balance.Amount, player2.Balance.Amount)
 	}
 
-	if player.NoOfFreeSpins != player2.NoOfFreeSpins {
-		t.Errorf("Value not match [%v] <> [%v]", player.NoOfFreeSpins, player2.NoOfFreeSpins)
+	if player.FreeGames.NoOfFreeSpins != player2.FreeGames.NoOfFreeSpins {
+		t.Errorf("Value not match [%v] <> [%v]", player.FreeGames.NoOfFreeSpins, player2.FreeGames.NoOfFreeSpins)
 	}
 
 	if player.BetLimitSettingCode != player2.BetLimitSettingCode {
@@ -91,7 +91,7 @@ func TestLocalServiceImpl_Transaction(t *testing.T) {
 			Amount:   100,
 		},
 		BetLimitSettingCode: "DEFAULT",
-		NoOfFreeSpins:       0,
+		FreeGames:       FreeGamesStore{0,""},
 	}
 	player, _ = serv.PlayerSave(token, ModeReal, player)
 

@@ -1,13 +1,15 @@
 package store
 
-import "testing"
+import (
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
+	"testing"
+)
 
 // test init gs creation
-var testPlayer = PlayerStore{PlayerId: "test"}
 func TestCreateInitGS(t *testing.T) {
 	gameName := "the-year-of-zhu"
-	initGS := CreateInitGS(testPlayer, gameName)
-	if initGS.GameID != "the-year-of-zhu:0" || initGS.Id != testPlayer.PlayerId + gameName + "GSinit" {
+	initGS := CreateInitGS(PlayerStore{PlayerId:"test", Balance:engine.Money{0, "USD"}}, gameName)
+	if initGS.GameID != "the-year-of-zhu:0" || initGS.Id != "test" + gameName + "GSinit" || initGS.BetPerLine.Currency != "USD"{
 		t.Errorf("Error initializing gamestate: %v", initGS)
 	}
 }

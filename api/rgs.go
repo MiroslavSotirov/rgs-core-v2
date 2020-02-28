@@ -76,13 +76,15 @@ func Routes() *chi.Mux {
 			balanceResponse := BalanceResponse{
 				Currency: player.Balance.Currency,
 				Amount:   player.Balance.Amount.ValueAsString(),
+				FreeGames: player.FreeGames.NoOfFreeSpins,
 			}
-			logger.Debugf("lastgamestate nextactions: %v", previousGamestate.NextActions)
+			logger.Debugf("previous Gamestate: %#v", previousGamestate)
+
 			var gamestateResponse GameplayResponse
 			gamestateResponse = renderGamestate(r, previousGamestate, balanceResponse, engineConfig, player)
 
 			engineDefs := engineConfig.EngineDefs
-			stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine.Amount, player, gameSlug)
+			stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine, player.BetLimitSettingCode, gameSlug)
 			if err != nil {
 				render.Render(w, r, ErrRender(err))
 				return

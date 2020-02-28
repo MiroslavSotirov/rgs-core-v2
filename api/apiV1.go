@@ -30,7 +30,7 @@ func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, en
 		return store.PlayerStore{}, engine.EngineConfig{}, engine.Gamestate{}, err
 	}
 	wallet := chi.URLParam(request, "wallet")
-	latestGamestate, player, err := store.InitPlayerGS(authToken, authToken, gameSlug, "maverick", currency, wallet)
+	latestGamestate, player, err := store.InitPlayerGS(authToken, authToken, gameSlug, currency, wallet)
 	return player, engineConfig, latestGamestate, err
 
 }
@@ -43,71 +43,7 @@ func renderNextGamestate(request *http.Request) (GameplayResponse, rgserror.IRGS
 	return renderGamestate(request, gamestate, balance, engineConf, player), nil
 }
 
-// Play function for engines
-
-func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceResponse, engine.EngineConfig, rgserror.IRGSError) {
-	authHeader := request.Header.Get("Authorization")
-	gameSlug := chi.URLParam(request, "gameSlug")
-	wallet := chi.URLParam(request, "wallet")
-	memID := strings.Split(authHeader, "\"")[1]
-	logger.Debugf("request: %v", request)
-	var player store.PlayerStore
-	var previousGamestateStore store.GameStateStore
-	var txStore store.TransactionStore
-	var err *store.Error
-	var previousGamestate engine.Gamestate
-	switch wallet {
-	case "demo":
-		player, previousGamestateStore, err = store.ServLocal.PlayerByToken(store.Token(memID), store.ModeDemo, gameSlug)
-		if err != nil {
-			return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
-		}
-		txStore, err = store.ServLocal.TransactionByGameId(player.Token, store.ModeDemo, gameSlug)
-		if err == nil {
-			player.Token = txStore.Token
-		}
-	case "dashur":
-		player, previousGamestateStore, err = store.Serv.PlayerByToken(store.Token(memID), store.ModeReal, gameSlug)
-		if err != nil {
-			// no player with that token
-			logger.Debugf("error: %v",err)
-			return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
-		}
-		txStore, err = store.Serv.TransactionByGameId(store.Token(memID), store.ModeReal, gameSlug)
-	}
-
-
-	if len(previousGamestateStore.GameState) == 0 {
-		logger.Warnf("No previous gameplay, first gameplay for this player")
-		// check that there is no last tx as well, if there is a previous tx then there should not be a GS and there is a problem
-		// we expect err = EntityNotFound
-		if err != nil && err.Code == store.ErrorCodeEntityNotFound {
-			previousGamestate = store.CreateInitGS(player, gameSlug)
-			txStore.RoundStatus = store.RoundStatusClose
-		} else {
-			logger.Debugf("Previous TX: %v", txStore)
-			return previousGamestate, player, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
-		}
-
-	} else {
-		previousGamestate = store.DeserializeGamestateFromBytes(previousGamestateStore.GameState)
-	}
-	// check that previous gamestate matches what the client expects
-	clientID := chi.URLParam(request, "gamestateID")
-	logger.Debugf("Previous id: %v, requested id: %v", previousGamestate.Id, clientID)
-	if clientID != previousGamestate.Id {
-		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrSpinSequence
-	}
-	logger.Debugf("Previous Gamestate: %v", previousGamestate)
-	// get parameters from post form (perhaps this should be handled POST func)
-	decoder := json.NewDecoder(request.Body)
-	var data engine.GameParams
-	decodeerr := decoder.Decode(&data)
-	if decodeerr != nil {
-		logger.Errorf("Unable to decode request body: %s", decodeerr.Error())
-		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrGamestateStore
-	}
-
+func validateParams(data engine.GameParams) engine.GameParams {
 	// VALIDATE PARAMETERS
 	// legacy for old client
 	if data.Action == "spin" || data.Action == "" {
@@ -124,7 +60,66 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		}
 
 	}
-	// bugfix for skyjewels
+	return data
+}
+// Play function for engines
+
+func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceResponse, engine.EngineConfig, rgserror.IRGSError) {
+	authHeader := request.Header.Get("Authorization")
+	gameSlug := chi.URLParam(request, "gameSlug")
+	wallet := chi.URLParam(request, "wallet")
+	memID := strings.Split(authHeader, "\"")[1]
+	clientID := chi.URLParam(request, "gamestateID")
+
+	var txStore store.TransactionStore
+	var err *store.Error
+	var previousGamestate engine.Gamestate
+	switch wallet {
+	case "demo":
+		txStore, err = store.ServLocal.TransactionByGameId(store.Token(memID), store.ModeDemo, gameSlug)
+	case "dashur":
+		txStore, err = store.Serv.TransactionByGameId(store.Token(memID), store.ModeReal, gameSlug)
+	}
+	if err != nil {
+		if err.Code == store.ErrorCodeEntityNotFound {
+			// we can expect error here on first gameplay, if error is entity not found then we can assume this is the first round
+			logger.Warnf("First gameplay for this player")
+			// because txstore is nil, we need to be smart about choosing currency
+			ccy := request.FormValue("ccy")
+			playerID := request.FormValue("playerId")
+
+			previousGamestate = store.CreateInitGS(store.PlayerStore{PlayerId:playerID, Balance:engine.Money{0,ccy}}, gameSlug)
+			previousGamestate.Id = clientID
+			txStore.RoundStatus = store.RoundStatusClose
+			txStore.Token = store.Token(memID)
+			txStore.Amount.Currency = ccy
+			txStore.PlayerId = playerID
+			txStore.BetLimitSettingCode = request.FormValue("betLimitCode")
+		} else {
+			//otherwise this is an actual error
+			return previousGamestate, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
+		}
+	} else {
+		previousGamestate = store.DeserializeGamestateFromBytes(txStore.GameState)
+	}
+
+	// check that previous gamestate matches what the client expects
+	logger.Debugf("Previous id: %v, requested id: %v", previousGamestate.Id, clientID)
+	if clientID != previousGamestate.Id {
+		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrSpinSequence
+	}
+	logger.Debugf("Previous Gamestate: %v", previousGamestate)
+	// get parameters from post form (perhaps this should be handled POST func)
+	decoder := json.NewDecoder(request.Body)
+	var data engine.GameParams
+	decodeerr := decoder.Decode(&data)
+	if decodeerr != nil {
+		logger.Errorf("Unable to decode request body: %s", decodeerr.Error())
+		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrGamestateStore
+	}
+	data = validateParams(data)
+
+	// bugfix for engine xiii (this should really be fixed in the client)
 	if gameSlug == "sky-jewels" || gameSlug == "goal" || gameSlug == "cookoff-champion" && len(data.SelectedWinLines) == 49 {
 		swl := make([]int, 50)
 		for i := 0; i < 50; i++ {
@@ -132,20 +127,20 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			data.SelectedWinLines = swl
 		}
 	}
+	minBet := false
 
 	if data.Action != "base" {
 		// stake value must be zero
 		logger.Debugf("setting zero stake value for %v round", data.Action)
 		data.Stake = 0
 	} else {
-
 		// check that previous TX was endround
 		if txStore.RoundStatus != store.RoundStatusClose {
 			logger.Warnf("last TX: %#v", txStore)
 			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrSpinSequence
 		}
 
-		stakeValues, _, err := parameterSelector.GetGameplayParameters(0, player, gameSlug)
+		stakeValues, _, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine, txStore.BetLimitSettingCode, gameSlug)
 		if err != nil {
 			logger.Warnf("Error: %v", err)
 			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidStake
@@ -158,6 +153,9 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 					// pass on when max bet is played, only if no action is passed already
 					data.Action = "maxBase"
 				}
+				if i == 0 {
+					minBet = true
+				}
 				break
 			}
 		}
@@ -167,22 +165,29 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		}
 	}
 
-	gamestate, engineConf := engine.Play(previousGamestate, data.Stake, player.Balance.Currency, data)
+	gamestate, engineConf := engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
 	if config.GlobalConfig.DevMode == true {
-		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, gameSlug, player.PlayerId)
+		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, gameSlug, txStore.PlayerId)
 		if err == nil {
 			logger.Warnf("Forcing gamestate: %v", forcedGamestate)
 			gamestate = forcedGamestate
 		} else {
 			//assume error is of memcache.ErrCacheMiss variety
-			logger.Warnf("No force value found for player %v", player.PlayerId)
+			logger.Warnf("No force value found for player %v", txStore.PlayerId)
 		}
 	}
 	gamestate.PreviousGamestate = previousGamestate.Id
 
+	var freeGameRef string
+	if txStore.FreeGames.NoOfFreeSpins > 0 && minBet == true {
+		// this game qualifies as a free game!
+		freeGameRef = txStore.FreeGames.CampaignRef
+		logger.Warnf("Free game campaign %v", freeGameRef)
+
+	}
 	// settle transactions
 	var balance store.BalanceStore
-	token := player.Token
+	token := txStore.Token
 	for _, transaction := range gamestate.Transactions {
 		gs := store.SerializeGamestateToBytes(gamestate)
 		status := store.RoundStatusOpen
@@ -191,13 +196,14 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			Token:               token,
 			Category:            store.Category(transaction.Type),
 			RoundStatus:         status,
-			PlayerId:            player.PlayerId,
+			PlayerId:            txStore.PlayerId,
 			GameId:              gameSlug,
 			RoundId:             gamestate.Id,
 			Amount:              transaction.Amount,
 			ParentTransactionId: "",
 			TxTime:              time.Now(),
 			GameState:           gs,
+			FreeGames: 			 store.FreeGamesStore{NoOfFreeSpins:0, CampaignRef:freeGameRef},
 		}
 		switch wallet {
 		case "demo":
@@ -213,11 +219,12 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		}
 		token = balance.Token
 	}
-	player.Token = token
-	player.Balance = balance.Balance
+	player := store.PlayerStore{Token: token, PlayerId: txStore.PlayerId}
+
 	balanceResponse := BalanceResponse{
 		Amount:   balance.Balance.Amount.ValueAsString(),
 		Currency: balance.Balance.Currency,
+		FreeGames: balance.FreeGames.NoOfFreeSpins,
 	}
 
 	return gamestate, player, balanceResponse, engineConf, nil
