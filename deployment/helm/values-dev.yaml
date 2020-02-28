@@ -138,6 +138,7 @@ gameConfig:
       - fruity-verse
       - a-hidden-forest
       - daytona
+      - ebs-eggs
   - engineID: mvgEngineX
     games:
       - seasons-winter
