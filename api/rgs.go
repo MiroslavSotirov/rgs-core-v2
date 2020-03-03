@@ -60,6 +60,7 @@ func Routes() *chi.Mux {
 			engineID, err := config.GetEngineFromGame(gameSlug)
 
 			player, engineConfig, previousGamestate, err := initGame(r)
+
 			if err != nil {
 				logger.Errorf("Error initializing game %s", err.Error())
 

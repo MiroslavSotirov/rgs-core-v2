@@ -29,13 +29,20 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 		if wallet == "demo" {
 			// todo: get this per currency
 			balance := engine.NewFixedFromInt(5000)
+			freeGames := FreeGamesStore{
+				NoOfFreeSpins: 0,
+				CampaignRef:   "",
+			}
 			// solution for testing low balance
 			if playerID == "lowbalance" {
 				balance = 0
 			} else if playerID == "" {
 				playerID = rng.RandStringRunes(8)
+			} else if strings.Contains(playerID, "campaign") {
+				freeGames.NoOfFreeSpins = 10
+				freeGames.CampaignRef = playerID
 			}
-			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, engine.Money{balance, currency}, "maverick", FreeGamesStore{0, ""}}
+			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, engine.Money{balance, currency}, "", freeGames}
 			newPlayer, err = ServLocal.PlayerSave(newPlayer.Token, ModeDemo, newPlayer)
 		}
 		latestGamestate = CreateInitGS(newPlayer, gameName)
@@ -43,7 +50,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 	} else {
 		latestGamestate = DeserializeGamestateFromBytes(latestGamestateStore.GameState)
 	}
-	logger.Infof("end of INIT, balance: %v", newPlayer.Balance)
+
 	return latestGamestate, newPlayer, nil
 }
 

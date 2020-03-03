@@ -11,6 +11,7 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -94,7 +95,21 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			txStore.Token = store.Token(memID)
 			txStore.Amount.Currency = ccy
 			txStore.PlayerId = playerID
+			campaign := request.FormValue("campaign")
+			if campaign != "" {
+				numFG, err := strconv.Atoi(request.FormValue("numFG"))
+				if err != nil {
+					logger.Warnf("error decoding free game info: campaign - %v, err -- %v", campaign, err)
+				} else {
+					txStore.FreeGames.NoOfFreeSpins = numFG
+					txStore.FreeGames.CampaignRef = campaign
+				}
+
+			}
+
 			txStore.BetLimitSettingCode = request.FormValue("betLimitCode")
+
+
 		} else {
 			//otherwise this is an actual error
 			return previousGamestate, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
@@ -203,6 +218,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			ParentTransactionId: "",
 			TxTime:              time.Now(),
 			GameState:           gs,
+			BetLimitSettingCode: txStore.BetLimitSettingCode,
 			FreeGames: 			 store.FreeGamesStore{NoOfFreeSpins:0, CampaignRef:freeGameRef},
 		}
 		switch wallet {

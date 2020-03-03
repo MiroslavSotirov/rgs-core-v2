@@ -718,7 +718,10 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 	// determine if this is the first sham gamestate being rendered:
 	if len(gamestate.Transactions) == 0 {
 		playHref += fmt.Sprintf("?playerId=%v&ccy=%v&betLimitCode=%v", player.ID, player.Balance.Currency, playerStore.BetLimitSettingCode)
-		logger.Debugf("Rendering sham init gamestate: %v", playHref)
+		if playerStore.FreeGames.NoOfFreeSpins > 0 {
+			playHref +=fmt.Sprintf("&campaign=%v&numFG=%v", playerStore.FreeGames.CampaignRef, playerStore.FreeGames.NoOfFreeSpins)
+		}
+		logger.Debugf("Rendering sham init gamestate: %v", gamestate)
 
 	}
 	gameInfo := &GameInfoResponse{CCY: player.Balance.Currency, HostName: operator, InterfaceName: mode, GameName: gameID, Version: "2"}

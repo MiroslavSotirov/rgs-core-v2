@@ -641,7 +641,13 @@ func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction Trans
 	player, _ := i.getPlayer(playerId)
 
 	if transaction.Category == CategoryWager {
-		player.Balance.Amount = player.Balance.Amount - transaction.Amount.Amount
+		// process free game
+		if transaction.FreeGames.CampaignRef != "" && player.FreeGames.CampaignRef == transaction.FreeGames.CampaignRef && player.FreeGames.NoOfFreeSpins > 0{
+			player.FreeGames.NoOfFreeSpins -= 1
+			logger.Warnf("DEBITING FREE SPIN")
+		} else {
+			player.Balance.Amount = player.Balance.Amount - transaction.Amount.Amount
+		}
 	} else if transaction.Category == CategoryPayout {
 		player.Balance.Amount = player.Balance.Amount + transaction.Amount.Amount
 	} else if transaction.Category == CategoryRefund {
@@ -793,8 +799,8 @@ func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId st
 		ParentTransactionId: transaction.ParentTransactionId,
 		TxTime:              transaction.TxTime,
 		GameState:           transaction.GameState,
-		BetLimitSettingCode: "",
-		FreeGames:      FreeGamesStore{0, ""},
+		BetLimitSettingCode: player.BetLimitSettingCode,
+		FreeGames:      player.FreeGames,
 	}, nil
 }
 
@@ -981,6 +987,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 		ParentTransactionId: "",
 		TxTime:              time.Now(),
 		GameState:           gamestate,
+		FreeGames:     player.FreeGames,
 	})
 
 	if err != nil {
