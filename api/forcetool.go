@@ -75,8 +75,27 @@ func listForceTools(r *http.Request, w http.ResponseWriter) {
 				games = append(games, GameFields{ID: g.GameName, Name: canonicalName(g.GameName), Engine: engine})
 			}
 			for _, i := range f.Forces {
-				forceValuesList = append(forceValuesList, ForceValuesFields{ID: i.ID, Name: i.ID, Engine: engine})
+				appendOK := true
+				// For engine VII, listing retriggers may confuse the user that i'ts supposed to be used sequentially.
+				// Instead we'll list only a single retrigger and let force tool automatically choose what retrigger to appy
+				// don't add retriggers from Engine VII forcetool config, we'll add the separately
+				if engine == "mvgEngineVII" {
+					if strings.HasPrefix(i.ID, "retrigger") {
+						appendOK = false
+					}
+				}
+				if appendOK {
+					forceValuesList = append(forceValuesList, ForceValuesFields{ID: i.ID, Name: i.ID, Engine: engine})
+				}
 			}
+			// lets add Engine VII retrigger here
+			if engine == "mvgEngineVII" {
+				insertIndex := 3
+				forceValuesList = append(forceValuesList, ForceValuesFields{})
+				copy(forceValuesList[insertIndex+1:], forceValuesList[insertIndex:])
+				forceValuesList[insertIndex] = ForceValuesFields{ID: "retrigger", Name: "Retrigger", Engine: engine}
+			}
+
 		}
 
 	}
