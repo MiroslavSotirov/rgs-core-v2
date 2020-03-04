@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/base64"
+	"fmt"
 	"github.com/go-chi/chi"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
@@ -23,6 +24,7 @@ type PlaycheckFields struct {
 
 func playcheck(request *http.Request, w http.ResponseWriter) {
 	// gets state for a certain gameplay
+	w.Header().Set("Content-Type", "text/html")
 
 	gameplayID := chi.URLParam(request, "gameplayID")
 
@@ -43,6 +45,7 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 		gamestateStore, serr := store.ServLocal.GamestateById(gameplayID)
 		if serr != nil {
 			logger.Errorf("Error getting gamestate item : %v", serr)
+			fmt.Fprint(w, "<center><h1>Bad Gamestate ID</h1></center>")
 			return
 		}
 		gsbytes = gamestateStore.GameState
@@ -51,6 +54,7 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 		gsbytes, err = base64.StdEncoding.DecodeString(gamestate)
 		if err != nil {
 			logger.Errorf("Error decoding gs: %v", err)
+			fmt.Fprint(w, "<center><h1>Gamestate Decoding Error</h1></center>")
 			return
 		}
 	}
@@ -59,7 +63,8 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 	tpl := template.New("playcheck.html").Funcs(fm)
 	t, err := tpl.ParseFiles("templates/api/playcheck/playcheck.html")
 	if err != nil {
-		logger.Errorf("template parsing error: ", err)
+		logger.Errorf("Template parsing error: ", err)
+		fmt.Fprint(w, "<center><h1>Template parsing error </h1></center>")
 		return
 	}
 
@@ -85,6 +90,7 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 	err = t.Execute(w, fields)
 	if err != nil {
 		logger.Errorf("template executing error: ", err)
+		fmt.Fprint(w, "<center><h1>Template Execution Error</h1></center>")
 		return
 	}
 }
