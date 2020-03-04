@@ -695,6 +695,8 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 
 	if gamestate.NextActions[0] != "finish" {
 		status = "OPEN"
+	} else if gamestate.Closed == true {
+		status = "CLOSED"
 	}
 
 	level, stage := gamestate.Gamification.GetLevelAndStage()

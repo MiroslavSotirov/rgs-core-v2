@@ -505,7 +505,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 	if authResp.Id == i.logAccount {
 		logger.Infof("%v request took %v for account %v", ApiTypeAuth, time.Now().Sub(start).String(), authResp.Id)
 	}
-	logger.Infof("auth resp: %#v", authResp)
+
 	return PlayerStore{
 			PlayerId: authResp.Id,
 			Token:    Token(authResp.Token),

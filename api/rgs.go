@@ -333,14 +333,14 @@ func Routes() *chi.Mux {
 				gamestate, err = store.ServLocal.GameStateByGameId(store.Token(token), store.ModeDemo, gameSlug)
 			case "dashur":
 				gamestate, err = store.Serv.GameStateByGameId(store.Token(token), store.ModeReal, gameSlug)
-
 			}
-
+			gamestateUnmarshalled := store.DeserializeGamestateFromBytes(gamestate.GameState)
+			gamestateUnmarshalled.Closed = true
 			switch wallet {
 			case "demo":
-				_, err = store.ServLocal.CloseRound(store.Token(token), store.ModeDemo, gameSlug, gamestateID, gamestate.GameState)
+				_, err = store.ServLocal.CloseRound(store.Token(token), store.ModeDemo, gameSlug, gamestateID, store.SerializeGamestateToBytes(gamestateUnmarshalled))
 			case "dashur":
-				_, err = store.Serv.CloseRound(store.Token(token), store.ModeReal, gameSlug, gamestateID, gamestate.GameState)
+				_, err = store.Serv.CloseRound(store.Token(token), store.ModeReal, gameSlug, gamestateID, store.SerializeGamestateToBytes(gamestateUnmarshalled))
 			}
 			if err != nil {
 				fmt.Fprint(w, []byte("ERROR"))
