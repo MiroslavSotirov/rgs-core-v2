@@ -12,6 +12,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 func SetForce(gameID string, forceID string, playerID string) error {
@@ -114,6 +116,19 @@ func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestat
 	actions := previousGamestate.NextActions
 	if len(actions) == 1 && actions[0] == "finish" {
 		actions = []string{"base", "finish"}
+	}
+	// for engine VII make retrigger multiplier increments automatically
+	var reelSetIndex int
+	if engineID == "mvgEngineVII" &&  strings.HasPrefix(forceID, "retrigger"){
+		reelSetIndex, _ = strconv.Atoi(strings.Split(previousGamestate.GameID, ":")[1])
+		if reelSetIndex >= 5 &&  reelSetIndex < 8 { // reelset 5 and above are freespins
+			retriggerIndex := reelSetIndex - 4
+			forceID = fmt.Sprintf("retrigger%d", retriggerIndex)
+		}
+		if reelSetIndex >= 8 {
+			retriggerIndex := 4
+			forceID = fmt.Sprintf("retrigger%d", retriggerIndex)
+		}
 	}
 	var gamestate engine.Gamestate
 	for _, force := range forces {
