@@ -74,6 +74,9 @@ func Routes() *chi.Mux {
 				}
 				return
 			}
+			if strings.Contains(previousGamestate.Id, "GSinit") {
+				previousGamestate = store.CreateInitGS(player, gameSlug)
+			}
 			balanceResponse := BalanceResponse{
 				Currency: player.Balance.Currency,
 				Amount:   player.Balance.Amount.ValueAsString(),

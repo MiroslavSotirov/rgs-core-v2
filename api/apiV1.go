@@ -64,6 +64,32 @@ func validateParams(data engine.GameParams) engine.GameParams {
 	return data
 }
 // Play function for engines
+func getInitPlayValues(request *http.Request, clientID string, memID string, gameSlug string) (txStore store.TransactionStore, previousGamestate engine.Gamestate) {
+	// we can expect error here on first gameplay, if error is entity not found then we can assume this is the first round
+	logger.Warnf("First gameplay for this player")
+	// because txstore is nil, we need to be smart about choosing currency
+	ccy := request.FormValue("ccy")
+	playerID := request.FormValue("playerId")
+
+	previousGamestate = store.CreateInitGS(store.PlayerStore{PlayerId:playerID, Balance:engine.Money{0,ccy}}, gameSlug)
+	previousGamestate.Id = clientID
+	txStore.RoundStatus = store.RoundStatusClose
+	txStore.Token = store.Token(memID)
+	txStore.Amount.Currency = ccy
+	txStore.PlayerId = playerID
+	campaign := request.FormValue("campaign")
+	if campaign != "" {
+		numFG, err := strconv.Atoi(request.FormValue("numFG"))
+		if err != nil {
+			logger.Warnf("error decoding free game info: campaign - %v, err -- %v", campaign, err)
+		} else {
+			txStore.FreeGames.NoOfFreeSpins = numFG
+			txStore.FreeGames.CampaignRef = campaign
+		}
+	}
+	txStore.BetLimitSettingCode = request.FormValue("betLimitCode")
+	return
+}
 
 func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceResponse, engine.EngineConfig, rgserror.IRGSError) {
 	authHeader := request.Header.Get("Authorization")
@@ -83,41 +109,19 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	}
 	if err != nil {
 		if err.Code == store.ErrorCodeEntityNotFound {
-			// we can expect error here on first gameplay, if error is entity not found then we can assume this is the first round
-			logger.Warnf("First gameplay for this player")
-			// because txstore is nil, we need to be smart about choosing currency
-			ccy := request.FormValue("ccy")
-			playerID := request.FormValue("playerId")
-
-			previousGamestate = store.CreateInitGS(store.PlayerStore{PlayerId:playerID, Balance:engine.Money{0,ccy}}, gameSlug)
-			previousGamestate.Id = clientID
-			txStore.RoundStatus = store.RoundStatusClose
-			txStore.Token = store.Token(memID)
-			txStore.Amount.Currency = ccy
-			txStore.PlayerId = playerID
-			campaign := request.FormValue("campaign")
-			if campaign != "" {
-				numFG, err := strconv.Atoi(request.FormValue("numFG"))
-				if err != nil {
-					logger.Warnf("error decoding free game info: campaign - %v, err -- %v", campaign, err)
-				} else {
-					txStore.FreeGames.NoOfFreeSpins = numFG
-					txStore.FreeGames.CampaignRef = campaign
-				}
-
-			}
-
-			txStore.BetLimitSettingCode = request.FormValue("betLimitCode")
-
-
+			txStore, previousGamestate = getInitPlayValues(request, clientID, memID, gameSlug)
 		} else {
 			//otherwise this is an actual error
 			return previousGamestate, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
 		}
 	} else {
 		previousGamestate = store.DeserializeGamestateFromBytes(txStore.GameState)
+		// there is a rare case where a player launched a game before we had the proper handling for init cases, here we can detect this by checking if the last tx was an endround with an incomplete gamestate
+		if previousGamestate.PreviousGamestate == "" {
+			logger.Warnf("Solving Previous Gamestate Issue")
+			txStore, previousGamestate = getInitPlayValues(request, clientID, memID, gameSlug)
+		}
 	}
-
 	// check that previous gamestate matches what the client expects
 	logger.Debugf("Previous id: %v, requested id: %v", previousGamestate.Id, clientID)
 	if clientID != previousGamestate.Id {
