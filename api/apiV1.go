@@ -217,7 +217,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			RoundStatus:         status,
 			PlayerId:            txStore.PlayerId,
 			GameId:              gameSlug,
-			RoundId:             gamestate.Id,
+			RoundId:             gamestate.RoundID,
 			Amount:              transaction.Amount,
 			ParentTransactionId: "",
 			TxTime:              time.Now(),

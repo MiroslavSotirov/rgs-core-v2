@@ -388,11 +388,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 		}
 	} else {
 		logger.Debugf("Continuing game round, no WAGER charged")
-		// every gamestate should have wager
-		transactions = append(transactions, WalletTransaction{Id: previousGamestate.NextGamestate, Type: "WAGER", Amount: Money{0, currency}})
-
 		actions = previousGamestate.NextActions
-
 		if actions[0] != "base" {
 			betPerLine = previousGamestate.BetPerLine.Amount
 		}
@@ -432,7 +428,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	gamestate.GameID = gameID + gamestate.GameID // engineDef should be set in method
 	gamestate.Id = previousGamestate.NextGamestate
 
-	nextID := rng.RandStringRunes(8)
+	nextID := rng.RandStringRunes(16)
 	gamestate.NextGamestate = nextID
 	gamestate.PrepareTransactions(previousGamestate)
 
@@ -498,12 +494,27 @@ func (gamestate *Gamestate) CalculateRelativePayout() {
 }
 
 func (gamestate *Gamestate) PrepareTransactions(previousGamestate Gamestate) {
+	// prepares transactions and sets round ID
+
+	// check if WAGER TX exists
+	if len(gamestate.Transactions) == 0 {
+		// this is a continued game round
+		gamestate.RoundID = previousGamestate.RoundID
+		// require a payout
+	} else {
+		gamestate.RoundID = gamestate.Id
+	}
+
 	relativePayout := NewFixedFromInt(gamestate.RelativePayout * gamestate.Multiplier)
 	var gamestateWin Money
-	if relativePayout != 0 {
+	if relativePayout != 0 || gamestate.RoundID != gamestate.Id {
+		txID := gamestate.Id
+		if gamestate.RoundID == gamestate.Id {
+			txID = rng.RandStringRunes(16)
+		}
 		// add win transaction
 		gamestateWin = Money{Amount: relativePayout.Mul(gamestate.BetPerLine.Amount), Currency: gamestate.BetPerLine.Currency} // this is in fixed notation i.e. 1.00 == 1000000
-		gamestate.Transactions = append(gamestate.Transactions, WalletTransaction{Id: rng.RandStringRunes(8), Amount: gamestateWin, Type: "PAYOUT"})
+		gamestate.Transactions = append(gamestate.Transactions, WalletTransaction{Id: txID, Amount: gamestateWin, Type: "PAYOUT"})
 	}
 
 	if gamestate.Action != "base" {
