@@ -324,11 +324,10 @@ func Routes() *chi.Mux {
 			}
 		})
 
-		r.Put("/clientstate/{gamestateID:[A-Za-z0-9-_]+}/{token:[A-Za-z0-9-_.:,]+}/{gameSlug:[A-Za-z0-9-]+}/{wallet:[A-Za-z0-9-_]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Put("/clientstate/{token:[A-Za-z0-9-_.:,]+}/{gameSlug:[A-Za-z0-9-]+}/{wallet:[A-Za-z0-9-_]+}", func(w http.ResponseWriter, r *http.Request) {
 			token := chi.URLParam(r, "token")
 			gameSlug := chi.URLParam(r, "gameSlug")
 			wallet := chi.URLParam(r, "wallet")
-			gamestateID := chi.URLParam(r, "gamestateID")
 			var gamestate store.GameStateStore
 			var err *store.Error
 			switch wallet {
@@ -339,17 +338,22 @@ func Routes() *chi.Mux {
 			}
 			gamestateUnmarshalled := store.DeserializeGamestateFromBytes(gamestate.GameState)
 			gamestateUnmarshalled.Closed = true
+			roundId := gamestateUnmarshalled.RoundID
+			if roundId == "" {
+				roundId = gamestateUnmarshalled.Id
+			}
 			switch wallet {
 			case "demo":
-				_, err = store.ServLocal.CloseRound(store.Token(token), store.ModeDemo, gameSlug, gamestateID, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+				_, err = store.ServLocal.CloseRound(store.Token(token), store.ModeDemo, gameSlug, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
 			case "dashur":
-				_, err = store.Serv.CloseRound(store.Token(token), store.ModeReal, gameSlug, gamestateID, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+				_, err = store.Serv.CloseRound(store.Token(token), store.ModeReal, gameSlug, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
 			}
 			if err != nil {
 				fmt.Fprint(w, []byte("ERROR"))
 			}
 			fmt.Fprint(w, []byte("OK"))
 		})
+
 		r.Get("/force", func(w http.ResponseWriter, r *http.Request){
 			if config.GlobalConfig.DevMode == true {
 				listForceTools(r, w)

@@ -133,4 +133,5 @@ message GamestatePB {
   int32 play_sequence = 17;
   repeated WalletTransactionPB transactions = 18;
   bool closed = 19;
+  string round_id = 20;
 }

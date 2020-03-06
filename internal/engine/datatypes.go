@@ -141,6 +141,7 @@ type Gamestate struct {
 	CumulativeWin     Fixed                     `json:"cumulative_win,omitempty"`
 	PlaySequence      int                       `json:"play_sequence,omitempty"`
 	Closed            bool                      `json:"closed"`
+	RoundID           string                    `json:"round_id"`
 }
 
 func (gamestate Gamestate) Engine() string {
@@ -316,6 +317,7 @@ func (gamestatePB GamestatePB) Convert() Gamestate {
 		CumulativeWin:     Fixed(gamestatePB.CumulativeWin),
 		PlaySequence:      int(gamestatePB.PlaySequence),
 		Closed:            gamestatePB.Closed,
+		RoundID:           gamestatePB.RoundId,
 	}
 }
 
@@ -399,6 +401,7 @@ func (gamestate Gamestate) Convert() (GamestatePB) {
 		PlaySequence:      int32(gamestate.PlaySequence),
 		Transactions:      convertTransactionsToPB(gamestate.Transactions),
 		Closed:            gamestate.Closed,
+		RoundId:           gamestate.RoundID,
 	}
 }
 

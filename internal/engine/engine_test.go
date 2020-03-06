@@ -193,19 +193,24 @@ func TestPrepareTransactions(t *testing.T) {
 	// if there is only one action remaining and it is "finish" , there should be an endround transaction
 	// this may change with respin games, where we might want to start only adding endround if the gamestate's action is "finish"
 
-	gsTest := Gamestate{Action: "base", RelativePayout: 5, Multiplier: 2, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}}
-	gsTest.PrepareTransactions(Gamestate{})
-	if gsTest.Transactions[0].Amount.Amount != 10000 || gsTest.Transactions[0].Amount.Currency != "USD" || gsTest.Transactions[0].Type != "PAYOUT" || len(gsTest.Transactions[0].Id) != 8 {
+	gsTest := Gamestate{Id: "test", Action: "base", RelativePayout: 5, Multiplier: 2, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}}
+	gsTest.PrepareTransactions(Gamestate{RoundID: "previous"})
+	if gsTest.Transactions[0].Amount.Amount != 10000 || gsTest.Transactions[0].Amount.Currency != "USD" || gsTest.Transactions[0].Type != "PAYOUT" {
 		t.Errorf("payout improperly processed")
 	}
-	if len(gsTest.Transactions[0].Id) != 8 {
-		t.Errorf("bad ID set %v", gsTest.Transactions[0].Id)
+	if gsTest.Transactions[0].Id != gsTest.Id {
+		t.Errorf("Expected first tx id to match gamestate Id")
 	}
+
 	if gsTest.PlaySequence != 0 {
 		t.Errorf("failed processing play sequence, expected 0, got %v", gsTest.PlaySequence)
 	}
 	if gsTest.CumulativeWin != 10000 {
 		t.Errorf("failed processing cumulative win, expected 10000, got %v", gsTest.CumulativeWin)
+	}
+	// test RoundID setting for no wager tx
+	if gsTest.RoundID != "previous" {
+		t.Errorf("Expected Round ID to match previous ID")
 	}
 
 	// test relativepayout zero explicitly
@@ -233,11 +238,15 @@ func TestPrepareTransactions(t *testing.T) {
 	}
 
 	// test multiplier zero implicitly and preexisting transaction
-	gsTest = Gamestate{RelativePayout: 1, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}, Transactions: []WalletTransaction{{Amount: Money{Amount: 5000, Currency: "USD"}, Type: "WAGER", Id: "ABCDEFGH"}}}
+	gsTest = Gamestate{Id: "test", RelativePayout: 1, BetPerLine: Money{Amount: 1000, Currency: "USD"}, NextActions: []string{"finish"}, Transactions: []WalletTransaction{{Amount: Money{Amount: 5000, Currency: "USD"}, Type: "WAGER", Id: "ABCDEFGH"}}}
 	gsTest.PrepareTransactions(Gamestate{})
 
 	if len(gsTest.Transactions) != 1 || gsTest.Transactions[0].Type != "WAGER" {
-		t.Errorf("expected one wager tx and one endround tx")
+		t.Errorf("expected one wager tx")
+	}
+
+	if gsTest.RoundID != "test" {
+		t.Errorf("expected RoundId to match gamestate Id")
 	}
 
 	// test cumulative win addition
@@ -250,6 +259,8 @@ func TestPrepareTransactions(t *testing.T) {
 	if gsTest.PlaySequence != 6 {
 		t.Errorf("play sequence calculation failed, expected 6, got %v", gsTest.PlaySequence)
 	}
+
+
 }
 
 func TestDetermineLineWins(t *testing.T) {

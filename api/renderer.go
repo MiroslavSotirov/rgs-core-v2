@@ -745,7 +745,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 				Rel:    "new-game",
 				Type:   "application/vnd.maverick.slots.spin-v1+json",
 			}, {
-				Href:   fmt.Sprintf("%s%s/%s/rgs/clientstate/%s/%s/%s/%s", urlScheme, request.Host, APIVersion, gamestate.Id, authID, gameID, mode),
+				Href:   fmt.Sprintf("%s%s/%s/rgs/clientstate/%s/%s/%s", urlScheme, request.Host, APIVersion, authID, gameID, mode),
 				Method: "PUT",
 				Rel:    "gameplay-client-state-save",
 				Type:   "application/octet-stream",
