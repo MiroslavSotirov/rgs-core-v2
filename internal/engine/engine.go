@@ -498,6 +498,10 @@ func (gamestate *Gamestate) PrepareTransactions(previousGamestate Gamestate) {
 
 	// check if WAGER TX exists
 	if len(gamestate.Transactions) == 0 {
+		if previousGamestate.RoundID == "" {
+			//hack for games begun before this fix was implemented
+			previousGamestate.RoundID = previousGamestate.Id
+		}
 		// this is a continued game round
 		gamestate.RoundID = previousGamestate.RoundID
 		// require a payout
