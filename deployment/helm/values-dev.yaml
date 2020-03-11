@@ -156,6 +156,7 @@ gameConfig:
       - sky-jewels
       - goal
       - cookoff-champion
+      - asia-drift
   - engineID: mvgEngineXIV
     games:
       - valley-of-kings

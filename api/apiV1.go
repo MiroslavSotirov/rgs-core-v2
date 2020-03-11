@@ -139,7 +139,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	data = validateParams(data)
 
 	// bugfix for engine xiii (this should really be fixed in the client)
-	if gameSlug == "sky-jewels" || gameSlug == "goal" || gameSlug == "cookoff-champion" && len(data.SelectedWinLines) == 49 {
+	if gameSlug == "sky-jewels" || gameSlug == "goal" || gameSlug == "cookoff-champion" || gameSlug == "asia-drift" && len(data.SelectedWinLines) == 49 {
 		swl := make([]int, 50)
 		for i := 0; i < 50; i++ {
 			swl[i] = i
