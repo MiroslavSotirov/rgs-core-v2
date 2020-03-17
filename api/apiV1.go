@@ -8,6 +8,7 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"net/http"
@@ -109,6 +110,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	}
 	if err != nil {
 		if err.Code == store.ErrorCodeEntityNotFound {
+			// this is first gameplay
 			txStore, previousGamestate = getInitPlayValues(request, clientID, memID, gameSlug)
 		} else {
 			//otherwise this is an actual error
@@ -183,7 +185,10 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidStake
 		}
 	}
-
+	// add suffix to gamestate in case this is a retry attempt
+	if txStore.NextTxFailed {
+		previousGamestate.NextGamestate = previousGamestate.NextGamestate + rng.RandStringRunes(4)
+	}
 	gamestate, engineConf := engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
 	if config.GlobalConfig.DevMode == true {
 		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, gameSlug, txStore.PlayerId)

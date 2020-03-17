@@ -97,6 +97,7 @@ type (
 		BetLimitSettingCode string
 		GameState           []byte
 		FreeGames           FreeGamesStore
+		NextTxFailed        bool
 	}
 
 	FreeGamesStore struct {
@@ -168,6 +169,7 @@ type (
 	restMetadata struct {
 		ReqId          string `json:"req_id"`
 		ProcessingTime int    `json:"processing_time"`
+		IsIdempotent   bool   `json:"is_idempotent"`
 	}
 
 	restAuthenticateRequest struct {
@@ -867,7 +869,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 	//	logger.Infof("%v request took %v for account %v", ApiTypeBalance, time.Now().Sub(start).String(), balResp.PlayerId)
 	//}
 	return TransactionStore{
-		TransactionId: "", //TODO: fix this
+		TransactionId: queryResp.TxRef,
 		Token:         Token(queryResp.Token),
 		Mode:          Mode(queryResp.Mode),
 		Category:      Category(queryResp.Category),
@@ -884,6 +886,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		GameState:           gameState,
 		BetLimitSettingCode: queryResp.BetLimit,
 		FreeGames:      FreeGamesStore{queryResp.FreeGames.NrGames, queryResp.FreeGames.CampaignRef},
+		NextTxFailed:   queryResp.Metadata.IsIdempotent,
 	}, nil
 }
 
