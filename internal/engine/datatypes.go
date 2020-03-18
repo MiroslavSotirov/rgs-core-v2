@@ -75,8 +75,8 @@ func (f *Fixed) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (f *Fixed) MarshalJSON() ([]byte, error) {
-	s := f.ValueAsFloat()
+func (f Fixed) MarshalJSON() ([]byte, error) {
+	s := f.ValueAsString()
 	return json.Marshal(&s)
 }
 

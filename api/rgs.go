@@ -79,7 +79,7 @@ func Routes() *chi.Mux {
 			}
 			balanceResponse := BalanceResponse{
 				Currency: player.Balance.Currency,
-				Amount:   player.Balance.Amount.ValueAsString(),
+				Amount:   player.Balance.Amount,
 				FreeGames: player.FreeGames.NoOfFreeSpins,
 			}
 			logger.Debugf("previous Gamestate: %#v", previousGamestate)

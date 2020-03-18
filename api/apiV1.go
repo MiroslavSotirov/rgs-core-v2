@@ -272,7 +272,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	player := store.PlayerStore{Token: token, PlayerId: txStore.PlayerId}
 
 	balanceResponse := BalanceResponse{
-		Amount:   balance.Balance.Amount.ValueAsString(),
+		Amount:   balance.Balance.Amount,
 		Currency: balance.Balance.Currency,
 		FreeGames: balance.FreeGames.NoOfFreeSpins,
 	}

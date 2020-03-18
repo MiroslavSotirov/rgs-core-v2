@@ -40,15 +40,19 @@ type GameLinkResponse struct {
 
 type GameplayResponseV2 struct {
 	SessionID   store.Token `json:"host/verified-token"`
-	Currency    string
 	Stake       engine.Fixed
 	Win         engine.Fixed
 	CumWin      engine.Fixed `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
 	CurrentSpin int          `json:"currentSpin"`             // is this really needed ??
 	FSRemaining int          `json:"freeSpinsRemaining,omitempty"`
-	Balance     engine.Fixed
+	Balance     BalanceResponseV2
 	View        [][]int        // includes row above and below
 	Prizes      []engine.Prize `json:"wins"` // []WinResponseV2
+}
+
+type BalanceResponseV2 struct {
+	Amount    engine.Money         `json:"amount"`
+	FreeGames store.FreeGamesStore `json:"free_games"`
 }
 
 // todo: incorporate this into gameplay response
@@ -96,13 +100,15 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 
 	resp := GameplayResponseV2{
 		SessionID:   balance.Token,
-		Currency:    balance.Balance.Currency,
 		Stake:       stake,
 		Win:         win,
 		CumWin:      gamestate.CumulativeWin,
 		CurrentSpin: gamestate.PlaySequence,         // zero-indexed
 		FSRemaining: len(gamestate.NextActions) - 1, // for now, assume all future actions besides finish are fs (perhaps change this to bonusRdsRemaining in future)
-		Balance:     balance.Balance.Amount,         // this may be irrelevant for this particular response
+		Balance:     BalanceResponseV2{
+			Amount:    balance.Balance,
+			FreeGames: store.FreeGamesStore{},
+		},
 		View:        gamestate.SymbolGrid,
 		Prizes:      gamestate.Prizes,
 	}
