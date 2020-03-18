@@ -41,6 +41,8 @@ const (
 	balanceStoreError     = 423
 	insufficientFundError = 450
 	genericWalletError    = 451
+	peviousTXPendingError = 452
+
 	// Wallet & Operator
 	badOperatorConfig = 600
 	// System Error
@@ -91,6 +93,7 @@ var ErrMsg = map[int]string{
 	badOperatorConfig:                "Bad Operator configuration",
 	internalServerError:              "System Error",
 	genericWalletError:               "Generic wallet error",
+	peviousTXPendingError:            "Previous transaction still pending, please try again",
 }
 
 type IRGSError interface {
@@ -155,6 +158,7 @@ var (
 	ErrGamestateByteDeserializer   = CreateRGSErr(gamestateByteDeserializerError)
 
 	ErrGamestateStore = CreateRGSErr(gamestateCacheStoreError)
+	ErrPreviousTXPending = CreateRGSErr(peviousTXPendingError)
 
 	ErrGamestateRetrieve  = CreateRGSErr(gamestateCacheRetrieveError)
 	ErrInvalidContentType = CreateRGSErr(invalidContentTypeError)

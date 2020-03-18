@@ -37,7 +37,7 @@ func GetForceValues(betPerLine engine.Fixed, previousGamestate engine.Gamestate,
 
 	if betPerLine == 0 && previousGamestate.Action != "base" {
 		betPerLine = previousGamestate.BetPerLine.Amount
-}
+	}
 	forcedGamestate := smartForceFromID(betPerLine, previousGamestate, gameID, string(forceID.Value))
 
 	logger.Warnf("Created forced gamestate: %v", forcedGamestate)
@@ -166,6 +166,7 @@ func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestat
 			gamestate.Id = previousGamestate.NextGamestate
 			nextID := rng.RandStringRunes(8)
 			gamestate.NextGamestate = nextID
+			gamestate.PreviousGamestate = previousGamestate.Id
 
 			gamestate.PrepareTransactions(previousGamestate)
 

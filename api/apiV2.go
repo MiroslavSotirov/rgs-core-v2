@@ -78,25 +78,38 @@ func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 	authHeader := request.Header.Get("Authorization")
 	gameSlug := chi.URLParam(request, "gameSlug")
+	wallet := request.FormValue("wallet")
+	clientID := request.FormValue("lastGS")
 	logger.Debugf("Auth string: %v", authHeader)
 	memID := strings.Trim(strings.Split(authHeader, " ")[1], "\"")
 	logger.Debugf("memID: %v", memID)
-	player, previousGamestateStore, err := store.ServLocal.PlayerByToken(store.Token(memID), store.ModeDemo, gameSlug)
+	var txStore store.TransactionStore
+	var previousGamestate engine.Gamestate
+	var err *store.Error
+	switch wallet {
+	case "demo":
+		txStore, err = store.ServLocal.TransactionByGameId(store.Token(memID), store.ModeDemo, gameSlug)
+	case "dashur":
+		txStore, err = store.Serv.TransactionByGameId(store.Token(memID), store.ModeReal, gameSlug)
+	}
 	if err != nil {
-		logger.Errorf("Error retrieving player: %v", err)
-		// may also be spin sequence mismatch
-		return GameplayResponseV2{}, rgserror.ErrInvalidCredentials
+		// if there is an error retrieving last tx, it may be that this is the first gameplay on this game for this player. if so ,handle appropriately
+		if err.Code == store.ErrorCodeEntityNotFound {
+			// this is first gameplay
+			txStore, previousGamestate = getInitPlayValues(request, clientID, memID, gameSlug)
+		} else {
+			//this is a real error
+			// todo: get rgserr from store
+			return GameplayResponseV2{}, rgserror.ErrGenericWalletErr
+		}
+	} else {
+		previousGamestate = store.DeserializeGamestateFromBytes(txStore.GameState)
+	}
+	// check if the gsID passed in by the client matches that retrieved from the wallet
+	if clientID != previousGamestate.Id {
+		return GameplayResponseV2{}, rgserror.ErrSpinSequence
 	}
 
-	previousGamestate := engine.Gamestate{}
-	if len(previousGamestateStore.GameState) == 0 {
-		// if no previous gamestate, this is the first gameplay by this player, make sham previous
-		logger.Warnf("No previous gameplay, initializing with sham gamestate")
-		previousGamestate = engine.Gamestate{Id: player.PlayerId + gameSlug + "GSinit", GameID: fmt.Sprintf("%v:%v", gameSlug, 0), NextActions: []string{"finish"}, NextGamestate: rng.RandStringRunes(8), Transactions: []engine.WalletTransaction{{Type: "WAGER", Id: player.PlayerId + gameSlug + "GSinit", Amount: engine.Money{0, player.Balance.Currency}}}, Gamification: &engine.GamestatePB_Gamification{Level: 0, Stage: 0, RemainingSpins: 0}}
-	} else {
-		previousGamestate = store.DeserializeGamestateFromBytes(previousGamestateStore.GameState)
-		// compare session.LatestGamestate with previous gamestate to see if player has been playing in another window
-	}
 
 	// get parameters from post form
 	decoder := json.NewDecoder(request.Body)
@@ -104,49 +117,97 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 	decoderror := decoder.Decode(&data)
 	logger.Debugf("request body: %#v", request.Body)
 	if decoderror != nil {
-		panic(decoderror)
+		logger.Errorf("Unable to decode request body: %s", decoderror.Error())
+		return GameplayResponseV2{}, rgserror.ErrGamestateStore
 	}
+
 	if data.Action == "" {
 		data.Action = "base"
 	}
+	minBet, data, betValidationErr := validateBet(data, txStore, previousGamestate, gameSlug)
+	if betValidationErr != nil {
+		return GameplayResponseV2{}, betValidationErr
+	}
 
-	gamestate, _ := engine.Play(previousGamestate, data.Stake, player.Balance.Currency, data)
 
+	// add suffix to gamestate in case this is a retry attempt
+	switch txStore.WalletStatus {
+	case 0:
+		// this tx is pending in wallet, quit and force reload
+		return GameplayResponseV2{}, rgserror.ErrPreviousTXPending
+	case -1:
+		// the next tx failed, retrying it will cause a duplicate tx id error, so add a suffix
+		previousGamestate.NextGamestate = previousGamestate.NextGamestate + rng.RandStringRunes(4)
+		logger.Debugf("adding suffix to next tx to avoid duplication error, resulting id: %v", previousGamestate.NextGamestate)
+	case 1:
+		// business as usual
+	default:
+		// it should always be one of the above three
+		return GameplayResponseV2{}, rgserror.ErrGenericWalletErr
+	}
+	gamestate, _ := engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
 	if config.GlobalConfig.DevMode == true {
-		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, gameSlug, player.PlayerId)
+		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, gameSlug, txStore.PlayerId)
 		if err == nil {
 			logger.Warnf("Forcing gamestate: %v", forcedGamestate)
 			gamestate = forcedGamestate
 		} else {
 			//assume error is of memcache.ErrCacheMiss variety
-			logger.Warnf("No force value found for this player")
+			logger.Warnf("No force value found for player %v", txStore.PlayerId)
 		}
+	}
+
+	var freeGameRef string
+	if txStore.FreeGames.NoOfFreeSpins > 0 && minBet == true {
+		// this game qualifies as a free game!
+		freeGameRef = txStore.FreeGames.CampaignRef
+		logger.Warnf("Free game campaign %v", freeGameRef)
 	}
 
 	// settle transactions
 	var balance store.BalanceStore
-	gamestate.PreviousGamestate = previousGamestate.Id
+	token := txStore.Token
 	for _, transaction := range gamestate.Transactions {
-		balance, err = store.ServLocal.Transaction(player.Token, store.ModeDemo, store.TransactionStore{
+		gs := store.SerializeGamestateToBytes(gamestate)
+		txStore := store.TransactionStore{
 			TransactionId:       transaction.Id,
-			Token:               player.Token,
-			Mode:                store.ModeDemo,
+			Token:               token,
 			Category:            store.Category(transaction.Type),
-			RoundStatus:         "OPEN",
-			PlayerId:            player.PlayerId,
+			RoundStatus:         store.RoundStatusOpen,
+			PlayerId:            txStore.PlayerId,
 			GameId:              gameSlug,
-			RoundId:             gamestate.Id,
+			RoundId:             gamestate.RoundID,
 			Amount:              transaction.Amount,
 			ParentTransactionId: "",
 			TxTime:              time.Now(),
-			GameState:           store.SerializeGamestateToBytes(gamestate),
-		})
-	}
+			GameState:           gs,
+			BetLimitSettingCode: txStore.BetLimitSettingCode,
+			FreeGames: 			 store.FreeGamesStore{NoOfFreeSpins:0, CampaignRef:freeGameRef},
+		}
+		switch wallet {
+		case "demo":
+			txStore.Mode = store.ModeDemo
+			balance, err = store.ServLocal.Transaction(token, store.ModeDemo, txStore)
+		case "dashur":
+			txStore.Mode = store.ModeReal
+			balance, err = store.Serv.Transaction(token, store.ModeReal, txStore)
+		}
 
-	if err != nil {
-		logger.Errorf("Error in transactions: %v", err)
-		return GameplayResponseV2{}, rgserror.ErrDasInsufficientFundError
+		if err != nil {
+			if err.Code == store.ErrorCodeNotEnoughBalance {
+				return GameplayResponseV2{}, rgserror.ErrInsufficientFundError
+			}
+			return GameplayResponseV2{}, rgserror.ErrGenericWalletErr
+		}
+		token = balance.Token
 	}
+	//player := store.PlayerStore{Token: token, PlayerId: txStore.PlayerId}
+	// todo: need to pass token into response
+	//balanceResponse := BalanceResponse{
+	//	Amount:   balance.Balance.Amount.ValueAsString(),
+	//	Currency: balance.Balance.Currency,
+	//	FreeGames: balance.FreeGames.NoOfFreeSpins,
+	//}
 
 	return fillGamestateResponseV2(gamestate, balance), nil
 }

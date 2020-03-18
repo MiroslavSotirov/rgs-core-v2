@@ -406,6 +406,7 @@ func (gamestate Gamestate) Convert() (GamestatePB) {
 }
 
 func (gamestate Gamestate) ConvertLegacy() (GamestatePB, []*WalletTransactionPB) {
+	// todo: deprecate this in 6 months as all txs fitting this will have been removed
 	nextActions := make([]GamestatePB_Action, len(gamestate.NextActions))
 	for i, action := range gamestate.NextActions {
 		nextActions[i] = GamestatePB_Action(GamestatePB_Action_value[action])
