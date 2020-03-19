@@ -72,6 +72,7 @@ type (
 
 	GameStateStore struct {
 		GameState []byte
+		WalletInternalStatus int
 	}
 
 	BalanceStore struct {
@@ -97,6 +98,7 @@ type (
 		BetLimitSettingCode string
 		GameState           []byte
 		FreeGames           FreeGamesStore
+		WalletStatus        int
 	}
 
 	FreeGamesStore struct {
@@ -192,19 +194,21 @@ type (
 	}
 
 	restAuthenticateResponse struct {
-		Metadata      restMetadata      `json:"metadata"`
-		Token         string            `json:"token"`
-		ResponseCode  string            `json:"code"`
-		Message       string            `json:"message"`
-		Id            string            `json:"id"`
-		Username      string            `json:"username"`
-		BetLimit      string            `json:"bet_limit"`
-		FreeGames     restFreeGame      `json:"free_games"`
-		Balance       int64             `json:"balance"`
-		Currency      string            `json:"currency"`
-		LastGameState string            `json:"last_game_state"`
-		PlayerMessage restPlayerMessage `json:"player_message"`
-		Urls          map[string]string `json:"urls"`
+		Metadata        restMetadata      `json:"metadata"`
+		Token           string            `json:"token"`
+		ResponseCode    string            `json:"code"`
+		Message         string            `json:"message"`
+		Id              string            `json:"id"`
+		Username        string            `json:"username"`
+		BetLimit        string            `json:"bet_limit"`
+		FreeGames       restFreeGame      `json:"free_games"`
+		Balance         int64             `json:"balance"`
+		Currency        string            `json:"currency"`
+		LastGameState   string            `json:"last_game_state"`
+		PlayerMessage   restPlayerMessage `json:"player_message"`
+		Urls            map[string]string `json:"urls"`
+		LastGameStatus  int               `json:"last_game_status"`
+
 	}
 
 	restBalanceRequest struct {
@@ -236,11 +240,12 @@ type (
 	}
 
 	restGameStateResponse struct {
-		Metadata     restMetadata `json:"metadata"`
-		Token        string       `json:"token"`
-		ResponseCode string       `json:"code"`
-		Message      string       `json:"message"`
-		GameState    string       `json:"game_state"`
+		Metadata       restMetadata `json:"metadata"`
+		Token          string       `json:"token"`
+		ResponseCode   string       `json:"code"`
+		Message        string       `json:"message"`
+		GameState      string       `json:"game_state"`
+		InternalStatus int          `json:"internal_status"`
 	}
 
 	restVersionRequest struct {
@@ -301,28 +306,29 @@ type (
 	}
 
 	restQueryResponse struct {
-		Metadata     restMetadata `json:"metadata"`
-		Token        string       `json:"token"`
-		ResponseCode string       `json:"code"`
-		Message      string       `json:"message"`
-		ReqId        string       `json:"req_id"`
-		Game         string       `json:"game"`
-		Platform     string       `json:"platform"`
-		Mode         string       `json:"mode"`
-		Session      string       `json:"session"`
-		Currency     string       `json:"currency"`
-		Amount       int64        `json:"amount"`
-		BonusAmount  int64        `json:"bonus_amount"`
-		JpAmount     int64        `json:"jp_amount"`
-		Category     string       `json:"category"`
-		CampaignRef  string       `json:"campaign_ref"`
-		CloseRound   bool         `json:"close_round"`
-		GameState    string       `json:"game_state"`
-		Round        string       `json:"round"`
-		TxRef        string       `json:"tx_ref"`
-		Description  string       `json:"description"`
-		BetLimit      string            `json:"bet_limit"`
-		FreeGames     restFreeGame      `json:"free_games"`
+		Metadata       restMetadata `json:"metadata"`
+		Token          string       `json:"token"`
+		ResponseCode   string       `json:"code"`
+		Message        string       `json:"message"`
+		ReqId          string       `json:"req_id"`
+		Game           string       `json:"game"`
+		Platform       string       `json:"platform"`
+		Mode           string       `json:"mode"`
+		Session        string       `json:"session"`
+		Currency       string       `json:"currency"`
+		Amount         int64        `json:"amount"`
+		BonusAmount    int64        `json:"bonus_amount"`
+		JpAmount       int64        `json:"jp_amount"`
+		Category       string       `json:"category"`
+		CampaignRef    string       `json:"campaign_ref"`
+		CloseRound     bool         `json:"close_round"`
+		GameState      string       `json:"game_state"`
+		Round          string       `json:"round"`
+		TxRef          string       `json:"tx_ref"`
+		Description    string       `json:"description"`
+		BetLimit       string       `json:"bet_limit"`
+		FreeGames      restFreeGame `json:"free_games"`
+		InternalStatus int          `json:"internal_status"`
 	}
 )
 
@@ -358,7 +364,7 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 					FreeGames:       FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
 					BetLimitSettingCode: player.BetLimitSettingCode,
 				},
-				GameStateStore{GameState: tx.GameState},
+				GameStateStore{GameState: tx.GameState, WalletInternalStatus: 1},
 				nil
 		} else {
 			// this is likely an error, if player exists, there should be a previous gameplay unless init was called and never spun, which will throw an error
@@ -518,7 +524,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 			FreeGames:       FreeGamesStore{authResp.FreeGames.NrGames, authResp.FreeGames.CampaignRef},
 			BetLimitSettingCode: authResp.BetLimit,
 		},
-		GameStateStore{GameState: gameState},
+		GameStateStore{GameState: gameState, WalletInternalStatus: authResp.LastGameStatus},
 		nil
 }
 
@@ -721,7 +727,6 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 	}
 	start := time.Now()
 	resp, err := i.request(ApiTypeTransaction, b)
-
 	finalErr = i.errorRest(err)
 	if finalErr != nil {
 		return BalanceStore{}, finalErr
@@ -733,6 +738,8 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 	}
 
 	txResp := i.restTransactionResponse(resp)
+	logger.Debugf("TX RESP: %#v", txResp)
+
 	finalErr = i.errorResponseCode(txResp.ResponseCode)
 	if finalErr != nil {
 		return BalanceStore{}, finalErr
@@ -766,7 +773,7 @@ func (i *LocalServiceImpl) GamestateById(gamestateId string) (GameStateStore, *E
 		return GameStateStore{}, &Error{ErrorCodeGeneralError, "bad gamestate ID"}
 	}
 
-	return GameStateStore{transaction.GameState}, nil
+	return GameStateStore{GameState: transaction.GameState}, nil
 }
 
 func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, *Error) {
@@ -801,6 +808,7 @@ func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId st
 		GameState:           transaction.GameState,
 		BetLimitSettingCode: player.BetLimitSettingCode,
 		FreeGames:      player.FreeGames,
+		WalletStatus: 1,
 	}, nil
 }
 
@@ -867,7 +875,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 	//	logger.Infof("%v request took %v for account %v", ApiTypeBalance, time.Now().Sub(start).String(), balResp.PlayerId)
 	//}
 	return TransactionStore{
-		TransactionId: "", //TODO: fix this
+		TransactionId: queryResp.TxRef,
 		Token:         Token(queryResp.Token),
 		Mode:          Mode(queryResp.Mode),
 		Category:      Category(queryResp.Category),
@@ -884,6 +892,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		GameState:           gameState,
 		BetLimitSettingCode: queryResp.BetLimit,
 		FreeGames:      FreeGamesStore{queryResp.FreeGames.NrGames, queryResp.FreeGames.CampaignRef},
+		WalletStatus:   queryResp.InternalStatus,
 	}, nil
 }
 
@@ -902,6 +911,7 @@ func (i *LocalServiceImpl) GameStateByGameId(token Token, mode Mode, gameId stri
 
 	return GameStateStore{
 		GameState: transaction.GameState,
+		WalletInternalStatus: 1,
 	}, nil
 
 }
@@ -938,7 +948,7 @@ func (i *RemoteServiceImpl) GameStateByGameId(token Token, mode Mode, gameId str
 
 	var gameState []byte = nil
 	gameStateResp := i.restGameStateResponse(resp)
-
+	logger.Debugf("gamestate resp: %#v", gameStateResp)
 	finalErr = i.errorResponseCode(gameStateResp.ResponseCode)
 	if finalErr != nil {
 		return GameStateStore{}, finalErr
@@ -955,6 +965,7 @@ func (i *RemoteServiceImpl) GameStateByGameId(token Token, mode Mode, gameId str
 
 	return GameStateStore{
 		GameState: gameState,
+		WalletInternalStatus: gameStateResp.InternalStatus,
 	}, nil
 }
 

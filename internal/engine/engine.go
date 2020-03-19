@@ -438,6 +438,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 
 	gamestate.GameID = gameID + gamestate.GameID // engineDef should be set in method
 	gamestate.Id = previousGamestate.NextGamestate
+	gamestate.PreviousGamestate = previousGamestate.Id
 
 	nextID := rng.RandStringRunes(16)
 	gamestate.NextGamestate = nextID

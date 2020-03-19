@@ -79,7 +79,7 @@ func Routes() *chi.Mux {
 			}
 			balanceResponse := BalanceResponse{
 				Currency: player.Balance.Currency,
-				Amount:   player.Balance.Amount.ValueAsString(),
+				Amount:   player.Balance.Amount,
 				FreeGames: player.FreeGames.NoOfFreeSpins,
 			}
 			logger.Debugf("previous Gamestate: %#v", previousGamestate)
@@ -336,6 +336,13 @@ func Routes() *chi.Mux {
 			case "dashur":
 				gamestate, err = store.Serv.GameStateByGameId(store.Token(token), store.ModeReal, gameSlug)
 			}
+			if gamestate.WalletInternalStatus != 1 {
+				// if this is zero, the tx is pending and shouldn't be resent, if it is one, the tx is failed and an error should be sent to reload the client
+				logger.Debugf("STATUS: %v", gamestate.WalletInternalStatus)
+				fmt.Fprint(w, []byte("ERROR"))
+				return
+			}
+
 			gamestateUnmarshalled := store.DeserializeGamestateFromBytes(gamestate.GameState)
 			gamestateUnmarshalled.Closed = true
 			roundId := gamestateUnmarshalled.RoundID
