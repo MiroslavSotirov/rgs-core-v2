@@ -240,3 +240,11 @@ func randomRangeInt32(max, min int) int32 {
 	// cast to int32
 	return int32(rng.RandFromRange(max-min+1) + min)
 }
+
+
+func isFreespin(gamestate *Gamestate, previousGS Gamestate) bool {
+	if len(previousGS.NextActions) == 1 && len(gamestate.NextActions) == 1 && gamestate.NextActions[0] == "finish" { // 1 means NextActions:[finish]
+		return false
+	}
+	return true
+}

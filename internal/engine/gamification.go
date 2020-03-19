@@ -13,6 +13,7 @@ func (data *GamestatePB_Gamification) Increment(stagesPerLevel int32) {
 		data.Stage = 0
 	}
 }
+
 func (data *GamestatePB_Gamification) IncrementSpins(spinsToStageup int32, stagesPerLevel int32) {
 	data.RemainingSpins--
 	if data.RemainingSpins < 0 {
