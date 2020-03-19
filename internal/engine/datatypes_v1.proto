@@ -87,6 +87,7 @@ message GamestatePB {
   COOKOFF_CHAMPION = 37;
   CANDY_SMASH = 38;
   VALLEY_OF_KINGS=39;
+  CRAZY_EASTER_EGGS=40;
   }
   GameID game_id = 1;
   int32 engine_def = 2;
