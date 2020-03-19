@@ -459,21 +459,21 @@ func (gamestate *Gamestate) UpdateGamification(previousGS Gamestate, gameSlug st
 		}
 	case "sky-jewels":
 		// ignore freespin
-		if len(previousGS.NextActions) == 1 && len(gamestate.NextActions) == 1 && gamestate.NextActions[0] == "finish" { // 1 means NextActions:[finish]
+		if !isFreespin(gamestate, previousGS){
 			logger.Debugf("IncrementSpins: sky-jewels")
-			gamestate.Gamification.IncrementSpins(randomRangeInt32(50, 20), 6, 0, 0)
+			gamestate.Gamification.IncrementSpins(randomRangeInt32(50, 20), 6)
 		}
 	case "asia-drift":
 		// ignore freespin
-		if len(previousGS.NextActions) == 1 && len(gamestate.NextActions) == 1 && gamestate.NextActions[0] == "finish" { // 1 means NextActions:[finish]
+		if !isFreespin(gamestate, previousGS){
 			logger.Debugf("IncrementSpins: asia-drift")
-			gamestate.Gamification.IncrementSpins(randomRangeInt32(30, 20), 6, 1, 1)
+			gamestate.Gamification.IncrementSpins(randomRangeInt32(50, 30), 5)
 		}
 	case "goal", "cookoff-champion":
 		// ignore freespin
-		if len(previousGS.NextActions) == 1 && len(gamestate.NextActions) == 1 && gamestate.NextActions[0] == "finish" { // 1 means NextActions:[finish]
+		if !isFreespin(gamestate, previousGS){
 			logger.Debugf("IncrementSpins: goal, cookoff-champion")
-			gamestate.Gamification.IncrementSpins(randomRangeInt32(70, 50), 3, 0, 0)
+			gamestate.Gamification.IncrementSpins(randomRangeInt32(70, 50), 3)
 		}
 	}
 }

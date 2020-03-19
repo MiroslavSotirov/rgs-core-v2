@@ -98,6 +98,12 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	memID := strings.Split(authHeader, "\"")[1]
 	clientID := chi.URLParam(request, "gamestateID")
 
+	engineID, engineErr := config.GetEngineFromGame(gameSlug)
+	if engineErr != nil {
+		logger.Errorf("Play Error: %s - %s", gameSlug+"-engine", engineErr)
+		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrEngineNotFound
+	}
+
 	var txStore store.TransactionStore
 	var err *store.Error
 	var previousGamestate engine.Gamestate
@@ -139,7 +145,8 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	data = validateParams(data)
 
 	// bugfix for engine xiii (this should really be fixed in the client)
-	if gameSlug == "sky-jewels" || gameSlug == "goal" || gameSlug == "cookoff-champion" || gameSlug == "asia-drift" && len(data.SelectedWinLines) == 49 {
+	// until the clients are fixed, this must stay
+	if engineID == "mvgEngineXIII"  && len(data.SelectedWinLines) == 49 {
 		swl := make([]int, 50)
 		for i := 0; i < 50; i++ {
 			swl[i] = i

@@ -13,7 +13,8 @@ func (data *GamestatePB_Gamification) Increment(stagesPerLevel int32) {
 		data.Stage = 0
 	}
 }
-func (data *GamestatePB_Gamification) IncrementSpins(spinsToStageup, stagesPerLevel, startLevel, startStage int32) {
+
+func (data *GamestatePB_Gamification) IncrementSpins(spinsToStageup int32, stagesPerLevel int32) {
 	data.RemainingSpins--
 	if data.RemainingSpins < 0 {
 		if data.SpinsToStageUp > 0 {
@@ -28,13 +29,9 @@ func (data *GamestatePB_Gamification) IncrementSpins(spinsToStageup, stagesPerLe
 			data.Stage++
 		}
 	}
-	// startLevel
-	if data.Level == 0 && startLevel > 0 {
-		data.Level = startLevel
-	}
-	if data.Stage >= stagesPerLevel {
+	if data.Stage == stagesPerLevel {
 		data.Level++
-		data.Stage = startStage
+		data.Stage = 0
 	}
 	data.TotalSpins++
 }
