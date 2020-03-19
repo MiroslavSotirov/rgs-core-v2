@@ -46,7 +46,8 @@ func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payou
 	// highest wild multiplier takes precedence for multiple wilds on the same line (i.e. wild multipliers do not compound)
 
 	var lineWins []Prize
-
+	// store wild multiplier selections if they are to be reused for future wilds
+	wildMultipliers := make(map[int]int)
 	for winLineIndex, winLine := range WinLines {
 		lineContent := make([]int, len(symbolGrid))
 		symbolPositions := make([]int, len(symbolGrid))
@@ -68,12 +69,16 @@ func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payou
 				// process wilds
 				// NB Multipliers override here. i.e. a line with 4 wilds of multiplier 2 will have total multiplier 2, not 16
 				for _, engineWild := range wilds {
-					engineWildMultiplier := SelectFromWeightedOptions(engineWild.Multiplier.Multipliers, engineWild.Multiplier.Probabilities)
 					if lineSymbol == engineWild.Symbol {
 						// if the lineSymbol is a wild then all symbols so far have been wild, and this one is not, so update lineSymbol
 						// as is, if all 5 symbols are wild then no multiplier will be added. this should be defined in the payout
 						lineSymbol = symbol
 						// multipliers do not compound, there may be only one line multiplier
+						engineWildMultiplier, ok := wildMultipliers[engineWild.Symbol]
+						if !ok {
+							engineWildMultiplier = SelectFromWeightedOptions(engineWild.Multiplier.Multipliers, engineWild.Multiplier.Probabilities)
+							wildMultipliers[engineWild.Symbol] = engineWildMultiplier
+						}
 						if engineWildMultiplier > multiplier {
 							multiplier = engineWildMultiplier
 						}
@@ -84,6 +89,11 @@ func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payou
 					} else if symbol == engineWild.Symbol {
 						// if the new symbol on the line is a wild count it as a match
 						numMatch++
+						engineWildMultiplier, ok := wildMultipliers[engineWild.Symbol]
+						if !ok {
+							engineWildMultiplier = SelectFromWeightedOptions(engineWild.Multiplier.Multipliers, engineWild.Multiplier.Probabilities)
+							wildMultipliers[engineWild.Symbol] = engineWildMultiplier
+						}
 						// NB: highest multiplier replaces others, multipliers do not compound. uncomment next line to change that. potentially make this an option in inputs (	to compound: //multiplier = multiplier*engineWildMultiplier)
 						if engineWildMultiplier > multiplier {
 							multiplier = engineWildMultiplier
@@ -112,6 +122,7 @@ func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payou
 	}
 	return lineWins
 }
+
 
 func determineBarLineWins(symbolGrid [][]int, winLines [][]int, payouts []Payout, bars []bar, wilds []wild) []Prize {
 	// assume no symbol is included in two bar types

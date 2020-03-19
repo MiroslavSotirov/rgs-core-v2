@@ -40,6 +40,7 @@ const (
 	invalidWalletCurrency = 422
 	balanceStoreError     = 423
 	insufficientFundError = 450
+	genericWalletError    = 451
 	// Wallet & Operator
 	badOperatorConfig = 600
 	// System Error
@@ -89,6 +90,7 @@ var ErrMsg = map[int]string{
 	createDemoSessionError:           "Error setting demo session ",
 	badOperatorConfig:                "Bad Operator configuration",
 	internalServerError:              "System Error",
+	genericWalletError:               "Generic wallet error",
 }
 
 type IRGSError interface {
@@ -167,6 +169,7 @@ var (
 	ErrInvalidWallet         = CreateRGSErr(invalidWallet)
 	ErrInvalidWalletCurrency = CreateRGSErr(invalidWalletCurrency)
 	ErrBalanceStoreError     = CreateRGSErr(balanceStoreError)
+	ErrGenericWalletErr      = CreateRGSErr(genericWalletError)
 
 	ErrCreateSession = CreateRGSErr(createSessionError)
 	ErrUpdateSession = CreateRGSErr(updateSessionError)
