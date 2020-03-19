@@ -254,7 +254,7 @@ type LevelResponse struct {
 
 // BalanceResponse ...
 type BalanceResponse struct {
-	Amount   string `json:"amount"`
+	Amount   engine.Fixed `json:"amount"`
 	Currency string `json:"currency"`
 	FreeGames int    `json:"free_games"`
 }
@@ -293,16 +293,16 @@ type GamestateResponse struct {
 	Id              string  `json:"id"`
 	Action          string  `json:"action"`
 	CurrentPlay     int     `json:"currentPlay"`
-	CurrentWinnings float32 `json:"currentWinnings"`
+	CurrentWinnings engine.Fixed `json:"currentWinnings"`
 	//freespinWinnings 0
 	NumFreeSpins     int     `json:"numFreeSpins"`
 	FreeSpinWinnings float32 `json:"freespinWinnings"`
-	Stake            float32 `json:"stake"`
-	StakePerLine     float32 `json:"stakePerLine"`
-	TotalStake       float32 `json:"totalStake"`
+	Stake            engine.Fixed `json:"stake"`
+	StakePerLine     engine.Fixed `json:"stakePerLine"`
+	TotalStake       engine.Fixed `json:"totalStake"`
 	//stopList: [23, 0, 55, 16, 8]
 	//totalStake 3
-	TotalWinnings        float32       `json:"totalWinnings"` // 4
+	TotalWinnings        engine.Fixed       `json:"totalWinnings"` // 4
 	View                 [][]string    `json:"view"`          //[["4", "4", "3", "0", "6"], ["7", "8", "6", "3", "5"], ["3", "3", "2", "6", "0"]]
 	WildSingleMultiplier int           `json:"wildSingleMultiplier"`
 	Wins                 []WinResponse `json:"wins"`
@@ -310,7 +310,7 @@ type GamestateResponse struct {
 	ReelSetIndex         int           `json:"reelSetIndex"`
 	SelectedWinLines     []string      `json:"selectedWinLines"`
 	FreeSpinMultiplier   int           `json:"freespin_multiplier,omitempty"`
-	Win                  float32       `json:"win"`
+	Win                  engine.Fixed       `json:"win"`
 	//parameters: {}
 	FreeSpinReelset *WinRSResponse `json:"freespinReelset,omitempty"`
 }
@@ -507,7 +507,6 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 		currentStake = gamestate.BetPerLine.Amount.Mul(engine.NewFixedFromInt(engineConf.EngineDefs[0].StakeDivisor))
 	}
 
-	totalWinnings := gamestate.CumulativeWin
 	selectedWinLines := make([]string, 0)
 	for _, el := range gamestate.SelectedWinLines {
 		selectedWinLines = append(selectedWinLines, strconv.Itoa(el))
@@ -517,20 +516,20 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 		Id:                   gamestate.Id,
 		Action:               action,
 		CurrentPlay:          gamestate.PlaySequence,
-		CurrentWinnings:      currentWinnings.ValueAsFloat(),
+		CurrentWinnings:      currentWinnings,
 		NumFreeSpins:         numFs,
 		FreeSpinWinnings:     0.00,
 		View:                 view,
-		Stake:                currentStake.ValueAsFloat(),
-		StakePerLine:         gamestate.BetPerLine.Amount.ValueAsFloat(),
-		TotalStake:           stake.ValueAsFloat(),
+		Stake:                currentStake,
+		StakePerLine:         gamestate.BetPerLine.Amount,
+		TotalStake:           stake,
 		WildSingleMultiplier: gamestate.Multiplier,
 		Wins:                 wins,
-		TotalWinnings:        totalWinnings.ValueAsFloat(),
+		TotalWinnings:        gamestate.CumulativeWin,
 		StopList:             gamestate.StopList,
 		ReelSetIndex:         rsID,
 		SelectedWinLines:     selectedWinLines,
-		Win:                  currentWinnings.ValueAsFloat(),
+		Win:                  currentWinnings,
 	}
 	if engineID == "mvgEngineX" {
 		//another hack for the old client
@@ -756,7 +755,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 
 	if len(gamestate.NextActions) > 1 {
 		// hack to display balance as pre-spin amount
-		gpResponse.Player.Balance.Amount = removeCumulativeWinFromBalance(gpResponse.Player.Balance.Amount, gpResponse.GamestateInfo.TotalWinnings)
+		gpResponse.Player.Balance.Amount = gpResponse.Player.Balance.Amount.Sub(gamestate.CumulativeWin)
 
 		gpResponse.Links[1].Rel = "option"
 		if strings.Contains(gamestate.NextActions[0], "freespin") ||  strings.Contains(gamestate.NextActions[0], "cascade"){
@@ -769,16 +768,4 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 	forms := BuildForm(gamestate, engineID, true)
 	gpResponse.Forms = forms
 	return gpResponse
-}
-
-
-func removeCumulativeWinFromBalance(balance string, cumulativeWin float32) string {
-	// for legacy client, balance returned on freespin should be initial balance on round commencement
-	balanceFloat, err := strconv.ParseFloat(balance, 32)
-	if err != nil {
-		logger.Errorf("Error converting balance to pre-freegame value: %v", err)
-		return balance
-	}
-	logger.Debugf("converted initial balance %v to final balance %v (diff of cumulativewin %v", balance, fmt.Sprintf("%.2f", float32(balanceFloat)-cumulativeWin), cumulativeWin)
-	return fmt.Sprintf("%.2f", float32(balanceFloat)-cumulativeWin)
 }

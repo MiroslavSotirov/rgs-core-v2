@@ -8,6 +8,7 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"net/http"
@@ -88,7 +89,49 @@ func getInitPlayValues(request *http.Request, clientID string, memID string, gam
 		}
 	}
 	txStore.BetLimitSettingCode = request.FormValue("betLimitCode")
+	txStore.WalletStatus = 1
 	return
+}
+
+func validateBet(data engine.GameParams, txStore store.TransactionStore, previousGamestate engine.Gamestate, gameSlug string) (bool, engine.GameParams, *rgserror.RGSError) {
+	minBet := false
+	if data.Action != "base" {
+		// stake value must be zero
+		// todo: handle respin
+		logger.Debugf("setting zero stake value for %v round", data.Action)
+		data.Stake = 0
+	} else {
+		// check that previous TX was endround
+		if txStore.RoundStatus != store.RoundStatusClose {
+			logger.Warnf("last TX: %#v", txStore)
+			return false, data, rgserror.ErrSpinSequence
+		}
+
+		stakeValues, _, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine, txStore.BetLimitSettingCode, gameSlug)
+		if err != nil {
+			logger.Warnf("Error: %v", err)
+			return false, data, rgserror.ErrInvalidStake
+		}
+		valid := false
+		for i := 0; i < len(stakeValues); i++ {
+			if data.Stake == stakeValues[i] {
+				valid = true
+				if i == len(stakeValues)-1 && data.Action == "base" {
+					// pass on when max bet is played, only if no action is passed already
+					data.Action = "maxBase"
+				}
+				if i == 0 {
+					minBet = true
+				}
+				break
+			}
+		}
+		if valid == false {
+			logger.Warnf("invalid stake: %v (options: %v)", data.Stake, stakeValues)
+			return false, data, rgserror.ErrInvalidStake
+		}
+	}
+	return minBet, data, nil
 }
 
 func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceResponse, engine.EngineConfig, rgserror.IRGSError) {
@@ -115,6 +158,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	}
 	if err != nil {
 		if err.Code == store.ErrorCodeEntityNotFound {
+			// this is first gameplay
 			txStore, previousGamestate = getInitPlayValues(request, clientID, memID, gameSlug)
 		} else {
 			//otherwise this is an actual error
@@ -153,44 +197,27 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			data.SelectedWinLines = swl
 		}
 	}
-	minBet := false
-
-	if data.Action != "base" {
-		// stake value must be zero
-		logger.Debugf("setting zero stake value for %v round", data.Action)
-		data.Stake = 0
-	} else {
-		// check that previous TX was endround
-		if txStore.RoundStatus != store.RoundStatusClose {
-			logger.Warnf("last TX: %#v", txStore)
-			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrSpinSequence
-		}
-
-		stakeValues, _, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine, txStore.BetLimitSettingCode, gameSlug)
-		if err != nil {
-			logger.Warnf("Error: %v", err)
-			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidStake
-		}
-		valid := false
-		for i := 0; i < len(stakeValues); i++ {
-			if data.Stake == stakeValues[i] {
-				valid = true
-				if i == len(stakeValues)-1 && data.Action == "base" {
-					// pass on when max bet is played, only if no action is passed already
-					data.Action = "maxBase"
-				}
-				if i == 0 {
-					minBet = true
-				}
-				break
-			}
-		}
-		if valid == false {
-			logger.Warnf("invalid stake: %v (options: %v)", data.Stake, stakeValues)
-			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidStake
-		}
+	minBet, data, betValidationErr := validateBet(data, txStore, previousGamestate, gameSlug)
+	if betValidationErr != nil {
+		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, betValidationErr
 	}
 
+	// add suffix to gamestate in case this is a retry attempt
+	switch txStore.WalletStatus {
+	case 0:
+		// this tx is pending in wallet, quit and force reload
+		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrPreviousTXPending
+	case -1:
+		// the next tx failed, retrying it will cause a duplicate tx id error, so add a suffix
+		previousGamestate.NextGamestate = previousGamestate.NextGamestate + rng.RandStringRunes(4)
+		logger.Debugf("adding suffix to next tx to avoid duplication error, resulting id: %v", previousGamestate.NextGamestate)
+	case 1:
+		// business as usual
+	default:
+		// it should always be one of the above three
+		logger.Infof("Wallet Status is unexpectedly %v", txStore.WalletStatus)
+		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrGenericWalletErr
+	}
 	gamestate, engineConf := engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
 	if config.GlobalConfig.DevMode == true {
 		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, gameSlug, txStore.PlayerId)
@@ -202,15 +229,14 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			logger.Warnf("No force value found for player %v", txStore.PlayerId)
 		}
 	}
-	gamestate.PreviousGamestate = previousGamestate.Id
 
 	var freeGameRef string
 	if txStore.FreeGames.NoOfFreeSpins > 0 && minBet == true {
 		// this game qualifies as a free game!
 		freeGameRef = txStore.FreeGames.CampaignRef
 		logger.Warnf("Free game campaign %v", freeGameRef)
-
 	}
+
 	// settle transactions
 	var balance store.BalanceStore
 	token := txStore.Token
@@ -245,6 +271,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			if err.Code == store.ErrorCodeNotEnoughBalance {
 				return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInsufficientFundError
 			}
+			logger.Infof("error: %v", err)
 			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrGenericWalletErr
 		}
 		token = balance.Token
@@ -252,7 +279,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	player := store.PlayerStore{Token: token, PlayerId: txStore.PlayerId}
 
 	balanceResponse := BalanceResponse{
-		Amount:   balance.Balance.Amount.ValueAsString(),
+		Amount:   balance.Balance.Amount,
 		Currency: balance.Balance.Currency,
 		FreeGames: balance.FreeGames.NoOfFreeSpins,
 	}
