@@ -80,7 +80,7 @@ func listForceTools(r *http.Request, w http.ResponseWriter) {
 				// Instead we'll list only a single retrigger and let force tool automatically choose what retrigger to appy
 				// don't add retriggers from Engine VII forcetool config, we'll add the separately
 				if engine == "mvgEngineVII" {
-					if strings.HasPrefix(i.ID, "retrigger") {
+					if strings.HasPrefix(i.ID, "retrigger") || strings.HasPrefix(i.ID,"FS") {
 						appendOK = false
 					}
 				}
