@@ -274,6 +274,23 @@
             left: 30%;
             color: #000000;
         }
+
+        .fadeIn-animation {
+            -webkit-animation: fadeInRight 1s ease-out; /* Chrome, Safari, Opera */
+            animation: fadeInRight 1s ease-out;
+        }
+
+        @keyframes fadeInRight {
+            0% {
+                opacity: 0;
+                transform: translateX(-80px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -321,7 +338,7 @@ Remember to set the width: -->
     <button class="button" onclick="clearForce()">Clear</button>
 
     <section class="msg-box">
-        <div id="msg-text" class="msg-text"></div>
+        <div id="msg-text" class="msg-text fadeIn-animation"></div>
     </section>
 
 </div>
@@ -398,6 +415,8 @@ Remember to set the width: -->
         const playerID =  document.getElementById('playerID').value;
         const gameSlug = gameSelect.options[gameSelect.selectedIndex].getAttribute("gid");
         const forceID = forceValSelect.options[forceValSelect.selectedIndex].value;
+        msgtxt.classList.remove("fadeIn-animation");
+
 
         const forceUrl = "/v2/rgs/force"
         const payload = {playerID:playerID, gameSlug:gameSlug, forceID:forceID};
@@ -409,12 +428,15 @@ Remember to set the width: -->
             .then((body) => {
                 if (res.status === 200){
                     msgtxt.textContent = forceID + " is currently active";
+                    msgtxt.classList.toggle("fadeIn-animation", true);
                 } else {
                     msgtxt.textContent = "Error: " + body;
+                    msgtxt.classList.toggle("fadeIn-animation", true);
                 }
             }
             ).catch((e) => {
                 msgtxt.textContent = "Error: " + e.value;
+                msgtxt.classList.toggle("fadeIn-animation", true);
             }))
     }
 

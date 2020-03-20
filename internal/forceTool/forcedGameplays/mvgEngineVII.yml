@@ -19,150 +19,302 @@
   reelsetId: 0
   stopList: [11,17,30,8,5]
 
+- id: 3PicAWild
+  action: base
+  reelsetId: 0
+  stopList: [11,15,14,8,5]
+
 - id: 4PicA
   action: base
   reelsetId: 0
   stopList: [11,17,30,20,5]
 
+- id: 4PicAWild
+  action: base
+  reelsetId: 0
+  stopList: [11,15,14,18,5]
+
 - id: 5PicA
   action: base
   reelsetId: 0
   stopList: [11,17,30,20,11]
+
+- id: 5PicAWild
+  action: base
+  reelsetId: 0
+  stopList: [11,15,14,18,11]
+
 # B1
 - id: 3PicB
   action: base
   reelsetId: 0
   stopList: [5,13,7,4,2]
 
+- id: 3PicBWild
+  action: base
+  reelsetId: 0
+  stopList: [5,10,14,4,2]
+
 - id: 4PicB
   action: base
   reelsetId: 0
   stopList: [5,13,7,15,2]
 
+- id: 4PicBWild
+  action: base
+  reelsetId: 0
+  stopList: [5,10,14,13,2]
+
 - id: 5PicB
   action: base
   reelsetId: 0
   stopList: [5,13,7,15,5]
+
+- id: 5PicBWild
+  action: base
+  reelsetId: 0
+  stopList: [5,10,14,13,5]
 # C2
 - id: 3PicC
   action: base
   reelsetId: 0
   stopList: [25,3,24,5,5]
 
+- id: 3PicCWild
+  action: base
+  reelsetId: 0
+  stopList: [22,3,14,5,5]
+
 - id: 4PicC
   action: base
   reelsetId: 0
   stopList: [25,3,24,17,5]
 
+- id: 4PicCWild
+  action: base
+  reelsetId: 0
+  stopList: [22,3,14,17,5]
+
 - id: 5PicC
   action: base
   reelsetId: 0
   stopList: [25,3,24,17,14]
+
+- id: 5PicCWild
+  action: base
+  reelsetId: 0
+  stopList: [22,3,14,17,14]
 # D3
 - id: 3PicD
   action: base
   reelsetId: 0
   stopList: [1,9,34,20,3]
 
+- id: 3PicDWild
+  action: base
+  reelsetId: 0
+  stopList: [1,9,14,20,3]
+
 - id: 4PicD
   action: base
   reelsetId: 0
   stopList: [1,9,34,2,3]
 
+- id: 4PicDWild
+  action: base
+  reelsetId: 0
+  stopList: [1,9,14,5,3]
+
 - id: 5PicD
   action: base
   reelsetId: 0
-  stopList: [1,9,34,2,6]
+  stopList: [1,9,14,2,6]
+
+- id: 5PicDWild
+  action: base
+  reelsetId: 0
+  stopList: [1,9,14,5,6]
 # E4
 - id: 3PicE
   action: base
   reelsetId: 0
   stopList: [3,19,36,7,0]
 
+- id: 3PicEWild
+  action: base
+  reelsetId: 0
+  stopList: [3,19,12,7,0]
+
 - id: 4PicE
   action: base
   reelsetId: 0
   stopList: [3,19,36,15,0]
 
+- id: 4PicEWild
+  action: base
+  reelsetId: 0
+  stopList: [1,22,16,2,0]
+
 - id: 5PicE
   action: base
   reelsetId: 0
   stopList: [3,19,36,15,4]
+
+- id: 5PicEWild
+  action: base
+  reelsetId: 0
+  stopList: [1,22,16,2,4]
 # F5
 - id: 3PicF
   action: base
   reelsetId: 0
   stopList: [8,3,23,3,5]
 
+- id: 3PicFWild
+  action: base
+  reelsetId: 0
+  stopList: [8,3,14,3,5]
+
 - id: 4PicF
   action: base
   reelsetId: 0
   stopList: [8,3,23,35,5]
 
+- id: 4PicFWild
+  action: base
+  reelsetId: 0
+  stopList: [8,3,14,35,5]
+
 - id: 5PicF
   action: base
   reelsetId: 0
   stopList: [8,3,23,35,16]
+
+- id: 5PicFWild
+  action: base
+  reelsetId: 0
+  stopList: [8,3,14,35,16]
+
 # G6
 - id: 3PicG
   action: base
   reelsetId: 0
   stopList: [21,50,11,0,2]
 
+- id: 3PicGWild
+  action: base
+  reelsetId: 0
+  stopList: [21,50,14,0,2]
+
 - id: 4PicG
   action: base
   reelsetId: 0
   stopList: [21,50,11,5,2]
 
+- id: 4PicGWild
+  action: base
+  reelsetId: 0
+  stopList: [21,50,14,5,2]
+
 - id: 5PicG
   action: base
   reelsetId: 0
   stopList: [21,50,11,5,15]
+
+- id: 5PicGWild
+  action: base
+  reelsetId: 0
+  stopList: [21,50,14,5,15]
 # H7
 - id: 3PicH
   action: base
   reelsetId: 0
   stopList: [12,7,3,7,5]
 
+- id: 3PicHWild
+  action: base
+  reelsetId: 0
+  stopList: [12,7,14,7,5]
+
 - id: 4PicH
   action: base
   reelsetId: 0
   stopList: [12,7,3,40,5]
 
+- id: 4PicHWild
+  action: base
+  reelsetId: 0
+  stopList: [12,7,14,40,5]
+
 - id: 5PicH
   action: base
   reelsetId: 0
   stopList: [12,7,3,40,1]
+
+- id: 5PicHWild
+  action: base
+  reelsetId: 0
+  stopList: [12,7,14,40,1]
 # I8
 - id: 3PicI
   action: base
   reelsetId: 0
   stopList: [1,15,33,7,4]
 
+- id: 3PicIWild
+  action: base
+  reelsetId: 0
+  stopList: [1,15,14,7,4]
+
 - id: 4PicI
   action: base
   reelsetId: 0
-  stopList: [1,15,33,45,4]
+  stopList: [1,15,14,45,4]
+
+- id: 4PicIWild
+  action: base
+  reelsetId: 0
+  stopList: [1,15,14,45,4]
 
 - id: 5PicI
   action: base
   reelsetId: 0
   stopList: [1,15,33,45,3]
+
+- id: 5PicIWild
+  action: base
+  reelsetId: 0
+  stopList: [1,15,14,45,3]
 # J9
 - id: 3PicJ
   action: base
   reelsetId: 0
   stopList: [22,15,60,4,3]
 
+- id: 3PicJWild
+  action: base
+  reelsetId: 0
+  stopList: [22,15,14,4,3]
+
 - id: 4PicJ
   action: base
   reelsetId: 0
   stopList: [22,15,60,52,3]
 
+- id: 4PicJWild
+  action: base
+  reelsetId: 0
+  stopList: [22,15,14,52,3]
+
 - id: 5PicJ
   action: base
   reelsetId: 0
   stopList: [22,15,60,52,2]
+
+- id: 5PicJWild
+  action: base
+  reelsetId: 0
+  stopList: [22,15,14,52,2]
 
 - id: retrigger1
   action: freespin2
@@ -184,12 +336,12 @@
   reelsetId: 8
   stopList: [21,17,38,0,0]
 
-- id: VariableWild1
+- id: SpecialWild1
   action: base
   reelsetId: 0
   stopList: [22,10,10,0,0]
 
-- id: VariableWild2
+- id: SpecialWild2
   action: base
   reelsetId: 1
   stopList: [0,16,0,7,2]
@@ -204,7 +356,68 @@
   reelsetId: 4
   stopList: [0,25,0,0,0]
 
-- id: Expanding+VariableWild
+- id: Expanding+SpecialWild
   action: base
   reelsetId: 3
   stopList: [5,0,49,0,0]
+# Trigger Scatters in freespin
+- id: FS2-3scatter # 3 Scatters on Freespin 2
+  action: freespin2
+  reelsetId: 5
+  stopList: [21,16,38,0,0]
+
+- id: FS2-4scatter # 4 Scatters on Freespin 2
+  action: freespin2
+  reelsetId: 5
+  stopList: [21,16,38,27,0]
+
+- id: FS2-5scatter # 5 Scatters on Freespin 2
+  action: freespin2
+  reelsetId: 5
+  stopList: [21,16,38,27,39]
+
+- id: FS3-3scatter # 3 Scatters on Freespin 3
+  action: freespin3
+  reelsetId: 6
+  stopList: [21,16,38,0,0]
+
+- id: FS3-4scatter # 4 Scatters on Freespin 3
+  action: freespin3
+  reelsetId: 6
+  stopList: [21,16,38,27,0]
+
+- id: FS3-5scatter # 5 Scatters on Freespin 3
+  action: freespin3
+  reelsetId: 6
+  stopList: [21,16,38,27,39]
+
+- id: FS4-3scatter # 3 Scatters on Freespin 4
+  action: freespin4
+  reelsetId: 7
+  stopList: [21,16,38,0,0]
+
+- id: FS4-4scatter # 4 Scatters on Freespin 4
+  action: freespin4
+  reelsetId: 7
+  stopList: [21,16,38,27,0]
+
+- id: FS4-5scatter # 5 Scatters on Freespin 4
+  action: freespin4
+  reelsetId: 7
+  stopList: [21,16,38,27,39]
+
+- id: FS5-3scatter # 3 Scatters on Freespin 5
+  action: freespin5
+  reelsetId: 8
+  stopList: [21,16,38,0,0]
+
+- id: FS5-4scatter # 5 Scatters on Freespin 5
+  action: freespin5
+  reelsetId: 8
+  stopList: [21,16,38,27,0]
+
+- id: FS5-5scatter # 5 Scatters on Freespin 5
+  action: freespin5
+  reelsetId: 8
+  stopList: [21,16,38,27,39]
+
