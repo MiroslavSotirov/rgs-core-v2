@@ -12,7 +12,6 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -80,13 +79,7 @@ func getInitPlayValues(request *http.Request, clientID string, memID string, gam
 	txStore.PlayerId = playerID
 	campaign := request.FormValue("campaign")
 	if campaign != "" {
-		numFG, err := strconv.Atoi(request.FormValue("numFG"))
-		if err != nil {
-			logger.Warnf("error decoding free game info: campaign - %v, err -- %v", campaign, err)
-		} else {
-			txStore.FreeGames.NoOfFreeSpins = numFG
-			txStore.FreeGames.CampaignRef = campaign
-		}
+		txStore.FreeGames.CampaignRef = campaign
 	}
 	txStore.BetLimitSettingCode = request.FormValue("betLimitCode")
 	txStore.WalletStatus = 1
@@ -156,6 +149,9 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			txStore, previousGamestate = getInitPlayValues(request, clientID, memID, gameSlug)
 		} else {
 			//otherwise this is an actual error
+			if err.Code == store.ErrorCodeTokenExpired {
+				return previousGamestate, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrDasInvalidTokenError
+			}
 			return previousGamestate, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
 		}
 	} else {
@@ -224,10 +220,10 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	}
 
 	var freeGameRef string
-	if txStore.FreeGames.NoOfFreeSpins > 0 && minBet == true {
+	if minBet == true {
 		// this game qualifies as a free game!
 		freeGameRef = txStore.FreeGames.CampaignRef
-		logger.Warnf("Free game campaign %v", freeGameRef)
+		logger.Debugf("Free game campaign %v", freeGameRef)
 	}
 
 	// settle transactions
@@ -269,7 +265,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		}
 		token = balance.Token
 	}
-	player := store.PlayerStore{Token: token, PlayerId: txStore.PlayerId}
+	player := store.PlayerStore{Token: token, PlayerId: txStore.PlayerId, Balance: balance.Balance}
 
 	balanceResponse := BalanceResponse{
 		Amount:   balance.Balance.Amount,

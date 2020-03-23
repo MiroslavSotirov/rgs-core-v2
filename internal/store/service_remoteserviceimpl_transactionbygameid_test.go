@@ -32,35 +32,44 @@ func TestRemoteServiceImpl_TransactionByGameId_1(t *testing.T) {
 	token := uuid.NewV4().String()
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		if "/v1/gnrc/maverick/query" == req.URL.String() {
+			lastTx := restTransactionRequest{
+				ReqId:          "",
+				Token:          token,
+				Game:           "",
+				Platform:       "",
+				Mode:           "",
+				Session:        "",
+				Currency:       "USD",
+				Amount:         100,
+				BonusAmount:    0,
+				JpAmount:       0,
+				Category:       "",
+				CampaignRef:    "",
+				CloseRound:     false,
+				GameState:      "",
+				Round:          "",
+				TxRef:          "",
+				Description:    "",
+				InternalStatus: 0,
+			}
 			rs := restQueryResponse{
 				Metadata: restMetadata{
 					ReqId:          uuid.NewV4().String(),
 					ProcessingTime: 0,
+					VendorInfo: restVendorResponse{
+						LastAttemptedTx: lastTx,
+					},
 				},
-				Token:        token,
 				ResponseCode: "0",
 				Message:      "",
 				ReqId:        "",
-				Game:         "",
-				Platform:     "",
-				Mode:         "",
-				Session:      "",
-				Currency:     "USD",
-				Amount:       100,
-				BonusAmount:  0,
-				JpAmount:     0,
-				Category:     "",
 				//CampaignRef:  "",
-				CloseRound:   false,
-				GameState:    "",
-				Round:        "",
-				TxRef:        "",
-				Description:  "",
 				FreeGames: restFreeGame{
 					CampaignRef: "",
 					NrGames:     0,
 				},
 				BetLimit: "",
+				LastTx:          lastTx,
 			}
 			b := new(bytes.Buffer)
 			json.NewEncoder(b).Encode(rs)

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
@@ -42,17 +43,19 @@ type GameplayResponseV2 struct {
 	SessionID   store.Token `json:"host/verified-token"`
 	Stake       engine.Fixed
 	Win         engine.Fixed
-	CumWin      engine.Fixed `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
-	CurrentSpin int          `json:"currentSpin"`             // is this really needed ??
-	FSRemaining int          `json:"freeSpinsRemaining,omitempty"`
-	Balance     BalanceResponseV2
-	View        [][]int        // includes row above and below
-	Prizes      []engine.Prize `json:"wins"` // []WinResponseV2
+	CumWin      engine.Fixed      `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
+	//CurrentSpin int               `json:"currentSpin"`             // is this really needed ??
+	FSRemaining int               `json:"freeSpinsRemaining,omitempty"`
+	Balance     BalanceResponseV2 `json:"balance"`
+	View        [][]int           `json:"view"` // includes row above and below
+	Prizes      []engine.Prize    `json:"wins"` // []WinResponseV2
+	NextAction string             `json:"nextAction"`
 }
+
 
 type BalanceResponseV2 struct {
 	Amount    engine.Money         `json:"amount"`
-	FreeGames store.FreeGamesStore `json:"free_games"`
+	FreeGames store.FreeGamesStore `json:"freeGames"`
 }
 
 // todo: incorporate this into gameplay response
@@ -80,6 +83,7 @@ type ReelResponse struct {
 	MaxStack   [][]int `json:"maxStack"`
 	MaxVisible [][]int `json:"maxVisible"`
 	Count      [][]int `json:"count"`
+	Type       string  `json:"type"`
 }
 
 func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceStore) GameplayResponseV2 {
@@ -103,7 +107,8 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		Stake:       stake,
 		Win:         win,
 		CumWin:      gamestate.CumulativeWin,
-		CurrentSpin: gamestate.PlaySequence,         // zero-indexed
+		NextAction: gamestate.NextActions[0],
+		//CurrentSpin: gamestate.PlaySequence,         // zero-indexed
 		FSRemaining: len(gamestate.NextActions) - 1, // for now, assume all future actions besides finish are fs (perhaps change this to bonusRdsRemaining in future)
 		Balance:     BalanceResponseV2{
 			Amount:    balance.Balance,
@@ -134,18 +139,17 @@ func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance st
 func (initResp *GameInitResponseV2) FillEngineInfo(config engine.EngineConfig) {
 	// todo: this doesn't handle when there are multiple reel sets for a single def (i.e. multiple defs with same ID)
 	reelResp := make(map[string]ReelResponse, len(config.EngineDefs))
-	for _, def := range config.EngineDefs {
+	for i, def := range config.EngineDefs {
 		var reels ReelResponse
-		// todo do this smarter
+
 		reels.ID = make([][]int, len(def.ViewSize))
 		reels.Count = make([][]int, len(def.ViewSize))
 		reels.MaxVisible = make([][]int, len(def.ViewSize))
 		reels.MaxStack = make([][]int, len(def.ViewSize))
-		//reels := make([]ReelResponse, len(def.Reels))
-		for reel, reelContent := range def.Reels {
-			//var reelResponse ReelResponse
-			logger.Debugf("processing reel %v: %v", reel, reelContent)
 
+		for reel, reelContent := range def.Reels {
+
+			logger.Debugf("processing reel %v: %v", reel, reelContent)
 			// todo: these maps are made too large right now
 			symbolCounts := make(map[int]int, len(reelContent))
 			symbolStacks := make(map[int]int, len(reelContent))
@@ -196,12 +200,13 @@ func (initResp *GameInitResponseV2) FillEngineInfo(config engine.EngineConfig) {
 			reels.Count[reel] = counts
 			reels.MaxStack[reel] = maxStacks
 			reels.MaxVisible[reel] = maxVisibles
-			//logger.Debugf("made set of reel responses %v", reelResponses)
-
-			//reels[reel] = reelResponse
 		}
-
-		reelResp[def.ID] = reels
+		//reels.Type = def.ID
+		label := def.ID
+		if _, ok := reelResp[label]; ok {
+			label += fmt.Sprintf("%v", i)
+		}
+		reelResp[label] = reels
 	}
 	initResp.ReelSets = reelResp
 	return

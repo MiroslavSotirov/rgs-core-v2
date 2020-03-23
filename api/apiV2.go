@@ -64,7 +64,17 @@ func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 
 	// set stakevalues, links,
 	links := make(map[string]string, 1)
-	links["new-game"] = fmt.Sprintf("%s%s/%s/play2/%s", GetURLScheme(request), request.Host, APIVersion, gameSlug)
+	newGameHref := fmt.Sprintf("%s%s/%s/play2/%s?wallet=%v", GetURLScheme(request), request.Host, APIVersion, gameSlug, wallet)
+	// handle initial gamestate
+	if len(latestGamestate.Transactions) == 0 {
+		newGameHref += fmt.Sprintf("&playerId=%v&ccy=%v&betLimitCode=%v&campaign=%v", player.PlayerId, player.Balance.Currency, player.BetLimitSettingCode, player.FreeGames.CampaignRef)
+		//if player.FreeGames.NoOfFreeSpins > 0 {
+		//	newGameHref += fmt.Sprintf("c", player.FreeGames.CampaignRef, player.FreeGames.NoOfFreeSpins)
+		//}
+		logger.Debugf("Rendering sham init gamestate: %v", latestGamestate.Id)
+	}
+	logger.Warnf("link new game: %v", newGameHref)
+	links["new-game"] = newGameHref
 	giResp.Links = links
 	stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine, player.BetLimitSettingCode, gameSlug)
 	if err != nil {
@@ -91,7 +101,10 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 		txStore, err = store.ServLocal.TransactionByGameId(store.Token(memID), store.ModeDemo, gameSlug)
 	case "dashur":
 		txStore, err = store.Serv.TransactionByGameId(store.Token(memID), store.ModeReal, gameSlug)
+	default:
+		logger.Errorf("No such wallet '%v': %#v", wallet, request)
 	}
+	logger.Infof("txstore: %v, err: %v", txStore, err)
 	if err != nil {
 		// if there is an error retrieving last tx, it may be that this is the first gameplay on this game for this player. if so ,handle appropriately
 		if err.Code == store.ErrorCodeEntityNotFound {
