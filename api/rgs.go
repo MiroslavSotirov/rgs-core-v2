@@ -328,22 +328,22 @@ func Routes() *chi.Mux {
 			token := chi.URLParam(r, "token")
 			gameSlug := chi.URLParam(r, "gameSlug")
 			wallet := chi.URLParam(r, "wallet")
-			var gamestate store.GameStateStore
+			var txStore store.TransactionStore
 			var err *store.Error
 			switch wallet {
 			case "demo":
-				gamestate, err = store.ServLocal.GameStateByGameId(store.Token(token), store.ModeDemo, gameSlug)
+				txStore, err = store.ServLocal.TransactionByGameId(store.Token(token), store.ModeDemo, gameSlug)
 			case "dashur":
-				gamestate, err = store.Serv.GameStateByGameId(store.Token(token), store.ModeReal, gameSlug)
+				txStore, err = store.Serv.TransactionByGameId(store.Token(token), store.ModeReal, gameSlug)
 			}
-			if gamestate.WalletInternalStatus != 1 {
-				// if this is zero, the tx is pending and shouldn't be resent, if it is one, the tx is failed and an error should be sent to reload the client
-				logger.Debugf("STATUS: %v", gamestate.WalletInternalStatus)
+			if txStore.WalletStatus != 1 {
+				// if this is zero, the tx is pending and shouldn't be resent, if it is -1, the tx is failed and an error should be sent to reload the client
+				logger.Debugf("STATUS: %v", txStore.WalletStatus)
 				fmt.Fprint(w, []byte("ERROR"))
 				return
 			}
 
-			gamestateUnmarshalled := store.DeserializeGamestateFromBytes(gamestate.GameState)
+			gamestateUnmarshalled := store.DeserializeGamestateFromBytes(txStore.GameState)
 			gamestateUnmarshalled.Closed = true
 			roundId := gamestateUnmarshalled.RoundID
 			if roundId == "" {

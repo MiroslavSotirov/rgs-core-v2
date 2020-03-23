@@ -102,8 +102,8 @@ type (
 	}
 
 	FreeGamesStore struct {
-		NoOfFreeSpins int
-		CampaignRef string
+		NoOfFreeSpins int    `json:"count"`
+		CampaignRef   string `json:"ref"`
 	}
 
 	Error struct {
@@ -132,9 +132,6 @@ type (
 		// retrieve latest transcation by player and by game id
 		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, *Error)
 
-		// retrieve latest game state by game id
-		GameStateByGameId(token Token, mode Mode, gameId string) (GameStateStore, *Error)
-
 		// close round.
 		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, *Error)
 
@@ -160,7 +157,6 @@ type (
 		BalanceByToken(token Token, mode Mode) (BalanceStore, *Error)
 		Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, *Error)
 		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, *Error)
-		GameStateByGameId(token Token, mode Mode, gameId string) (GameStateStore, *Error)
 		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, *Error)
 		GamestateById(gamestateId string) (GameStateStore, *Error)
 	}
@@ -170,6 +166,7 @@ type (
 	restMetadata struct {
 		ReqId          string `json:"req_id"`
 		ProcessingTime int    `json:"processing_time"`
+		VendorInfo      restVendorResponse `json:"vendor"`
 	}
 
 	restAuthenticateRequest struct {
@@ -204,12 +201,38 @@ type (
 		FreeGames       restFreeGame      `json:"free_games"`
 		Balance         int64             `json:"balance"`
 		Currency        string            `json:"currency"`
-		LastGameState   string            `json:"last_game_state"`
+		//LastGameState   string            `json:"last_game_state"`
 		PlayerMessage   restPlayerMessage `json:"player_message"`
 		Urls            map[string]string `json:"urls"`
-		LastGameStatus  int               `json:"last_game_status"`
+		//LastGameStatus  int               `json:"last_game_status"`
 
 	}
+	restVendorResponse struct {
+		LastAttemptedTx restTransactionRequest `json:"last_attempted_tx"`
+		LastTx          restTransactionRequest `json:"last_tx"`
+	}
+	//restTxDetailResponse struct {
+	//	//Complete bool `json:"complete"`//: true,
+	//	//CompleteOK bool `json:"complete_ok"`//: true,
+	//	//"req_id": "943bb0cb-7fb3-43e4-9a4c-fff51c82f2c8",
+	//	Token string `json:"token"`
+	//	//"game": "the-year-of-zhu",
+	//	//"platform": "html5",
+	//	//"mode": "real",
+	//	//"session": "WAp15vFz",
+	//	Currency string `json:"currency"`
+	//	Amount int64 `json:"amount"`
+	//	//"bonus_amount": 0,
+	//	//"jp_amount": 0,
+	//	Category string `json:"category"`
+	//	//"campaign_ref": "",
+	//	//"close_round": true,
+	//	GameState string `json:"game_state"`
+	//	GameRound string `json:"round"`
+	//	TxRef string `json:"tx_ref"`
+	//	//"description": "",
+	//	InternalStatus int `json:"internal_status"`
+	//}
 
 	restBalanceRequest struct {
 		ReqId    string `json:"req_id"`
@@ -282,6 +305,7 @@ type (
 		Round       string `json:"round"`
 		TxRef       string `json:"tx_ref"`
 		Description string `json:"description"`
+		InternalStatus int `json:"internal_status"`
 	}
 
 	restTransactionResponse struct {
@@ -307,28 +331,29 @@ type (
 
 	restQueryResponse struct {
 		Metadata       restMetadata `json:"metadata"`
-		Token          string       `json:"token"`
+		//Token          string       `json:"token"`
 		ResponseCode   string       `json:"code"`
 		Message        string       `json:"message"`
 		ReqId          string       `json:"req_id"`
-		Game           string       `json:"game"`
-		Platform       string       `json:"platform"`
-		Mode           string       `json:"mode"`
-		Session        string       `json:"session"`
-		Currency       string       `json:"currency"`
-		Amount         int64        `json:"amount"`
-		BonusAmount    int64        `json:"bonus_amount"`
-		JpAmount       int64        `json:"jp_amount"`
-		Category       string       `json:"category"`
-		CampaignRef    string       `json:"campaign_ref"`
-		CloseRound     bool         `json:"close_round"`
-		GameState      string       `json:"game_state"`
-		Round          string       `json:"round"`
-		TxRef          string       `json:"tx_ref"`
-		Description    string       `json:"description"`
+		//Game           string       `json:"game"`
+		//Platform       string       `json:"platform"`
+		//Mode           string       `json:"mode"`
+		//Session        string       `json:"session"`
+		//Currency       string       `json:"currency"`
+		//Amount         int64        `json:"amount"`
+		//BonusAmount    int64        `json:"bonus_amount"`
+		//JpAmount       int64        `json:"jp_amount"`
+		//Category       string       `json:"category"`
+		//CampaignRef    string       `json:"campaign_ref"`
+		//CloseRound     bool         `json:"close_round"`
+		//GameState      string       `json:"game_state"`
+		//Round          string       `json:"round"`
+		//TxRef          string       `json:"tx_ref"`
+		//Description    string       `json:"description"`
 		BetLimit       string       `json:"bet_limit"`
 		FreeGames      restFreeGame `json:"free_games"`
-		InternalStatus int          `json:"internal_status"`
+		//InternalStatus int          `json:"internal_status"`
+		LastTx         restTransactionRequest `json:"last_tx"`
 	}
 )
 
@@ -500,8 +525,23 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 		return PlayerStore{}, GameStateStore{}, finalErr
 	}
 
-	if len(authResp.LastGameState) > 0 {
-		gameState, err = base64.StdEncoding.DecodeString(authResp.LastGameState)
+	var lastTransaction restTransactionRequest
+	var balance BalanceStore
+	lastTransaction, balance, finalErr = i.getLastGamestate(authResp.Metadata.VendorInfo.LastTx, authResp.Metadata.VendorInfo.LastAttemptedTx)
+	if finalErr != nil {
+		return PlayerStore{}, GameStateStore{}, finalErr
+	}
+	if balance.Token == "" {
+		balance.Token = Token(authResp.Token)
+		balance.FreeGames = FreeGamesStore{authResp.FreeGames.NrGames, authResp.FreeGames.CampaignRef}
+		balance.Balance = engine.Money{
+			Currency: authResp.Currency,
+			Amount:   engine.Fixed(authResp.Balance * 10000),
+		}
+	}
+	//lastTransaction.InternalStatus = authResp.Metadata.VendorInfo.LastAttemptedTx.InternalStatus
+	if len(lastTransaction.GameState) > 0 {
+		gameState, err = base64.StdEncoding.DecodeString(lastTransaction.GameState)
 
 		finalErr = i.errorBase64(err)
 		if finalErr != nil {
@@ -514,18 +554,78 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 
 	return PlayerStore{
 			PlayerId: authResp.Id,
-			Token:    Token(authResp.Token),
+			Token:    balance.Token,
 			Mode:     mode,
 			Username: authResp.Username,
-			Balance: engine.Money{
-				Currency: authResp.Currency,
-				Amount:   engine.Fixed(authResp.Balance * 10000),
-			},
-			FreeGames:       FreeGamesStore{authResp.FreeGames.NrGames, authResp.FreeGames.CampaignRef},
+			Balance:  balance.Balance,
+			FreeGames:       balance.FreeGames,
 			BetLimitSettingCode: authResp.BetLimit,
 		},
-		GameStateStore{GameState: gameState, WalletInternalStatus: authResp.LastGameStatus},
+		GameStateStore{GameState: gameState, WalletInternalStatus: lastTransaction.InternalStatus},
 		nil
+}
+
+func (i *RemoteServiceImpl) getLastGamestate(lastTx restTransactionRequest, lastAttemptedTx restTransactionRequest) (lastTxInfo restTransactionRequest, balance BalanceStore, err *Error) {
+	// if last_tx and last_attempted_tx are the same, doesn't matter
+	logger.Debugf("Determining last GS : Last Tx = %#v, Last Attempted Tx = %#v", lastTx, lastAttemptedTx)
+	if lastAttemptedTx.TxRef == lastTx.TxRef {
+		lastTxInfo = lastTx
+		return
+	}
+
+	// otherwise, check which tx it was that failed
+	// we assume there is never more than one pending/failed tx on top of the last successful tx
+	// because in freespins the PAYOUT tx is treated the same way as the WAGER in normal play, we need to check if this is the first tx of a gamestate
+	if len(lastAttemptedTx.GameState) == 0 {
+		err = &Error{ErrorCodeGeneralError, "No gamestate attached to previous tx"}
+		return
+	}
+	gameState, errDecode := base64.StdEncoding.DecodeString(lastAttemptedTx.GameState)
+
+	err = i.errorBase64(errDecode)
+	if err != nil {
+		return
+	}
+	gsDeserialized := DeserializeGamestateFromBytes(gameState)
+
+	if lastAttemptedTx.TxRef == gsDeserialized.Transactions[0].Id {
+		// this failed tx was the first tx of the round, so we return the previous successful gamestate which should be the gamestate attached to the previous round
+		lastTxInfo = lastTx
+		// set internalstatus to -1 so that gamestate calculated on top of this previous gamestate gets a suffix
+		lastTxInfo.InternalStatus = -1
+		return
+	}
+
+	// the first tx has been processed, so we should try to close out the round
+	switch Category(lastAttemptedTx.Category) {
+	case CategoryWager:
+		// we do not expect this case, a new wager should be associated with a new gamestate
+		err = &Error{ErrorCodeGeneralError, "Got WAGER as non-primary tx of gamestate"}
+		return
+	case CategoryPayout:
+		// the wager was successful but payout failed, so retry the payout one time with same ID
+		balance, err = i.txSend(lastAttemptedTx)
+		// if no error, return this transaction and the updated balance info
+		if err == nil {
+			lastTxInfo = lastAttemptedTx
+			lastTxInfo.InternalStatus = 1
+			return
+		}
+		logger.Warnf("Failed PAYOUT TX retry, round %v should be settled manually before play can continue", gsDeserialized.RoundID)
+		//if the error persists, return an error, payout issue needs to be solved manually
+		return
+	case CategoryClose:
+		// endround tx was attempted and failed. try to settle this but if the error persists, allow gameplay to continue
+		balance, err = i.txSend(lastAttemptedTx)
+		if err != nil {
+			logger.Warnf("Failed ENDROUND TX retry, continuing with game, round %v should be settled manually", gsDeserialized.RoundID)
+		}
+		lastTxInfo = lastAttemptedTx
+		lastTxInfo.InternalStatus = 1
+		return
+	}
+	err = &Error{ErrorCodeGeneralError, "Unrecognized previous transaction configuration"}
+	return
 }
 
 func (i *RemoteServiceImpl) restAuthenticateResponse(response *http.Response) restAuthenticateResponse {
@@ -718,6 +818,10 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 		CampaignRef: transaction.FreeGames.CampaignRef,
 	}
 
+	return i.txSend(txRq)
+}
+
+func (i *RemoteServiceImpl) txSend(txRq restTransactionRequest) (BalanceStore, *Error) {
 	b := new(bytes.Buffer)
 	err := json.NewEncoder(b).Encode(txRq)
 
@@ -856,15 +960,26 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 			return TransactionStore{}, finalErr
 		}
 	}
+	var lastTx restTransactionRequest
+	var balance BalanceStore
+	lastTx, balance, finalErr = i.getLastGamestate(queryResp.LastTx, queryResp.Metadata.VendorInfo.LastAttemptedTx)
 
+	if balance.Token == "" {
+		balance.Token = Token(lastTx.Token)
+		balance.FreeGames = FreeGamesStore{queryResp.FreeGames.NrGames, queryResp.FreeGames.CampaignRef}
+		balance.Balance = engine.Money{
+			Currency: lastTx.Currency,
+			Amount:   engine.Fixed(lastTx.Amount * 10000),
+		}
+	}
 	roundStatus := RoundStatusOpen
 
-	if queryResp.CloseRound {
+	if lastTx.CloseRound {
 		roundStatus = RoundStatusClose
 	}
 
-	if len(queryResp.GameState) > 0 {
-		gameState, err = base64.StdEncoding.DecodeString(queryResp.GameState)
+	if len(lastTx.GameState) > 0 {
+		gameState, err = base64.StdEncoding.DecodeString(lastTx.GameState)
 
 		finalErr = i.errorBase64(err)
 		if finalErr != nil {
@@ -875,26 +990,24 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 	//	logger.Infof("%v request took %v for account %v", ApiTypeBalance, time.Now().Sub(start).String(), balResp.PlayerId)
 	//}
 	return TransactionStore{
-		TransactionId: queryResp.TxRef,
-		Token:         Token(queryResp.Token),
-		Mode:          Mode(queryResp.Mode),
-		Category:      Category(queryResp.Category),
-		RoundStatus:   roundStatus,
-		PlayerId:      "", //TODO: fix this
-		GameId:        queryResp.Game,
-		RoundId:       queryResp.Round,
-		Amount: engine.Money{
-			Currency: queryResp.Currency,
-			Amount:   engine.Fixed(queryResp.Amount * 10000),
-		},
+		TransactionId: lastTx.TxRef,
+		Token:               balance.Token, // the token returned in the queryResp is the token used to make the tx call, not a new token
+		Mode:                mode,
+		Category:            Category(lastTx.Category),
+		RoundStatus:         roundStatus,
+		PlayerId:            "", //TODO: fix this
+		GameId:              lastTx.Game,
+		RoundId:             lastTx.Round,
+		Amount:              balance.Balance,
 		ParentTransactionId: "",         //TODO: fix this
 		TxTime:              time.Now(), //TODO: fix this
 		GameState:           gameState,
 		BetLimitSettingCode: queryResp.BetLimit,
-		FreeGames:      FreeGamesStore{queryResp.FreeGames.NrGames, queryResp.FreeGames.CampaignRef},
-		WalletStatus:   queryResp.InternalStatus,
+		FreeGames:           balance.FreeGames,
+		WalletStatus:        lastTx.InternalStatus,
 	}, nil
 }
+
 
 func (i *RemoteServiceImpl) restQueryResponse(response *http.Response) restQueryResponse {
 	defer response.Body.Close()
@@ -904,70 +1017,6 @@ func (i *RemoteServiceImpl) restQueryResponse(response *http.Response) restQuery
 	return data
 }
 
-func (i *LocalServiceImpl) GameStateByGameId(token Token, mode Mode, gameId string) (GameStateStore, *Error) {
-	// Used in ClientState call to retrieve Gamestate to send to endround
-	logger.Debugf("LocalServiceImpl.GameStateByGameId([%v], [%v], [%v])", token, mode, gameId)
-	transaction, _ := i.TransactionByGameId(token, mode, gameId)
-
-	return GameStateStore{
-		GameState: transaction.GameState,
-		WalletInternalStatus: 1,
-	}, nil
-
-}
-
-func (i *RemoteServiceImpl) GameStateByGameId(token Token, mode Mode, gameId string) (GameStateStore, *Error) {
-	// Used in ClientState call to retrieve Gamestate to send to endround
-	gameStateRq := restGameStateRequest{
-		ReqId:    uuid.NewV4().String(),
-		Token:    string(token),
-		Game:     gameId,
-		Platform: i.defaultPlatform,
-		Mode:     strings.ToLower(string(mode)),
-	}
-
-	b := new(bytes.Buffer)
-	err := json.NewEncoder(b).Encode(gameStateRq)
-
-	finalErr := i.errorJson(err)
-	if finalErr != nil {
-		return GameStateStore{}, finalErr
-	}
-
-	resp, err := i.request(ApiTypeGameState, b)
-
-	finalErr = i.errorRest(err)
-	if finalErr != nil {
-		return GameStateStore{}, finalErr
-	}
-
-	finalErr = i.errorHttpStatusCode(resp.StatusCode)
-	if finalErr != nil {
-		return GameStateStore{}, finalErr
-	}
-
-	var gameState []byte = nil
-	gameStateResp := i.restGameStateResponse(resp)
-	logger.Debugf("gamestate resp: %#v", gameStateResp)
-	finalErr = i.errorResponseCode(gameStateResp.ResponseCode)
-	if finalErr != nil {
-		return GameStateStore{}, finalErr
-	}
-
-	if len(gameStateResp.GameState) > 0 {
-		gameState, err = base64.StdEncoding.DecodeString(gameStateResp.GameState)
-
-		finalErr = i.errorBase64(err)
-		if finalErr != nil {
-			return GameStateStore{}, finalErr
-		}
-	}
-
-	return GameStateStore{
-		GameState: gameState,
-		WalletInternalStatus: gameStateResp.InternalStatus,
-	}, nil
-}
 
 func (i *RemoteServiceImpl) restGameStateResponse(response *http.Response) restGameStateResponse {
 	defer response.Body.Close()
