@@ -119,10 +119,9 @@ func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestat
 	}
 	// for engine VII make retrigger multiplier increments automatically
 	var reelSetIndex int
-	if engineID == "mvgEngineVII" && (strings.HasPrefix(forceID, "Retrigger") || strings.HasSuffix(forceID, "scatter")) && strings.HasPrefix(actions[0], "freespin"){
+	if engineID == "mvgEngineVII" && (strings.HasPrefix(forceID, "retrigger") || strings.HasSuffix(forceID, "scatter")) && strings.HasPrefix(actions[0], "freespin"){
 		reelSetIndex, _ = strconv.Atoi(strings.Split(previousGamestate.GameID, ":")[1])
 		isScatter := strings.HasSuffix(forceID, "scatter")
-		logger.Debugf("ReelsetIndex: %d Scatter: %v", reelSetIndex, isScatter)
 		if reelSetIndex >= 5 &&  reelSetIndex < 8 { // reelset 5 and above are freespins
 			if isScatter {
 				fsAction := reelSetIndex - 3
@@ -144,6 +143,8 @@ func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestat
 
 		}
 	}
+
+	logger.Debugf("Engine: %s ForceID: %s ReelsetID: %d", engineID, forceID, reelSetIndex)
 	var gamestate engine.Gamestate
 	for _, force := range forces {
 		if force.ID == forceID {
