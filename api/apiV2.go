@@ -32,8 +32,8 @@ func getGameLink(request *http.Request) GameLinkResponse {
 func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 	//
 	gameSlug := request.FormValue("game")
-	operator := request.FormValue("operator")
-	mode := request.FormValue("mode")
+	operator := request.FormValue("operator") // required
+	mode := request.FormValue("mode") // required
 	params := request.URL.Query()
 	currency := params.Get("currency")
 	logger.Debugf("Game: %v; operator: %v; mode: %v; request: %#v", gameSlug, operator, mode, request)
@@ -53,12 +53,13 @@ func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 	}
 	var player store.PlayerStore
 	var latestGamestate engine.Gamestate
+
 	latestGamestate, player, err = store.InitPlayerGS(authToken, authToken, gameSlug, currency, wallet)
 
 	if err != nil {
 		return GameInitResponseV2{}, err
 	}
-	giResp := fillGameInitPreviousGameplay(latestGamestate, store.BalanceStore{Balance: player.Balance, Token: player.Token}, gameSlug)
+	giResp := fillGameInitPreviousGameplay(latestGamestate, store.BalanceStore{Balance: player.Balance, Token: player.Token})
 	giResp.FillEngineInfo(engineConfig)
 	logger.Debugf("reel response: %v", giResp.ReelSets)
 
@@ -86,45 +87,13 @@ func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 }
 
 func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
+	clientID := chi.URLParam(request, "lastID")
+	if clientID == "" {
+		return playFirst(request)
+	}
 	authHeader := request.Header.Get("Authorization")
-	gameSlug := chi.URLParam(request, "gameSlug")
-	wallet := request.FormValue("wallet")
-	clientID := request.FormValue("lastGS")
-	logger.Debugf("Auth string: %v", authHeader)
-	memID := strings.Trim(strings.Split(authHeader, " ")[1], "\"")
-	logger.Debugf("memID: %v", memID)
-	var txStore store.TransactionStore
-	var previousGamestate engine.Gamestate
-	var err *store.Error
-	switch wallet {
-	case "demo":
-		txStore, err = store.ServLocal.TransactionByGameId(store.Token(memID), store.ModeDemo, gameSlug)
-	case "dashur":
-		txStore, err = store.Serv.TransactionByGameId(store.Token(memID), store.ModeReal, gameSlug)
-	default:
-		logger.Errorf("No such wallet '%v': %#v", wallet, request)
-	}
-	logger.Infof("txstore: %v, err: %v", txStore, err)
-	if err != nil {
-		// if there is an error retrieving last tx, it may be that this is the first gameplay on this game for this player. if so ,handle appropriately
-		if err.Code == store.ErrorCodeEntityNotFound {
-			// this is first gameplay
-			txStore, previousGamestate = getInitPlayValues(request, clientID, memID, gameSlug)
-		} else {
-			//this is a real error
-			// todo: get rgserr from store
-			return GameplayResponseV2{}, rgserror.ErrGenericWalletErr
-		}
-	} else {
-		previousGamestate = store.DeserializeGamestateFromBytes(txStore.GameState)
-	}
-	// check if the gsID passed in by the client matches that retrieved from the wallet
-	if clientID != previousGamestate.Id {
-		return GameplayResponseV2{}, rgserror.ErrSpinSequence
-	}
-
-
 	// get parameters from post form
+
 	decoder := json.NewDecoder(request.Body)
 	var data engine.GameParams
 	decoderror := decoder.Decode(&data)
@@ -134,14 +103,30 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 		return GameplayResponseV2{}, rgserror.ErrGamestateStore
 	}
 
-	if data.Action == "" {
-		data.Action = "base"
-	}
-	minBet, data, betValidationErr := validateBet(data, txStore, previousGamestate, gameSlug)
-	if betValidationErr != nil {
-		return GameplayResponseV2{}, betValidationErr
-	}
+	memID := strings.Trim(strings.Split(authHeader, " ")[1], "\"")
 
+	var txStore store.TransactionStore
+	var previousGamestate engine.Gamestate
+	var err *store.Error
+	switch data.Wallet {
+	case "demo":
+		txStore, err = store.ServLocal.TransactionByGameId(store.Token(memID), store.ModeDemo, data.Game)
+	case "dashur":
+		txStore, err = store.Serv.TransactionByGameId(store.Token(memID), store.ModeReal, data.Game)
+	default:
+		logger.Errorf("No such wallet '%v': %#v", data.Wallet, request)
+	}
+	logger.Infof("txstore: %v, err: %v", txStore, err)
+	if err != nil {
+		// there would be an error on the first gameplay, but first gameplay should be routed to playFirst
+		// todo: get rgserr from store
+		return GameplayResponseV2{}, rgserror.ErrGenericWalletErr
+	}
+	previousGamestate = store.DeserializeGamestateFromBytes(txStore.GameState)
+	// check if the gsID passed in by the client matches that retrieved from the wallet
+	if clientID != previousGamestate.Id {
+		return GameplayResponseV2{}, rgserror.ErrSpinSequence
+	}
 
 	// add suffix to gamestate in case this is a retry attempt
 	switch txStore.WalletStatus {
@@ -158,9 +143,78 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 		// it should always be one of the above three
 		return GameplayResponseV2{}, rgserror.ErrGenericWalletErr
 	}
+
+ 	return getRoundResults(data, previousGamestate, txStore)
+}
+
+func playFirst(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
+	authHeader := request.Header.Get("Authorization")
+
+	// get parameters from post form
+	decoder := json.NewDecoder(request.Body)
+	var data engine.GameParams
+	decoderror := decoder.Decode(&data)
+
+	if decoderror != nil {
+		logger.Debugf("Unable to decode request body: %#v, %v", request.Body, decoderror.Error())
+		return GameplayResponseV2{}, rgserror.ErrBadConfig
+	}
+	errV := data.Validate()
+	if errV != nil {
+		return GameplayResponseV2{}, errV
+	}
+
+	memID := strings.Trim(strings.Split(authHeader, " ")[1], "\"")
+	var player store.PlayerStore
+	var latestGamestateStore store.GameStateStore
+	var err *store.Error
+	var initGS engine.Gamestate
+
+	switch data.Wallet {
+	case "dashur":
+		player, latestGamestateStore, err = store.Serv.PlayerByToken(store.Token(memID), store.ModeReal, data.Game)
+	case "demo":
+		player, latestGamestateStore, err = store.ServLocal.PlayerByToken(store.Token(memID), store.ModeDemo, data.Game)
+	default:
+		return GameplayResponseV2{}, rgserror.ErrBadConfig
+	}
+	if err != nil {
+		// todo: get exact rgserr from store
+		return GameplayResponseV2{}, rgserror.ErrGenericWalletErr
+	}
+
+	// because this is the first round, there should be no previous gamestate
+	if len(latestGamestateStore.GameState) != 0 {
+		return GameplayResponseV2{}, rgserror.ErrSpinSequence
+	}
+
+	// this is first gameplay
+	initGS = store.CreateInitGS(player, data.Game)
+	txStoreInit := store.TransactionStore{
+		RoundStatus:         store.RoundStatusClose,
+		BetLimitSettingCode: player.BetLimitSettingCode,
+		PlayerId: player.PlayerId,
+		FreeGames: player.FreeGames,
+		Token: player.Token,
+	}
+
+	// don't need to worry about the wallet status as the GS ID is randomly generated on reload
+
+	return getRoundResults(data, initGS, txStoreInit)
+}
+
+
+func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate, txStore store.TransactionStore) (GameplayResponseV2, rgserror.IRGSError) {
+
+
+	minBet, data, betValidationErr := validateBet(data, txStore, data.Game)
+	if betValidationErr != nil {
+		return GameplayResponseV2{}, betValidationErr
+	}
+
 	gamestate, _ := engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
 	if config.GlobalConfig.DevMode == true {
-		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, gameSlug, txStore.PlayerId)
+		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, data.Game, txStore.PlayerId)
 		if err == nil {
 			logger.Warnf("Forcing gamestate: %v", forcedGamestate)
 			gamestate = forcedGamestate
@@ -176,19 +230,20 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 		freeGameRef = txStore.FreeGames.CampaignRef
 		logger.Warnf("Free game campaign %v", freeGameRef)
 	}
+	var storeErr *store.Error
 
 	// settle transactions
 	var balance store.BalanceStore
 	token := txStore.Token
 	for _, transaction := range gamestate.Transactions {
 		gs := store.SerializeGamestateToBytes(gamestate)
-		txStore := store.TransactionStore{
+		tx := store.TransactionStore{
 			TransactionId:       transaction.Id,
 			Token:               token,
 			Category:            store.Category(transaction.Type),
 			RoundStatus:         store.RoundStatusOpen,
 			PlayerId:            txStore.PlayerId,
-			GameId:              gameSlug,
+			GameId:              data.Game,
 			RoundId:             gamestate.RoundID,
 			Amount:              transaction.Amount,
 			ParentTransactionId: "",
@@ -197,30 +252,23 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 			BetLimitSettingCode: txStore.BetLimitSettingCode,
 			FreeGames: 			 store.FreeGamesStore{NoOfFreeSpins:0, CampaignRef:freeGameRef},
 		}
-		switch wallet {
+		switch data.Wallet {
 		case "demo":
-			txStore.Mode = store.ModeDemo
-			balance, err = store.ServLocal.Transaction(token, store.ModeDemo, txStore)
+			tx.Mode = store.ModeDemo
+			balance, storeErr = store.ServLocal.Transaction(token, store.ModeDemo, tx)
 		case "dashur":
-			txStore.Mode = store.ModeReal
-			balance, err = store.Serv.Transaction(token, store.ModeReal, txStore)
+			tx.Mode = store.ModeReal
+			balance, storeErr = store.Serv.Transaction(token, store.ModeReal, tx)
 		}
 
-		if err != nil {
-			if err.Code == store.ErrorCodeNotEnoughBalance {
+		if storeErr != nil {
+			if storeErr.Code == store.ErrorCodeNotEnoughBalance {
 				return GameplayResponseV2{}, rgserror.ErrInsufficientFundError
 			}
 			return GameplayResponseV2{}, rgserror.ErrGenericWalletErr
 		}
 		token = balance.Token
 	}
-	//player := store.PlayerStore{Token: token, PlayerId: txStore.PlayerId}
-	// todo: need to pass token into response
-	//balanceResponse := BalanceResponse{
-	//	Amount:   balance.Balance.Amount.ValueAsString(),
-	//	Currency: balance.Balance.Currency,
-	//	FreeGames: balance.FreeGames.NoOfFreeSpins,
-	//}
-
 	return fillGamestateResponseV2(gamestate, balance), nil
 }
+

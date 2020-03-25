@@ -64,6 +64,7 @@ func validateParams(data engine.GameParams) engine.GameParams {
 	return data
 }
 // Play function for engines
+// todo: deprecate this once v1 api is no longer used
 func getInitPlayValues(request *http.Request, clientID string, memID string, gameSlug string) (txStore store.TransactionStore, previousGamestate engine.Gamestate) {
 	// we can expect error here on first gameplay, if error is entity not found then we can assume this is the first round
 	logger.Warnf("First gameplay for this player")
@@ -86,7 +87,7 @@ func getInitPlayValues(request *http.Request, clientID string, memID string, gam
 	return
 }
 
-func validateBet(data engine.GameParams, txStore store.TransactionStore, previousGamestate engine.Gamestate, gameSlug string) (bool, engine.GameParams, *rgserror.RGSError) {
+func validateBet(data engine.GameParams, txStore store.TransactionStore, game string) (bool, engine.GameParams, *rgserror.RGSError) {
 	minBet := false
 	if data.Action != "base" {
 		// stake value must be zero
@@ -100,7 +101,7 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, previou
 			return false, data, rgserror.ErrSpinSequence
 		}
 
-		stakeValues, _, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine, txStore.BetLimitSettingCode, gameSlug)
+		stakeValues, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, ""}, txStore.BetLimitSettingCode, game)
 		if err != nil {
 			logger.Warnf("Error: %v", err)
 			return false, data, rgserror.ErrInvalidStake
@@ -186,7 +187,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			data.SelectedWinLines = swl
 		}
 	}
-	minBet, data, betValidationErr := validateBet(data, txStore, previousGamestate, gameSlug)
+	minBet, data, betValidationErr := validateBet(data, txStore, gameSlug)
 	if betValidationErr != nil {
 		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, betValidationErr
 	}
@@ -232,7 +233,7 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	for _, transaction := range gamestate.Transactions {
 		gs := store.SerializeGamestateToBytes(gamestate)
 		status := store.RoundStatusOpen
-		txStore := store.TransactionStore{
+		tx := store.TransactionStore{
 			TransactionId:       transaction.Id,
 			Token:               token,
 			Category:            store.Category(transaction.Type),
@@ -249,11 +250,11 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 		}
 		switch wallet {
 		case "demo":
-			txStore.Mode = store.ModeDemo
-			balance, err = store.ServLocal.Transaction(token, store.ModeDemo, txStore)
+			tx.Mode = store.ModeDemo
+			balance, err = store.ServLocal.Transaction(token, store.ModeDemo, tx)
 		case "dashur":
-			txStore.Mode = store.ModeReal
-			balance, err = store.Serv.Transaction(token, store.ModeReal, txStore)
+			tx.Mode = store.ModeReal
+			balance, err = store.Serv.Transaction(token, store.ModeReal, tx)
 		}
 
 		if err != nil {

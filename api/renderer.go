@@ -681,6 +681,15 @@ func BuildForm(g engine.Gamestate, engineID string, showFeature ...bool) FormRes
 
 	return forms
 }
+func getPlayLink(gamestate engine.Gamestate, playerStore store.PlayerStore, request *http.Request, gameID string, mode string) (playHref string) {
+	playHref = fmt.Sprintf("%s%s/%s/rgs/play/%s/%s/%s",  GetURLScheme(request), request.Host, APIVersion, gameID, gamestate.Id, mode)
+	// determine if this is the first sham gamestate being rendered:
+	if len(gamestate.Transactions) == 0 {
+		playHref += fmt.Sprintf("?playerId=%v&ccy=%v&betLimitCode=%v&campaign=%v", playerStore.PlayerId, playerStore.Balance.Currency, playerStore.BetLimitSettingCode, playerStore.FreeGames.CampaignRef)
+		logger.Debugf("Rendering sham init gamestate: %v", gamestate)
+	}
+	return
+}
 
 func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance BalanceResponse, engineConf engine.EngineConfig, playerStore store.PlayerStore) GameplayResponse {
 	// generate gamestate response
@@ -715,16 +724,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 			TotalSpins:     totalSpins,
 		},
 	}
-	playHref := fmt.Sprintf("%s%s/%s/rgs/play/%s/%s/%s", urlScheme, request.Host, APIVersion, gameID, gamestate.Id, mode)
-	// determine if this is the first sham gamestate being rendered:
-	if len(gamestate.Transactions) == 0 {
-		playHref += fmt.Sprintf("?playerId=%v&ccy=%v&betLimitCode=%v", player.ID, player.Balance.Currency, playerStore.BetLimitSettingCode)
-		if playerStore.FreeGames.NoOfFreeSpins > 0 {
-			playHref +=fmt.Sprintf("&campaign=%v&numFG=%v", playerStore.FreeGames.CampaignRef, playerStore.FreeGames.NoOfFreeSpins)
-		}
-		logger.Debugf("Rendering sham init gamestate: %v", gamestate)
-
-	}
+	playHref := getPlayLink(gamestate, playerStore, request, gameID, mode)
 	gameInfo := &GameInfoResponse{CCY: player.Balance.Currency, HostName: operator, InterfaceName: mode, GameName: gameID, Version: "2"}
 	gpResponse := GameplayResponse{
 		Game:          *gameInfo,
