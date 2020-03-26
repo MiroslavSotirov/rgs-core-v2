@@ -192,6 +192,9 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 			data.SelectedWinLines = swl
 		}
 	}
+	if txStore.Amount.Currency == "" {
+		txStore.Amount.Currency = previousGamestate.BetPerLine.Currency
+	}
 	minBet, data, betValidationErr := validateBet(data, txStore, gameSlug)
 	if betValidationErr != nil {
 		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, betValidationErr
