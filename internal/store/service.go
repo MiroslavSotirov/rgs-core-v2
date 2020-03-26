@@ -527,10 +527,9 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 
 	var lastTransaction restTransactionRequest
 	var balance BalanceStore
-	lastTransaction, balance, finalErr = i.getLastGamestate(authResp.Metadata.VendorInfo.LastTx, authResp.Metadata.VendorInfo.LastAttemptedTx)
-	if finalErr != nil {
-		return PlayerStore{}, GameStateStore{}, finalErr
-	}
+	// we don't care about this error
+	lastTransaction, balance, _ = i.getLastGamestate(authResp.Metadata.VendorInfo.LastTx, authResp.Metadata.VendorInfo.LastAttemptedTx)
+
 	if balance.Token == "" {
 		balance.Token = Token(authResp.Token)
 		balance.FreeGames = FreeGamesStore{authResp.FreeGames.NrGames, authResp.FreeGames.CampaignRef}
@@ -576,10 +575,11 @@ func (i *RemoteServiceImpl) getLastGamestate(lastTx restTransactionRequest, last
 	// otherwise, check which tx it was that failed
 	// we assume there is never more than one pending/failed tx on top of the last successful tx
 	// because in freespins the PAYOUT tx is treated the same way as the WAGER in normal play, we need to check if this is the first tx of a gamestate
-	if len(lastAttemptedTx.GameState) == 0 {
-		err = &Error{ErrorCodeGeneralError, "No gamestate attached to previous tx"}
+	if len(lastAttemptedTx.GameState) == 0 || len(lastTx.GameState) == 0 {
+		err = &Error{ErrorCodeEntityNotFound, "No transaction history"}
 		return
 	}
+
 	gameState, errDecode := base64.StdEncoding.DecodeString(lastAttemptedTx.GameState)
 
 	err = i.errorBase64(errDecode)
@@ -964,6 +964,9 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 	var balance BalanceStore
 	lastTx, balance, finalErr = i.getLastGamestate(queryResp.LastTx, queryResp.Metadata.VendorInfo.LastAttemptedTx)
 
+	if finalErr != nil {
+		return TransactionStore{}, finalErr
+	}
 	if balance.Token == "" {
 		balance.Token = Token(lastTx.Token)
 		balance.FreeGames = FreeGamesStore{queryResp.FreeGames.NrGames, queryResp.FreeGames.CampaignRef}

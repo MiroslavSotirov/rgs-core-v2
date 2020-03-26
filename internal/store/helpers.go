@@ -105,5 +105,8 @@ func DeserializeGamestateFromBytesLegacy(serialized []byte) engine.Gamestate {
 		}
 		deserializedTX[i-1] = &deserialized
 	}
+	if len(deserializedTX) == 0 {
+		return engine.Gamestate{}
+	}
 	return deserializedGS.ConvertLegacy(deserializedTX)
 }

@@ -55,7 +55,7 @@ type GameplayResponseV2 struct {
 
 type BalanceResponseV2 struct {
 	Amount    engine.Money         `json:"amount"`
-	FreeGames store.FreeGamesStore `json:"freeGames"`
+	FreeGames int `json:"freeGames"`
 }
 
 // todo: incorporate this into gameplay response
@@ -112,7 +112,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		FSRemaining: len(gamestate.NextActions) - 1, // for now, assume all future actions besides finish are fs (perhaps change this to bonusRdsRemaining in future)
 		Balance:     BalanceResponseV2{
 			Amount:    balance.Balance,
-			FreeGames: store.FreeGamesStore{},
+			FreeGames: balance.FreeGames.NoOfFreeSpins,
 		},
 		View:        gamestate.SymbolGrid,
 		Prizes:      gamestate.Prizes,
@@ -120,9 +120,9 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 	return resp
 }
 
-func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance store.BalanceStore, gameId string) GameInitResponseV2 {
+func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance store.BalanceStore) GameInitResponseV2 {
 	var resp GameInitResponseV2
-	logger.Debugf("previousGamestate: %v; balance: %v; gameId: %v; auth: %v", previousGamestate, balance, gameId)
+	logger.Debugf("previousGamestate: %v; balance: %v; gameId: %v; auth: %v", previousGamestate, balance)
 	//if previousGamestate.Action != "" {
 	// otherwise, assume this is first gp round
 
@@ -130,7 +130,7 @@ func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance st
 	lastRound[previousGamestate.Action] = fillGamestateResponseV2(previousGamestate, balance)
 	resp.LastRound = lastRound
 	//}
-	resp.Name = gameId
+	resp.Name = previousGamestate.GameID
 	resp.Version = "2.0" // this is hardcoded for now
 	resp.Balance = balance.Balance
 	return resp

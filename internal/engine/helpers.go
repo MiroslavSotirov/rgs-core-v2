@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"io"
@@ -151,8 +152,18 @@ type GameParams struct {
 	Selection         string    `json:"selectedFeature"`
 	RespinReel        int       `json:"respinReel"`
 	Action            string    `json:"action"`
+	Game              string    `json:"game"`
+	Wallet            string    `json:"wallet"`
 	previousGamestate Gamestate // this cannot be passed in
 }
+
+func (p GameParams) Validate() (err rgserror.IRGSError) {
+	if p.Game == "" || p.Action == "" {
+		return rgserror.ErrBadConfig
+	}
+	return nil
+}
+
 
 func GetGameIDFromPB(gameID string) string {
 	// switch all uppercase to lowercase, all underscore to dash
