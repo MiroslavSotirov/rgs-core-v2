@@ -343,8 +343,12 @@ func Routes() *chi.Mux {
 				fmt.Fprint(w, []byte("ERROR"))
 				return
 			}
-
 			gamestateUnmarshalled := store.DeserializeGamestateFromBytes(txStore.GameState)
+			if len(gamestateUnmarshalled.NextActions) > 1 {
+				// we should not be closing a gameround if the last gamestate has more actions to be completed
+				fmt.Fprint(w, []byte("OK"))
+				return
+			}
 			gamestateUnmarshalled.Closed = true
 			roundId := gamestateUnmarshalled.RoundID
 			if roundId == "" {
