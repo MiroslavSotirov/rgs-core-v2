@@ -92,6 +92,11 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 	if data.Action != "base" {
 		// stake value must be zero
 		// todo: handle respin
+		// check that previous TX opened the round
+		if txStore.RoundStatus != store.RoundStatusOpen {
+			logger.Warnf("last TX should be open: %#v", txStore)
+			return false, data, rgserror.ErrSpinSequence
+		}
 		logger.Debugf("setting zero stake value for %v round", data.Action)
 		data.Stake = 0
 	} else {
