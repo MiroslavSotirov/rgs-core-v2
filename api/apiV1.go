@@ -101,7 +101,7 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 			return false, data, rgserror.ErrSpinSequence
 		}
 
-		stakeValues, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, ""}, txStore.BetLimitSettingCode, game)
+		stakeValues, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, txStore.Amount.Currency}, txStore.BetLimitSettingCode, game)
 		if err != nil {
 			logger.Warnf("Error: %v", err)
 			return false, data, rgserror.ErrInvalidStake
