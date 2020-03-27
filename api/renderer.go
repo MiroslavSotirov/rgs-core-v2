@@ -443,7 +443,7 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 			Winnings:        winnings.ValueAsFloat(),
 		}
 
-		if strings.Contains(p.Index, "freespin") {
+		if strings.Contains(p.Index, "freespin") || strings.Contains(p.Index, "scatter") {
 			win.Type = "scatter"
 			w := winnings.Mul(stakeDivisor).ValueAsFloat()
 			win.Winnings = w
