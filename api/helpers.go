@@ -1,8 +1,10 @@
 package api
 
 import (
+	"github.com/go-chi/chi"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"net/http"
 	"strings"
@@ -34,4 +36,25 @@ func processAuthorization(request *http.Request) (string, rgserror.IRGSError) {
 	}
 
 	return tokenInfo[1], nil
+}
+
+func PlayerBalance(r *http.Request) (GenericBalanceResponse, rgserror.IRGSError) {
+	authToken, err := processAuthorization(r)
+	if err != nil {
+		return GenericBalanceResponse{}, rgserror.ErrInvalidCredentials
+	}
+
+	logger.Debugf("AuthToken: [%v]", authToken)
+	memID := strings.Split(authToken, "=")[1]
+	memID = strings.Trim(memID, "'")
+	logger.Debugf("MemID: %s", memID)
+
+
+	wallet := chi.URLParam(r, "wallet")
+
+	money, token, err := store.PlayerBalance(memID, wallet)
+	if err != nil {
+		return GenericBalanceResponse{}, err
+	}
+	return GenericBalanceResponse{Token: token, Amount:money.Amount, Currency:money.Currency}, nil
 }
