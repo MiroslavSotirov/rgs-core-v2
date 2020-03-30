@@ -96,8 +96,12 @@ Authorization: MAVERICK-Host-Token abc-1234-def
 Response:
 ```json
 {
-  "host/verified-token":"wdTGazbjPmN9zfSfOn6FuJRmphrQrYDe68fV",
-  "amount":"4998.95",
-  "currency":"USD"
+ "host/verified-token":"6Ttml4S176h84GPyBSPT0GTag8fAIaHvRIB8",
+ "amount":{
+   "amount":"5001.35",
+   "currency":"USD"
+ },
+ "freeGames":0
 }
 ```
+
