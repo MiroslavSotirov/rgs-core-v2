@@ -40,22 +40,21 @@ type GameLinkResponse struct {
 //}
 
 type GameplayResponseV2 struct {
-	SessionID   store.Token `json:"host/verified-token"`
-	Stake       engine.Fixed
-	Win         engine.Fixed
-	CumWin      engine.Fixed      `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
+	SessionID store.Token `json:"host/verified-token"`
+	Stake     engine.Fixed
+	Win       engine.Fixed
+	CumWin    engine.Fixed `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
 	//CurrentSpin int               `json:"currentSpin"`             // is this really needed ??
 	FSRemaining int               `json:"freeSpinsRemaining,omitempty"`
 	Balance     BalanceResponseV2 `json:"balance"`
 	View        [][]int           `json:"view"` // includes row above and below
 	Prizes      []engine.Prize    `json:"wins"` // []WinResponseV2
-	NextAction string             `json:"nextAction"`
+	NextAction  string            `json:"nextAction"`
 }
 
-
 type BalanceResponseV2 struct {
-	Amount    engine.Money         `json:"amount"`
-	FreeGames int `json:"freeGames"`
+	Amount    engine.Money `json:"amount"`
+	FreeGames int          `json:"freeGames"`
 }
 
 // todo: incorporate this into gameplay response
@@ -103,19 +102,19 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 	}
 
 	resp := GameplayResponseV2{
-		SessionID:   balance.Token,
-		Stake:       stake,
-		Win:         win,
-		CumWin:      gamestate.CumulativeWin,
+		SessionID:  balance.Token,
+		Stake:      stake,
+		Win:        win,
+		CumWin:     gamestate.CumulativeWin,
 		NextAction: gamestate.NextActions[0],
 		//CurrentSpin: gamestate.PlaySequence,         // zero-indexed
 		FSRemaining: len(gamestate.NextActions) - 1, // for now, assume all future actions besides finish are fs (perhaps change this to bonusRdsRemaining in future)
-		Balance:     BalanceResponseV2{
+		Balance: BalanceResponseV2{
 			Amount:    balance.Balance,
 			FreeGames: balance.FreeGames.NoOfFreeSpins,
 		},
-		View:        gamestate.SymbolGrid,
-		Prizes:      gamestate.Prizes,
+		View:   gamestate.SymbolGrid,
+		Prizes: gamestate.Prizes,
 	}
 	return resp
 }

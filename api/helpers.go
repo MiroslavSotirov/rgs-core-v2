@@ -38,10 +38,10 @@ func processAuthorization(request *http.Request) (string, rgserror.IRGSError) {
 	return tokenInfo[1], nil
 }
 
-func PlayerBalance(r *http.Request) (GenericBalanceResponse, rgserror.IRGSError) {
+func PlayerBalance(r *http.Request) (BalanceCheckResponse, rgserror.IRGSError) {
 	authToken, err := processAuthorization(r)
 	if err != nil {
-		return GenericBalanceResponse{}, rgserror.ErrInvalidCredentials
+		return BalanceCheckResponse{}, rgserror.ErrInvalidCredentials
 	}
 
 	logger.Debugf("AuthToken: [%v]", authToken)
@@ -52,9 +52,9 @@ func PlayerBalance(r *http.Request) (GenericBalanceResponse, rgserror.IRGSError)
 
 	wallet := chi.URLParam(r, "wallet")
 
-	money, token, err := store.PlayerBalance(memID, wallet)
+	balance, err := store.PlayerBalance(memID, wallet)
 	if err != nil {
-		return GenericBalanceResponse{}, err
+		return BalanceCheckResponse{}, err
 	}
-	return GenericBalanceResponse{Token: token, Amount:money.Amount, Currency:money.Currency}, nil
+	return BalanceCheckResponse{Token: balance.Token, BalanceResponseV2: BalanceResponseV2{Amount:balance.Balance, FreeGames:balance.FreeGames.NoOfFreeSpins}}, nil
 }

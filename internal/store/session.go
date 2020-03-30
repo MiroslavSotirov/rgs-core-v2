@@ -66,7 +66,7 @@ func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.G
 	return
 }
 
-func PlayerBalance(token, wallet string) (engine.Money, Token, rgserror.IRGSError) {
+func PlayerBalance(token, wallet string) (BalanceStore ,rgserror.IRGSError) {
 	logger.Debugf("Token [%s] Wallet [%s]", token, wallet)
 	var balance BalanceStore
 	var err *Error
@@ -75,18 +75,18 @@ func PlayerBalance(token, wallet string) (engine.Money, Token, rgserror.IRGSErro
 		balance, err = Serv.BalanceByToken(Token(token), ModeReal)
 		if err != nil {
 			logger.Debugf("PlayerBalance Error: %v", &err)
-			return engine.Money{}, "", rgserror.ErrBalanceStoreError
+			return BalanceStore{}, rgserror.ErrBalanceStoreError
 		}
-		return engine.Money{Amount:balance.Balance.Amount, Currency:balance.Balance.Currency}, balance.Token,  nil
+		return balance,  nil
 	case "demo":
 		balance, err = ServLocal.BalanceByToken(Token(token), ModeDemo)
 		if err != nil {
 			logger.Debugf("PlayerBalance Error: %v", err)
-			return engine.Money{}, "", rgserror.ErrBalanceStoreError
+			return BalanceStore{}, rgserror.ErrBalanceStoreError
 		}
-		return engine.Money{Amount: balance.Balance.Amount, Currency: balance.Balance.Currency}, balance.Token,  nil
+		return balance,  nil
 	default:
 		logger.Debugf("PlayerBalance Error: %v", "No wallet specified")
-		return engine.Money{}, "", rgserror.ErrBalanceStoreError
+		return BalanceStore{}, rgserror.ErrBalanceStoreError
 	}
 }
