@@ -153,3 +153,48 @@ func TestLocalServiceImpl_Transaction(t *testing.T) {
 		t.Errorf("Value should not match [%v] <> [%v]", balance.Token, balance2.Token)
 	}
 }
+
+func TestLocalServiceImpl_BalanceByToken(t *testing.T) {
+	logger.NewLogger(logger.Configuration{})
+
+	serv := NewLocal()
+	token := Token("test-token-4")
+	money := engine.Money{
+		Currency: "USD",
+		Amount:   1000000,
+	}
+
+	player := PlayerStore{
+		Token:    token,
+		PlayerId: "id-4",
+		Username: "id-4-user",
+		Balance: money,
+		BetLimitSettingCode: "DEFAULT",
+		FreeGames:       FreeGamesStore{0,""},
+	}
+
+	player, err := serv.PlayerSave(token, ModeReal, player)
+	if err != nil {
+		t.Errorf("Error should not be displayed [%v]", err)
+	}
+
+	token = player.Token
+
+	balance, err := serv.BalanceByToken(token, ModeReal)
+
+	if err != nil {
+		t.Errorf("Error should not be displayed [%v]", err)
+	}
+
+	if balance.Balance.Amount != money.Amount {
+		t.Errorf("Value not match [%v] <> [%v]- ", money.Amount, balance.Balance.Amount)
+	}
+
+	if balance.Balance.Currency != money.Currency {
+		t.Errorf("Value not match [%v] <> [%v] - ",money.Currency, balance.Balance.Currency)
+	}
+
+	if balance.Token == token {
+		t.Errorf("Value should not match [%v] <> [%v]", token, balance.Token)
+	}
+}
