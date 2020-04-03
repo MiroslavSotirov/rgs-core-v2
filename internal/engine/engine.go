@@ -566,7 +566,7 @@ func (gamestate *Gamestate) PrepareActions(previousActions []string) {
 		for i := 1; i < len(previousActions)-1; i++ {
 			previousActions[i] = newActions[1]
 		}
-		newActions = newActions[2:]
+		newActions = newActions[1:]
 
 	case "replaceQueuedActions":
 		// if a new feature trigger cancels queued actions

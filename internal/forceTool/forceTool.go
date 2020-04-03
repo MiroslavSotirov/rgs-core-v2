@@ -164,6 +164,11 @@ func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestat
 				specialPayout, nextActions = engineDef.CalculatePayoutSpecialWin(specialWin)
 				relativePayout += specialPayout
 				wins = append(wins, specialWin)
+				// special handling for engine 7
+				if engineID == "mvgEngineVII" && len(nextActions) > 0 {
+					nextActions = append([]string{"replaceQueuedActionType"}, nextActions...)
+
+				}
 			}
 			// get Multiplier
 			multiplier := 1

@@ -163,7 +163,7 @@ func TestPrepareActions(t *testing.T) {
 	// test replaceQueuedActionType
 	testGS = Gamestate{NextActions: []string{"replaceQueuedActionType", "B"}}
 	testGS.PrepareActions([]string{"A", "A", "A", "A", "finish"})
-	want = []string{"B", "B", "B", "finish"}
+	want = []string{"B", "B", "B", "B", "finish"}
 	if !compareNextActions(testGS, want) {
 		t.Errorf("replaceQueuedActionType error, got %v, expected %v", testGS.NextActions, want)
 	}
