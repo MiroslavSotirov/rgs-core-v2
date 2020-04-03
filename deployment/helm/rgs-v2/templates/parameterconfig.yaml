@@ -49,6 +49,7 @@ data:
       RUB: 0.5
       KZT: 3.5
       NOK: 0.01
+      AMD: 5
 
     profiles:
       low:

@@ -30,6 +30,11 @@ enum Ccy {
   ZAR = 12;
   XBT = 13;
   TRY = 14;
+  AMD = 15;
+  NOK = 16;
+  SEK = 17;
+  RUB = 18;
+  KZT = 19;
 }
 
 message WalletTransactionPB {
