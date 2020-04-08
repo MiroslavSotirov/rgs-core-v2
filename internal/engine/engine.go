@@ -464,10 +464,10 @@ func (gamestate *Gamestate) UpdateGamification(previousGS Gamestate, gameSlug st
 			logger.Debugf("IncrementSpins: sky-jewels")
 			gamestate.Gamification.IncrementSpins(randomRangeInt32(50, 20), 6)
 		}
-	case "asia-drift":
+	case "drift":
 		// ignore freespin
 		if !isFreespin(gamestate, previousGS){
-			logger.Debugf("IncrementSpins: asia-drift")
+			logger.Debugf("IncrementSpins: drift")
 			gamestate.Gamification.IncrementSpins(randomRangeInt32(50, 30), 5)
 		}
 	case "goal", "cookoff-champion":
