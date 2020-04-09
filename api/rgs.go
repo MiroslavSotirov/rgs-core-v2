@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
@@ -404,6 +406,47 @@ func Routes() *chi.Mux {
 				return
 			}
 		})
+		r.Post("/setlastgs", func(w http.ResponseWriter, r *http.Request) {
+			// force a specific gamestate
+			token := r.FormValue("token")
+			gs := r.FormValue("gamestate")
+			gsbytes, serr := base64.StdEncoding.DecodeString(gs)
+			if serr != nil {
+				logger.Errorf("error : %v", serr)
+				return
+			}
+			gamestate := store.DeserializeGamestateFromBytes(gsbytes)
+			gameID, _ := engine.GetGameIDAndReelset(gamestate.GameID)
+			player, _, err := store.ServLocal.PlayerByToken(store.Token(token), store.ModeDemo, gameID)
+			if err != nil {
+				logger.Errorf("error : %v", err)
+				return
+			}
+			logger.Debugf("gamestate: %#v", gamestate)
+			_, err = store.ServLocal.Transaction(player.Token, store.ModeDemo, store.TransactionStore{
+				TransactionId:       "",
+				Token:               "",
+				Mode:                store.ModeDemo,
+				Category:            store.CategoryPayout,
+				RoundStatus:         store.RoundStatusOpen,
+				PlayerId:            player.PlayerId,
+				GameId:              gameID,
+				RoundId:             gamestate.RoundID,
+				Amount:              gamestate.Transactions[0].Amount,
+				ParentTransactionId: "",
+				TxTime:              time.Now(),
+				BetLimitSettingCode: "",
+				GameState:           gsbytes,
+				FreeGames:           store.FreeGamesStore{},
+				WalletStatus:        0,
+			})
+			if err != nil {
+				logger.Errorf("error : %v", err)
+				return
+			}
+			logger.Infof("it worked")
+		})
+
 		r.Delete("/force", func(w http.ResponseWriter, r *http.Request) {
 			var param forceTool.ForceToolParams
 			err := json.NewDecoder(r.Body).Decode(&param)
