@@ -434,7 +434,6 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	gamestate.PrepareActions(actions)
 	gamestate.Gamification = previousGamestate.Gamification
 	gamestate.UpdateGamification(previousGamestate, gameID)
-	logger.Debugf("Next actions after processing: %v", gamestate.NextActions)
 
 	gamestate.GameID = gameID + gamestate.GameID // engineDef should be set in method
 	gamestate.Id = previousGamestate.NextGamestate
@@ -443,6 +442,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	nextID := rng.RandStringRunes(16)
 	gamestate.NextGamestate = nextID
 	gamestate.PrepareTransactions(previousGamestate)
+	logger.Debugf("gamestate: %#v", gamestate)
 
 	return gamestate, engineConf
 }
@@ -749,13 +749,14 @@ func (engine EngineDef) SelectPrize(parameters GameParams) Gamestate {
 		return Gamestate{}
 	}
 	relativePayout, nextActions := engine.CalculatePayoutSpecialWin(specialWin)
-
-	// hack for engine III, this should be more flexible in future:
-	gamestate := engine.BaseRound(parameters)
-	gamestate.NextActions = append(nextActions[1:], gamestate.NextActions...)
-	gamestate.RelativePayout += relativePayout
+	// get Multiplier
+	multiplier := 1
+	if len(engine.Multiplier.Multipliers) > 0 {
+		multiplier = SelectFromWeightedOptions(engine.Multiplier.Multipliers, engine.Multiplier.Probabilities)
+	}
 	// Build gamestate
-	//gamestate := Gamestate{GameID: fmt.Sprintf(":%v", engine.Index), Prizes: []Prize{specialWin}, NextActions: nextActions, RelativePayout: relativePayout, Multiplier: 1} // most often, relativePayout will be zero
+
+	gamestate := Gamestate{GameID: fmt.Sprintf(":%v", engine.Index), Prizes: []Prize{specialWin}, NextActions: nextActions, RelativePayout: relativePayout, Multiplier: multiplier, SelectedWinLines: parameters.previousGamestate.SelectedWinLines} // most often, relativePayout will be zero
 	return gamestate
 }
 

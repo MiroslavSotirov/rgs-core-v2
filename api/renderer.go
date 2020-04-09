@@ -511,7 +511,10 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 	for _, el := range gamestate.SelectedWinLines {
 		selectedWinLines = append(selectedWinLines, strconv.Itoa(el))
 	}
-
+	// hack for engine iii
+	if engineID == "mvgEngineIII" && gamestate.PlaySequence == 2 {
+		action = "feature_select"
+	}
 	gsResponse := GamestateResponse{
 		Id:                   gamestate.Id,
 		Action:               action,

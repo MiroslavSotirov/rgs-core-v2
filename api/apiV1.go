@@ -37,9 +37,23 @@ func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, en
 }
 
 func renderNextGamestate(request *http.Request) (GameplayResponse, rgserror.IRGSError) {
-	gamestate, player, balance, engineConf, err := play(request)
+	logger.Debugf("engine3, calculating next round: %#v", request.Body)
+	decoder := json.NewDecoder(request.Body)
+	var data engine.GameParams
+	decodeerr := decoder.Decode(&data)
+	if decodeerr != nil {
+		logger.Errorf("Unable to decode request body: %s", decodeerr.Error())
+		return GameplayResponse{}, rgserror.ErrGamestateStore
+	}
+	gamestate, player, balance, engineConf, err := play(request, data)
 	if err != nil {
 		return GameplayResponse{}, err
+	}
+	if gamestate.Action == "pickSpins" {
+		// hack for engine III
+		request.Header.Set("Authorization", "\""+string(player.Token))
+		logger.Debugf("engine3, calculating next round: %#v", request.Body)
+		gamestate, player, balance, engineConf, err = play(request, data)
 	}
 	return renderGamestate(request, gamestate, balance, engineConf, player), nil
 }
@@ -133,7 +147,7 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 	return minBet, data, nil
 }
 
-func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceResponse, engine.EngineConfig, rgserror.IRGSError) {
+func play(request *http.Request, data engine.GameParams) (engine.Gamestate, store.PlayerStore, BalanceResponse, engine.EngineConfig, rgserror.IRGSError) {
 	authHeader := request.Header.Get("Authorization")
 	gameSlug := chi.URLParam(request, "gameSlug")
 	wallet := chi.URLParam(request, "wallet")
@@ -171,17 +185,14 @@ func play(request *http.Request) (engine.Gamestate, store.PlayerStore, BalanceRe
 	// check that previous gamestate matches what the client expects
 	logger.Debugf("Previous id: %v, requested id: %v", previousGamestate.Id, clientID)
 	if clientID != previousGamestate.Id {
-		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrSpinSequence
+		// make an exception for engine iii, where on pickSpins the clientID should match the previous previous ID
+		if previousGamestate.Action != "pickSpins" || clientID != previousGamestate.PreviousGamestate {
+			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrSpinSequence
+		}
 	}
 	logger.Debugf("Previous Gamestate: %v", previousGamestate)
 	// get parameters from post form (perhaps this should be handled POST func)
-	decoder := json.NewDecoder(request.Body)
-	var data engine.GameParams
-	decodeerr := decoder.Decode(&data)
-	if decodeerr != nil {
-		logger.Errorf("Unable to decode request body: %s", decodeerr.Error())
-		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrGamestateStore
-	}
+
 	data = validateParams(data)
 
 	// bugfix for engine xiii (this should really be fixed in the client)
