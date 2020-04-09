@@ -33,6 +33,11 @@ The Parameter Selector works as follows:
   - MYR: 0.02
   - IDR: 100
   - XBT: 0.004
+  - SEK: 0.01
+  - RUB: 0.5
+  - KZT: 3.5
+  - NOK: 0.01
+  - AMD: 5
 3. Certain bet profiles have been configured in parameterConfig.yml. More can be added. The values that may be set are:
 	- min: the starting index to take from the base list
 	- max: the ending index to take from the base list (N.B. this will result in an error if it is less than min)

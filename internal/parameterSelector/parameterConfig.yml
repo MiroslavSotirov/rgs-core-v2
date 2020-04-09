@@ -35,6 +35,11 @@ ccyMultipliers:
   XBT: 0.004
   TRY: 0.05
   BRL: 0.04
+  SEK: 0.01
+  RUB: 0.5
+  KZT: 3.5
+  NOK: 0.01
+  AMD: 5
 
 profiles:
   low:

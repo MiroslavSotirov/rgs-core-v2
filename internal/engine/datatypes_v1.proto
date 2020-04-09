@@ -30,6 +30,11 @@ enum Ccy {
   ZAR = 12;
   XBT = 13;
   TRY = 14;
+  AMD = 15;
+  NOK = 16;
+  SEK = 17;
+  RUB = 18;
+  KZT = 19;
 }
 
 message WalletTransactionPB {
@@ -88,7 +93,7 @@ message GamestatePB {
   CANDY_SMASH = 38;
   VALLEY_OF_KINGS=39;
   CRAZY_EASTER_EGGS=40;
-  ASIA_DRIFT=41;
+  DRIFT=41;
   }
   GameID game_id = 1;
   int32 engine_def = 2;
