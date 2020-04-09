@@ -409,7 +409,12 @@ func Routes() *chi.Mux {
 		r.Post("/setlastgs", func(w http.ResponseWriter, r *http.Request) {
 			// force a specific gamestate
 			token := r.FormValue("token")
+			if config.GlobalConfig.DashurConfig.StoreRemoteUrl != "https://gnrc-api.dashur.io/v1/gnrc/maverick" {
+				logger.Errorf("Can't force last gs on non-staging env")
+				return
+			}
 			gs := r.FormValue("gamestate")
+			wallet := r.FormValue("wallet")
 			gsbytes, serr := base64.StdEncoding.DecodeString(gs)
 			if serr != nil {
 				logger.Errorf("error : %v", serr)
@@ -423,23 +428,45 @@ func Routes() *chi.Mux {
 				return
 			}
 			logger.Debugf("gamestate: %#v", gamestate)
-			_, err = store.ServLocal.Transaction(player.Token, store.ModeDemo, store.TransactionStore{
-				TransactionId:       "",
-				Token:               "",
-				Mode:                store.ModeDemo,
-				Category:            store.CategoryPayout,
-				RoundStatus:         store.RoundStatusOpen,
-				PlayerId:            player.PlayerId,
-				GameId:              gameID,
-				RoundId:             gamestate.RoundID,
-				Amount:              gamestate.Transactions[0].Amount,
-				ParentTransactionId: "",
-				TxTime:              time.Now(),
-				BetLimitSettingCode: "",
-				GameState:           gsbytes,
-				FreeGames:           store.FreeGamesStore{},
-				WalletStatus:        0,
-			})
+			switch wallet {
+			case "demo":
+				_, err = store.ServLocal.Transaction(player.Token, store.ModeDemo, store.TransactionStore{
+					TransactionId:       gamestate.Transactions[0].Id,
+					Token:               "",
+					Mode:                store.ModeDemo,
+					Category:            store.CategoryPayout,
+					RoundStatus:         store.RoundStatusOpen,
+					PlayerId:            player.PlayerId,
+					GameId:              gameID,
+					RoundId:             gamestate.RoundID,
+					Amount:              gamestate.Transactions[0].Amount,
+					ParentTransactionId: "",
+					TxTime:              time.Now(),
+					BetLimitSettingCode: "",
+					GameState:           gsbytes,
+					FreeGames:           store.FreeGamesStore{},
+					WalletStatus:        0,
+				})
+			case "dashur":
+				_, err = store.Serv.Transaction(player.Token, store.ModeReal, store.TransactionStore{
+					TransactionId:       gamestate.Transactions[0].Id,
+					Token:               "",
+					Mode:                store.ModeReal,
+					Category:            store.CategoryPayout,
+					RoundStatus:         store.RoundStatusOpen,
+					PlayerId:            player.PlayerId,
+					GameId:              gameID,
+					RoundId:             gamestate.RoundID,
+					Amount:              gamestate.Transactions[0].Amount,
+					ParentTransactionId: "",
+					TxTime:              time.Now(),
+					BetLimitSettingCode: "",
+					GameState:           gsbytes,
+					FreeGames:           store.FreeGamesStore{},
+					WalletStatus:        0,
+				})
+			}
+
 			if err != nil {
 				logger.Errorf("error : %v", err)
 				return
