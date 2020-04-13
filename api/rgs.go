@@ -103,7 +103,7 @@ func Routes() *chi.Mux {
 
 			parameters := ParameterResponse{
 				StakeValues:  stakeValuesString,
-				DefaultStake: defaultBet.ValueAsFloat(),
+				DefaultStake: defaultBet.ValueAsString(),
 				SessionID:    player.Token,
 			}
 
@@ -219,7 +219,7 @@ func Routes() *chi.Mux {
 			forms := BuildForm(previousGamestate, engineID, false)
 			gameInit := GameInitResponse{
 				Schema:     DefaultSchema,
-				Balance:    player.Balance.Amount.ValueAsFloat(),
+				Balance:    player.Balance.Amount.ValueAsString(),
 				Currency:   player.Balance.Currency,
 				Parameters: parameters,
 				Player:     gamestateResponse.Player,

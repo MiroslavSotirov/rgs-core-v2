@@ -14,10 +14,10 @@ import (
 type PlaycheckFields struct {
 	Gamestate  engine.Gamestate
 	GameID     string
-	Wager      float32
-	Payout     float32
+	Wager      string
+	Payout     string
 	Currency   string
-	BetPerLine float32
+	BetPerLine string
 	SymbolGrid [][]int
 	ColSize    int
 }
@@ -59,7 +59,7 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 		}
 	}
 	gameplay := store.DeserializeGamestateFromBytes(gsbytes)
-
+	logger.Infof("gameplay : %#v", gameplay)
 	tpl := template.New("playcheck.html").Funcs(fm)
 	t, err := tpl.ParseFiles("templates/api/playcheck/playcheck.html")
 	if err != nil {
@@ -70,21 +70,21 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 
 	gameID, _ := engine.GetGameIDAndReelset(gameplay.GameID)
 	//t := template.Must(template.New("api/playcheck").Funcs(tplFuncMap).ParseGlob("*.html"))
-	var wager float32
-	var payout float32
+	var wager string
+	var payout string
 	for i := 0; i < len(gameplay.Transactions); i++ {
 		switch gameplay.Transactions[i].Type {
 		case "WAGER":
-			wager = gameplay.Transactions[i].Amount.Amount.ValueAsFloat()
+			wager = gameplay.Transactions[i].Amount.Amount.ValueAsString()
 		case "PAYOUT":
-			payout = gameplay.Transactions[i].Amount.Amount.ValueAsFloat()
+			payout = gameplay.Transactions[i].Amount.Amount.ValueAsString()
 		}
 	}
 
 	// transform symbolgrid
 	symbolGrid := engine.TransposeGrid(gameplay.SymbolGrid)
 	currency := gameplay.Transactions[0].Amount.Currency
-	betPerLine := gameplay.BetPerLine.Amount.ValueAsFloat()
+	betPerLine := gameplay.BetPerLine.Amount.ValueAsString()
 	colSize := len(symbolGrid[0])
 	fields := PlaycheckFields{gameplay, gameID, wager, payout, currency, betPerLine, symbolGrid, colSize}
 	err = t.Execute(w, fields)

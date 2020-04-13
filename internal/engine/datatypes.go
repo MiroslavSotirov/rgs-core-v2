@@ -97,7 +97,7 @@ func (f *Fixed) UnmarshalYAML(b []byte) error {
 }
 
 func (f *Fixed) MarshalYAML() ([]byte, error) {
-	s := f.ValueAsFloat()
+	s := f.ValueAsString()
 	return yaml.Marshal(&s)
 }
 
