@@ -1357,10 +1357,75 @@ data:
       reelsetId: 0
       stopList: [28, 15, 15, 30, 29]
 
+    - id: retrigger3
+      action: freespin
+      reelsetId: 1
+      stopList: [0,33,33,34,0]
+
+    - id: retrigger4
+      action: freespin
+      reelsetId: 1
+      stopList: [41,33,33,33,0]
+
+    - id: retrigger5
+      action: freespin
+      reelsetId: 1
+      stopList: [40,33,34,33,42]
+
     - id: scatterAndPay
       action: base
       reelsetId: 0
       stopList: [28, 15, 5, 30, 16]
+
+    - id: 5PicASpecialWild
+      action: base
+      reelsetId: 0
+      stopList: [4,16,11,6,11]
+
+    - id: 5PicBSpecialWild
+      action: base
+      reelsetId: 0
+      stopList: [24,41,38,6,2]
+
+    - id: 5PicCSpecialWild
+      action: base
+      reelsetId: 0
+      stopList: [5,12,26,6,5]
+
+    - id: 5PicDSpecialWild
+      action: base
+      reelsetId: 0
+      stopList: [3,34,15,6,18]
+
+    - id: 5PicESpecialWild
+      action: base
+      reelsetId: 0
+      stopList: [0,11,0,6,3]
+
+    - id: 5PicFSpecialWild
+      action: base
+      reelsetId: 0
+      stopList: [8,19,21,6,24]
+
+    - id: 5PicGSpecialWild
+      action: base
+      reelsetId: 0
+      stopList: [2,29,46,6,1]
+
+    - id: 5PicHSpecialWild
+      action: base
+      reelsetId: 0
+      stopList: [46,10,9,6,4]
+
+    - id: 5PicISpecialWild
+      action: base
+      reelsetId: 0
+      stopList: [6,47,24,6,19]
+
+    - id: 5PicJSpecialWild
+      action: base
+      reelsetId: 0
+      stopList: [13,19,16,7,9]
 
     - id: 3PicA
       action: base
@@ -1517,10 +1582,6 @@ data:
       reelsetId: 0
       stopList: [14,18,17,10,10]
 
-    - id: retrigger3
-      action: freespin
-      reelsetId: 1
-      stopList: [0,34,34,34,0]
 
 
 
