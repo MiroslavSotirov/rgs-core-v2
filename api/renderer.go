@@ -111,7 +111,7 @@ func (si SystemInit) Render(w http.ResponseWriter, r *http.Request) error {
 // GameInitResponse reponse
 type GameInitResponse struct {
 	Schema     string                 `json:"$schema,omitempty"`
-	Balance    float32                `json:"balance"`
+	Balance    string                 `json:"balance"`
 	Currency   string                 `json:"currency"`
 	Parameters ParameterResponse      `json:"parameters"`
 	Player     PlayerResponse         `json:"player"`
@@ -232,7 +232,7 @@ func GetPrizeDefResponse(engineConf engine.EngineConfig, engineID string) map[st
 // ParameterResponse ..
 type ParameterResponse struct {
 	StakeValues  string      `json:"stakeValues"`
-	DefaultStake float32     `json:"defaultStake"`
+	DefaultStake string     `json:"defaultStake"`
 	SessionID    store.Token `json:"host/verified-token"`
 }
 
@@ -333,13 +333,13 @@ type WinResponse struct {
 	ID              string         `json:"id"`           // "3:3"
 	PayoutFactor    int            `json:"payoutFactor"` // 10
 	PrizeResponse   *PrizeResponse `json:"prize,omitempty"`
-	ScatterWinnings float32        `json:"ScatterWinnings"`
-	Stake           float32        `json:"stake"`
+	ScatterWinnings string        `json:"ScatterWinnings"`
+	Stake           string        `json:"stake"`
 	Type            string         `json:"type"`
 	Symbol          int            `json:"symbol"`
 	SymbolPos       []int          `json:"symbolPos"`      // ["0", "1", "12"]
 	WildMultiplier  int            `json:"wildMultiplier"` // 1
-	Winnings        float32        `json:"winnings"`       // 0.1
+	Winnings        string        `json:"winnings"`       // 0.1
 	WinLine         *int           `json:"winLine,omitempty"`
 	StakeIndex      string         `json:"stake_index,omitempty"`
 	Frequency       string         `json:"freq, omitempty"`
@@ -436,16 +436,16 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 			Symbol:          p.Payout.Symbol,
 			Type:            winType,
 			PayoutFactor:    p.Payout.Multiplier,
-			ScatterWinnings: 0,
-			Stake:           stake.ValueAsFloat(),
+			ScatterWinnings: "",
+			Stake:           stake.ValueAsString(),
 			SymbolPos:       adjustedSymbolPositions,
 			WildMultiplier:  p.Multiplier,
-			Winnings:        winnings.ValueAsFloat(),
+			Winnings:        winnings.ValueAsString(),
 		}
 
 		if strings.Contains(p.Index, "freespin") || strings.Contains(p.Index, "scatter") {
 			win.Type = "scatter"
-			w := winnings.Mul(stakeDivisor).ValueAsFloat()
+			w := winnings.Mul(stakeDivisor).ValueAsString()
 			win.Winnings = w
 			win.ScatterWinnings = w
 
@@ -462,7 +462,7 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 
 		} else if strings.Contains(p.Index, "pickSpins") {
 			win.Type = "scatter"
-			w := winnings.Mul(stakeDivisor).ValueAsFloat()
+			w := winnings.Mul(stakeDivisor).ValueAsString()
 			win.Winnings = w
 			win.ScatterWinnings = w
 			pr := PrizeResponse{
@@ -478,7 +478,7 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 			win.WinLine = &wl
 		}
 		if strings.Contains(gameSlug, "seasons") {
-			win.Stake = gamestate.BetPerLine.Amount.ValueAsFloat()
+			win.Stake = gamestate.BetPerLine.Amount.ValueAsString()
 		}
 		wins[i] = win
 

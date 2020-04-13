@@ -409,6 +409,13 @@ func TestFixedFloatConversion(t *testing.T) {
 	}
 }
 
+func TestFixedStringConversion(t *testing.T) {
+	fixed := Fixed(18123900)
+	if fixed.ValueAsString() != "18.12" {
+		t.Errorf("Fixed string conversion failed, expected 18.12, got %v", fixed.ValueAsFloat())
+	}
+}
+
 func TestFixed_Sub(t *testing.T) {
 	fixed1 := Fixed(987654)
 	fixed2 := Fixed(28030)
