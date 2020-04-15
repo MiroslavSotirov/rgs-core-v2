@@ -305,7 +305,7 @@ func Routes() *chi.Mux {
 				return
 			}
 		})
-		r.Post("/play2/{lastID:[A-Za-z0-9-]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Post("/play2", func(w http.ResponseWriter, r *http.Request) {
 			gamestate, err := playV2(r)
 			if err != nil {
 				logger.Errorf("Error initializing game %s", err.Error())

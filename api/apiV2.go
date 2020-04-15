@@ -64,12 +64,12 @@ func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 	giResp.Wallet = wallet
 	// set stakevalues, links,
 	links := make(map[string]string, 1)
-	newGameHref := fmt.Sprintf("%s%s/%s/play2", GetURLScheme(request), request.Host, APIVersion)
+	newGameHref := fmt.Sprintf("%s%s/%s/rgs/play2", GetURLScheme(request), request.Host, APIVersion)
 	// handle initial gamestate
-	if len(latestGamestate.Transactions) == 0 {
-		newGameHref += fmt.Sprintf("&playerId=%v&ccy=%v&betLimitCode=%v&campaign=%v", player.PlayerId, player.Balance.Currency, player.BetLimitSettingCode, player.FreeGames.CampaignRef)
-		logger.Debugf("Rendering sham init gamestate: %v", latestGamestate.Id)
-	}
+	//if len(latestGamestate.Transactions) == 0 {
+	//	newGameHref += fmt.Sprintf("&playerId=%v&ccy=%v&betLimitCode=%v&campaign=%v", player.PlayerId, player.Balance.Currency, player.BetLimitSettingCode, player.FreeGames.CampaignRef)
+	//	logger.Debugf("Rendering sham init gamestate: %v", latestGamestate.Id)
+	//}
 	logger.Debugf("link new game: %v", newGameHref)
 	links["new-game"] = newGameHref
 	giResp.Links = links
