@@ -16,6 +16,51 @@ import (
 	"time"
 )
 
+
+type defInfo struct {
+	totalWin    engine.Fixed
+	totalPlays  int
+	prizes      map[string]*prizeInfo
+	maxWin      engine.Fixed
+}
+
+type prizeInfo struct {
+	totalWin engine.Fixed
+	hits int
+	maxWin engine.Fixed
+}
+
+func (d *defInfo) addPlay(win engine.Fixed) {
+	d.totalWin += win
+	d.totalPlays ++
+	if win > d.maxWin {
+		d.maxWin = win
+	}
+}
+
+func (d *defInfo) addWins(p []engine.Prize, mul engine.Fixed) {
+	if d.prizes == nil {
+		d.prizes = make(map[string]*prizeInfo)
+	}
+
+	for i:=0; i<len(p); i++ {
+		if d.prizes[p[i].Index] == nil {
+			d.prizes[p[i].Index] = &prizeInfo{}
+		}
+		win := engine.NewFixedFromInt(p[i].Payout.Multiplier * p[i].Multiplier).Mul(engine.Fixed(1))
+		d.prizes[p[i].Index].addWin(win.Mul(mul))
+	}
+}
+
+func (p *prizeInfo) addWin(win engine.Fixed) {
+	p.hits ++
+	p.totalWin += win
+	if win > p.maxWin {
+		p.maxWin = win
+	}
+}
+
+
 func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) ([]string, bool) {
 	refTime := time.Now()
 	failed := true
@@ -41,8 +86,8 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 	logger.Infof("Running %v spins for engine %v", numPlays, engineID)
 
 	chunkSize := numPlays / chunks
-	ftTriggers := make([]map[string]int, len(engineConf.EngineDefs))
-	winTotals := make([]map[string]engine.Fixed, len(engineConf.EngineDefs))
+	infoStructs := make([]defInfo, len(engineConf.EngineDefs))
+
 	initString := fmt.Sprintf("Running %v spins in %v chunks for %v \n Expected RTP: %v \n Volatility: %v\n", numPlays, chunks, engineID, engineConf.RTP, engineConf.Volatility)
 	vtInfo := []string{initString, "Chunk || RTP || RTP Feature || RTP base \n"}
 	featureWin := engine.Fixed(0)
@@ -60,33 +105,20 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 				params.Selection = []string{"freespin25:25", "freespin10:10", "freespin5:5"}[engine.SelectFromWeightedOptions([]int{0, 1, 2}, []int{1, 1, 1})]
 				// we do not add any selected win lines, always assume all lines. NB: ENGINE X has variable RTP based on selected win lines
 			}
-			gamestate, _ := engine.Play(previousGamestate, engine.NewFixedFromFloat(0.000001), "BTC", params)
+			gamestate, _ := engine.Play(previousGamestate, engine.Fixed(1), "BTC", params)
 			currentWinnings, currentStake := engine.GetCurrentWinAndStake(gamestate)
 			//logger.Debugf("win: %v; stake: %v; gamestate: %#v; ", currentWinnings, currentStake, gamestate)
 			totalWin += currentWinnings
 			totalBet += currentStake
 			// compile hit frequencies
 			_, defID := engine.GetGameIDAndReelset(gamestate.GameID)
-			if winTotals[defID] == nil {
-				winTotals[defID] = make(map[string]engine.Fixed)
-			}
-			winTotals[defID]["total"] += currentWinnings
-			if ftTriggers[defID] == nil {
-				ftTriggers[defID] = make(map[string]int)
-			}
-			// separate RTP by feature and regular
-			for _, prize := range gamestate.Prizes {
-				ftTriggers[defID][prize.Index] += 1
-				winTotals[defID][prize.Index] += engine.Fixed(prize.Payout.Multiplier)
-			}
-			ftTriggers[defID]["rounds"] += 1
+
+			infoStructs[defID].addPlay(currentWinnings)
+			multiplier := engine.NewFixedFromInt(gamestate.Multiplier)
+			infoStructs[defID].addWins(gamestate.Prizes, multiplier)
 
 			if gamestate.Action != "base" {
-				//featureMultiplier += gamestate.Multiplier
 				featureWin = featureWin.Add(currentWinnings)
-				//logger.Infof("Feature Gamestate: %v", gamestate.SymbolGrid)
-				//logger.Infof("wins: %v", gamestate.Prizes)
-				//logger.Infof("Multiplier: %v", gamestate.Multiplier)
 			}
 			if perSpin == true {
 				//ReelsetID, Bet_Time, Bet, Win, stop_1, stop_2, stop_3, ...\n
@@ -100,18 +132,21 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 			}
 			previousGamestate = gamestate
 		}
-
 		RTP := totalWin.Div(totalBet)
 		RTPBase := totalWin.Sub(featureWin).Div(totalBet)
 		RTPFeature := featureWin.Div(totalBet)
 		// fsPct := float64(fsTriggers) / (float64(chunkSize) * float64(i+1))
 		ftInfo := ""
 		//logger.Infof("avg feature multiplier: %v%%", float64(featureMultiplier)/float64(ftTriggers[1]["rounds"])*100)
-		for rsID, triggerMap := range ftTriggers {
-			//logger.Infof("total Payout %v", winTotals[rsID]["total"])
-			ftInfo += fmt.Sprintf("\n\nEngine: %v | Expected RTP: %.2f | Actual RTP: %f | Payout per round: %.2f | Rounds: %v \n", rsID, engineConf.EngineDefs[rsID].RTP*100, winTotals[rsID]["total"].Div(totalBet).ValueAsFloat()*100, winTotals[rsID]["total"].Div(engine.NewFixedFromInt(ftTriggers[rsID]["rounds"])).ValueAsFloat(), ftTriggers[rsID]["rounds"])
-			for k, v := range triggerMap {
-				ftInfo += fmt.Sprintf("%v ==  %.2f%% | RTP %.2f%%\n", k, float64(v)/float64(triggerMap["rounds"])*100, winTotals[rsID][k].Div(totalBet).ValueAsFloat()*100)
+		for rsID, reelsetInfo := range infoStructs {
+			//logger.Infof("info: %v", reelsetInfo)
+			if reelsetInfo.totalPlays == 0 {
+				continue
+			}
+			ftInfo += fmt.Sprintf("\n\nEngine: %v | Expected RTP: %.2f | Actual RTP: %f | Payout per round: %.2f || Max payout: %v || Rounds: %v \n", rsID, engineConf.EngineDefs[rsID].RTP*100, reelsetInfo.totalWin.Div(totalBet).ValueAsFloat()*100, reelsetInfo.totalWin.Div(engine.NewFixedFromInt(reelsetInfo.totalPlays)).ValueAsFloat(), reelsetInfo.maxWin, reelsetInfo.totalPlays)
+			for x, prizeInfo := range reelsetInfo.prizes {
+				logger.Infof("prize: %#v", prizeInfo)
+				ftInfo += fmt.Sprintf("%v ==  %.2f%% | RTP %.2f%% | max win: %v\n", x, float64(prizeInfo.hits)/float64(reelsetInfo.totalPlays)*100, prizeInfo.totalWin.Div(totalBet).ValueAsFloat()*100, prizeInfo.maxWin)
 			}
 		}
 

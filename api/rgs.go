@@ -367,6 +367,46 @@ func Routes() *chi.Mux {
 			}
 			fmt.Fprint(w, []byte("OK"))
 		})
+		r.Put("/clientstate/{token:[A-Za-z0-9-_.:,]+}/{gameSlug:[A-Za-z0-9-]+}/{wallet:[A-Za-z0-9-_]+}", func(w http.ResponseWriter, r *http.Request) {
+			token := chi.URLParam(r, "token")
+			gameSlug := chi.URLParam(r, "gameSlug")
+			wallet := chi.URLParam(r, "wallet")
+			var txStore store.TransactionStore
+			var err *store.Error
+			switch wallet {
+			case "demo":
+				txStore, err = store.ServLocal.TransactionByGameId(store.Token(token), store.ModeDemo, gameSlug)
+			case "dashur":
+				txStore, err = store.Serv.TransactionByGameId(store.Token(token), store.ModeReal, gameSlug)
+			}
+			if txStore.WalletStatus != 1 {
+				// if this is zero, the tx is pending and shouldn't be resent, if it is -1, the tx is failed and an error should be sent to reload the client
+				logger.Debugf("STATUS: %v", txStore.WalletStatus)
+				fmt.Fprint(w, []byte("ERROR"))
+				return
+			}
+			gamestateUnmarshalled := store.DeserializeGamestateFromBytes(txStore.GameState)
+			if len(gamestateUnmarshalled.NextActions) > 1 {
+				// we should not be closing a gameround if the last gamestate has more actions to be completed
+				fmt.Fprint(w, []byte("OK"))
+				return
+			}
+			gamestateUnmarshalled.Closed = true
+			roundId := gamestateUnmarshalled.RoundID
+			if roundId == "" {
+				roundId = gamestateUnmarshalled.Id
+			}
+			switch wallet {
+			case "demo":
+				_, err = store.ServLocal.CloseRound(store.Token(token), store.ModeDemo, gameSlug, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+			case "dashur":
+				_, err = store.Serv.CloseRound(store.Token(token), store.ModeReal, gameSlug, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+			}
+			if err != nil {
+				fmt.Fprint(w, []byte("ERROR"))
+			}
+			fmt.Fprint(w, []byte("OK"))
+		})
 
 		r.Get("/force", func(w http.ResponseWriter, r *http.Request){
 			if config.GlobalConfig.DevMode == true {

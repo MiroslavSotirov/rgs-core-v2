@@ -13,6 +13,7 @@ type GameInitResponseV2 struct {
 	Name        string                        `json:"name"`
 	Version     string                        `json:"version"`
 	Balance     engine.Money                  `json:"balance"`
+	Wallet      string                        `json:"wallet"`
 	StakeValues []engine.Fixed                `json:"stakeValues"`
 	DefaultBet  engine.Fixed                  `json:"defaultBet"`
 	LastRound   map[string]GameplayResponseV2 `json:"lastRound"`
@@ -41,6 +42,7 @@ type GameLinkResponse struct {
 
 type GameplayResponseV2 struct {
 	SessionID store.Token `json:"host/verified-token"`
+	RoundID   string `json:"roundID"`
 	Stake     engine.Fixed
 	Win       engine.Fixed
 	CumWin    engine.Fixed `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
@@ -103,6 +105,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 
 	resp := GameplayResponseV2{
 		SessionID:  balance.Token,
+		RoundID: gamestate.Id,
 		Stake:      stake,
 		Win:        win,
 		CumWin:     gamestate.CumulativeWin,

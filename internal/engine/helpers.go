@@ -154,6 +154,7 @@ type GameParams struct {
 	Action            string    `json:"action"`
 	Game              string    `json:"game"`
 	Wallet            string    `json:"wallet"`
+	PreviousID        string    `json:"previousID"`
 	previousGamestate Gamestate // this cannot be passed in
 }
 

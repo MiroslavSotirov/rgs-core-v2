@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-chi/chi"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
@@ -34,8 +33,8 @@ func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 	gameSlug := request.FormValue("game")
 	operator := request.FormValue("operator") // required
 	mode := request.FormValue("mode") // required
-	params := request.URL.Query()
-	currency := params.Get("currency")
+	currency := request.FormValue("currency")
+
 	logger.Debugf("Game: %v; operator: %v; mode: %v; request: %#v", gameSlug, operator, mode, request)
 
 	engineID, err := config.GetEngineFromGame(gameSlug)
@@ -62,19 +61,16 @@ func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 	giResp := fillGameInitPreviousGameplay(latestGamestate, store.BalanceStore{Balance: player.Balance, Token: player.Token})
 	giResp.FillEngineInfo(engineConfig)
 	logger.Debugf("reel response: %v", giResp.ReelSets)
-
+	giResp.Wallet = wallet
 	// set stakevalues, links,
 	links := make(map[string]string, 1)
-	newGameHref := fmt.Sprintf("%s%s/%s/play2/%s?wallet=%v", GetURLScheme(request), request.Host, APIVersion, gameSlug, wallet)
+	newGameHref := fmt.Sprintf("%s%s/%s/play2", GetURLScheme(request), request.Host, APIVersion)
 	// handle initial gamestate
 	if len(latestGamestate.Transactions) == 0 {
 		newGameHref += fmt.Sprintf("&playerId=%v&ccy=%v&betLimitCode=%v&campaign=%v", player.PlayerId, player.Balance.Currency, player.BetLimitSettingCode, player.FreeGames.CampaignRef)
-		//if player.FreeGames.NoOfFreeSpins > 0 {
-		//	newGameHref += fmt.Sprintf("c", player.FreeGames.CampaignRef, player.FreeGames.NoOfFreeSpins)
-		//}
 		logger.Debugf("Rendering sham init gamestate: %v", latestGamestate.Id)
 	}
-	logger.Warnf("link new game: %v", newGameHref)
+	logger.Debugf("link new game: %v", newGameHref)
 	links["new-game"] = newGameHref
 	giResp.Links = links
 	stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine, player.BetLimitSettingCode, gameSlug)
@@ -87,21 +83,20 @@ func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 }
 
 func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
-	clientID := chi.URLParam(request, "lastID")
-	if clientID == "" {
-		return playFirst(request)
-	}
-	authHeader := request.Header.Get("Authorization")
-	// get parameters from post form
-
-	decoder := json.NewDecoder(request.Body)
 	var data engine.GameParams
+	decoder := json.NewDecoder(request.Body)
 	decoderror := decoder.Decode(&data)
 	logger.Debugf("request body: %#v", request.Body)
 	if decoderror != nil {
 		logger.Errorf("Unable to decode request body: %s", decoderror.Error())
 		return GameplayResponseV2{}, rgserror.ErrGamestateStore
 	}
+
+	if data.PreviousID == "" {
+		return playFirst(request, data)
+	}
+	authHeader := request.Header.Get("Authorization")
+	// get parameters from post form
 
 	memID := strings.Trim(strings.Split(authHeader, " ")[1], "\"")
 
@@ -124,7 +119,7 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 	}
 	previousGamestate = store.DeserializeGamestateFromBytes(txStore.GameState)
 	// check if the gsID passed in by the client matches that retrieved from the wallet
-	if clientID != previousGamestate.Id {
+	if data.PreviousID != previousGamestate.Id {
 		return GameplayResponseV2{}, rgserror.ErrSpinSequence
 	}
 
@@ -147,18 +142,9 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
  	return getRoundResults(data, previousGamestate, txStore)
 }
 
-func playFirst(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
+func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV2, rgserror.IRGSError) {
 	authHeader := request.Header.Get("Authorization")
 
-	// get parameters from post form
-	decoder := json.NewDecoder(request.Body)
-	var data engine.GameParams
-	decoderror := decoder.Decode(&data)
-
-	if decoderror != nil {
-		logger.Debugf("Unable to decode request body: %#v, %v", request.Body, decoderror.Error())
-		return GameplayResponseV2{}, rgserror.ErrBadConfig
-	}
 	errV := data.Validate()
 	if errV != nil {
 		return GameplayResponseV2{}, errV
@@ -205,7 +191,6 @@ func playFirst(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 
 
 func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate, txStore store.TransactionStore) (GameplayResponseV2, rgserror.IRGSError) {
-
 
 	minBet, data, betValidationErr := validateBet(data, txStore, data.Game)
 	if betValidationErr != nil {
