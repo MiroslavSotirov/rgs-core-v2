@@ -12,7 +12,7 @@ import (
 type GameInitResponseV2 struct {
 	Name        string                        `json:"name"`
 	Version     string                        `json:"version"`
-	Balance     engine.Money                  `json:"balance"`
+	//Balance     engine.Money                  `json:"balance"`
 	Wallet      string                        `json:"wallet"`
 	StakeValues []engine.Fixed                `json:"stakeValues"`
 	DefaultBet  engine.Fixed                  `json:"defaultBet"`
@@ -134,7 +134,7 @@ func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance st
 	//}
 	resp.Name = previousGamestate.GameID
 	resp.Version = "2.0" // this is hardcoded for now
-	resp.Balance = balance.Balance
+	//resp.Balance = balance.Balance
 	return resp
 }
 
