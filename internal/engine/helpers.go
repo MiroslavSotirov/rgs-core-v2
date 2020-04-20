@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -156,6 +157,7 @@ type GameParams struct {
 	Wallet            string    `json:"wallet"`
 	PreviousID        string    `json:"previousID"`
 	previousGamestate Gamestate // this cannot be passed in
+	//stopPostitions    []int     // this can also not be passed in from outside the package (only for testing)
 }
 
 func (p GameParams) Validate() (err rgserror.IRGSError) {
@@ -259,4 +261,97 @@ func isFreespin(gamestate *Gamestate, previousGS Gamestate) bool {
 		return false
 	}
 	return true
+}
+
+
+
+func GetMaxWin(e EngineConfig) {
+	for i:=0; i<len(e.EngineDefs); i++ {
+		logger.Infof("finding max win for def %v", i)
+		ed := e.EngineDefs[i]
+		if len(ed.Reels) != 5 {
+			logger.Errorf("engine def %v does not have 5 reels", ed.ID)
+			continue
+		}
+		var winLines []int
+		for x:=0;x<len(ed.WinLines);x++ {
+			winLines = append(winLines, x)
+		}
+		// set all multipliers to max
+
+		// wilds
+		var wilds []wild
+		for j:=0; j<len(ed.Wilds);j++{
+			var max = 1
+			for k:=0;k<len(ed.Wilds[j].Multiplier.Multipliers);k++ {
+				if ed.Wilds[j].Multiplier.Multipliers[k] > max {
+					max = ed.Wilds[j].Multiplier.Multipliers[k]
+				}
+			}
+			wilds = append(wilds, wild{
+				Symbol:     ed.Wilds[j].Symbol,
+				Multiplier: weightedMultiplier{
+					Multipliers:   []int{max},
+					Probabilities: []int{1},
+				},
+			})
+		}
+		ed.Wilds = wilds
+
+		// multiplier
+		var max = 1
+		for j:=0;j<len(ed.Multiplier.Multipliers);j++ {
+			if ed.Multiplier.Multipliers[j] > max {
+				max = ed.Multiplier.Multipliers[j]
+			}
+		}
+		ed.Multiplier = weightedMultiplier{
+			Multipliers:   []int{max},
+			Probabilities: []int{1},
+		}
+
+		parameters := GameParams{
+			SelectedWinLines: winLines,
+			Selection:        "freespin5:5",
+		}
+
+		call := reflect.ValueOf(ed).MethodByName(ed.Function)
+
+		var maxPayout = 0
+		var maxGS Gamestate
+		// iterate over all possible stop positions
+		// assume 5 reels
+		var stopList = make([]int, 5)
+		for j1:=0; j1<len(ed.Reels[0]); j1++{
+			stopList[0] = j1
+			for j2:=0; j2<len(ed.Reels[1]); j2++{
+				stopList[1] = j2
+				for j3:=0; j3<len(ed.Reels[2]); j3++{
+					stopList[2] = j3
+					for j4:=0; j4<len(ed.Reels[3]); j4++{
+						stopList[3] = j4
+						for j5:=0; j5<len(ed.Reels[4]); j5++{
+							stopList[4] = j5
+							parameters.stopPostitions = stopList
+							gamestateAndNextActions := call.Call([]reflect.Value{reflect.ValueOf(parameters)})
+
+							gamestate, ok := gamestateAndNextActions[0].Interface().(Gamestate)
+							if !ok {
+								panic("value not a gamestate")
+							}
+							relativePayout := gamestate.RelativePayout * gamestate.Multiplier
+							if relativePayout > maxPayout {
+								maxPayout = relativePayout
+								maxGS = gamestate
+								//logger.Warnf("new max payout: %#v", gamestate)
+							}
+						}
+					}
+				}
+			}
+		}
+
+		logger.Infof("Found max relative multiplier %v, %#v", maxPayout, maxGS)
+
+	}
 }

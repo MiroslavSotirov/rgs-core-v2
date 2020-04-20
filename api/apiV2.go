@@ -87,7 +87,7 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 		return GameplayResponseV2{}, rgserror.ErrGamestateStore
 	}
 
-	if data.PreviousID == "" {
+	if strings.Contains(data.PreviousID, "GSinit") {
 		return playFirst(request, data)
 	}
 	authHeader := request.Header.Get("Authorization")
@@ -177,6 +177,7 @@ func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV
 		PlayerId: player.PlayerId,
 		FreeGames: player.FreeGames,
 		Token: player.Token,
+		Amount: engine.Money{0, player.Balance.Currency},
 	}
 
 	// don't need to worry about the wallet status as the GS ID is randomly generated on reload

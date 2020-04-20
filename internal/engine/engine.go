@@ -489,28 +489,6 @@ func (engineConf EngineConfig) DetectSpecialWins(defIndex int, p Prize) string {
 	return winId
 }
 
-func (gamestate *Gamestate) CalculateRelativePayout() {
-	// calculates relativepayout from wins, if win index contains "freespin", assumption is that the payout is multiplied by the entire stake, and not only by the stake per line
-	var relativePayout int
-
-	engineConf, engineDef, err := GetEngineDefFromGame(gamestate.GameID)
-	if err != nil {
-		logger.Errorf("Error calulcating relative payout: %v", err)
-		return
-	}
-
-	for i := 0; i < len(gamestate.Prizes); i++ {
-		// add relative payout
-		addlPayout := gamestate.Prizes[i].Payout.Multiplier * gamestate.Prizes[i].Multiplier * gamestate.Multiplier
-		gamestate.Prizes[i].Index = engineConf.DetectSpecialWins(engineDef, gamestate.Prizes[i])
-		if strings.Contains(gamestate.Prizes[i].Index, "freespin") {
-			addlPayout = addlPayout * engineConf.EngineDefs[engineDef].StakeDivisor
-		}
-		relativePayout += addlPayout
-	}
-	gamestate.RelativePayout = relativePayout
-}
-
 func (gamestate *Gamestate) PrepareTransactions(previousGamestate Gamestate) {
 	// prepares transactions and sets round ID
 
@@ -607,6 +585,12 @@ func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 
 	// spin
 	symbolGrid, stopList := Spin(engine.Reels, engine.ViewSize)
+
+	//if len(parameters.stopPostitions) != 0 {
+	//	symbolGrid = GetSymbolGridFromStopList(engine.Reels, engine.ViewSize, parameters.stopPostitions)
+	//	stopList = parameters.stopPostitions
+	//}
+	// used for testing, this should be removed
 
 	wins, relativePayout := engine.DetermineWins(symbolGrid)
 	// calculate specialWin
@@ -997,11 +981,7 @@ func (engine EngineDef) DynamicWildWaysRound(parameters GameParams) Gamestate {
 			{0, 1, 1, 1, 0}, {0, 1, 1, 0, 1}, {0, 1, 0, 1, 1}, {0, 0, 1, 1, 1},
 		}, // for 3 wilds
 	}
-	//wildLocations := make([]int, len(engine.ViewSize))
-	//for i := 0; i < numWilds; i++ {
-	//	reelNum := rng.RandFromRange(5)
-	//	wildLocations[reelNum]++
-	//}
+
 	wildLocations := potentialWildLocations[numWilds][rng.RandFromRange(len(potentialWildLocations[numWilds]))]
 
 	logger.Debugf("Wild locations: %v", wildLocations)

@@ -40,6 +40,7 @@ func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, en
 
 }
 
+//todo : deprecate 10/20
 func fixCorruptedGS(gamestate engine.Gamestate, player store.PlayerStore, request *http.Request) (engine.Gamestate, store.PlayerStore) {
 	game, rsid := engine.GetGameIDAndReelset(gamestate.GameID)
 	eng, err := config.GetEngineFromGame(game)

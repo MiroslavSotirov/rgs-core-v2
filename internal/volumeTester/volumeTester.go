@@ -25,20 +25,22 @@ type defInfo struct {
 }
 
 type prizeInfo struct {
-	totalWin engine.Fixed
+	totalWin int
 	hits int
-	maxWin engine.Fixed
+	maxWin int
 }
 
-func (d *defInfo) addPlay(win engine.Fixed) {
+func (d *defInfo) addPlay(win engine.Fixed) bool {
 	d.totalWin += win
 	d.totalPlays ++
 	if win > d.maxWin {
 		d.maxWin = win
+		return true
 	}
+	return false
 }
 
-func (d *defInfo) addWins(p []engine.Prize, mul engine.Fixed) {
+func (d *defInfo) addWins(p []engine.Prize, mul int) {
 	if d.prizes == nil {
 		d.prizes = make(map[string]*prizeInfo)
 	}
@@ -47,17 +49,25 @@ func (d *defInfo) addWins(p []engine.Prize, mul engine.Fixed) {
 		if d.prizes[p[i].Index] == nil {
 			d.prizes[p[i].Index] = &prizeInfo{}
 		}
-		win := engine.NewFixedFromInt(p[i].Payout.Multiplier * p[i].Multiplier).Mul(engine.Fixed(1))
-		d.prizes[p[i].Index].addWin(win.Mul(mul))
+		win := p[i].Payout.Multiplier * p[i].Multiplier
+		d.prizes[p[i].Index].addWin(win * mul)
 	}
 }
 
-func (p *prizeInfo) addWin(win engine.Fixed) {
+func (p *prizeInfo) addWin(win int) {
 	p.hits ++
 	p.totalWin += win
 	if win > p.maxWin {
 		p.maxWin = win
 	}
+}
+
+func GetMaxes(engineID string) {
+	refTime := time.Now()
+	engineConf := engine.BuildEngineDefs(engineID)
+	logger.Infof("finding max values for engine %v", engineID)
+	engine.GetMaxWin(engineConf)
+	logger.Infof("took %v", time.Now().Sub(refTime))
 }
 
 
@@ -83,6 +93,9 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 	if numPlays == 0 {
 		numPlays = engineConf.NumSpinsStat()
 	}
+
+	s2 := variance{xBar: float64(engineConf.RTP), betMult:float64(engineConf.EngineDefs[0].StakeDivisor)}
+
 	logger.Infof("Running %v spins for engine %v", numPlays, engineID)
 
 	chunkSize := numPlays / chunks
@@ -91,8 +104,7 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 	initString := fmt.Sprintf("Running %v spins in %v chunks for %v \n Expected RTP: %v \n Volatility: %v\n", numPlays, chunks, engineID, engineConf.RTP, engineConf.Volatility)
 	vtInfo := []string{initString, "Chunk || RTP || RTP Feature || RTP base \n"}
 	featureWin := engine.Fixed(0)
-	//var featureMultiplier int
-	//var wildCounts int
+	
 	previousGamestate := engine.Gamestate{NextActions: []string{"finish"}, GameID: fmt.Sprintf("%v:%v", getMatchingGame(engineID), 0), NextGamestate: "FirstSpinVT" + engineID}
 	for i := 0; i < chunks; i++ {
 
@@ -107,22 +119,23 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 			}
 			gamestate, _ := engine.Play(previousGamestate, engine.Fixed(1), "BTC", params)
 			currentWinnings, currentStake := engine.GetCurrentWinAndStake(gamestate)
-			//logger.Debugf("win: %v; stake: %v; gamestate: %#v; ", currentWinnings, currentStake, gamestate)
+
 			totalWin += currentWinnings
 			totalBet += currentStake
+			s2.addSample(float64(currentWinnings.ValueAsFloat()))
 			// compile hit frequencies
 			_, defID := engine.GetGameIDAndReelset(gamestate.GameID)
 
-			infoStructs[defID].addPlay(currentWinnings)
-			multiplier := engine.NewFixedFromInt(gamestate.Multiplier)
-			infoStructs[defID].addWins(gamestate.Prizes, multiplier)
+			newmax := infoStructs[defID].addPlay(currentWinnings)
+			if newmax {
+				logger.Warnf("new max for engine %v: %#v", defID, gamestate)
+			}
+			infoStructs[defID].addWins(gamestate.Prizes, gamestate.Multiplier)
 
 			if gamestate.Action != "base" {
 				featureWin = featureWin.Add(currentWinnings)
 			}
 			if perSpin == true {
-				//ReelsetID, Bet_Time, Bet, Win, stop_1, stop_2, stop_3, ...\n
-
 				err := writer.Write([]string{fmt.Sprintf("%v,%v,%v,%v,%v", defID, time.Now().Format("02 Jan 06 15:04 MST"), currentStake, currentWinnings, gamestate.StopList)})
 				if err != nil {
 					logger.Errorf("error writing to csv: %v", err)
@@ -145,12 +158,11 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 			}
 			ftInfo += fmt.Sprintf("\n\nEngine: %v | Expected RTP: %.2f | Actual RTP: %f | Payout per round: %.2f || Max payout: %v || Rounds: %v \n", rsID, engineConf.EngineDefs[rsID].RTP*100, reelsetInfo.totalWin.Div(totalBet).ValueAsFloat()*100, reelsetInfo.totalWin.Div(engine.NewFixedFromInt(reelsetInfo.totalPlays)).ValueAsFloat(), reelsetInfo.maxWin, reelsetInfo.totalPlays)
 			for x, prizeInfo := range reelsetInfo.prizes {
-				logger.Infof("prize: %#v", prizeInfo)
-				ftInfo += fmt.Sprintf("%v ==  %.2f%% | RTP %.2f%% | max win: %v\n", x, float64(prizeInfo.hits)/float64(reelsetInfo.totalPlays)*100, prizeInfo.totalWin.Div(totalBet).ValueAsFloat()*100, prizeInfo.maxWin)
+				ftInfo += fmt.Sprintf("%v ==  %.2f%% | RTP %.2f%% | max win: %v\n", x, float64(prizeInfo.hits)/float64(reelsetInfo.totalPlays)*100, engine.NewFixedFromInt(prizeInfo.totalWin).Div(totalBet).ValueAsFloat()*100, prizeInfo.maxWin)
 			}
 		}
 
-		chunkInfo := fmt.Sprintf(" %v | RTP: %v%% | Feature: %v%% | Base: %v%% \n %v \n", i+1, RTP.ValueAsFloat()*100., RTPFeature.ValueAsFloat()*100., RTPBase.ValueAsFloat()*100., ftInfo)
+		chunkInfo := fmt.Sprintf(" %v | RTP: %v%% | Feature: %v%% | Base: %v%% | Variance: %.5f | \n %v \n", i+1, RTP.ValueAsFloat()*100., RTPFeature.ValueAsFloat()*100., RTPBase.ValueAsFloat()*100., s2.getS2(), ftInfo)
 		vtInfo = append(vtInfo, chunkInfo)
 		//float64(featureMultiplier)/float64(ftTriggersFeature["rounds"]), float64(wildCounts)/float64(ftTriggersFeature["rounds"])
 
@@ -159,6 +171,9 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 			logger.Infof(chunkInfo)
 		} else {
 			failed = false
+			if i == chunks - 1 {
+				logger.Infof(chunkInfo)
+			}
 		}
 		logger.Infof("Chunk %v done in %v", i+1, time.Now().Sub(refTime))
 		refTime = time.Now()
@@ -176,7 +191,28 @@ func getMatchingGame(engineID string) string {
 	return ""
 }
 
-func RunVT(engineID string, spins int, chunks int, perSpin bool) (failed bool) {
+type variance struct {
+	xBar float64
+	sumDist float64
+	n int
+	betMult float64
+}
+
+
+func (v *variance) addSample(val float64) {
+	val = val/v.betMult
+	v.sumDist += math.Pow(val-v.xBar, 2)
+	v.n ++
+}
+
+func (v *variance) getS2() float64 {
+	if v.n < 2 {
+		return 0
+	}
+	return v.sumDist/float64(v.n)
+}
+
+func RunVT(engineID string, spins int, chunks int, perSpin bool, maxes bool) (failed bool) {
 	// Run VT from command line
 
 	var results []string
@@ -191,7 +227,11 @@ func RunVT(engineID string, spins int, chunks int, perSpin bool) (failed bool) {
 			}
 			return false
 		}
-		results, failed = VolumeTestEngine(engineID, spins, chunks, perSpin)
+		if maxes {
+			GetMaxes(engineID)
+		} else {
+			results, failed = VolumeTestEngine(engineID, spins, chunks, perSpin)
+		}
 	} else {
 		currentDir, err := os.Getwd()
 		if err != nil {
@@ -207,9 +247,13 @@ func RunVT(engineID string, spins int, chunks int, perSpin bool) (failed bool) {
 			if strings.Split(engines.Name(), ".")[0] == "mvgEngineXI" {
 				continue
 			}
-			newResults, newFail := VolumeTestEngine(strings.Split(engines.Name(), ".")[0], spins, chunks, perSpin)
-			failed = failed || newFail
-			results = append(results, newResults...)
+			if maxes {
+				GetMaxes(strings.Split(engines.Name(), ".")[0])
+			} else {
+				newResults, newFail := VolumeTestEngine(strings.Split(engines.Name(), ".")[0], spins, chunks, perSpin)
+				failed = failed || newFail
+				results = append(results, newResults...)			}
+
 		}
 	}
 	//fmt.Print(results)

@@ -392,7 +392,7 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 				GameStateStore{GameState: tx.GameState, WalletInternalStatus: 1},
 				nil
 		} else {
-			// this is likely an error, if player exists, there should be a previous gameplay unless init was called and never spun, which will throw an error
+			// if in V1 api, this is likely an error, if player exists, there should be a previous gameplay unless init was called and never spun, which will throw an error
 			logger.Warnf("DEMO WALLET PLAYER EXISTS BUT NO PREVIOUS TX")
 			return PlayerStore{
 					PlayerId: player.PlayerId,
