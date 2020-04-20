@@ -17,7 +17,6 @@ type GameInitResponseV2 struct {
 	StakeValues []engine.Fixed                `json:"stakeValues"`
 	DefaultBet  engine.Fixed                  `json:"defaultBet"`
 	LastRound   map[string]GameplayResponseV2 `json:"lastRound"`
-	Links       map[string]string             `json:"links"`    //name: url
 	ReelSets    map[string]ReelResponse       `json:"reelSets"` // base, freeSpin, etc. as keys  might want to have this as ReelSetResponse
 }
 

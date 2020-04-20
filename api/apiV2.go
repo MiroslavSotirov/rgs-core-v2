@@ -63,11 +63,7 @@ func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 	logger.Debugf("reel response: %v", giResp.ReelSets)
 	giResp.Wallet = wallet
 	// set stakevalues, links,
-	links := make(map[string]string, 2)
 
-	links["new-game"] = fmt.Sprintf("%s%s/%s/rgs/play2", GetURLScheme(request), request.Host, APIVersion)
-	links["client-state-save"] = fmt.Sprintf("%s%s/%s/rgs/clientstate/%v/%v/%v", GetURLScheme(request), request.Host, APIVersion, player.Token, gameSlug, wallet)
-	giResp.Links = links
 	stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine, player.BetLimitSettingCode, gameSlug)
 	if err != nil {
 		return GameInitResponseV2{}, err
