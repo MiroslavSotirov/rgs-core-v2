@@ -284,7 +284,7 @@ func Routes() *chi.Mux {
 			}
 		})
 
-		r.Get("/init2", func(w http.ResponseWriter, r *http.Request) {
+		r.Post("/init2", func(w http.ResponseWriter, r *http.Request) {
 			initResp, err := initV2(r)
 			if err != nil {
 				logger.Errorf("Error initializing game %s", err.Error())
@@ -305,7 +305,7 @@ func Routes() *chi.Mux {
 				return
 			}
 		})
-		r.Post("/play2/{lastID:[A-Za-z0-9-]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Post("/play2", func(w http.ResponseWriter, r *http.Request) {
 			gamestate, err := playV2(r)
 			if err != nil {
 				logger.Errorf("Error initializing game %s", err.Error())
@@ -325,7 +325,14 @@ func Routes() *chi.Mux {
 				return
 			}
 		})
-
+		r.Put("/close", func(w http.ResponseWriter, r *http.Request) {
+			err := CloseGS(r)
+			if err != nil {
+				w.WriteHeader(400)
+				return
+			}
+			w.WriteHeader(200)
+		})
 
 		r.Put("/clientstate/{token:[A-Za-z0-9-_.:,]+}/{gameSlug:[A-Za-z0-9-]+}/{wallet:[A-Za-z0-9-_]+}", func(w http.ResponseWriter, r *http.Request) {
 			token := chi.URLParam(r, "token")

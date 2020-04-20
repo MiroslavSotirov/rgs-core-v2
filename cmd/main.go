@@ -21,6 +21,7 @@ var (
 	spins    int
 	chunks   int
 	perSpin  bool
+	maxes    bool
 )
 
 func main() {
@@ -30,6 +31,7 @@ func main() {
 	flag.IntVar(&spins, "spins", 0, "number of spins to run, defaults to number to reach < 1% deviation from RTP based on engine volatility")
 	flag.IntVar(&chunks, "chunks", 10, "number of chunks to run (default 10)")
 	flag.BoolVar(&perSpin, "perspin", false, "show results per spin")
+	flag.BoolVar(&maxes, "maxes", false, "get max theoretical values per engine")
 
 	config.InitConfig()
 	initerr := store.Init()
@@ -44,7 +46,7 @@ func main() {
 	// initial serve web
 	if runVT == true {
 		logger.Errorf("Running VT : spins %v  chunks %v engine %v", spins, chunks, engineID)
-		failed := volumeTester.RunVT(engineID, spins, chunks, perSpin)
+		failed := volumeTester.RunVT(engineID, spins, chunks, perSpin, maxes)
 		if failed == true {
 			logger.Errorf("VT Failed, not starting server")
 			os.Exit(5)
