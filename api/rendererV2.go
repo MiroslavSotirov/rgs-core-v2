@@ -40,8 +40,9 @@ type GameLinkResponse struct {
 //}
 
 type GameplayResponseV2 struct {
-	SessionID store.Token `json:"host/verified-token"`
-	RoundID   string `json:"roundID"`
+	SessionID store.Token          `json:"host/verified-token"`
+	StateID   string              `json:"stateID"`
+	RoundID   string              `json:"roundID"`
 	Stake     engine.Fixed
 	Win       engine.Fixed
 	CumWin    engine.Fixed `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
@@ -51,6 +52,7 @@ type GameplayResponseV2 struct {
 	View        [][]int           `json:"view"` // includes row above and below
 	Prizes      []engine.Prize    `json:"wins"` // []WinResponseV2
 	NextAction  string            `json:"nextAction"`
+	Closed      bool               `json:"closed"`
 }
 
 type BalanceResponseV2 struct {
@@ -101,10 +103,10 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 			cumWin += tx.Amount.Amount
 		}
 	}
-
 	resp := GameplayResponseV2{
 		SessionID:   balance.Token,
-		RoundID:     gamestate.Id,
+		StateID:     gamestate.Id,
+		RoundID:     gamestate.RoundID,
 		Stake:       stake,
 		Win:         win,
 		CumWin:      gamestate.CumulativeWin,
@@ -117,6 +119,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		},
 		View:        gamestate.SymbolGrid,
 		Prizes:      gamestate.Prizes,
+		Closed:      gamestate.Closed,
 	}
 	return resp
 }

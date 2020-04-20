@@ -28,32 +28,42 @@ func getGameLink(request *http.Request) GameLinkResponse {
 	return response
 }
 
+type initParams struct {
+	Game string `json:"game"`
+	Operator string `json:"operator"`
+	Mode string `json:"mode"`
+	Ccy string `json:"currency"`
+}
+
+
 func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
-	//
-	gameSlug := request.FormValue("game")
-	operator := request.FormValue("operator") // required
-	mode := request.FormValue("mode") // required
-	currency := request.FormValue("currency")
+	var data initParams
+	decoder := json.NewDecoder(request.Body)
+	decoderror := decoder.Decode(&data)
+	logger.Debugf("request body: %#v", request.Body)
+	if decoderror != nil {
+		logger.Errorf("Unable to decode request body: %s", decoderror.Error())
+		return GameInitResponseV2{}, rgserror.ErrGamestateStore
+	}
 
-	logger.Debugf("Game: %v; operator: %v; mode: %v; request: %#v", gameSlug, operator, mode, request)
+	logger.Debugf("Game: %v; operator: %v; mode: %v; request: %#v", data.Game, data.Operator, data.Mode, request)
 
-	engineID, err := config.GetEngineFromGame(gameSlug)
+	engineID, err := config.GetEngineFromGame(data.Game)
 	if err != nil {
-		logger.Errorf("InitGame Error EngineID: %s - %s", gameSlug+"-engine", err)
 		return GameInitResponseV2{}, rgserror.ErrEngineNotFound
 	}
 	engineConfig := engine.BuildEngineDefs(engineID)
 	authToken := strings.Split(request.Header.Get("Authorization"), " ")[1] // assume format MAVERICK-Host-Token aaa-1234-aaa is passed in Auth header
 
 	// get wallet from operator config
-	wallet, err := config.GetWalletFromOperatorAndMode(operator, mode)
+	wallet, err := config.GetWalletFromOperatorAndMode(data.Operator, data.Mode)
 	if err != nil {
 		return GameInitResponseV2{}, err
 	}
 	var player store.PlayerStore
 	var latestGamestate engine.Gamestate
 
-	latestGamestate, player, err = store.InitPlayerGS(authToken, authToken, gameSlug, currency, wallet)
+	latestGamestate, player, err = store.InitPlayerGS(authToken, authToken, data.Game, data.Ccy, wallet)
 
 	if err != nil {
 		return GameInitResponseV2{}, err
@@ -64,7 +74,7 @@ func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 	giResp.Wallet = wallet
 	// set stakevalues, links,
 
-	stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine, player.BetLimitSettingCode, gameSlug)
+	stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine, player.BetLimitSettingCode, data.Game)
 	if err != nil {
 		return GameInitResponseV2{}, err
 	}
@@ -265,8 +275,9 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 }
 
 type CloseRoundParams struct {
-	Game string   `json:"game"`
-	Wallet string `json:"wallet"`
+	Game    string `json:"game"`
+	Wallet  string `json:"wallet"`
+	RoundID string `json:"round"`
 }
 
 func CloseGS(r *http.Request) (err rgserror.IRGSError) {
@@ -304,6 +315,10 @@ func CloseGS(r *http.Request) (err rgserror.IRGSError) {
 		return
 	}
 	gamestateUnmarshalled := store.DeserializeGamestateFromBytes(txStore.GameState)
+	if gamestateUnmarshalled.RoundID != data.RoundID {
+		err = rgserror.ErrSpinSequence
+		return
+	}
 	if len(gamestateUnmarshalled.NextActions) > 1 {
 		// we should not be closing a gameround if the last gamestate has more actions to be completed
 		err = rgserror.ErrIncompleteRound

@@ -66,7 +66,8 @@ request body may include the following (* = required)
 Response:
 ```json
 {"host/verified-token": "abcd",	     // the token to use for the Auth header in the next rgs call made
-"roundID": "abcdefg"                 // the round ID
+"stateID": "ax19t0paF",                // the gamestate ID, to be used in the next play request as "previousID"
+"roundID": "abcdefg",                // the round ID
 "stake": 10000,			             // fixed notation, see stake in request for details
 "win": 20000,                        // "", win for this spin
 "cumulativeWin": 300000,             // used for freespins/bonus rounds, total win amount since bonus started
@@ -87,7 +88,8 @@ Response:
           "symbol_positions": [0,2,2],
           "winline":,
           "win": 10000}],	          // fixed notation
-"nextAction": "base"
+"nextAction": "base",
+"closed": true                    // true or false, depending on whether the close round request has already been sent
 }
 ```
 
@@ -102,8 +104,9 @@ Authorization: MAVERICK-Host-Token abc-1234-def
 body:
 ```
 {
-"game": "the-year-of-zhu"  // the game id
-"wallet": "demo"           // the wallet returned in the init response
+"game": "the-year-of-zhu",  // the game id
+"wallet": "demo",           // the wallet returned in the init response
+"round": "abcdefg"          // the round to be closed
 }
 ```
 
