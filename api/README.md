@@ -16,7 +16,7 @@ If you run this locally, the base url will most likely be localhost:3000/v2/rgs
 1. Game client sends init call to rgs
 
 ```http request
-GET /init2
+POST /init2
 
 Header:
 Authorization: Maverick-Host-Token aaabbbcccddd
@@ -42,7 +42,7 @@ Response includes all game init information
 - links for gameplay, player history, banking lobby, casino lobby
 
 
-2. Game client sends post to /play2
+2. Game client sends POST to /play2
 
 Auth Header must be set to retrieve session:
 ```shell script
@@ -94,12 +94,17 @@ Response:
 
 3. Save client state
 Send PUT request "/close"
+Auth Header must be set (to value returned in previous request as host/verified-token):
+```shell script
+Authorization: MAVERICK-Host-Token abc-1234-def
+```
 
 body:
 ```
-{"token": "abcd"           // the token returned in the last gamestate detail (whether in play or init func)
+{
 "game": "the-year-of-zhu"  // the game id
 "wallet": "demo"           // the wallet returned in the init response
+}
 ```
 
 success: 200 OK resp or error

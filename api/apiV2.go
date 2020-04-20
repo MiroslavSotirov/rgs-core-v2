@@ -90,19 +90,19 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 	if strings.Contains(data.PreviousID, "GSinit") {
 		return playFirst(request, data)
 	}
-	authHeader := request.Header.Get("Authorization")
-	// get parameters from post form
-
-	memID := strings.Trim(strings.Split(authHeader, " ")[1], "\"")
+	token, autherr := handleAuth(request)
+	if autherr != nil {
+		return GameplayResponseV2{}, autherr
+	}
 
 	var txStore store.TransactionStore
 	var previousGamestate engine.Gamestate
 	var err *store.Error
 	switch data.Wallet {
 	case "demo":
-		txStore, err = store.ServLocal.TransactionByGameId(store.Token(memID), store.ModeDemo, data.Game)
+		txStore, err = store.ServLocal.TransactionByGameId(token, store.ModeDemo, data.Game)
 	case "dashur":
-		txStore, err = store.Serv.TransactionByGameId(store.Token(memID), store.ModeReal, data.Game)
+		txStore, err = store.Serv.TransactionByGameId(token, store.ModeReal, data.Game)
 	default:
 		logger.Errorf("No such wallet '%v': %#v", data.Wallet, request)
 	}
@@ -139,16 +139,27 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
  	return getRoundResults(data, previousGamestate, txStore)
 }
 
+func handleAuth(r *http.Request) (token store.Token, err rgserror.IRGSError) {
+	authHeader := r.Header.Get("Authorization")
+	tokenInfo := strings.Split(authHeader, " ")
+	if tokenInfo[0] != "Maverick-Host-Token" || len(tokenInfo) < 2 {
+		err = rgserror.ErrInvalidCredentials
+		return
+	}
+	token = store.Token(tokenInfo[1])
+	return
+}
 func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV2, rgserror.IRGSError) {
 	logger.Debugf("First gameplay for player")
-	authHeader := request.Header.Get("Authorization")
-
+	token, autherr := handleAuth(request)
+	if autherr != nil {
+		return GameplayResponseV2{}, autherr
+	}
 	errV := data.Validate()
 	if errV != nil {
 		return GameplayResponseV2{}, errV
 	}
 
-	memID := strings.Trim(strings.Split(authHeader, " ")[1], "\"")
 	var player store.PlayerStore
 	var latestGamestateStore store.GameStateStore
 	var err *store.Error
@@ -156,9 +167,9 @@ func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV
 
 	switch data.Wallet {
 	case "dashur":
-		player, latestGamestateStore, err = store.Serv.PlayerByToken(store.Token(memID), store.ModeReal, data.Game)
+		player, latestGamestateStore, err = store.Serv.PlayerByToken(token, store.ModeReal, data.Game)
 	case "demo":
-		player, latestGamestateStore, err = store.ServLocal.PlayerByToken(store.Token(memID), store.ModeDemo, data.Game)
+		player, latestGamestateStore, err = store.ServLocal.PlayerByToken(token, store.ModeDemo, data.Game)
 	default:
 		return GameplayResponseV2{}, rgserror.ErrBadConfig
 	}
@@ -258,13 +269,15 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 }
 
 type CloseRoundParams struct {
-	Token store.Token  `json:"token"`
 	Game string   `json:"game"`
 	Wallet string `json:"wallet"`
 }
 
 func CloseGS(r *http.Request) (err rgserror.IRGSError) {
-
+	token, autherr := handleAuth(r)
+	if autherr != nil {
+		return autherr
+	}
 	var data CloseRoundParams
 	decoder := json.NewDecoder(r.Body)
 	decoderror := decoder.Decode(&data)
@@ -279,9 +292,9 @@ func CloseGS(r *http.Request) (err rgserror.IRGSError) {
 	var serr *store.Error
 	switch data.Wallet {
 	case "demo":
-		txStore, serr = store.ServLocal.TransactionByGameId(data.Token, store.ModeDemo, data.Game)
+		txStore, serr = store.ServLocal.TransactionByGameId(token, store.ModeDemo, data.Game)
 	case "dashur":
-		txStore, serr = store.Serv.TransactionByGameId(data.Token, store.ModeReal, data.Game)
+		txStore, serr = store.Serv.TransactionByGameId(token, store.ModeReal, data.Game)
 	}
 
 	if serr != nil {
@@ -307,9 +320,9 @@ func CloseGS(r *http.Request) (err rgserror.IRGSError) {
 	}
 	switch data.Wallet {
 	case "demo":
-		_, serr = store.ServLocal.CloseRound(data.Token, store.ModeDemo, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+		_, serr = store.ServLocal.CloseRound(token, store.ModeDemo, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
 	case "dashur":
-		_, serr = store.Serv.CloseRound(data.Token, store.ModeReal, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+		_, serr = store.Serv.CloseRound(token, store.ModeReal, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
 	}
 	if serr != nil {
 		//todo: make service return rgs errors

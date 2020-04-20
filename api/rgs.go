@@ -284,7 +284,7 @@ func Routes() *chi.Mux {
 			}
 		})
 
-		r.Get("/init2", func(w http.ResponseWriter, r *http.Request) {
+		r.Post("/init2", func(w http.ResponseWriter, r *http.Request) {
 			initResp, err := initV2(r)
 			if err != nil {
 				logger.Errorf("Error initializing game %s", err.Error())
