@@ -332,7 +332,7 @@ func GetMaxWin(e EngineConfig) {
 						stopList[3] = j4
 						for j5:=0; j5<len(ed.Reels[4]); j5++{
 							stopList[4] = j5
-							parameters.stopPostitions = stopList
+							//parameters.stopPostitions = stopList // unccoment this for this test to work
 							gamestateAndNextActions := call.Call([]reflect.Value{reflect.ValueOf(parameters)})
 
 							gamestate, ok := gamestateAndNextActions[0].Interface().(Gamestate)
