@@ -2,6 +2,16 @@ API DOCUMENTATION V2
 
 MV Game Client V2 communication spec with RGS V2
 ================================================
+The base url should be defined by a config/parameter in the launch url, with a mapping in the mvwrapper/common frontend code
+
+All rgs urls are relative to that base url
+
+Previously init and play were returning urls for the next play and client state call.
+Going forward, these endpoints will be standard and can be hard-coded.
+
+For testing, the dev server base url is https://dev.maverick-ops.com/v2/rgs
+If you run this locally, the base url will most likely be localhost:3000/v2/rgs
+
 
 1. Game client sends init call to rgs
 
@@ -32,7 +42,7 @@ Response includes all game init information
 - links for gameplay, player history, banking lobby, casino lobby
 
 
-2. Game client sends post to gameplay link returned from init call (key "new-game")
+2. Game client sends post to /play2
 
 Auth Header must be set to retrieve session:
 ```shell script
@@ -83,11 +93,16 @@ Response:
 
 
 3. Save client state
-Send PUT request to link returned with key "client-state-save"
-No body
+Send PUT request "/close"
 
-success: 200 OK resp
+body:
+```
+{"token": "abcd"           // the token returned in the last gamestate detail (whether in play or init func)
+"game": "the-year-of-zhu"  // the game id
+"wallet": "demo"           // the wallet returned in the init response
+```
 
+success: 200 OK resp or error
 
 
 

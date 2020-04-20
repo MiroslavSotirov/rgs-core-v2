@@ -115,6 +115,7 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 	previousGamestate = store.DeserializeGamestateFromBytes(txStore.GameState)
 	// check if the gsID passed in by the client matches that retrieved from the wallet
 	if data.PreviousID != previousGamestate.Id {
+		logger.Debugf("Previous ID doesn't match: %v, %v", data.PreviousID, previousGamestate.Id)
 		return GameplayResponseV2{}, rgserror.ErrSpinSequence
 	}
 
@@ -131,6 +132,7 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 		// business as usual
 	default:
 		// it should always be one of the above three
+		logger.Debugf("Wallet status not 1, 0, or -1: %v", txStore)
 		return GameplayResponseV2{}, rgserror.ErrGenericWalletErr
 	}
 
@@ -138,6 +140,7 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 }
 
 func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV2, rgserror.IRGSError) {
+	logger.Debugf("First gameplay for player")
 	authHeader := request.Header.Get("Authorization")
 
 	errV := data.Validate()
@@ -166,6 +169,7 @@ func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV
 
 	// because this is the first round, there should be no previous gamestate
 	if len(latestGamestateStore.GameState) != 0 {
+		logger.Debugf("previous gamestate %v", latestGamestateStore)
 		return GameplayResponseV2{}, rgserror.ErrSpinSequence
 	}
 
@@ -253,3 +257,63 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 	return fillGamestateResponseV2(gamestate, balance), nil
 }
 
+type CloseRoundParams struct {
+	Token store.Token  `json:"token"`
+	Game string   `json:"game"`
+	Wallet string `json:"wallet"`
+}
+
+func CloseGS(r *http.Request) (err rgserror.IRGSError) {
+
+	var data CloseRoundParams
+	decoder := json.NewDecoder(r.Body)
+	decoderror := decoder.Decode(&data)
+
+	if decoderror != nil {
+		logger.Errorf("Unable to decode request body: %s", decoderror.Error())
+		err = rgserror.ErrGamestateStore
+		return
+	}
+
+	var txStore store.TransactionStore
+	var serr *store.Error
+	switch data.Wallet {
+	case "demo":
+		txStore, serr = store.ServLocal.TransactionByGameId(data.Token, store.ModeDemo, data.Game)
+	case "dashur":
+		txStore, serr = store.Serv.TransactionByGameId(data.Token, store.ModeReal, data.Game)
+	}
+
+	if serr != nil {
+		err = rgserror.ErrGamestateStore
+		return
+	}
+	if txStore.WalletStatus != 1 {
+		// if this is zero, the tx is pending and shouldn't be resent, if it is -1, the tx is failed and an error should be sent to reload the client
+		logger.Debugf("STATUS: %v", txStore.WalletStatus)
+		err = rgserror.ErrSpinSequence
+		return
+	}
+	gamestateUnmarshalled := store.DeserializeGamestateFromBytes(txStore.GameState)
+	if len(gamestateUnmarshalled.NextActions) > 1 {
+		// we should not be closing a gameround if the last gamestate has more actions to be completed
+		err = rgserror.ErrIncompleteRound
+		return
+	}
+	gamestateUnmarshalled.Closed = true
+	roundId := gamestateUnmarshalled.RoundID
+	if roundId == "" {
+		roundId = gamestateUnmarshalled.Id
+	}
+	switch data.Wallet {
+	case "demo":
+		_, serr = store.ServLocal.CloseRound(data.Token, store.ModeDemo, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+	case "dashur":
+		_, serr = store.Serv.CloseRound(data.Token, store.ModeReal, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+	}
+	if serr != nil {
+		//todo: make service return rgs errors
+		err = rgserror.ErrGenericWalletErr
+	}
+	return
+}

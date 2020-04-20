@@ -357,6 +357,24 @@ type (
 	}
 )
 
+
+// UnmarshalJSON implements the json.Unmarshaler interface, which
+// allows us to ingest values of any json type as a string and run our custom conversion
+
+func (t *Token) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	*t = Token(s)
+	return nil
+}
+
+func (t Token) MarshalJSON() ([]byte, error) {
+	s := string(t)
+	return json.Marshal(&s)
+}
+
 var ld *LocalData
 var remoteServiceImplHttpClient *promhttp.Client
 

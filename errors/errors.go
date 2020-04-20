@@ -18,6 +18,7 @@ const (
 	engineNotFoundError = 102
 	betConfigError      = 103
 	InvalidStakeError   = 104
+	incompleteRoundError = 105
 
 	// Gamestate JSON marshalling
 	gamestateStringSerializerError   = 110
@@ -94,6 +95,7 @@ var ErrMsg = map[int]string{
 	internalServerError:              "System Error",
 	genericWalletError:               "Generic wallet error",
 	peviousTXPendingError:            "Previous transaction still pending, please try again",
+	incompleteRoundError:             "Not the final state in round, can't be closed",
 }
 
 type IRGSError interface {
@@ -150,6 +152,7 @@ var (
 	ErrEngineNotFound = CreateRGSErr(engineNotFoundError)
 	ErrBetConfig      = CreateRGSErr(betConfigError)
 	ErrSpinSequence   = CreateRGSErr(spinSequenceError)
+	ErrIncompleteRound   = CreateRGSErr(incompleteRoundError)
 	ErrInvalidStake   = CreateRGSErr(InvalidStakeError)
 
 	ErrGamestateStringDeserializer = CreateRGSErr(gamestateStringDeserializerError)

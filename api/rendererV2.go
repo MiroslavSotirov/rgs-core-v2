@@ -104,20 +104,20 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 	}
 
 	resp := GameplayResponseV2{
-		SessionID:  balance.Token,
-		RoundID: gamestate.Id,
-		Stake:      stake,
-		Win:        win,
-		CumWin:     gamestate.CumulativeWin,
-		NextAction: gamestate.NextActions[0],
+		SessionID:   balance.Token,
+		RoundID:     gamestate.Id,
+		Stake:       stake,
+		Win:         win,
+		CumWin:      gamestate.CumulativeWin,
+		NextAction:  gamestate.NextActions[0],
 		//CurrentSpin: gamestate.PlaySequence,         // zero-indexed
 		FSRemaining: len(gamestate.NextActions) - 1, // for now, assume all future actions besides finish are fs (perhaps change this to bonusRdsRemaining in future)
-		Balance: BalanceResponseV2{
+		Balance:     BalanceResponseV2{
 			Amount:    balance.Balance,
 			FreeGames: balance.FreeGames.NoOfFreeSpins,
 		},
-		View:   gamestate.SymbolGrid,
-		Prizes: gamestate.Prizes,
+		View:        gamestate.SymbolGrid,
+		Prizes:      gamestate.Prizes,
 	}
 	return resp
 }
