@@ -36,7 +36,7 @@ type initParams struct {
 }
 
 
-func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
+func initV2(request *http.Request) (GameInitResponseV2, rgserror.RGSErr) {
 	var data initParams
 	decoder := json.NewDecoder(request.Body)
 	decoderror := decoder.Decode(&data)
@@ -83,7 +83,7 @@ func initV2(request *http.Request) (GameInitResponseV2, rgserror.IRGSError) {
 	return giResp, nil
 }
 
-func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
+func playV2(request *http.Request) (GameplayResponseV2, rgserror.RGSErr) {
 	var data engine.GameParams
 	decoder := json.NewDecoder(request.Body)
 	decoderror := decoder.Decode(&data)
@@ -103,7 +103,7 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
 
 	var txStore store.TransactionStore
 	var previousGamestate engine.Gamestate
-	var err *store.Error
+	var err rgserror.RGSErr
 	switch data.Wallet {
 	case "demo":
 		txStore, err = store.ServLocal.TransactionByGameId(token, store.ModeDemo, data.Game)
@@ -145,7 +145,7 @@ func playV2(request *http.Request) (GameplayResponseV2, rgserror.IRGSError) {
  	return getRoundResults(data, previousGamestate, txStore)
 }
 
-func handleAuth(r *http.Request) (token store.Token, err rgserror.IRGSError) {
+func handleAuth(r *http.Request) (token store.Token, err rgserror.RGSErr) {
 	authHeader := r.Header.Get("Authorization")
 	tokenInfo := strings.Split(authHeader, " ")
 	if tokenInfo[0] != "Maverick-Host-Token" || len(tokenInfo) < 2 {
@@ -155,7 +155,7 @@ func handleAuth(r *http.Request) (token store.Token, err rgserror.IRGSError) {
 	token = store.Token(tokenInfo[1])
 	return
 }
-func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV2, rgserror.IRGSError) {
+func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV2, rgserror.RGSErr) {
 	logger.Debugf("First gameplay for player")
 	token, autherr := handleAuth(request)
 	if autherr != nil {
@@ -168,7 +168,7 @@ func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV
 
 	var player store.PlayerStore
 	var latestGamestateStore store.GameStateStore
-	var err *store.Error
+	var err rgserror.RGSErr
 	var initGS engine.Gamestate
 
 	switch data.Wallet {
@@ -180,8 +180,7 @@ func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV
 		return GameplayResponseV2{}, rgserror.ErrBadConfig
 	}
 	if err != nil {
-		// todo: get exact rgserr from store
-		return GameplayResponseV2{}, rgserror.ErrGenericWalletErr
+		return GameplayResponseV2{}, err
 	}
 
 	// because this is the first round, there should be no previous gamestate
@@ -207,7 +206,7 @@ func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV
 }
 
 
-func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate, txStore store.TransactionStore) (GameplayResponseV2, rgserror.IRGSError) {
+func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate, txStore store.TransactionStore) (gameplay GameplayResponseV2, err rgserror.RGSErr) {
 
 	minBet, data, betValidationErr := validateBet(data, txStore, data.Game)
 	if betValidationErr != nil {
@@ -232,7 +231,6 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 		freeGameRef = txStore.FreeGames.CampaignRef
 		logger.Warnf("Free game campaign %v", freeGameRef)
 	}
-	var storeErr *store.Error
 
 	// settle transactions
 	var balance store.BalanceStore
@@ -257,17 +255,14 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 		switch data.Wallet {
 		case "demo":
 			tx.Mode = store.ModeDemo
-			balance, storeErr = store.ServLocal.Transaction(token, store.ModeDemo, tx)
+			balance, err = store.ServLocal.Transaction(token, store.ModeDemo, tx)
 		case "dashur":
 			tx.Mode = store.ModeReal
-			balance, storeErr = store.Serv.Transaction(token, store.ModeReal, tx)
+			balance, err = store.Serv.Transaction(token, store.ModeReal, tx)
 		}
 
-		if storeErr != nil {
-			if storeErr.Code == store.ErrorCodeNotEnoughBalance {
-				return GameplayResponseV2{}, rgserror.ErrInsufficientFundError
-			}
-			return GameplayResponseV2{}, rgserror.ErrGenericWalletErr
+		if err != nil {
+			return
 		}
 		token = balance.Token
 	}
@@ -280,7 +275,7 @@ type CloseRoundParams struct {
 	RoundID string `json:"round"`
 }
 
-func CloseGS(r *http.Request) (err rgserror.IRGSError) {
+func CloseGS(r *http.Request) (err rgserror.RGSErr) {
 	token, autherr := handleAuth(r)
 	if autherr != nil {
 		return autherr
@@ -296,16 +291,14 @@ func CloseGS(r *http.Request) (err rgserror.IRGSError) {
 	}
 
 	var txStore store.TransactionStore
-	var serr *store.Error
 	switch data.Wallet {
 	case "demo":
-		txStore, serr = store.ServLocal.TransactionByGameId(token, store.ModeDemo, data.Game)
+		txStore, err = store.ServLocal.TransactionByGameId(token, store.ModeDemo, data.Game)
 	case "dashur":
-		txStore, serr = store.Serv.TransactionByGameId(token, store.ModeReal, data.Game)
+		txStore, err = store.Serv.TransactionByGameId(token, store.ModeReal, data.Game)
 	}
 
-	if serr != nil {
-		err = rgserror.ErrGamestateStore
+	if err != nil {
 		return
 	}
 	if txStore.WalletStatus != 1 {
@@ -331,13 +324,9 @@ func CloseGS(r *http.Request) (err rgserror.IRGSError) {
 	}
 	switch data.Wallet {
 	case "demo":
-		_, serr = store.ServLocal.CloseRound(token, store.ModeDemo, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+		_, err = store.ServLocal.CloseRound(token, store.ModeDemo, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
 	case "dashur":
-		_, serr = store.Serv.CloseRound(token, store.ModeReal, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
-	}
-	if serr != nil {
-		//todo: make service return rgs errors
-		err = rgserror.ErrGenericWalletErr
+		_, err = store.Serv.CloseRound(token, store.ModeReal, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
 	}
 	return
 }

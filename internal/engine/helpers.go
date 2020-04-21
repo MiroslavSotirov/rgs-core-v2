@@ -160,7 +160,7 @@ type GameParams struct {
 	//stopPostitions    []int     // this can also not be passed in from outside the package (only for testing)
 }
 
-func (p GameParams) Validate() (err rgserror.IRGSError) {
+func (p GameParams) Validate() (err rgserror.RGSErr) {
 	if p.Game == "" || p.Action == "" {
 		return rgserror.ErrBadConfig
 	}

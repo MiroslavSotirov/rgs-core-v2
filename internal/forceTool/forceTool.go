@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bradfitz/gomemcache/memcache"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
@@ -26,11 +27,11 @@ func ClearForce(gameID string, playerID string) error {
 	return store.MC.Delete(playerID + "::" + gameID)
 }
 
-func GetForceValues(betPerLine engine.Fixed, previousGamestate engine.Gamestate, gameID string, playerID string) (engine.Gamestate, error) {
+func GetForceValues(betPerLine engine.Fixed, previousGamestate engine.Gamestate, gameID string, playerID string) (engine.Gamestate, *rgserror.RGSError) {
 	forceID, err := store.MC.Get(playerID + "::" + gameID)
 	if err != nil {
 		logger.Warnf("No force value set")
-		return engine.Gamestate{}, err
+		return engine.Gamestate{}, rgserror.ErrNoForceConfig
 	}
 	// automatically clear the force once it has been used
 	_ = ClearForce(gameID, playerID)

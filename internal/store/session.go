@@ -8,10 +8,10 @@ import (
 	"strings"
 )
 
-func InitPlayerGS(refreshToken string, playerID string, gameName string, currency string, wallet string) (engine.Gamestate, PlayerStore, rgserror.IRGSError) {
+func InitPlayerGS(refreshToken string, playerID string, gameName string, currency string, wallet string) (engine.Gamestate, PlayerStore, rgserror.RGSErr) {
 	var newPlayer PlayerStore
 	var latestGamestateStore GameStateStore
-	var err *Error
+	var err rgserror.RGSErr
 
 	switch wallet {
 	case "dashur":
@@ -20,8 +20,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 		newPlayer, latestGamestateStore, err = ServLocal.PlayerByToken(Token(refreshToken), ModeDemo, gameName)
 	}
 	if err != nil {
-		logger.Errorf("got err : %v from player retrieval", err)
-		return engine.Gamestate{}, PlayerStore{}, rgserror.ErrBalanceStoreError
+		return engine.Gamestate{}, PlayerStore{}, err
 	}
 	var latestGamestate engine.Gamestate
 
@@ -66,10 +65,10 @@ func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.G
 	return
 }
 
-func PlayerBalance(token, wallet string) (BalanceStore ,rgserror.IRGSError) {
+func PlayerBalance(token, wallet string) (BalanceStore ,rgserror.RGSErr) {
 	logger.Debugf("Token [%s] Wallet [%s]", token, wallet)
 	var balance BalanceStore
-	var err *Error
+	var err rgserror.RGSErr
 	switch wallet {
 	case "dashur":
 		balance, err = Serv.BalanceByToken(Token(token), ModeReal)

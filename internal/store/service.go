@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"github.com/prometheus/client_golang/prometheus"
 	uuid "github.com/satori/go.uuid"
 	"github.com/travelaudience/go-promhttp"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
@@ -38,11 +38,11 @@ const (
 
 	RoundStatusOpen  RoundStatus = "OPEN"
 	RoundStatusClose RoundStatus = "CLOSE"
-
-	ErrorCodeGeneralError     ErrorCode = "ERR-001" // general error.
-	ErrorCodeNotEnoughBalance ErrorCode = "ERR-002"
-	ErrorCodeTokenExpired     ErrorCode = "ERR-003"
-	ErrorCodeEntityNotFound   ErrorCode = "ERR-004"
+	//
+	//ErrorCodeGeneralError     ErrorCode = "ERR-001" // general error.
+	//ErrorCodeNotEnoughBalance ErrorCode = "ERR-002"
+	//ErrorCodeTokenExpired     ErrorCode = "ERR-003"
+	//ErrorCodeEntityNotFound   ErrorCode = "ERR-004"
 
 	ResponseCodeOk                 ResponseCode = "0"
 	ResponseCodeInsufficentBalance ResponseCode = "1"
@@ -106,10 +106,10 @@ type (
 		CampaignRef   string `json:"ref"`
 	}
 
-	Error struct {
-		Code    ErrorCode
-		Message string
-	}
+	//Error struct {
+	//	Code    ErrorCode
+	//	Message string
+	//}
 
 	LocalData struct {
 		Token                   map[Token]string
@@ -121,19 +121,19 @@ type (
 
 	Service interface {
 		// authenticate token, given the game id, it will also retrieve the latest gamestate from latest transaction.
-		PlayerByToken(token Token, mode Mode, gameId string) (PlayerStore, GameStateStore, *Error)
+		PlayerByToken(token Token, mode Mode, gameId string) (PlayerStore, GameStateStore, rgserror.RGSErr)
 
 		// retrieve latest balance by token
-		BalanceByToken(token Token, mode Mode) (BalanceStore, *Error)
+		BalanceByToken(token Token, mode Mode) (BalanceStore, rgserror.RGSErr)
 
 		// create transaction.
-		Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, *Error)
+		Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, rgserror.RGSErr)
 
 		// retrieve latest transcation by player and by game id
-		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, *Error)
+		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgserror.RGSErr)
 
 		// close round.
-		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, *Error)
+		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, rgserror.RGSErr)
 
 		//// gamestate by id
 		//GamestateById(gamestateId string) (GameStateStore, *Error)
@@ -152,13 +152,13 @@ type (
 
 	// local service eq implemenation of service. so that unit test of services can be easily mocked.
 	LocalService interface {
-		PlayerByToken(token Token, mode Mode, gameId string) (PlayerStore, GameStateStore, *Error)
-		PlayerSave(token Token, mode Mode, player PlayerStore) (PlayerStore, *Error)
-		BalanceByToken(token Token, mode Mode) (BalanceStore, *Error)
-		Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, *Error)
-		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, *Error)
-		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, *Error)
-		GamestateById(gamestateId string) (GameStateStore, *Error)
+		PlayerByToken(token Token, mode Mode, gameId string) (PlayerStore, GameStateStore, rgserror.RGSErr)
+		PlayerSave(token Token, mode Mode, player PlayerStore) (PlayerStore, rgserror.RGSErr)
+		BalanceByToken(token Token, mode Mode) (BalanceStore, rgserror.RGSErr)
+		Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, rgserror.RGSErr)
+		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgserror.RGSErr)
+		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, rgserror.RGSErr)
+		GamestateById(gamestateId string) (GameStateStore, rgserror.RGSErr)
 	}
 
 	LocalServiceImpl struct{}
@@ -358,6 +358,28 @@ type (
 )
 
 //
+//// Error functions to allow them to be implemented as RGSError interface
+//func (e *Error) Error() string {
+//	if e.Message == "" {
+//		return fmt.Sprintf("Error %d, Service error", e.Code)
+//	}
+//	return fmt.Sprintf("Error %d, Service error - %s", e.Code, e.Message)
+//}
+//
+//func (e *Error) Init(code int, msgs ...string) {
+//	e.Code = ErrorCode(fmt.Sprintf("ERR-%03d", code))
+//	e.Message = strings.Join(msgs, " ")
+//}
+//
+//func (e *Error) AppendErrorText(text string) {
+//	e.Message = e.Message + text
+//}
+//
+//func (e *Error) SetErrorTextByCode(code int) {
+//	e.Message = fmt.Sprintf("Error %d, Service error", e.Code)
+//}
+
+//
 //// UnmarshalJSON implements the json.Unmarshaler interface, which
 //// allows us to ingest values of any json type as a string and run our custom conversion
 //
@@ -378,24 +400,24 @@ type (
 var ld *LocalData
 var remoteServiceImplHttpClient *promhttp.Client
 
-func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) (PlayerStore, GameStateStore, *Error) {
+func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) (player PlayerStore, gs GameStateStore, err rgserror.RGSErr) {
 	logger.Debugf("LocalServiceImpl.PlayerByToken([%v], [%v])", token, mode)
 
-	err := internalCheck()
+	err = internalCheck()
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	storePlayerId, playerIdExists := i.getToken(token)
 	logger.Debugf("player id: %v", storePlayerId)
 	if playerIdExists {
-		player, _ := i.getPlayer(storePlayerId)
+		player, _ = i.getPlayer(storePlayerId)
 		newToken := i.renewToken(token)
 		key := player.PlayerId + "::" + gameId
 		tx, txExists := i.getTransactionByPlayerGame(key)
 
 		if txExists && tx.GameState != nil && len(tx.GameState) > 0 {
-			return PlayerStore{
+			player = PlayerStore{
 					PlayerId: player.PlayerId,
 					Token:    newToken,
 					Mode:     player.Mode,
@@ -406,13 +428,13 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 					},
 					FreeGames:       FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
 					BetLimitSettingCode: player.BetLimitSettingCode,
-				},
-				GameStateStore{GameState: tx.GameState, WalletInternalStatus: 1},
-				nil
+				}
+			gs = GameStateStore{GameState: tx.GameState, WalletInternalStatus: 1}
+			return
 		} else {
 			// if in V1 api, this is likely an error, if player exists, there should be a previous gameplay unless init was called and never spun, which will throw an error
 			logger.Warnf("DEMO WALLET PLAYER EXISTS BUT NO PREVIOUS TX")
-			return PlayerStore{
+			player = PlayerStore{
 					PlayerId: player.PlayerId,
 					Token:    newToken,
 					Mode:     player.Mode,
@@ -423,13 +445,13 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 					},
 					FreeGames:       FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
 					BetLimitSettingCode: player.BetLimitSettingCode,
-				},
-				GameStateStore{},
-				nil
+				}
+			return
 		}
 	} else {
+		err = rgserror.ErrNoSuchPlayer
 		logger.Warnf("NO PLAYER EXISTS")
-		return PlayerStore{}, GameStateStore{}, nil
+		return
 	}
 
 }
@@ -454,56 +476,56 @@ func (i *RemoteServiceImpl) demoToken() string {
 	return i.demoTokenPrefix + ":" + i.demoCurrency + ":" + uuid.NewV4().String()
 }
 
-func (i *RemoteServiceImpl) errorJson(err error) *Error {
+func (i *RemoteServiceImpl) errorJson(err error) rgserror.RGSErr {
 	if err != nil {
-		return &Error{Code: ErrorCodeGeneralError, Message: "Unknown error in performing json conversion"}
+		return rgserror.ErrJson
 	}
 	return nil
 }
 
-func (i *RemoteServiceImpl) errorRest(err error) *Error {
+func (i *RemoteServiceImpl) errorRest(err error) rgserror.RGSErr {
 	if err != nil {
-		return &Error{Code: ErrorCodeGeneralError, Message: "Unknown error in performing rest call"}
+		return rgserror.ErrRest
 	}
 	return nil
 }
 
-func (i *RemoteServiceImpl) errorBase64(err error) *Error {
+func (i *RemoteServiceImpl) errorBase64(err error) rgserror.RGSErr {
 	if err != nil {
-		return &Error{Code: ErrorCodeGeneralError, Message: "Error encoding/decoding base64 string"}
+		return rgserror.ErrB64
 	}
 	return nil
 }
 
-func (i *RemoteServiceImpl) errorHttpStatusCode(httpStatusCode int) *Error {
+func (i *RemoteServiceImpl) errorHttpStatusCode(httpStatusCode int) rgserror.RGSErr {
 	if httpStatusCode != 200 {
 		if httpStatusCode == 403 || httpStatusCode == 401 {
-			return &Error{Code: ErrorCodeTokenExpired, Message: "Auth error in performing rest function"}
+			return rgserror.ErrTokenExpired
 		} else if httpStatusCode == 404 {
-			return &Error{Code: ErrorCodeEntityNotFound, Message: "Entity not found in performing rest function"}
+			return rgserror.ErrEntityNotFound
 		} else if httpStatusCode == 402 {
-			return &Error{Code: ErrorCodeNotEnoughBalance, Message: "Not enough balance in performing rest function"}
+			return rgserror.ErrInsufficientFundError
 		}
-		return &Error{Code: ErrorCodeGeneralError, Message: "Unknown error in performing rest call"}
+		return rgserror.ErrGenericWalletErr
 	}
 	return nil
 }
 
-func (i *RemoteServiceImpl) errorResponseCode(responseCode string) *Error {
+func (i *RemoteServiceImpl) errorResponseCode(responseCode string) rgserror.RGSErr {
 	if responseCode != string(ResponseCodeOk) {
 		if responseCode == string(ResponseCodeDataError) {
-			return &Error{Code: ErrorCodeGeneralError, Message: "Unable to perform rest function, found data input error"}
+			return rgserror.ErrBadRequest
 		} else if responseCode == string(ResponseCodeInsufficentBalance) {
-			return &Error{Code: ErrorCodeNotEnoughBalance, Message: "Unable to perform rest function, not enough balance"}
+			return rgserror.ErrInsufficientFundError
 		} else if responseCode == string(ResponseCodeSessionExpired) {
-			return &Error{Code: ErrorCodeTokenExpired, Message: "Unable to perform rest function, token expired"}
+			return rgserror.ErrTokenExpired
 		}
-		return &Error{Code: ErrorCodeGeneralError, Message: "Unknown error in performing rest call"}
+		return rgserror.ErrGenericWalletErr
 	}
 	return nil
 }
 
-func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) (PlayerStore, GameStateStore, *Error) {
+func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) (PlayerStore, GameStateStore, rgserror.RGSErr) {
 	if mode == ModeDemo {
 		token = Token(i.demoToken())
 	}
@@ -582,7 +604,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 		nil
 }
 
-func (i *RemoteServiceImpl) getLastGamestate(lastTx restTransactionRequest, lastAttemptedTx restTransactionRequest) (lastTxInfo restTransactionRequest, balance BalanceStore, err *Error) {
+func (i *RemoteServiceImpl) getLastGamestate(lastTx restTransactionRequest, lastAttemptedTx restTransactionRequest) (lastTxInfo restTransactionRequest, balance BalanceStore, err rgserror.RGSErr) {
 	// if last_tx and last_attempted_tx are the same, doesn't matter
 	logger.Debugf("Determining last GS : Last Tx = %#v, Last Attempted Tx = %#v", lastTx, lastAttemptedTx)
 	if lastAttemptedTx.TxRef == lastTx.TxRef {
@@ -594,7 +616,7 @@ func (i *RemoteServiceImpl) getLastGamestate(lastTx restTransactionRequest, last
 	// we assume there is never more than one pending/failed tx on top of the last successful tx
 	// because in freespins the PAYOUT tx is treated the same way as the WAGER in normal play, we need to check if this is the first tx of a gamestate
 	if len(lastAttemptedTx.GameState) == 0 || len(lastTx.GameState) == 0 {
-		err = &Error{ErrorCodeEntityNotFound, "No transaction history"}
+		err = rgserror.ErrNoTxHistory
 		return
 	}
 
@@ -618,7 +640,8 @@ func (i *RemoteServiceImpl) getLastGamestate(lastTx restTransactionRequest, last
 	switch Category(lastAttemptedTx.Category) {
 	case CategoryWager:
 		// we do not expect this case, a new wager should be associated with a new gamestate
-		err = &Error{ErrorCodeGeneralError, "Got WAGER as non-primary tx of gamestate"}
+		// todo: this would be ok in a respin case
+		err = rgserror.ErrUnexpectedTx
 		return
 	case CategoryPayout:
 		// the wager was successful but payout failed, so retry the payout one time with same ID
@@ -642,7 +665,7 @@ func (i *RemoteServiceImpl) getLastGamestate(lastTx restTransactionRequest, last
 		lastTxInfo.InternalStatus = 1
 		return
 	}
-	err = &Error{ErrorCodeGeneralError, "Unrecognized previous transaction configuration"}
+	err = rgserror.ErrUnexpectedTx
 	return
 }
 
@@ -654,7 +677,7 @@ func (i *RemoteServiceImpl) restAuthenticateResponse(response *http.Response) re
 	return data
 }
 
-func (i *LocalServiceImpl) PlayerSave(token Token, mode Mode, player PlayerStore) (PlayerStore, *Error) {
+func (i *LocalServiceImpl) PlayerSave(token Token, mode Mode, player PlayerStore) (PlayerStore, rgserror.RGSErr) {
 	logger.Debugf("LocalServiceImpl.PlayerSave([%v], [%v], [%v])", token, mode, player)
 
 	i.setToken(token, player.PlayerId)
@@ -684,7 +707,7 @@ func (i *LocalServiceImpl) renewToken(token Token) Token {
 	return newToken
 }
 
-func (i *LocalServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore, *Error) {
+func (i *LocalServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore, rgserror.RGSErr) {
 	logger.Debugf("LocalServiceImpl.BalanceByToken([%v], [%v])", token, mode)
 
 	playerId, _ := i.getToken(token)
@@ -702,7 +725,7 @@ func (i *LocalServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore,
 	}, nil
 }
 
-func (i *RemoteServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore, *Error) {
+func (i *RemoteServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore, rgserror.RGSErr) {
 	balRq := restBalanceRequest{
 		ReqId:    uuid.NewV4().String(),
 		Token:    string(token),
@@ -758,7 +781,7 @@ func (i *RemoteServiceImpl) restBalanceResponse(response *http.Response) restBal
 	return data
 }
 
-func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, *Error) {
+func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, rgserror.RGSErr) {
 	logger.Debugf("LocalServiceImpl.Transaction([%v], [%v], [%v])", token, mode, transaction)
 
 	playerId, _ := i.getToken(token)
@@ -786,7 +809,7 @@ func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction Trans
 		}
 	}
 	if player.Balance.Amount < 0 {
-		return BalanceStore{}, &Error{ErrorCodeNotEnoughBalance, "Low Balance"}
+		return BalanceStore{}, rgserror.ErrInsufficientFundError
 	}
 	i.setTransaction(transaction.TransactionId, transaction)
 	key := player.PlayerId + "::" + transaction.GameId
@@ -805,7 +828,7 @@ func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction Trans
 	}, nil
 }
 
-func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, *Error) {
+func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, rgserror.RGSErr) {
 	closeRound := false
 	gameState := ""
 
@@ -839,7 +862,7 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 	return i.txSend(txRq)
 }
 
-func (i *RemoteServiceImpl) txSend(txRq restTransactionRequest) (BalanceStore, *Error) {
+func (i *RemoteServiceImpl) txSend(txRq restTransactionRequest) (BalanceStore, rgserror.RGSErr) {
 	b := new(bytes.Buffer)
 	err := json.NewEncoder(b).Encode(txRq)
 
@@ -888,17 +911,17 @@ func (i *RemoteServiceImpl) restTransactionResponse(response *http.Response) res
 	return data
 }
 
-func (i *LocalServiceImpl) GamestateById(gamestateId string) (GameStateStore, *Error) {
+func (i *LocalServiceImpl) GamestateById(gamestateId string) (GameStateStore, rgserror.RGSErr) {
 	logger.Debugf("LocalServiceImpl.GamestateById([%v])", gamestateId)
 	transaction, ok := i.getTransaction(gamestateId)
 	if !ok {
-		return GameStateStore{}, &Error{ErrorCodeGeneralError, "bad gamestate ID"}
+		return GameStateStore{}, rgserror.ErrEntityNotFound
 	}
 
 	return GameStateStore{GameState: transaction.GameState}, nil
 }
 
-func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, *Error) {
+func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgserror.RGSErr) {
 	// Used at beginning of play() func to get previous gamestate, betlimit settings code, and free games info
 	logger.Debugf("LocalServiceImpl.TransactionByGameId([%v], [%v], [%v])", token, mode, gameId)
 
@@ -909,7 +932,7 @@ func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId st
 	transaction, ok := i.getTransactionByPlayerGame(key)
 
 	if !ok {
-		return TransactionStore{}, &Error{ErrorCodeEntityNotFound, "No such transaction"}
+		return TransactionStore{}, rgserror.ErrEntityNotFound
 	}
 
 	return TransactionStore{
@@ -934,7 +957,7 @@ func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId st
 	}, nil
 }
 
-func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, *Error) {
+func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgserror.RGSErr) {
 	// Used at beginning of play() func to get previous gamestate, betlimit settings code, and free games info
 
 	queryRq := restQueryRequest{
@@ -973,7 +996,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 
 			// special handling for err does not exists
 		if queryResp.ResponseCode == ResponseCodeUnknownError && strings.Contains(queryResp.Message, "E-CODE: [004:1003]") {
-			return TransactionStore{},  &Error{ErrorCodeEntityNotFound, "Not Found"}
+			return TransactionStore{},  rgserror.ErrEntityNotFound
 		} else {
 			return TransactionStore{}, finalErr
 		}
@@ -1047,7 +1070,7 @@ func (i *RemoteServiceImpl) restGameStateResponse(response *http.Response) restG
 	return data
 }
 
-func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, *Error) {
+func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, rgserror.RGSErr) {
 	// Used in clientstate call
 	playerId, _ := i.getToken(token)
 	player, _ := i.getPlayer(playerId)
@@ -1080,7 +1103,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 	return balance, nil
 }
 
-func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, *Error) {
+func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, rgserror.RGSErr) {
 	// Used in clientstate call
 	closeRound := true
 
@@ -1277,15 +1300,15 @@ func internalInit(c *config.Config) {
 	}
 }
 
-func internalCheck() error {
+func internalCheck() rgserror.RGSErr {
 	if ld == nil {
 		logger.Errorf("Local data is not initialized. Panic!!")
-		return errors.New("Local data is not initalized")
+		return rgserror.ErrStoreInit
 	}
 
 	if ld.Player == nil {
 		logger.Errorf("Local data is not initialized. Panic!!")
-		return errors.New("Local data is not initalized")
+		return rgserror.ErrStoreInit
 	}
 
 	return nil

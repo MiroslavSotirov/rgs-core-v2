@@ -5,7 +5,6 @@ import (
 	"strings"
 )
 
-// TODO: And more specific error codes
 // Error code constants
 const (
 	rgsInitError        = 1
@@ -25,6 +24,7 @@ const (
 	gamestateStringDeserializerError = 111
 	gamestateByteSerializerError     = 112
 	gamestateByteDeserializerError   = 114
+
 	//Memcached gamestate store/retrieve error
 	gamestateCacheStoreError    = 200
 	gamestateCacheRetrieveError = 201
@@ -35,6 +35,7 @@ const (
 	dasInvalidTokenError     = 401
 	dasInsufficientFundError = 402
 	DASHostError             = 403
+
 	// Wallet Error
 	invalidCredentials    = 420
 	invalidWallet         = 421
@@ -43,6 +44,15 @@ const (
 	insufficientFundError = 450
 	genericWalletError    = 451
 	peviousTXPendingError = 452
+	noSuchPlayer          = 453 // demo wallet only
+	jsonError             = 454
+	restError             = 455
+	b65Error              = 456
+	tokenExpired          = 457
+	entityNotFound        = 458
+	badRequest            = 459
+	noTxHistory           = 460
+	unexpectedTx          = 461
 
 	// Wallet & Operator
 	badOperatorConfig = 600
@@ -56,6 +66,9 @@ const (
 
 	createDemoSessionError = 704
 	// Generic errors
+
+	// forceTool
+	noForceError = 800
 )
 
 // ErrMsg Error message key value map
@@ -96,9 +109,19 @@ var ErrMsg = map[int]string{
 	genericWalletError:               "Generic wallet error",
 	peviousTXPendingError:            "Previous transaction still pending, please try again",
 	incompleteRoundError:             "Not the final state in round, can't be closed",
+	noForceError:                     "No force matching that code",
+	noSuchPlayer:                     "No player found",
+	jsonError:                        "Failure encoding/decoding json",
+	restError:                        "REST error",
+	b65Error:                         "Failure encoding/decoding base64",
+	tokenExpired:                     "Token expired",
+	entityNotFound:                   "Entity not found",
+	badRequest:                       "Unable to perform rest function, found data input error",
+	noTxHistory:                      "No transaction history",
+	unexpectedTx:                     "Got unexpected WAGER tx",
 }
 
-type IRGSError interface {
+type RGSErr interface {
 	Error() string
 	Init(int, ...string)
 	AppendErrorText(string)
@@ -187,4 +210,19 @@ var (
 
 	ErrBadOperatorConfig   = CreateRGSErr(badOperatorConfig)
 	ErrInternalServerError = CreateRGSErr(internalServerError)
+
+	// store errors
+	ErrNoSuchPlayer = CreateRGSErr(noSuchPlayer)
+	ErrJson           = CreateRGSErr(jsonError)
+	ErrRest           = CreateRGSErr(restError)
+	ErrB64            = CreateRGSErr(b65Error)
+	ErrTokenExpired   = CreateRGSErr(tokenExpired)
+	ErrEntityNotFound = CreateRGSErr(entityNotFound)
+	ErrBadRequest     = CreateRGSErr(badRequest)
+	ErrNoTxHistory    = CreateRGSErr(noTxHistory)
+	ErrUnexpectedTx   = CreateRGSErr(unexpectedTx)
+
+
+	// forceTool
+	ErrNoForceConfig = CreateRGSErr(noForceError)
 )

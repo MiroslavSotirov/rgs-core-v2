@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, engine.Gamestate, rgserror.IRGSError) {
+func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, engine.Gamestate, rgserror.RGSErr) {
 	// get refresh token from auth header if applicable
 	gameSlug := chi.URLParam(request, "gameSlug")
 	currency := request.FormValue("currency")
@@ -74,7 +74,7 @@ func fixCorruptedGS(gamestate engine.Gamestate, player store.PlayerStore, reques
 	return gamestate, player
 }
 
-func renderNextGamestate(request *http.Request) (GameplayResponse, rgserror.IRGSError) {
+func renderNextGamestate(request *http.Request) (GameplayResponse, rgserror.RGSErr) {
 	logger.Debugf("engine3, calculating next round: %#v", request.Body)
 	decoder := json.NewDecoder(request.Body)
 	var data engine.GameParams
@@ -184,7 +184,7 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 	return minBet, data, nil
 }
 
-func play(request *http.Request, data engine.GameParams) (engine.Gamestate, store.PlayerStore, BalanceResponse, engine.EngineConfig, rgserror.IRGSError) {
+func play(request *http.Request, data engine.GameParams) (engine.Gamestate, store.PlayerStore, BalanceResponse, engine.EngineConfig, rgserror.RGSErr) {
 	authHeader := request.Header.Get("Authorization")
 	gameSlug := chi.URLParam(request, "gameSlug")
 	wallet := chi.URLParam(request, "wallet")
@@ -192,7 +192,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 	clientID := chi.URLParam(request, "gamestateID")
 
 	var txStore store.TransactionStore
-	var err *store.Error
+	var err rgserror.RGSErr
 	var previousGamestate engine.Gamestate
 	switch wallet {
 	case "demo":
@@ -201,15 +201,12 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 		txStore, err = store.Serv.TransactionByGameId(store.Token(memID), store.ModeReal, gameSlug)
 	}
 	if err != nil {
-		if err.Code == store.ErrorCodeEntityNotFound {
+		if err.Error() == rgserror.ErrEntityNotFound.Error() {
 			// this is first gameplay
 			txStore, previousGamestate = getInitPlayValues(request, clientID, memID, gameSlug)
 		} else {
 			//otherwise this is an actual error
-			if err.Code == store.ErrorCodeTokenExpired {
-				return previousGamestate, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrDasInvalidTokenError
-			}
-			return previousGamestate, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInvalidCredentials
+			return previousGamestate, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, err
 		}
 	} else {
 		previousGamestate = store.DeserializeGamestateFromBytes(txStore.GameState)
@@ -328,11 +325,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 		}
 
 		if err != nil {
-			if err.Code == store.ErrorCodeNotEnoughBalance {
-				return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrInsufficientFundError
-			}
-			logger.Infof("error: %v", err)
-			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrGenericWalletErr
+			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, err
 		}
 		token = balance.Token
 	}

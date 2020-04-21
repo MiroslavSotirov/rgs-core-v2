@@ -339,7 +339,7 @@ func Routes() *chi.Mux {
 			gameSlug := chi.URLParam(r, "gameSlug")
 			wallet := chi.URLParam(r, "wallet")
 			var txStore store.TransactionStore
-			var err *store.Error
+			var err rgserror.RGSErr
 			switch wallet {
 			case "demo":
 				txStore, err = store.ServLocal.TransactionByGameId(store.Token(token), store.ModeDemo, gameSlug)

@@ -20,7 +20,7 @@ func GetURLScheme(r *http.Request) string {
 	return "https://"
 }
 
-func processAuthorization(request *http.Request) (string, rgserror.IRGSError) {
+func processAuthorization(request *http.Request) (string, rgserror.RGSErr) {
 
 	tokenInfo := strings.Split(request.Header.Get("Authorization"), " ")
 	switch tokenInfo[0] {
@@ -38,7 +38,7 @@ func processAuthorization(request *http.Request) (string, rgserror.IRGSError) {
 	return tokenInfo[1], nil
 }
 
-func PlayerBalance(r *http.Request) (BalanceCheckResponse, rgserror.IRGSError) {
+func PlayerBalance(r *http.Request) (BalanceCheckResponse, rgserror.RGSErr) {
 	authToken, err := processAuthorization(r)
 	if err != nil {
 		return BalanceCheckResponse{}, rgserror.ErrInvalidCredentials

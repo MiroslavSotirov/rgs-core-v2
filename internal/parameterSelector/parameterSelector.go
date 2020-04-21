@@ -46,7 +46,7 @@ func parseBetConfig() (betConfig, error) {
 	return conf, nil
 }
 
-func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string) ([]engine.Fixed, engine.Fixed, rgserror.IRGSError) {
+func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string) ([]engine.Fixed, engine.Fixed, rgserror.RGSErr) {
 	// returns stakeValues and defaultBet based on host and player configuration
 	logger.Debugf("getting %v stake params for config %v (lastbet %#v)", gameID, betSettingsCode, lastBet)
 	betConf, err := parseBetConfig()

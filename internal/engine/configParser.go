@@ -110,7 +110,7 @@ func (config EngineConfig) getDefIdByName(action string) int {
 	return -1
 }
 
-func (config EngineConfig) getEngineAndMethod(action string) (reflect.Value, rgserror.IRGSError) {
+func (config EngineConfig) getEngineAndMethod(action string) (reflect.Value, rgserror.RGSErr) {
 	//log.Printf("Retrieving method: %v", action)
 	var matchedEngines []EngineDef
 	sumEngineProbabilities := 0

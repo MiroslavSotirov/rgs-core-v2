@@ -91,7 +91,7 @@ func InitGameConfig() error {
 	return yaml.Unmarshal(yamlFile, &GlobalGameConfig)
 }
 
-func GetEngineFromGame(gameName string) (engineID string, err rgserror.IRGSError) {
+func GetEngineFromGame(gameName string) (engineID string, err rgserror.RGSErr) {
 	for i := 0; i < len(GlobalGameConfig); i++ {
 		for j := 0; j < len(GlobalGameConfig[i].Games); j++ {
 			if GlobalGameConfig[i].Games[j] == gameName {

@@ -18,7 +18,7 @@ var MC *memcache.Client
 var ServLocal LocalService
 var Serv Service
 
-func Init() rgserror.IRGSError {
+func Init() rgserror.RGSErr {
 
 	//ServLocal = New(&config.GlobalConfig)
 	ServLocal = NewLocal()
