@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	uuid "github.com/satori/go.uuid"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"net/http"
@@ -92,7 +93,7 @@ func TestRemoteServiceImpl_BalanceByToken_2(t *testing.T) {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
 	}
 
-	if err.Code != ErrorCodeGeneralError {
+	if err.(*rgserror.RGSError).ErrCode != rgserror.GenericWalletError {
 		t.Errorf("Error code not match [%v]", err)
 	}
 }
@@ -117,7 +118,7 @@ func TestRemoteServiceImpl_BalanceByToken_3(t *testing.T) {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
 	}
 
-	if err.Code != ErrorCodeTokenExpired {
+	if err.(*rgserror.RGSError).ErrCode != rgserror.TokenExpired {
 		t.Errorf("Error code not match [%v]", err)
 	}
 }
@@ -142,7 +143,7 @@ func TestRemoteServiceImpl_BalanceByToken_4(t *testing.T) {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
 	}
 
-	if err.Code != ErrorCodeTokenExpired {
+	if err.(*rgserror.RGSError).ErrCode != rgserror.TokenExpired {
 		t.Errorf("Error code not match [%v]", err)
 	}
 }
@@ -167,7 +168,7 @@ func TestRemoteServiceImpl_BalanceByToken_5(t *testing.T) {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
 	}
 
-	if err.Code != ErrorCodeNotEnoughBalance {
+	if err.(*rgserror.RGSError).ErrCode != rgserror.InsufficientFundError {
 		t.Errorf("Error code not match [%v]", err)
 	}
 }
@@ -204,7 +205,7 @@ func TestRemoteServiceImpl_BalanceByToken_6(t *testing.T) {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
 	}
 
-	if err.Code != ErrorCodeNotEnoughBalance {
+	if err.(*rgserror.RGSError).ErrCode != rgserror.InsufficientFundError {
 		t.Errorf("Error code not match [%v]", err)
 	}
 }
@@ -238,10 +239,10 @@ func TestRemoteServiceImpl_BalanceByToken_7(t *testing.T) {
 	_, err := serv.BalanceByToken(Token(tokenStr), mode)
 
 	if err == nil {
-		t.Errorf("Found error, it shouldn't produce error [%v]", err)
+		t.Errorf("No error, it should produce error [%v]", err)
 	}
 
-	if err.Code != ErrorCodeGeneralError {
+	if err.(*rgserror.RGSError).ErrCode != rgserror.BadRequest {
 		t.Errorf("Error code not match [%v]", err)
 	}
 }
@@ -278,7 +279,7 @@ func TestRemoteServiceImpl_BalanceByToken_8(t *testing.T) {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
 	}
 
-	if err.Code != ErrorCodeTokenExpired {
+	if err.(*rgserror.RGSError).ErrCode != rgserror.TokenExpired {
 		t.Errorf("Error code not match [%v]", err)
 	}
 }
@@ -315,7 +316,7 @@ func TestRemoteServiceImpl_BalanceByToken_9(t *testing.T) {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
 	}
 
-	if err.Code != ErrorCodeGeneralError {
+	if err.(*rgserror.RGSError).ErrCode != rgserror.GenericWalletError {
 		t.Errorf("Error code not match [%v]", err)
 	}
 }
