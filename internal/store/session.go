@@ -58,7 +58,7 @@ func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.G
 
 	gsID := player.PlayerId + gameName + "GSinit"
 	//todo: initialize gamification properly
-	latestGamestate = engine.Gamestate{GameID: gameName + ":0", Id: gsID, BetPerLine: engine.Money{0, player.Balance.Currency}, NextActions: []string{"finish"}, Action: "init", Gamification: &engine.GamestatePB_Gamification{}, SymbolGrid: [][]int{{0, 0, 0}, {0, 0, 0}}, NextGamestate: rng.RandStringRunes(16), Closed: true}
+	latestGamestate = engine.Gamestate{GameID: gameName + ":0", Id: gsID, BetPerLine: engine.Money{0, player.Balance.Currency}, NextActions: []string{"finish"}, Action: "init", Gamification: &engine.GamestatePB_Gamification{}, SymbolGrid: engine.GetDefaultView(gameName), NextGamestate: rng.RandStringRunes(16), Closed: true}
 	if strings.Contains(gameName, "seasons") {
 		latestGamestate.SelectedWinLines = []int{0, 1, 2}
 	}
