@@ -78,7 +78,7 @@ func main() {
 		// Useful when getting started or trying to figure something out.
 		Debug: false,
 		Environment: config.GlobalConfig.Server.Host,
-		IgnoreErrors: []string{"Insufficient Fund", "No force matching that code"},
+		IgnoreErrors: []string{"Insufficient Fund", "No force matching that code", "No player found"},
 	})
 	if err != nil {
 		logger.Errorf("sentry.Init: %s", err)
