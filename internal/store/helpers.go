@@ -5,7 +5,7 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/golang/protobuf/proto"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
@@ -18,7 +18,7 @@ var MC *memcache.Client
 var ServLocal LocalService
 var Serv Service
 
-func Init() rgserror.RGSErr {
+func Init() rgse.RGSErr {
 
 	//ServLocal = New(&config.GlobalConfig)
 	ServLocal = NewLocal()
@@ -28,9 +28,7 @@ func Init() rgserror.RGSErr {
 	}
 	_, _, err := engine.GetHashes()
 	if err != nil {
-		hasherr := rgserror.ErrEngineHash
-		hasherr.AppendErrorText(err.Error())
-		logger.Errorf("could not generate hashes of engine files: %v", hasherr.Error())
+		return err
 	}
 
 	return nil
@@ -78,8 +76,6 @@ func DeserializeGamestateFromBytes(serialized []byte) engine.Gamestate {
 func DeserializeGamestateFromBytesLegacy(serialized []byte) engine.Gamestate {
 	// turns serialized session information into session struct
 	var deserializedGS engine.GamestatePB
-
-
 
 	data := bytes.Split(serialized, delimiter)
 	if len(data) == 1 {

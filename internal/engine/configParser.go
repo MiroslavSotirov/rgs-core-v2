@@ -2,7 +2,7 @@ package engine
 
 import (
 	"fmt"
-	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"gopkg.in/yaml.v3"
@@ -110,7 +110,7 @@ func (config EngineConfig) getDefIdByName(action string) int {
 	return -1
 }
 
-func (config EngineConfig) getEngineAndMethod(action string) (reflect.Value, rgserror.RGSErr) {
+func (config EngineConfig) getEngineAndMethod(action string) (reflect.Value, rgse.RGSErr) {
 	//log.Printf("Retrieving method: %v", action)
 	var matchedEngines []EngineDef
 	sumEngineProbabilities := 0
@@ -125,7 +125,7 @@ func (config EngineConfig) getEngineAndMethod(action string) (reflect.Value, rgs
 	}
 	//logger.Debugf("matched %v engines", len(matchedEngines))
 	if len(matchedEngines) == 0 {
-		e := rgserror.ErrEngineNotFound
+		e := rgse.Create(rgse.EngineNotFoundError)
 		e.AppendErrorText(fmt.Sprintf("No engine matched action %v", action))
 		return reflect.Value{}, e
 	}

@@ -2,9 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
@@ -16,14 +17,14 @@ import (
 	"time"
 )
 
-func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, engine.Gamestate, rgserror.RGSErr) {
+func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, engine.Gamestate, rgse.RGSErr) {
 	// get refresh token from auth header if applicable
 	gameSlug := chi.URLParam(request, "gameSlug")
 	currency := request.FormValue("currency")
 	engineID, err := config.GetEngineFromGame(gameSlug)
 	if err != nil {
 		logger.Errorf("InitGame Error EngineID: %s - %s", gameSlug+"-engine", err)
-		return store.PlayerStore{}, engine.EngineConfig{}, engine.Gamestate{}, rgserror.ErrEngineNotFound
+		return store.PlayerStore{}, engine.EngineConfig{}, engine.Gamestate{}, rgse.Create(rgse.EngineNotFoundError)
 	}
 	engineConfig := engine.BuildEngineDefs(engineID)
 	authToken, err := processAuthorization(request)
@@ -32,11 +33,14 @@ func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, en
 	}
 	wallet := chi.URLParam(request, "wallet")
 	latestGamestate, player, err := store.InitPlayerGS(authToken, authToken, gameSlug, currency, wallet)
+	if err != nil {
+		return store.PlayerStore{}, engine.EngineConfig{}, engine.Gamestate{}, err
+	}
 
 	// fix for engine iii issue
 	latestGamestate, player = fixCorruptedGS(latestGamestate, player, request)
 
-	return player, engineConfig, latestGamestate, err
+	return player, engineConfig, latestGamestate, nil
 
 }
 
@@ -74,14 +78,14 @@ func fixCorruptedGS(gamestate engine.Gamestate, player store.PlayerStore, reques
 	return gamestate, player
 }
 
-func renderNextGamestate(request *http.Request) (GameplayResponse, rgserror.RGSErr) {
+func renderNextGamestate(request *http.Request) (GameplayResponse, rgse.RGSErr) {
 	logger.Debugf("engine3, calculating next round: %#v", request.Body)
 	decoder := json.NewDecoder(request.Body)
 	var data engine.GameParams
 	decodeerr := decoder.Decode(&data)
 	if decodeerr != nil {
 		logger.Errorf("Unable to decode request body: %s", decodeerr.Error())
-		return GameplayResponse{}, rgserror.ErrGamestateStore
+		return GameplayResponse{}, rgse.Create(rgse.JsonError)
 	}
 	gamestate, player, balance, engineConf, err := play(request, data)
 	if err != nil {
@@ -138,7 +142,7 @@ func getInitPlayValues(request *http.Request, clientID string, memID string, gam
 	return
 }
 
-func validateBet(data engine.GameParams, txStore store.TransactionStore, game string) (bool, engine.GameParams, *rgserror.RGSError) {
+func validateBet(data engine.GameParams, txStore store.TransactionStore, game string) (bool, engine.GameParams, rgse.RGSErr) {
 	minBet := false
 	if data.Action != "base" {
 		// stake value must be zero
@@ -146,7 +150,7 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 		// check that previous TX opened the round
 		if txStore.RoundStatus != store.RoundStatusOpen {
 			logger.Warnf("last TX should be open: %#v", txStore)
-			return false, data, rgserror.ErrSpinSequence
+			return false, data, rgse.Create(rgse.SpinSequenceError)
 		}
 		logger.Debugf("setting zero stake value for %v round", data.Action)
 		data.Stake = 0
@@ -154,14 +158,14 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 		// check that previous TX was endround
 		if txStore.RoundStatus != store.RoundStatusClose {
 			logger.Warnf("last TX: %#v", txStore)
-			return false, data, rgserror.ErrSpinSequence
+			return false, data, rgse.Create(rgse.SpinSequenceError)
 		}
 
 		stakeValues, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, txStore.Amount.Currency}, txStore.BetLimitSettingCode, game)
 		if err != nil {
-			logger.Warnf("Error: %v", err)
-			return false, data, rgserror.ErrInvalidStake
+			return false, data, err
 		}
+
 		valid := false
 		for i := 0; i < len(stakeValues); i++ {
 			if data.Stake == stakeValues[i] {
@@ -177,14 +181,14 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 			}
 		}
 		if valid == false {
-			logger.Warnf("invalid stake: %v (options: %v)", data.Stake, stakeValues)
-			return false, data, rgserror.ErrInvalidStake
+			logger.Debugf("invalid stake: %v (options: %v)", data.Stake, stakeValues)
+			return false, data, rgse.Create(rgse.InvalidStakeError)
 		}
 	}
 	return minBet, data, nil
 }
 
-func play(request *http.Request, data engine.GameParams) (engine.Gamestate, store.PlayerStore, BalanceResponse, engine.EngineConfig, rgserror.RGSErr) {
+func play(request *http.Request, data engine.GameParams) (engine.Gamestate, store.PlayerStore, BalanceResponse, engine.EngineConfig, rgse.RGSErr) {
 	authHeader := request.Header.Get("Authorization")
 	gameSlug := chi.URLParam(request, "gameSlug")
 	wallet := chi.URLParam(request, "wallet")
@@ -192,7 +196,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 	clientID := chi.URLParam(request, "gamestateID")
 
 	var txStore store.TransactionStore
-	var err rgserror.RGSErr
+	var err rgse.RGSErr
 	var previousGamestate engine.Gamestate
 	switch wallet {
 	case "demo":
@@ -201,7 +205,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 		txStore, err = store.Serv.TransactionByGameId(store.Token(memID), store.ModeReal, gameSlug)
 	}
 	if err != nil {
-		if err.Error() == rgserror.ErrEntityNotFound.Error() {
+		if err.(*rgse.RGSError).ErrCode == rgse.EntityNotFound {
 			// this is first gameplay
 			txStore, previousGamestate = getInitPlayValues(request, clientID, memID, gameSlug)
 		} else {
@@ -213,6 +217,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 		// there is a rare case where a player launched a game before we had the proper handling for init cases, here we can detect this by checking if the last tx was an endround with an incomplete gamestate
 		if previousGamestate.PreviousGamestate == "" {
 			logger.Warnf("Solving Previous Gamestate Issue")
+			sentry.CaptureMessage("solving previous gamestate issue")
 			txStore, previousGamestate = getInitPlayValues(request, clientID, memID, gameSlug)
 		}
 	}
@@ -223,7 +228,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 		if previousGamestate.Action != "pickSpins" || clientID != previousGamestate.PreviousGamestate {
 			// make a further exception for the recovery of an engine III gs
 			if data.Selection != "fixCorruption" {
-				return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrSpinSequence
+				return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgse.Create(rgse.SpinSequenceError)
 			}
 		}
 	}
@@ -233,6 +238,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 	data = validateParams(data)
 	if data.Selection == "fixCorruption" {
 		// remove the initial actions, only play the second ones
+		sentry.CaptureMessage("Fixing engine III corruption")
 		action := previousGamestate.NextActions[0]
 		var nextActions []string
 		for i:=1; i<len(previousGamestate.NextActions); i++ {
@@ -263,17 +269,18 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 	switch txStore.WalletStatus {
 	case 0:
 		// this tx is pending in wallet, quit and force reload
-		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrPreviousTXPending
+		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgse.Create(rgse.PeviousTXPendingError)
 	case -1:
 		// the next tx failed, retrying it will cause a duplicate tx id error, so add a suffix
 		previousGamestate.NextGamestate = previousGamestate.NextGamestate + rng.RandStringRunes(4)
+		sentry.CaptureMessage("Adding random suffix to tx id to avoid duplication error")
 		logger.Debugf("adding suffix to next tx to avoid duplication error, resulting id: %v", previousGamestate.NextGamestate)
 	case 1:
 		// business as usual
 	default:
 		// it should always be one of the above three
 		logger.Infof("Wallet Status is unexpectedly %v", txStore.WalletStatus)
-		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgserror.ErrGenericWalletErr
+		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgse.Create(rgse.UnexpectedWalletStatus)
 	}
 	gamestate, engineConf := engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
 	if config.GlobalConfig.DevMode == true {
@@ -322,6 +329,8 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 		case "dashur":
 			tx.Mode = store.ModeReal
 			balance, err = store.Serv.Transaction(token, store.ModeReal, tx)
+		default:
+			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgse.Create(rgse.InvalidWallet)
 		}
 
 		if err != nil {

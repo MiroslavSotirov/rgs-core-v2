@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/api"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
@@ -69,6 +70,22 @@ func main() {
 	if err != nil {
 		logger.Errorf("Config error: %s\n", err.Error())
 	}
+
+	err = sentry.Init(sentry.ClientOptions{
+		// Either set your DSN here or set the SENTRY_DSN environment variable.
+		Dsn: config.GlobalConfig.SentryDsn,
+		// Enable printing of SDK debug messages.
+		// Useful when getting started or trying to figure something out.
+		Debug: false,
+		Environment: config.GlobalConfig.Server.Host,
+		IgnoreErrors: []string{"Insufficient Fund", "No force matching that code"},
+	})
+	if err != nil {
+		logger.Errorf("sentry.Init: %s", err)
+	}
+	// Flush buffered events before the program terminates.
+	// Set the timeout to the maximum duration the program can afford to wait.
+	//defer sentry.Flush(20 * time.Millisecond)
 
 	srv := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: router}
 	logger.Infof("Starting RGS Core on port: %d", port)

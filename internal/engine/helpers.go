@@ -4,12 +4,14 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
-	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -160,9 +162,19 @@ type GameParams struct {
 	//stopPostitions    []int     // this can also not be passed in from outside the package (only for testing)
 }
 
-func (p GameParams) Validate() (err rgserror.RGSErr) {
+func (gp *GameParams) Decode(request *http.Request) rgse.RGSErr {
+	decoder := json.NewDecoder(request.Body)
+	decoderror := decoder.Decode(gp)
+
+	if decoderror != nil {
+		return rgse.Create(rgse.JsonError)
+	}
+	return  nil
+}
+
+func (p GameParams) Validate() (err rgse.RGSErr) {
 	if p.Game == "" || p.Action == "" {
-		return rgserror.ErrBadConfig
+		return rgse.Create(rgse.BadConfigError)
 	}
 	return nil
 }
@@ -181,26 +193,26 @@ func GetPBFromGameID(gameID string) string {
 }
 
 // get engine hashes
-func GetHashes() ([]string, []string, error) {
+func GetHashes() ([]string, []string, rgse.RGSErr) {
 	//Initialize variable returnMD5String now in case an error has to be returned
 	var MD5Strings []string
 	var SHA1Strings []string
 	currentDir, err := os.Getwd()
 	if err != nil {
 		logger.Errorf("Failed opening current directory")
-		return []string{}, []string{}, err
+		return []string{}, []string{}, rgse.Create(rgse.EngineHashError)
 	}
 	engineIDs, err := ioutil.ReadDir(filepath.Join(currentDir, "internal/engine/engineConfigs"))
 	if err != nil {
 		logger.Fatalf("Failed reading engineDefs")
-		return []string{}, []string{}, err
+		return []string{}, []string{}, rgse.Create(rgse.EngineHashError)
 	}
 	for i := 0; i < len(engineIDs); i++ {
 		logger.Infof("Generating checksums for file: %v", engineIDs[i].Name())
 		filePath := filepath.Join(currentDir, "internal/engine/engineConfigs", engineIDs[i].Name())
 		md5hash, sha1hash, err := GetHash(filePath)
 		if err != nil {
-			return []string{}, []string{}, err
+			return []string{}, []string{}, rgse.Create(rgse.EngineHashError)
 		}
 		MD5Strings = append(MD5Strings, md5hash)
 		SHA1Strings = append(SHA1Strings, sha1hash)
@@ -209,7 +221,7 @@ func GetHashes() ([]string, []string, error) {
 	logger.Infof("Generating checksums for rng")
 	_, _, err = GetHash(filepath.Join(currentDir, "internal/rng/mt19937.go"))
 	if err != nil {
-		return []string{}, []string{}, err
+		return []string{}, []string{}, rgse.Create(rgse.EngineHashError)
 	}
 	return MD5Strings, SHA1Strings, nil
 

@@ -1,17 +1,17 @@
 package store
 
 import (
-	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"strings"
 )
 
-func InitPlayerGS(refreshToken string, playerID string, gameName string, currency string, wallet string) (engine.Gamestate, PlayerStore, rgserror.RGSErr) {
+func InitPlayerGS(refreshToken string, playerID string, gameName string, currency string, wallet string) (engine.Gamestate, PlayerStore, rgse.RGSErr) {
 	var newPlayer PlayerStore
 	var latestGamestateStore GameStateStore
-	var err rgserror.RGSErr
+	var err rgse.RGSErr
 
 	switch wallet {
 	case "dashur":
@@ -19,7 +19,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 	case "demo":
 		newPlayer, latestGamestateStore, err = ServLocal.PlayerByToken(Token(refreshToken), ModeDemo, gameName)
 	}
-	if err != nil {
+	if err != nil && err.(*rgse.RGSError).ErrCode != rgse.NoSuchPlayer {
 		return engine.Gamestate{}, PlayerStore{}, err
 	}
 	var latestGamestate engine.Gamestate
@@ -49,7 +49,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 	} else {
 		latestGamestate = DeserializeGamestateFromBytes(latestGamestateStore.GameState)
 	}
-
+	logger.Debugf("latestgs: %v, player %v")
 	return latestGamestate, newPlayer, nil
 }
 
@@ -65,27 +65,27 @@ func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.G
 	return
 }
 
-func PlayerBalance(token, wallet string) (BalanceStore ,rgserror.RGSErr) {
+func PlayerBalance(token, wallet string) (BalanceStore , rgse.RGSErr) {
 	logger.Debugf("Token [%s] Wallet [%s]", token, wallet)
 	var balance BalanceStore
-	var err rgserror.RGSErr
+	var err rgse.RGSErr
 	switch wallet {
 	case "dashur":
 		balance, err = Serv.BalanceByToken(Token(token), ModeReal)
 		if err != nil {
 			logger.Debugf("PlayerBalance Error: %v", &err)
-			return BalanceStore{}, rgserror.ErrBalanceStoreError
+			return BalanceStore{}, err
 		}
 		return balance,  nil
 	case "demo":
 		balance, err = ServLocal.BalanceByToken(Token(token), ModeDemo)
 		if err != nil {
 			logger.Debugf("PlayerBalance Error: %v", err)
-			return BalanceStore{}, rgserror.ErrBalanceStoreError
+			return BalanceStore{}, err
 		}
 		return balance,  nil
 	default:
 		logger.Debugf("PlayerBalance Error: %v", "No wallet specified")
-		return BalanceStore{}, rgserror.ErrBalanceStoreError
+		return BalanceStore{}, err
 	}
 }

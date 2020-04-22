@@ -1,9 +1,8 @@
 package parameterSelector
 
 import (
-	"errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"gopkg.in/yaml.v3"
@@ -22,48 +21,44 @@ type betConfig struct {
 	HostProfiles   map[string]string         `yaml:"hostProfiles"`
 }
 
-func parseBetConfig() (betConfig, error) {
+func parseBetConfig() (betConfig, rgse.RGSErr) {
 	var conf betConfig
 
 	currentDir, err := os.Getwd()
 	if err != nil {
 		logger.Errorf("Failed opening current directory")
-		return betConfig{}, errors.New("Parameter Selection unmarshaling error")
+		return betConfig{}, rgse.Create(rgse.BadConfigError)
 	}
 	configFile := filepath.Join(currentDir, "internal/parameterSelector/parameterConfig.yml")
 	yamlFile, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		logger.Fatalf("Error reading bet config file: %v", err)
-		return betConfig{}, errors.New("parameter selection unmarshaling error")
+		return betConfig{}, rgse.Create(rgse.YamlError)
 	}
 
 	err = yaml.Unmarshal(yamlFile, &conf)
 	if err != nil {
 		logger.Fatalf("Error unmarshaling parameter yaml")
-		return betConfig{}, errors.New("parameter selection unmarshaling error")
+		return betConfig{}, rgse.Create(rgse.YamlError)
 
 	}
 	return conf, nil
 }
 
-func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string) ([]engine.Fixed, engine.Fixed, rgserror.RGSErr) {
+func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string) ([]engine.Fixed, engine.Fixed, rgse.RGSErr) {
 	// returns stakeValues and defaultBet based on host and player configuration
 	logger.Debugf("getting %v stake params for config %v (lastbet %#v)", gameID, betSettingsCode, lastBet)
 	betConf, err := parseBetConfig()
 	//logger.Debugf("Bet Configuration: %#v", betConf)
 	if err != nil {
-		betconfigerr := rgserror.ErrBetConfig
-		betconfigerr.AppendErrorText(err.Error())
-		return []engine.Fixed{}, engine.Fixed(0), betconfigerr
+		return []engine.Fixed{}, engine.Fixed(0), err
 	}
 	// get stakevalues based on host config
 	baseStakeValues := betConf.StakeValues
 
 	ccyMult, ok := betConf.CcyMultipliers[lastBet.Currency]
 	if !ok {
-		betconfigerr := rgserror.ErrBetConfig
-		betconfigerr.AppendErrorText("Unknown Bet Multiplier")
-		return []engine.Fixed{}, engine.Fixed(0), rgserror.ErrBetConfig
+		return []engine.Fixed{}, engine.Fixed(0), rgse.Create(rgse.BetConfigError)
 	}
 
 	profile, ok := betConf.HostProfiles[betSettingsCode]
@@ -98,7 +93,7 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 	engineID, err := config.GetEngineFromGame(gameID)
 	if err != nil {
 		logger.Errorf("No such game found: %v", gameID)
-		return []engine.Fixed{}, engine.Fixed(0), rgserror.ErrEngineNotFound
+		return []engine.Fixed{}, engine.Fixed(0), rgse.Create(rgse.EngineNotFoundError)
 	}
 	switch engineID {
 	case "mvgEngineX":

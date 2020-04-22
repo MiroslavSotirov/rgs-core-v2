@@ -1,10 +1,10 @@
 package config
 
 import (
-	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 )
 
-func GetWalletFromOperatorAndMode(operator string, mode string) (string, rgserror.RGSErr) {
+func GetWalletFromOperatorAndMode(operator string, mode string) (string, rgse.RGSErr) {
 	//todo make this method use a config parser, store info in yaml file
 	//todo return interface
 	if operator == "mav" {
@@ -15,5 +15,5 @@ func GetWalletFromOperatorAndMode(operator string, mode string) (string, rgserro
 			return "demo", nil
 		}
 	}
-	return "", rgserror.ErrBadOperatorConfig
+	return "", rgse.Create(rgse.BadOperatorConfig)
 }
