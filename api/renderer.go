@@ -2,10 +2,11 @@ package api
 
 import (
 	"fmt"
+	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
@@ -71,10 +72,13 @@ func ErrRender(err error) render.Renderer {
 }
 
 // ErrBadRequestRender Bad Request error render
-func ErrBadRequestRender(err *rgserror.RGSError) render.Renderer {
+func ErrBadRequestRender(err *rgse.RGSError) render.Renderer {
 	statusCode := http.StatusBadRequest
+	logger.Infof("seinding sentry err")
+	sentry.CaptureException(err)
+	//sentry.Flush(10*time.Millisecond)
 	statusText := "Bad Request"
-	if err.ErrCode == 450 { // casting int to int64 might cause a bug?
+	if err.ErrCode == rgse.InsufficientFundError { // casting int to int64 might cause a bug?
 		statusCode = 450
 		statusText = "Insufficient Fund"
 	}
@@ -96,7 +100,7 @@ var ErrNotFound = &ErrResponse{HTTPStatusCode: 404, StatusText: "Resource not fo
 //// ErrPrecondition returns 412
 //var ErrPrecondition = &ErrResponse{HTTPStatusCode: 412, StatusText: "Precondition required."}
 
-var ErrInternalServerError = &ErrResponse{HTTPStatusCode: 500, StatusText: "Internal server error", AppCode: rgserror.ErrInternalServerError.ErrCode, ErrorText: rgserror.ErrInternalServerError.Error()}
+var ErrInternalServerError = &ErrResponse{HTTPStatusCode: 500, StatusText: "Internal server error", AppCode: rgse.InternalServerError, ErrorText: rgse.ErrMsg[rgse.InternalServerError]}
 
 // SystemInit Response
 type SystemInit struct {

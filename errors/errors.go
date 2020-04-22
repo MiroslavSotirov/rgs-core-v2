@@ -2,107 +2,134 @@ package rgserror
 
 import (
 	"fmt"
-	"strings"
+	"github.com/getsentry/sentry-go"
 )
 
-// TODO: And more specific error codes
 // Error code constants
 const (
-	rgsInitError        = 1
-	storeInitError      = 2
-	badConfigError      = 10
-	engineHashError     = 11
-	engineConfigError   = 12
-	genericEngineError  = 100
-	spinSequenceError   = 101
-	engineNotFoundError = 102
-	betConfigError      = 103
+	RgsInitError        = 1
+	StoreInitError      = 2
+	BadConfigError      = 10
+	EngineHashError     = 11
+	EngineConfigError   = 12
+	GenericEngineError  = 100
+	SpinSequenceError   = 101
+	EngineNotFoundError = 102
+	BetConfigError      = 103
 	InvalidStakeError   = 104
-	incompleteRoundError = 105
+	IncompleteRoundError = 105
 
 	// Gamestate JSON marshalling
-	gamestateStringSerializerError   = 110
-	gamestateStringDeserializerError = 111
-	gamestateByteSerializerError     = 112
-	gamestateByteDeserializerError   = 114
-	//Memcached gamestate store/retrieve error
-	gamestateCacheStoreError    = 200
-	gamestateCacheRetrieveError = 201
+	GamestateStringSerializerError   = 110
+	GamestateStringDeserializerError = 111
+	GamestateByteSerializerError     = 112
+	GamestateByteDeserializerError   = 114
 
-	invalidContentTypeError    = 300
-	contentTypeNotAllowedError = 301
+	//Memcached gamestate store/retrieve error
+	GamestateCacheStoreError    = 200
+	GamestateCacheRetrieveError = 201
+
+	InvalidContentTypeError    = 300
+	ContentTypeNotAllowedError = 301
 	// Dashur Internal Error
-	dasInvalidTokenError     = 401
-	dasInsufficientFundError = 402
+	DasInvalidTokenError     = 401
+	DasInsufficientFundError = 402
 	DASHostError             = 403
+
 	// Wallet Error
-	invalidCredentials    = 420
-	invalidWallet         = 421
-	invalidWalletCurrency = 422
-	balanceStoreError     = 423
-	insufficientFundError = 450
-	genericWalletError    = 451
-	peviousTXPendingError = 452
+	InvalidCredentials     = 420
+	InvalidWallet          = 421
+	InvalidWalletCurrency  = 422
+	BalanceStoreError      = 423
+	InsufficientFundError  = 450
+	GenericWalletError     = 451
+	PeviousTXPendingError  = 452
+	NoSuchPlayer           = 453 // demo wallet only
+	JsonError              = 454
+	RestError              = 455
+	B64Error               = 456
+	TokenExpired           = 457
+	EntityNotFound         = 458
+	BadRequest             = 459
+	NoTxHistory            = 460
+	UnexpectedTx           = 461
+	UnexpectedWalletStatus = 462
+	YamlError              = 463
 
 	// Wallet & Operator
-	badOperatorConfig = 600
+	BadOperatorConfig = 600
 	// System Error
-	internalServerError = 500
+	InternalServerError = 500
 	// Session Error
-	createSessionError  = 700
-	updateSessionError  = 701
-	deletetSessionError = 702
-	fetchSessionError   = 703
+	CreateSessionError  = 700
+	UpdateSessionError  = 701
+	DeletetSessionError = 702
+	FetchSessionError   = 703
 
-	createDemoSessionError = 704
+	CreateDemoSessionError = 704
 	// Generic errors
+
+	// forceTool
+	NoForceError = 800
 )
 
 // ErrMsg Error message key value map
 var ErrMsg = map[int]string{
 
-	badConfigError:                   "Bad configuration",
-	engineHashError:                  "Could not generate hashes of engine files",
-	engineConfigError:                "No game config",
-	genericEngineError:               "Engine error",
-	spinSequenceError:                "Spin request out of sequence, please reload",
-	engineNotFoundError:              "Engine not found",
-	betConfigError:                   "Bet configuration error",
+	BadConfigError:                   "Bad configuration",
+	EngineHashError:                  "Could not generate hashes of engine files",
+	EngineConfigError:                "No game config",
+	GenericEngineError:               "Engine error",
+	SpinSequenceError:                "Spin request out of sequence, please reload",
+	EngineNotFoundError:              "Engine not found",
+	BetConfigError:                   "Bet configuration error",
 	InvalidStakeError:                "Invalid stake error",
-	rgsInitError:                     "RGS Initialization error",
-	storeInitError:                   "RGS Storage Initialization error",
-	gamestateStringSerializerError:   "Failure serializing Gamestate to string",
-	gamestateByteSerializerError:     "Failure serializing Gamestate to bytes",
-	gamestateStringDeserializerError: "Failure deserializing Gamestate from string",
-	gamestateByteDeserializerError:   "Failure deserializing Gamestate from Errorbytes",
-	gamestateCacheStoreError:         "Failure storing gamestate to memcached",
-	gamestateCacheRetrieveError:      "Failure retrieving gamestate from memcached",
-	invalidContentTypeError:          "Invalid Content-Type",
-	contentTypeNotAllowedError:       "Content-Type not allowed",
-	dasInvalidTokenError:             "Invalid Access Token",
-	dasInsufficientFundError:         "Insufficient Fund",
-	insufficientFundError:            "Insufficient Fund",
-	invalidCredentials:               "Invalid Credentials",
-	invalidWallet:                    "Invalid Wallet",
-	invalidWalletCurrency:            "Transaction currency does not match wallet",
-	balanceStoreError:                "Failed to store balance",
-	createSessionError:               "Failure creating new Session",
-	updateSessionError:               "Failure updating session",
-	deletetSessionError:              "Failure deleting session",
-	fetchSessionError:                "Failure fetching session",
-	createDemoSessionError:           "Error setting demo session ",
-	badOperatorConfig:                "Bad Operator configuration",
-	internalServerError:              "System Error",
-	genericWalletError:               "Generic wallet error",
-	peviousTXPendingError:            "Previous transaction still pending, please try again",
-	incompleteRoundError:             "Not the final state in round, can't be closed",
+	RgsInitError:                     "RGS Initialization error",
+	StoreInitError:                   "RGS Storage Initialization error",
+	GamestateStringSerializerError:   "Failure serializing Gamestate to string",
+	GamestateByteSerializerError:     "Failure serializing Gamestate to bytes",
+	GamestateStringDeserializerError: "Failure deserializing Gamestate from string",
+	GamestateByteDeserializerError:   "Failure deserializing Gamestate from Errorbytes",
+	GamestateCacheStoreError:         "Failure storing gamestate to memcached",
+	GamestateCacheRetrieveError:      "Failure retrieving gamestate from memcached",
+	InvalidContentTypeError:          "Invalid Content-Type",
+	ContentTypeNotAllowedError:       "Content-Type not allowed",
+	DasInvalidTokenError:             "Invalid Access Token",
+	DasInsufficientFundError:         "Insufficient Fund",
+	InsufficientFundError:            "Insufficient Fund",
+	InvalidCredentials:               "Invalid Credentials",
+	InvalidWallet:                    "Invalid Wallet",
+	InvalidWalletCurrency:            "Transaction currency does not match wallet",
+	BalanceStoreError:                "Failed to store balance",
+	CreateSessionError:               "Failure creating new Session",
+	UpdateSessionError:               "Failure updating session",
+	DeletetSessionError:              "Failure deleting session",
+	FetchSessionError:                "Failure fetching session",
+	CreateDemoSessionError:           "Error setting demo session ",
+	BadOperatorConfig:                "Bad Operator configuration",
+	InternalServerError:    "System Error",
+	GenericWalletError:     "Generic wallet error",
+	PeviousTXPendingError:  "Previous transaction still pending, please try again",
+	IncompleteRoundError:   "Not the final state in round, can't be closed",
+	NoForceError:           "No force matching that code",
+	NoSuchPlayer:           "No player found",
+	JsonError:              "Failure encoding/decoding json",
+	RestError:              "REST error",
+	B64Error:               "Failure encoding/decoding base64",
+	TokenExpired:           "Token expired",
+	EntityNotFound:         "Entity not found",
+	BadRequest:             "Unable to perform rest function, found data input error",
+	NoTxHistory:            "No transaction history",
+	UnexpectedTx:           "Got unexpected WAGER tx",
+	UnexpectedWalletStatus: "Unexpected Wallet status",
+	YamlError:              "Error encoding/decoding yaml",
 }
 
-type IRGSError interface {
+type RGSErr interface {
 	Error() string
-	Init(int, ...string)
+	//Init(int, ...string)
 	AppendErrorText(string)
-	SetErrorTextByCode(int)
+	//SetErrorTextByCode(int)
 }
 
 // RGSError Generic RGS Error
@@ -112,79 +139,34 @@ type RGSError struct {
 	ErrorText        string `json:"err_msg,omitempty"` // application-level error message
 }
 
-func CreateRGSErr(code int) *RGSError {
-	return &RGSError{ErrCode: code, DefaultErrorText: ErrMsg[code]}
+func Create(code int) *RGSError {
+	e := &RGSError{ErrCode: code, DefaultErrorText: ErrMsg[code]}
+	sentry.CaptureException(e)
+	return e
 }
 
-func (e *RGSError) Error() string {
+func (e *RGSError) Error() (errorMsg string) {
+	//sentry.CaptureException(e)
+	//sentry.Flush(10*time.Millisecond)
 	if e.ErrorText == "" {
 		return fmt.Sprintf("Error %d, %s", e.ErrCode, e.DefaultErrorText)
 	}
 	return fmt.Sprintf("Error %d, %s - %s", e.ErrCode, e.DefaultErrorText, e.ErrorText)
 }
-
-func (e *RGSError) Init(code int, msgs ...string) {
-	e.ErrCode = code
-	e.ErrorText = ErrMsg[code]
-	e.ErrorText = fmt.Sprintf("%s %s", e.ErrorText, strings.Join(msgs, " "))
-}
+//
+//func (e *RGSError) Init(code int, msgs ...string) {
+//	// this isn't actually used anywhere
+//	e.ErrCode = code
+//	e.DefaultErrorText = ErrMsg[code]
+//	e.ErrorText = fmt.Sprintf("%s %s", e.DefaultErrorText, strings.Join(msgs, " "))
+//}
 
 //AppendErrorText append custom error message
 func (e *RGSError) AppendErrorText(text string) {
 	e.ErrorText = text
 }
-
-//SetErrorTextByCode set custom error message
-func (e *RGSError) SetErrorTextByCode(code int) {
-	e.ErrorText = ErrMsg[code]
-}
-
-// Pre-defined errors
-// Add custom errors here
-var (
-	ErrRGSInit      = CreateRGSErr(rgsInitError)
-	ErrStoreInit    = CreateRGSErr(storeInitError)
-	ErrBadConfig    = CreateRGSErr(badConfigError)
-	ErrEngine       = CreateRGSErr(genericEngineError)
-	ErrEngineHash   = CreateRGSErr(engineHashError)
-	ErrEngineConfig = CreateRGSErr(engineConfigError)
-
-	ErrEngineNotFound = CreateRGSErr(engineNotFoundError)
-	ErrBetConfig      = CreateRGSErr(betConfigError)
-	ErrSpinSequence   = CreateRGSErr(spinSequenceError)
-	ErrIncompleteRound   = CreateRGSErr(incompleteRoundError)
-	ErrInvalidStake   = CreateRGSErr(InvalidStakeError)
-
-	ErrGamestateStringDeserializer = CreateRGSErr(gamestateStringDeserializerError)
-	ErrGamestateStringSerializer   = CreateRGSErr(gamestateStringSerializerError)
-	ErrGamestateByteSerializer     = CreateRGSErr(gamestateByteSerializerError)
-	ErrGamestateByteDeserializer   = CreateRGSErr(gamestateByteDeserializerError)
-
-	ErrGamestateStore = CreateRGSErr(gamestateCacheStoreError)
-	ErrPreviousTXPending = CreateRGSErr(peviousTXPendingError)
-
-	ErrGamestateRetrieve  = CreateRGSErr(gamestateCacheRetrieveError)
-	ErrInvalidContentType = CreateRGSErr(invalidContentTypeError)
-
-	ErrContentTypeNotAllowed = CreateRGSErr(contentTypeNotAllowedError)
-
-	ErrDasInvalidTokenError     = CreateRGSErr(dasInvalidTokenError)
-	ErrDasInsufficientFundError = CreateRGSErr(dasInsufficientFundError)
-
-	ErrInsufficientFundError = CreateRGSErr(insufficientFundError)
-	ErrInvalidCredentials    = CreateRGSErr(invalidCredentials)
-	ErrInvalidWallet         = CreateRGSErr(invalidWallet)
-	ErrInvalidWalletCurrency = CreateRGSErr(invalidWalletCurrency)
-	ErrBalanceStoreError     = CreateRGSErr(balanceStoreError)
-	ErrGenericWalletErr      = CreateRGSErr(genericWalletError)
-
-	ErrCreateSession = CreateRGSErr(createSessionError)
-	ErrUpdateSession = CreateRGSErr(updateSessionError)
-	ErrFetchSession  = CreateRGSErr(fetchSessionError)
-	ErrDeleteSession = CreateRGSErr(deletetSessionError)
-
-	ErrSetDemoSession = CreateRGSErr(createDemoSessionError)
-
-	ErrBadOperatorConfig   = CreateRGSErr(badOperatorConfig)
-	ErrInternalServerError = CreateRGSErr(internalServerError)
-)
+//
+////SetErrorTextByCode set custom error message
+//func (e *RGSError) SetErrorTextByCode(code int) {
+//	e.ErrorText = ErrMsg[code]
+//}

@@ -5,7 +5,7 @@ import (
 	"github.com/crgimenes/goconfig"
 	_ "github.com/crgimenes/goconfig/yaml"
 	"github.com/golang/glog"
-	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -44,6 +44,7 @@ type Config struct {
 	DemoTokenPrefix string      `yaml:"demotokenprefix" cfg:"demotokenprefix" cfgDefault:"demo-token"`
 	DemoCurrency    string      `yaml:"democurrency" cfg:"democurrency" cfgDefault:"USD"`
 	LogAccount		string		`yaml:"logaccount" cfg:"logaccount" cfgDefault:"145472021_144443389"`
+	SentryDsn       string      `yaml:"sentryDsn" cfg:"sentryDsn" cfgDefault:""`
 }
 
 // Game config structure
@@ -91,7 +92,7 @@ func InitGameConfig() error {
 	return yaml.Unmarshal(yamlFile, &GlobalGameConfig)
 }
 
-func GetEngineFromGame(gameName string) (engineID string, err rgserror.IRGSError) {
+func GetEngineFromGame(gameName string) (engineID string, err rgse.RGSErr) {
 	for i := 0; i < len(GlobalGameConfig); i++ {
 		for j := 0; j < len(GlobalGameConfig[i].Games); j++ {
 			if GlobalGameConfig[i].Games[j] == gameName {
@@ -100,7 +101,7 @@ func GetEngineFromGame(gameName string) (engineID string, err rgserror.IRGSError
 			}
 		}
 	}
-	err = rgserror.ErrEngineConfig
+	err = rgse.Create(rgse.EngineNotFoundError)
 	err.AppendErrorText(fmt.Sprintf(" for %s", gameName))
 	return
 }

@@ -1,11 +1,11 @@
 # this is overwritten in deployment by configmap, use only for local development
 # development mode
-devmode: false
+devmode: true
 local: true
 
 # Log levels
 # debug, info, warn, error, fatal
-logging: debug
+logging: info
 
 # mcrouter address
 mcrouter: "127.0.0.1:11211"
@@ -15,19 +15,20 @@ server:
   host: "0.0.0.0"
   port: 3000
 
-#dashurconf:
-#  storeurl: https://gnrc-api.dashur.io/v1/gnrc/maverick
-#  storeappid: VrCLq4UqYBf39rJt
-#  storeapppass: V6Kg9muzJxsz3nWFvJeyccU7
-#demotokenprefix: demo-token-ezVVKaEv2nY7kP2gMCX7vfCH
-
+dashurconf:
+  storeurl: https://gnrc-api.dashur.io/v1/gnrc/maverick
+  storeappid: VrCLq4UqYBf39rJt
+  storeapppass: V6Kg9muzJxsz3nWFvJeyccU7
+demotokenprefix: demo-token-ezVVKaEv2nY7kP2gMCX7vfCH
+sentryDsn: "https://b2727e77bbbd40909706b518cf244379:df61f5f384b947249e9e3361f5d2f7c6@sentry.maverick-ops.com/42"
 defaultlanguage: en
 defaultplatform: html5
-dashurconf:
-# this is for prod version of dashur
-  storeurl: https://gnrc-api.maverick-ops.com/v1/gnrc/maverick
-  storeappid: HAAJ6njttH
-  storeapppass: WKXUZWTzNzvmTqYxiHnH9hKc
-demotokenprefix: demo-token-e6ENjpt76fe8gun9vccRpEPN
+#dashurconf:
+## this is for prod version of dashur
+#  storeurl: https://gnrc-api.maverick-ops.com/v1/gnrc/maverick
+#  storeappid: HAAJ6njttH
+#  storeapppass: WKXUZWTzNzvmTqYxiHnH9hKc
+#demotokenprefix: demo-token-e6ENjpt76fe8gun9vccRpEPN
+
 democurrency: USD
 logaccount: 145472021_144443389

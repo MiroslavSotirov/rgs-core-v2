@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/go-chi/chi"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"net/http"
@@ -20,12 +20,12 @@ func GetURLScheme(r *http.Request) string {
 	return "https://"
 }
 
-func processAuthorization(request *http.Request) (string, rgserror.IRGSError) {
+func processAuthorization(request *http.Request) (string, rgse.RGSErr) {
 
 	tokenInfo := strings.Split(request.Header.Get("Authorization"), " ")
 	switch tokenInfo[0] {
 	default:
-		return "", rgserror.ErrInvalidCredentials
+		return "", rgse.Create(rgse.InvalidCredentials)
 	case "MAVERICK-Host-Token":
 		logger.Debugf("Auth Token: %v; Auth Header: %v", tokenInfo[1], request.Header.Get("Authorization"))
 	case "DUMMY-MAVERICK-Host-Token":
@@ -38,10 +38,10 @@ func processAuthorization(request *http.Request) (string, rgserror.IRGSError) {
 	return tokenInfo[1], nil
 }
 
-func PlayerBalance(r *http.Request) (BalanceCheckResponse, rgserror.IRGSError) {
+func PlayerBalance(r *http.Request) (BalanceCheckResponse, rgse.RGSErr) {
 	authToken, err := processAuthorization(r)
 	if err != nil {
-		return BalanceCheckResponse{}, rgserror.ErrInvalidCredentials
+		return BalanceCheckResponse{}, err
 	}
 
 	logger.Debugf("AuthToken: [%v]", authToken)
