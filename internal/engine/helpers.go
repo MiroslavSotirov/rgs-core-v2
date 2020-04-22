@@ -367,3 +367,19 @@ func GetMaxWin(e EngineConfig) {
 
 	}
 }
+
+func GetDefaultView(gameName string) (symbolGrid [][]int) {
+	e, _, err := GetEngineDefFromGame(gameName+":0")
+	if err != nil {
+		return
+	}
+
+	for i:=0; i<len(e.EngineDefs[0].ViewSize); i++ {
+		row := []int{}
+		for j:=0; j<e.EngineDefs[0].ViewSize[i]; j++{
+			row = append(row, e.EngineDefs[0].Reels[i][j])
+		}
+		symbolGrid = append(symbolGrid, row)
+	}
+	return
+}
