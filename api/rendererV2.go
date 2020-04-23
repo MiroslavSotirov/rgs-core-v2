@@ -86,6 +86,7 @@ type ReelResponse struct {
 	MaxVisible [][]int `json:"maxVisible"`
 	Count      [][]int `json:"count"`
 	Type       string  `json:"type"`
+	BetMult    int     `json:"betMultiplier"`
 }
 
 func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceStore) GameplayResponseV2 {
@@ -150,6 +151,7 @@ func (initResp *GameInitResponseV2) FillEngineInfo(config engine.EngineConfig) {
 		reels.Count = make([][]int, len(def.ViewSize))
 		reels.MaxVisible = make([][]int, len(def.ViewSize))
 		reels.MaxStack = make([][]int, len(def.ViewSize))
+		reels.BetMult = def.StakeDivisor
 
 		for reel, reelContent := range def.Reels {
 
