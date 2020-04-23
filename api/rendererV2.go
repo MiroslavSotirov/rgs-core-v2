@@ -43,7 +43,7 @@ type GameplayResponseV2 struct {
 	SessionID store.Token          `json:"host/verified-token"`
 	StateID   string              `json:"stateID"`
 	RoundID   string              `json:"roundID"`
-	Stake     engine.Fixed
+	Stake     engine.Fixed        `json:"totalStake"`
 	Win       engine.Fixed
 	CumWin    engine.Fixed `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
 	//CurrentSpin int               `json:"currentSpin"`             // is this really needed ??
