@@ -102,6 +102,11 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 		fixedStakeValues = []engine.Fixed{baseVal, baseVal.Mul(engine.NewFixedFromInt(2)), baseVal.Mul(engine.NewFixedFromInt(3))}
 		// default stake is max val
 		defaultStake = fixedStakeValues[2]
+	case "mvgEngineIX":
+		// default stake is the 5th index by default
+		if len(fixedStakeValues) > 4 {
+			defaultStake = fixedStakeValues[4]
+		}
 	}
 
 	// if lastBet is not in stakeValues then use defaultBet

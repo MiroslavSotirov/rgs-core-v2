@@ -43,7 +43,7 @@ type GameplayResponseV2 struct {
 	SessionID store.Token          `json:"host/verified-token"`
 	StateID   string              `json:"stateID"`
 	RoundID   string              `json:"roundID"`
-	Stake     engine.Fixed
+	Stake     engine.Fixed        `json:"totalStake"`
 	Win       engine.Fixed
 	CumWin    engine.Fixed `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
 	//CurrentSpin int               `json:"currentSpin"`             // is this really needed ??
@@ -86,6 +86,7 @@ type ReelResponse struct {
 	MaxVisible [][]int `json:"maxVisible"`
 	Count      [][]int `json:"count"`
 	Type       string  `json:"type"`
+	BetMult    int     `json:"betMultiplier"`
 }
 
 func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceStore) GameplayResponseV2 {
@@ -150,6 +151,7 @@ func (initResp *GameInitResponseV2) FillEngineInfo(config engine.EngineConfig) {
 		reels.Count = make([][]int, len(def.ViewSize))
 		reels.MaxVisible = make([][]int, len(def.ViewSize))
 		reels.MaxStack = make([][]int, len(def.ViewSize))
+		reels.BetMult = def.StakeDivisor
 
 		for reel, reelContent := range def.Reels {
 
