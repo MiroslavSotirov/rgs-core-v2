@@ -10,7 +10,9 @@ memcached server -- see setup below
 This directory should live inside your GOROOT/src directory (by default GOROOT is $HOME/go)
 Dependency: memcached
 Set up local memcached server with:
-``` 
+```
+memcached -l 127.0.0.1 -m 64 -vv
+or
 docker run --name memcached1 -p 11211:11211 -d memcached
 ```
 Find address of memcached container and set env variable for rgs to lookup
