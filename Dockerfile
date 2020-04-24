@@ -13,5 +13,5 @@ COPY --from=builder /rgs ./
 #copy playcheck template
 COPY --from=builder /go/src/rgs-core-v2/templates ./templates
 RUN chmod +x ./rgs
-ENTRYPOINT ["./rgs", "-logtostderr=true"]
+ENTRYPOINT ["./rgs", "-logtostderr=true", "-gethashes=false"]
 EXPOSE 3000
