@@ -208,6 +208,10 @@ func GetHashes() ([]string, []string, rgse.RGSErr) {
 		return []string{}, []string{}, rgse.Create(rgse.EngineHashError)
 	}
 	for i := 0; i < len(engineIDs); i++ {
+		if !strings.Contains(engineIDs[i].Name(), "mvgEngine") {
+			logger.Infof("skipping checksum for file %v", engineIDs[i].Name())
+			continue
+		}
 		logger.Infof("Generating checksums for file: %v", engineIDs[i].Name())
 		filePath := filepath.Join(currentDir, "internal/engine/engineConfigs", engineIDs[i].Name())
 		md5hash, sha1hash, err := GetHash(filePath)

@@ -40,7 +40,7 @@ func BuildEngineDefs(engineID string) EngineConfig {
 	engineDef := filepath.Join(currentDir, "internal/engine/engineConfigs", engineID+".yml")
 	yamlFile, err := ioutil.ReadFile(engineDef)
 	if err != nil {
-		logger.Errorf("No config found for engine #%v  #%v ", engineID, err)
+		logger.Errorf("No config found for engine %v  %v ", engineID, err)
 	}
 	c := EngineConfig{}
 	err = yaml.Unmarshal(yamlFile, &c)
