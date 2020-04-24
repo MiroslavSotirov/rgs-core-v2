@@ -225,6 +225,7 @@ func GetHashes() ([]string, []string, rgse.RGSErr) {
 	logger.Infof("Generating checksums for rng")
 	_, _, err = GetHash(filepath.Join(currentDir, "internal/rng/mt19937.go"))
 	if err != nil {
+		logger.Errorf("error generating checksum for rng: %v", err)
 		return []string{}, []string{}, rgse.Create(rgse.EngineHashError)
 	}
 	return MD5Strings, SHA1Strings, nil

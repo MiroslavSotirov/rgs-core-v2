@@ -50,6 +50,7 @@ data:
       KZT: 3.5
       NOK: 0.01
       AMD: 5
+      MMK: 10
 
     profiles:
       low:
