@@ -23,6 +23,7 @@ var (
 	chunks   int
 	perSpin  bool
 	maxes    bool
+	getHashes    bool
 )
 
 func main() {
@@ -33,9 +34,10 @@ func main() {
 	flag.IntVar(&chunks, "chunks", 10, "number of chunks to run (default 10)")
 	flag.BoolVar(&perSpin, "perspin", false, "show results per spin")
 	flag.BoolVar(&maxes, "maxes", false, "get max theoretical values per engine")
+	flag.BoolVar(&getHashes, "gethashes", true, "get hashes of engine files")
 
 	config.InitConfig()
-	initerr := store.Init()
+	initerr := store.Init(getHashes)
 	if initerr != nil {
 		logger.Errorf("Error initializing store %s", initerr)
 		os.Exit(3)

@@ -18,7 +18,7 @@ var MC *memcache.Client
 var ServLocal LocalService
 var Serv Service
 
-func Init() rgse.RGSErr {
+func Init(getHashes bool) rgse.RGSErr {
 
 	//ServLocal = New(&config.GlobalConfig)
 	ServLocal = NewLocal()
@@ -26,9 +26,11 @@ func Init() rgse.RGSErr {
 	if config.GlobalConfig.DevMode {
 		MC = memcache.New(config.GlobalConfig.MCRouter)
 	}
-	_, _, err := engine.GetHashes()
-	if err != nil {
-		return err
+	if getHashes {
+		_, _, err := engine.GetHashes()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
