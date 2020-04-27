@@ -612,13 +612,23 @@ func (i *RemoteServiceImpl) getLastGamestate(lastTx restTransactionRequest, last
 		return
 	}
 
+	// if no gamestate has been processed but there has been an error on attempting to process the first state:
+	if len(lastTx.GameState) == 0 {
+		err = rgse.Create(rgse.EntityNotFound)
+		return
+		//if strings.Contains(lastAttemptedTx.Round, "GSinit") {
+		//	// the init gs was failed, a new init round will be generated
+		//	return
+		//}
+		//err = rgse.Create(rgse.NoTxHistory)
+		//return
+	}
 	// otherwise, check which tx it was that failed
 	// we assume there is never more than one pending/failed tx on top of the last successful tx
 	// because in freespins the PAYOUT tx is treated the same way as the WAGER in normal play, we need to check if this is the first tx of a gamestate
-	if len(lastAttemptedTx.GameState) == 0 || len(lastTx.GameState) == 0 {
-		err = rgse.Create(rgse.NoTxHistory)
-		return
-	}
+	//if len(lastAttemptedTx.GameState) == 0 || len(lastTx.GameState) == 0 {
+	//
+	//}
 
 	gameState, errDecode := base64.StdEncoding.DecodeString(lastAttemptedTx.GameState)
 

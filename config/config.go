@@ -45,6 +45,7 @@ type Config struct {
 	DemoCurrency    string      `yaml:"democurrency" cfg:"democurrency" cfgDefault:"USD"`
 	LogAccount		string		`yaml:"logaccount" cfg:"logaccount" cfgDefault:"145472021_144443389"`
 	SentryDsn       string      `yaml:"sentryDsn" cfg:"sentryDsn" cfgDefault:""`
+	Environment     string      `yaml:"environment" cfg:"environment" cfgDefault:"local"`
 }
 
 // Game config structure
