@@ -49,7 +49,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 	} else {
 		latestGamestate = DeserializeGamestateFromBytes(latestGamestateStore.GameState)
 	}
-	logger.Debugf("latestgs: %v, player %v")
+
 	return latestGamestate, newPlayer, nil
 }
 
