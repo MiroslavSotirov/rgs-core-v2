@@ -6,6 +6,7 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"net/http"
+	"strings"
 )
 
 // GameInitResponse reponse
@@ -131,10 +132,17 @@ func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance st
 	//if previousGamestate.Action != "" {
 	// otherwise, assume this is first gp round
 
-	lastRound := make(map[string]GameplayResponseV2, 1)
+	lastRound := make(map[string]GameplayResponseV2, 2)
 	lastRound[previousGamestate.Action] = fillGamestateResponseV2(previousGamestate, balance)
-	resp.LastRound = lastRound
+	// if last round was not base round, get triggering round ( for now no api support for this, so show default round)
+	if ! strings.Contains(previousGamestate.Action, "base") {
+		game, _ := engine.GetGameIDAndReelset(previousGamestate.GameID)
+		baseround := store.CreateInitGS(store.PlayerStore{PlayerId: balance.PlayerId, Balance:balance.Balance}, game)
+		lastRound["base"] = fillGamestateResponseV2(baseround, balance)
+	}
 	//}
+	resp.LastRound = lastRound
+
 	resp.Name = previousGamestate.GameID
 	resp.Version = "2.0" // this is hardcoded for now
 	//resp.Balance = balance.Balance
