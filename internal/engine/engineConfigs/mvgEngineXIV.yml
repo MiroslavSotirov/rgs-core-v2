@@ -160,7 +160,7 @@ EngineDefs:
 
     multiplier: {multipliers: [1,2,3,4,5,10], probabilities: [1,1,1,1,1,1]}
     SpecialPayouts:
-      - {Payout: {Symbol:11, Count:6, Multiplier:0}, Index: "sham:0", Multiplier: 0}
+      - {Payout: {Symbol: 11, Count: 6, Multiplier: 0}, Index: "sham:0", Multiplier: 0}
   - name: freespin
     function: CascadeMultiply
     RTP: 0.03958
@@ -173,5 +173,5 @@ EngineDefs:
       - [3,0,1,5,3,1,6,0,4,10,10,10,10,10,10,10,6,1,8,3,0,7,2,4,3,0,6,1,0,7,1,2,5,1]
     multiplier: {multipliers: [1,2,3,4,5,10], probabilities: [1,1,1,1,1,1]}
     SpecialPayouts:
-      - {Payout: {Symbol:11, Count:6, Multiplier:0}, Index: "sham:0", Multiplier: 0}
+      - {Payout: {Symbol: 11, Count: 6, Multiplier: 0}, Index: "sham:0", Multiplier: 0}
 
