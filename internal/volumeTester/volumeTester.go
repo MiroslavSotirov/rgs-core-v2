@@ -111,7 +111,9 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 		for j := 0; j < chunkSize; j++ {
 			var params engine.GameParams
 			params.Action = "base" // change this to maxBase or to any other special function for a particular wallet to see special RTP
-
+			if previousGamestate.NextActions[0] == "cascade" {
+				params.Action = "cascade"
+			}
 			if previousGamestate.NextActions[0] == "pickSpins" {
 				// user action is required (we are assuming here this is engine II, update later if more choice engines added)
 				params.Selection = []string{"freespin25:25", "freespin10:10", "freespin5:5"}[engine.SelectFromWeightedOptions([]int{0, 1, 2}, []int{1, 1, 1})]
@@ -125,10 +127,12 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 			s2.addSample(float64(currentWinnings.ValueAsFloat()))
 			// compile hit frequencies
 			_, defID := engine.GetGameIDAndReelset(gamestate.GameID)
-
+			//if gamestate.Action == "cascade" {
+			//	defID += len(engineConf.EngineDefs)
+			//}
 			newmax := infoStructs[defID].addPlay(currentWinnings)
 			if newmax {
-				logger.Warnf("new max for engine %v: %#v", defID, gamestate)
+				logger.Debugf("new max for engine %v: %#v", defID, gamestate)
 			}
 			infoStructs[defID].addWins(gamestate.Prizes, gamestate.Multiplier)
 
@@ -143,6 +147,13 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 					logger.Errorf("stoping perspin results")
 				}
 			}
+
+			//
+			//if defID == 11 {
+			//	if gamestate.Action == "cascade" || gamestate.NextActions[0] == "cascade" {
+			//		logger.Infof("cascading: %#v", gamestate)
+			//	}
+			//}
 			previousGamestate = gamestate
 		}
 		RTP := totalWin.Div(totalBet)
@@ -156,9 +167,13 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 			if reelsetInfo.totalPlays == 0 {
 				continue
 			}
-			ftInfo += fmt.Sprintf("\n\nEngine: %v | Expected RTP: %.2f | Actual RTP: %f | Payout per round: %.2f || Max payout: %v || Rounds: %v \n", rsID, engineConf.EngineDefs[rsID].RTP*100, reelsetInfo.totalWin.Div(totalBet).ValueAsFloat()*100, reelsetInfo.totalWin.Div(engine.NewFixedFromInt(reelsetInfo.totalPlays)).ValueAsFloat(), reelsetInfo.maxWin, reelsetInfo.totalPlays)
+			defID := rsID
+			if rsID >= len(engineConf.EngineDefs) {
+				defID = rsID - len(engineConf.EngineDefs)
+			}
+			ftInfo += fmt.Sprintf("\n\nEngine: %v | Expected RTP: %.2f | Actual RTP: %f | Payout per round: %.2f || Max payout: %v || Rounds: %v \n", rsID, engineConf.EngineDefs[defID].RTP*100, reelsetInfo.totalWin.Div(totalBet).ValueAsFloat()*100, reelsetInfo.totalWin.Div(engine.Fixed(reelsetInfo.totalPlays)).ValueAsFloat(), reelsetInfo.maxWin, reelsetInfo.totalPlays)
 			for x, prizeInfo := range reelsetInfo.prizes {
-				ftInfo += fmt.Sprintf("%v ==  %.2f%% | RTP %.2f%% | max win: %v\n", x, float64(prizeInfo.hits)/float64(reelsetInfo.totalPlays)*100, engine.NewFixedFromInt(prizeInfo.totalWin).Div(totalBet).ValueAsFloat()*100, prizeInfo.maxWin)
+				ftInfo += fmt.Sprintf("%v ==  %.2f%% | RTP %.2f%% | max win: %v\n", x, float64(prizeInfo.hits)/float64(reelsetInfo.totalPlays)*100, engine.Fixed(prizeInfo.totalWin).Div(totalBet).ValueAsFloat()*100, prizeInfo.maxWin)
 			}
 		}
 

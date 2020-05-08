@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
@@ -74,9 +73,6 @@ func ErrRender(err error) render.Renderer {
 // ErrBadRequestRender Bad Request error render
 func ErrBadRequestRender(err *rgse.RGSError) render.Renderer {
 	statusCode := http.StatusBadRequest
-	logger.Infof("seinding sentry err")
-	sentry.CaptureException(err)
-	//sentry.Flush(10*time.Millisecond)
 	statusText := "Bad Request"
 	if err.ErrCode == rgse.InsufficientFundError { // casting int to int64 might cause a bug?
 		statusCode = 450

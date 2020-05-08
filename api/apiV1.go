@@ -79,7 +79,7 @@ func fixCorruptedGS(gamestate engine.Gamestate, player store.PlayerStore, reques
 }
 
 func renderNextGamestate(request *http.Request) (GameplayResponse, rgse.RGSErr) {
-	logger.Debugf("engine3, calculating next round: %#v", request.Body)
+
 	decoder := json.NewDecoder(request.Body)
 	var data engine.GameParams
 	decodeerr := decoder.Decode(&data)

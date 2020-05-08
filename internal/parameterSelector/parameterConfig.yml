@@ -52,7 +52,11 @@ profiles:
   base:
     default: 2
     max: 10
+  highdefault:
+    default: 4
+    max: 13
 
 hostProfiles:
   maverick: low
+  thb: highdefault
 
