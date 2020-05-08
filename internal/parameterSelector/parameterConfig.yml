@@ -18,7 +18,7 @@ stakeValues:
   - 3000
   - 5000
 
-defaultBet: 8 # index of stakeValues
+defaultBet: 5 # index of stakeValues
 
 ccyMultipliers:
   USD: 0.01
@@ -52,7 +52,11 @@ profiles:
   base:
     default: 2
     max: 10
+  highdefault:
+    default: 4
+    max: 13
 
 hostProfiles:
   maverick: low
+  thb: highdefault
 
