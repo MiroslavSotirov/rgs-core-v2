@@ -44,7 +44,7 @@ var cascadeGS = Gamestate{
 		Payout:          testWaysPayouts[0],
 		Index:           "1:3",
 		Multiplier:      1,
-		SymbolPositions: []int{2,0,0},
+		SymbolPositions: []int{2,3,6},
 	}},
 	Multiplier:        2,
 	StopList:          []int{2,0,4},
@@ -57,7 +57,7 @@ func TestEngineDef_Cascade(t *testing.T) {
 	for reel := 0; reel < len(expectedSymbolGrid); reel ++ {
 		for symbol:=0; symbol<len(expectedSymbolGrid[reel]); symbol ++ {
 			if expectedSymbolGrid[reel][symbol] != gs.SymbolGrid[reel][symbol] {
-				t.Errorf("Expected %v, got %v", expectedSymbolGrid[reel][symbol], gs.SymbolGrid[reel][symbol])
+				t.Errorf("Expected %v, got %v", expectedSymbolGrid, gs.SymbolGrid)
 			}
 		}
 
