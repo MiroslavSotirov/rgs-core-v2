@@ -86,7 +86,7 @@ config:
   local: false
   logging: debug
   environment: dev
-  mcrouter: "mcrouter-mcrouter.default:5000"
+  mcrouter: "mcrouter-memcached.default:11211"
   server:
     host: "0.0.0.0"
     port: 3000
