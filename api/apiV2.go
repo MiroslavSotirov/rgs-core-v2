@@ -75,7 +75,7 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 		return GameInitResponseV2{}, err
 	}
 
-	giResp := fillGameInitPreviousGameplay(latestGamestate, store.BalanceStore{Balance: player.Balance, Token: player.Token})
+	giResp := fillGameInitPreviousGameplay(latestGamestate, store.BalanceStore{Balance: player.Balance, Token: player.Token, FreeGames: player.FreeGames})
 	giResp.FillEngineInfo(engineConfig)
 	logger.Debugf("reel response: %v", giResp.ReelSets)
 	giResp.Wallet = wallet
