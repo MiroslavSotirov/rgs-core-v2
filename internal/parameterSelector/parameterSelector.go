@@ -63,7 +63,10 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 
 	profile, ok := betConf.HostProfiles[betSettingsCode]
 	if !ok {
-		profile = "base"
+		profile, ok = betConf.HostProfiles[lastBet.Currency]
+		if !ok {
+			profile = "base"
+		}
 	}
 
 	// get default value

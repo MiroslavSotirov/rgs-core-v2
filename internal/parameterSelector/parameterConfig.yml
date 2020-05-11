@@ -58,5 +58,5 @@ profiles:
 
 hostProfiles:
   maverick: low
-  thb: highdefault
+  THB: highdefault
 
