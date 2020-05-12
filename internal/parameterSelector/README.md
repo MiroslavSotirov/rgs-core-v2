@@ -33,11 +33,88 @@ The Parameter Selector works as follows:
   - MYR: 0.02
   - IDR: 100
   - XBT: 0.004
+  - TRY: 0.05
+  - BRL: 0.04
   - SEK: 0.01
   - RUB: 0.5
   - KZT: 3.5
   - NOK: 0.01
   - AMD: 5
+  - MMK: 10
+  - MXN: 0.2
+  - BOB: 0.05
+  - PYG: 50
+  - PEN: 0.02
+  - CLP: 5
+  - UYU: 0.4
+  - CAD: 0.01
+  - AED: 0.03
+  - ALL: 1
+  - AOA: 3
+  - ARS: 0.5
+  - AUD: 0.1
+  - AZN: 0.01
+  - BAM: 0.01
+  - BDT: 0.5
+  - BGN: 0.01
+  - BHD: 0.005
+  - BND: 0.01
+  - BWP: 0.05
+  - CDF: 10
+  - CHF: 0.01
+  - CRC: 5
+  - COP: 50
+  - CZK: 0.2
+  - DKK: 0.5
+  - DOP: 0.5
+  - EGP: 0.25
+  - GEL: 0.02
+  - GHS: 0.05
+  - GIP: 0.01
+  - GNF: 500
+  - GTQ: 0.05
+  - HKD: 0.05
+  - HRK: 0.05
+  - HTG: 0.5
+  - HUF: 5
+  - ILS: 0.03
+  - INR: 1
+  - IQL: 25
+  - IRR: 250
+  - ISK: 1
+  - JOD: 0.01
+  - KES: 1
+  - KWD: 0.005
+  - LBP: 25
+  - LSL: 0.1
+  - MAD: 0.1
+  - MBC: 4
+  - MKB: 0.5
+  - MWK: 1
+  - NAD: 0.05
+  - NGN: 1
+  - NZD: 0.01
+  - OMR: 0.005
+  - ZMW: 0.1
+  - PHP: 0.5
+  - PLN: 0.3
+  - XOF: 5
+  - QAR: 0.03
+  - RON: 0.04
+  - RSD: 1
+  - RWF: 5
+  - SAR: 0.03
+  - SGD: 0.01
+  - TMT: 0.03
+  - TND: 0.02
+  - TWD: 0.3
+  - TZS: 50
+  - UAH: 0.25
+  - UBC: 100
+  - UGX: 50
+  - XAF: 5
+  - VES: 1000  
+  
 3. Certain bet profiles have been configured in parameterConfig.yml. More can be added. The values that may be set are:
 	- min: the starting index to take from the base list
 	- max: the ending index to take from the base list (N.B. this will result in an error if it is less than min)
