@@ -28,11 +28,6 @@ operator : req (mav)
 currency : required only if launching in demo mode
 ```
 
-
-```http request
-GET /init2/?game={ gameSlug }&mode={[ demo | real ]}&operator=mav
-```
-
 Response includes all game init information
 - game information like wins with indices, win lines, reels, etc.
 - previous gamestate for recovery
@@ -56,7 +51,7 @@ request body may include the following (* = required)
 "game" : "the-year-of-zhu",	 // *
 "previousID" : "ax19t0paF",  // included in init response and in each subsequent play response
 "wallet" : "demo",           // * demo or dashur for now, this will be returned in the init response
-"action" : "base", 		     // * this is required to ensure that the client and rgs are in sync. this will be validated against the available options, of which there is most often only one. this should be taken from the "nextAction" field of the last GamestateResponse returned (either in init or play)
+"action" : "base", 		     // this is required within the feature to ensure that the client and rgs are in sync. this will be validated against the available options, of which there is most often only one. this should be taken from the "nextAction" field of the last GamestateResponse returned (either in init or play)
 "selectedWinLines" : [0,1,2,3],    // this is only required in variable line games like Seasons, otherwise it may be omitted
 "selectedFeature" : "freespins15", // this is only required in the case the previous action required player input to select one of several features, otherwise it may be omitted
 "respinReel" : 2  		   // the zero-indexed reel to respin, unless the action is "respin", this should be omitted
@@ -89,6 +84,7 @@ Response:
           "winline":,
           "win": 10000}],	          // fixed notation
 "nextAction": "base",
+"roundMultiplier": 1,              // the overall round multiplier
 "closed": true                    // true or false, depending on whether the close round request has already been sent
 }
 ```

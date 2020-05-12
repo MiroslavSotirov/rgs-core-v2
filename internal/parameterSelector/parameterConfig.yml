@@ -41,6 +41,76 @@ ccyMultipliers:
   NOK: 0.01
   AMD: 5
   MMK: 10
+  MXN: 0.2
+  BOB: 0.05
+  PYG: 50
+  PEN: 0.02
+  CLP: 5
+  UYU: 0.4
+  CAD: 0.01
+  AED: 0.03
+  ALL: 1
+  AOA: 3
+  ARS: 0.5
+  AZN:
+  BAM:
+  BDT:
+  BGN:
+  BHD:
+  BND:
+  BWP:
+  CDF:
+  CHF:
+  CRC:
+  COP:
+  CZK:
+  DKK:
+  DOP:
+  EGP:
+  GEL:
+  GHS:
+  GIP:
+  GNF:
+  GTQ:
+  HKD:
+  HRK:
+  HTG:
+  HUF:
+  ILS:
+  INR:
+  IQD:
+  IRR:
+  ISK:
+  JOD:
+  KES:
+  KWD:
+  LBP:
+  LSL:
+  MAD:
+  MBC:
+  MKD:
+  MWK:
+  NAD:
+  NGN:
+  NZD:
+  OMR:
+  ZMW:
+  ZMK:
+  PLN:
+  XOF:
+  QAR:
+  RON:
+  RSD:
+  RWF:
+  SAR:
+  TMT:
+  TND:
+  TZS:
+  UAH:
+  UBC:
+  UGX:
+  XAF:
+  VES:
 
 profiles:
   low:
