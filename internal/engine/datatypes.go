@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/getsentry/sentry-go"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"gopkg.in/yaml.v3"
 	"strconv"
@@ -271,10 +272,18 @@ func (prize Prize) Convert() PrizePB {
 	}
 }
 
-func convertPrizesFromPB(unconverted []*PrizePB, betPerLine Fixed) []Prize {
+func convertPrizesFromPB(unconverted []*PrizePB, betPerLine Fixed, gameID string) []Prize {
+	engineConf, rS, err := GetEngineDefFromGame(gameID)
+	if err != nil {
+		logger.Errorf("error convering gamestate: %v", err)
+		return []Prize{}
+	}
+
 	converted := make([]Prize, len(unconverted))
 	for i, prize := range unconverted {
-		converted[i] = prize.Convert(betPerLine)
+		convertedP := prize.Convert(betPerLine)
+		convertedP.Index = engineConf.DetectSpecialWins(rS, convertedP)
+		converted[i] = convertedP
 	}
 	return converted
 }
@@ -297,18 +306,17 @@ func (gamestatePB GamestatePB) Convert() Gamestate {
 		logger.Errorf("NO TX associated")
 		return Gamestate{}
 	}
-
-	// get Game ID
+	gameID := fmt.Sprintf("%v:%v", GetGameIDFromPB(gamestatePB.GameId.String()), gamestatePB.EngineDef)
 	return Gamestate{
 		Id:                gamestatePB.Transactions[0].Id,
-		GameID:            fmt.Sprintf("%v:%v", GetGameIDFromPB(gamestatePB.GameId.String()), gamestatePB.EngineDef),
+		GameID:            gameID,
 		BetPerLine:        Money{Amount: Fixed(gamestatePB.BetPerLine), Currency: gamestatePB.Currency.String()},
 		Transactions:      convertTransactionsFromPB(gamestatePB.Transactions),
 		PreviousGamestate: string(gamestatePB.PreviousGamestate),
 		NextGamestate:     string(gamestatePB.NextGamestate),
 		Action:            gamestatePB.Action.String(),
 		SymbolGrid:        convertSymbolGridFromPB(gamestatePB.SymbolGrid),
-		Prizes:            convertPrizesFromPB(gamestatePB.Prizes, Fixed(gamestatePB.BetPerLine)),
+		Prizes:            convertPrizesFromPB(gamestatePB.Prizes, Fixed(gamestatePB.BetPerLine), gameID),
 		SelectedWinLines:  convertInt32Int(gamestatePB.SelectedWinLines),
 		RelativePayout:    int(gamestatePB.RelativePayout),
 		Multiplier:        int(gamestatePB.Multiplier),
@@ -331,16 +339,17 @@ func (gamestatePB GamestatePB) ConvertLegacy(transactions []*WalletTransactionPB
 	// every set of transactions should begin with a WAGER. this ID is also the gamestate ID
 
 	// get Game ID
+	gameID := fmt.Sprintf("%v:%v", GetGameIDFromPB(gamestatePB.GameId.String()), gamestatePB.EngineDef)
 	return Gamestate{
 		Id:                transactions[0].Id,
-		GameID:            fmt.Sprintf("%v:%v", GetGameIDFromPB(gamestatePB.GameId.String()), gamestatePB.EngineDef),
+		GameID:            gameID,
 		BetPerLine:        Money{Amount: Fixed(gamestatePB.BetPerLine), Currency: gamestatePB.Currency.String()},
 		Transactions:      convertTransactionsFromPB(transactions),
 		PreviousGamestate: string(gamestatePB.PreviousGamestate),
 		NextGamestate:     string(gamestatePB.NextGamestate),
 		Action:            gamestatePB.Action.String(),
 		SymbolGrid:        convertSymbolGridFromPB(gamestatePB.SymbolGrid),
-		Prizes:            convertPrizesFromPB(gamestatePB.Prizes, Fixed(gamestatePB.BetPerLine)),
+		Prizes:            convertPrizesFromPB(gamestatePB.Prizes, Fixed(gamestatePB.BetPerLine), gameID),
 		SelectedWinLines:  convertInt32Int(gamestatePB.SelectedWinLines),
 		RelativePayout:    int(gamestatePB.RelativePayout),
 		Multiplier:        int(gamestatePB.Multiplier),
@@ -366,7 +375,7 @@ func GetGameIDAndReelset(gameID string) (string, int) {
 	return gameInfo[0], engineDef
 }
 
-func GetEngineDefFromGame(gameID string) (EngineConfig, int, error) {
+func GetEngineDefFromGame(gameID string) (EngineConfig, int, rgserror.RGSErr) {
 	gameID, rsID := GetGameIDAndReelset(gameID)
 	engineID, err := config.GetEngineFromGame(gameID)
 	if err != nil {

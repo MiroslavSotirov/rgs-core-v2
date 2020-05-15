@@ -48,12 +48,13 @@ type GameplayResponseV2 struct {
 	Win       engine.Fixed
 	CumWin    engine.Fixed `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
 	//CurrentSpin int               `json:"currentSpin"`             // is this really needed ??
-	FSRemaining int               `json:"freeSpinsRemaining,omitempty"`
+	FSRemaining *int               `json:"freeSpinsRemaining,omitempty"`
 	Balance     BalanceResponseV2 `json:"balance"`
 	View        [][]int           `json:"view"` // includes row above and below
 	Prizes      []engine.Prize    `json:"wins"` // []WinResponseV2
 	NextAction  string            `json:"nextAction"`
 	Closed      bool               `json:"closed"`
+	RoundMultiplier int            `json:"roundMultiplier"`
 }
 
 type BalanceResponseV2 struct {
@@ -105,7 +106,12 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 			cumWin += tx.Amount.Amount
 		}
 	}
-	resp := GameplayResponseV2{
+	var fsRemaining *int
+	if len(gamestate.NextActions) > 1 {
+		fsr := len(gamestate.NextActions)-1
+		fsRemaining = &fsr
+	}
+	return GameplayResponseV2{
 		SessionID:   balance.Token,
 		StateID:     gamestate.Id,
 		RoundID:     gamestate.RoundID,
@@ -114,16 +120,16 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		CumWin:      gamestate.CumulativeWin,
 		NextAction:  gamestate.NextActions[0],
 		//CurrentSpin: gamestate.PlaySequence,         // zero-indexed
-		FSRemaining: len(gamestate.NextActions) - 1, // for now, assume all future actions besides finish are fs (perhaps change this to bonusRdsRemaining in future)
+		FSRemaining: fsRemaining, // for now, assume all future actions besides finish are fs (perhaps change this to bonusRdsRemaining in future)
 		Balance:     BalanceResponseV2{
 			Amount:    balance.Balance,
 			FreeGames: balance.FreeGames.NoOfFreeSpins,
 		},
 		View:        gamestate.SymbolGrid,
 		Prizes:      gamestate.Prizes,
+		RoundMultiplier: gamestate.Multiplier,
 		Closed:      gamestate.Closed,
 	}
-	return resp
 }
 
 func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance store.BalanceStore) GameInitResponseV2 {

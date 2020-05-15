@@ -906,8 +906,8 @@ func (engine EngineDef) GetExpectedReelValue(gamestate Gamestate, reelIndex int)
 
 			// expectedPayout is relative to the total stake, so divide by the bet multiplier
 			singleRoundPayout := specialEngineDef.ExpectedPayout.Div(NewFixedFromInt(specialEngineDef.StakeDivisor))
-			numRounds, err := strconv.Atoi(winInfo[1])
-			if err != nil {
+			numRounds, cerr := strconv.Atoi(winInfo[1])
+			if cerr != nil {
 				logger.Errorf("Error in special win index: %v", specialWin.Index)
 				return 0
 			}

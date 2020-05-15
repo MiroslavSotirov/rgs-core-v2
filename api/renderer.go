@@ -377,7 +377,6 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 	stake := gamestate.BetPerLine.Amount.Mul(stakeDivisor)
 	wins := make([]WinResponse, len(gamestate.Prizes))
 	for i, p := range gamestate.Prizes {
-		p.Index = engineConf.DetectSpecialWins(rsID, p)
 
 		adjustedSymbolPositions := make([]int, len(p.SymbolPositions))
 
