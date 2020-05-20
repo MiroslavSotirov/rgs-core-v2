@@ -55,6 +55,7 @@ type GameplayResponseV2 struct {
 	NextAction  string            `json:"nextAction"`
 	Closed      bool               `json:"closed"`
 	RoundMultiplier int            `json:"roundMultiplier"`
+	Gamification *engine.GamestatePB_Gamification `json:"gamification"`
 }
 
 type BalanceResponseV2 struct {
@@ -129,6 +130,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		Prizes:      gamestate.Prizes,
 		RoundMultiplier: gamestate.Multiplier,
 		Closed:      gamestate.Closed,
+		Gamification: gamestate.Gamification,
 	}
 }
 
