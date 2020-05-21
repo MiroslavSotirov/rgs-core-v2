@@ -1581,7 +1581,7 @@ data:
       action: base
       reelsetId: 0
       stopList: [14,18,17,10,10]
-    
+
   mvgEngineXIV.yml: |
     #this file contains the forced outcomes for engine xiv
 
