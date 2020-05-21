@@ -1581,6 +1581,30 @@ data:
       action: base
       reelsetId: 0
       stopList: [14,18,17,10,10]
+    
+  mvgEngineXIV.yml: |
+    #this file contains the forced outcomes for engine xiv
+
+    - id: 3scatter
+      action: base
+      reelsetId: 0
+      stopList: [3, 3, 3, 0, 0]
+
+    - id: 4scatter
+      action: base
+      reelsetId: 0
+      stopList: [3, 3, 3, 3, 0]
+
+    - id: 5scatter
+      action: base
+      reelsetId: 0
+      stopList: [3, 3, 3, 3, 3]
+
+    - id: expandingWild
+      action: base
+      reelsetId: 8
+      stopList: [0, 0, 0, 0, 0]
+
 
 
 
