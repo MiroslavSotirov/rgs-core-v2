@@ -104,7 +104,8 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 	initString := fmt.Sprintf("Running %v spins in %v chunks for %v \n Expected RTP: %v \n Volatility: %v\n", numPlays, chunks, engineID, engineConf.RTP, engineConf.Volatility)
 	vtInfo := []string{initString, "Chunk || RTP || RTP Feature || RTP base \n"}
 	featureWin := engine.Fixed(0)
-	
+
+	//ctCascades := 0
 	previousGamestate := engine.Gamestate{NextActions: []string{"finish"}, GameID: fmt.Sprintf("%v:%v", getMatchingGame(engineID), 0), NextGamestate: "FirstSpinVT" + engineID}
 	for i := 0; i < chunks; i++ {
 
@@ -137,10 +138,11 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 			infoStructs[defID].addWins(gamestate.Prizes, gamestate.Multiplier)
 
 			if gamestate.Action != "base" {
+				//if gamestate.Action == "cascade" {ctCascades++}
 				featureWin = featureWin.Add(currentWinnings)
 			}
 			if perSpin == true {
-				err := writer.Write([]string{fmt.Sprintf("%v,%v,%v,%v,%v", defID, time.Now().Format("02 Jan 06 15:04 MST"), currentStake, currentWinnings, gamestate.StopList)})
+				err := writer.Write([]string{fmt.Sprintf("%v,%v,%v,%v,%v,%v", defID, gamestate.Action, time.Now().Format("02 Jan 06 15:04 MST"), currentStake, currentWinnings, gamestate.StopList)})
 				if err != nil {
 					logger.Errorf("error writing to csv: %v", err)
 					perSpin = false
@@ -190,6 +192,7 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 				logger.Infof(chunkInfo)
 			}
 		}
+		//logger.Warnf("%v cascades total", ctCascades)
 		logger.Infof("Chunk %v done in %v", i+1, time.Now().Sub(refTime))
 		refTime = time.Now()
 	}

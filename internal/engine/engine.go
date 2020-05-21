@@ -5,6 +5,7 @@ package engine
 import (
 	"errors"
 	"fmt"
+	uuid "github.com/satori/go.uuid"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
@@ -442,7 +443,8 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	gamestate.Id = previousGamestate.NextGamestate
 	gamestate.PreviousGamestate = previousGamestate.Id
 
-	nextID := rng.RandStringRunes(16)
+	//nextID := rng.RandStringRunes(16)
+	nextID := uuid.NewV4().String()
 	gamestate.NextGamestate = nextID
 	gamestate.PrepareTransactions(previousGamestate)
 	logger.Debugf("gamestate: %#v", gamestate)
@@ -513,7 +515,7 @@ func (gamestate *Gamestate) PrepareTransactions(previousGamestate Gamestate) {
 	if relativePayout != 0 || gamestate.RoundID != gamestate.Id {
 		txID := gamestate.Id
 		if gamestate.RoundID == gamestate.Id {
-			txID = rng.RandStringRunes(16)
+			txID = uuid.NewV4().String()
 		}
 		// add win transaction
 		gamestateWin = Money{Amount: relativePayout.Mul(gamestate.BetPerLine.Amount), Currency: gamestate.BetPerLine.Currency} // this is in fixed notation i.e. 1.00 == 1000000
