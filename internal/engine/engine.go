@@ -623,19 +623,12 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 	symbolGrid := make([][]int, len(engine.ViewSize))
 	stopList := make([]int, len(engine.ViewSize))
 	if parameters.Action == "cascade" {
-		//var noCascadeSymbol int
-		//if len(engine.SpecialPayouts) > 0 {
-		//	noCascadeSymbol = engine.SpecialPayouts[0].Payout.Symbol
-		//}
 		previousGamestate := parameters.previousGamestate
 		// if previous gamestate contains a win, we need to cascade new tiles into the old space
 		previousGrid := previousGamestate.SymbolGrid
 		remainingGrid := [][]int{}
 		//determine map of symbols to disappear
 		for i:=0; i< len(previousGamestate.Prizes); i++{
-			//if previousGamestate.Prizes[i].Payout.Symbol == noCascadeSymbol {
-			//	continue
-			//}
 			for j:=0; j<len(previousGamestate.Prizes[i].SymbolPositions);j++{
 				// to avoid having to assume symbol grid is regular:
 				col := 0
