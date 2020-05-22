@@ -171,7 +171,7 @@ func (initResp *GameInitResponseV2) FillEngineInfo(config engine.EngineConfig) {
 
 		for reel, reelContent := range def.Reels {
 
-			logger.Debugf("processing reel %v: %v", reel, reelContent)
+			//logger.Debugf("processing reel %v: %v", reel, reelContent)
 			// todo: these maps are made too large right now
 			symbolCounts := make(map[int]int, len(reelContent))
 			symbolStacks := make(map[int]int, len(reelContent))

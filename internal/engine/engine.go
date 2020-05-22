@@ -623,12 +623,19 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 	symbolGrid := make([][]int, len(engine.ViewSize))
 	stopList := make([]int, len(engine.ViewSize))
 	if parameters.Action == "cascade" {
+		//var noCascadeSymbol int
+		//if len(engine.SpecialPayouts) > 0 {
+		//	noCascadeSymbol = engine.SpecialPayouts[0].Payout.Symbol
+		//}
 		previousGamestate := parameters.previousGamestate
 		// if previous gamestate contains a win, we need to cascade new tiles into the old space
 		previousGrid := previousGamestate.SymbolGrid
 		remainingGrid := [][]int{}
 		//determine map of symbols to disappear
 		for i:=0; i< len(previousGamestate.Prizes); i++{
+			//if previousGamestate.Prizes[i].Payout.Symbol == noCascadeSymbol {
+			//	continue
+			//}
 			for j:=0; j<len(previousGamestate.Prizes[i].SymbolPositions);j++{
 				// to avoid having to assume symbol grid is regular:
 				col := 0
@@ -684,17 +691,26 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 	wins, relativePayout := engine.DetermineWins(symbolGrid)
 	// calculate specialWin
 	var nextActions []string
-	specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
-	if specialWin.Index != "" {
-		var specialPayout int
-		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
-		relativePayout += specialPayout
-		wins = append(wins, specialWin)
-	}
+	cascade := false
 	// if any win is present, next action should be cascade
-	if len(wins) > 0 || specialWin.Index != ""{
+	if len(wins) > 0 {
+		logger.Debugf("cascade is true")
+		cascade = true
+	} else {
+		// only check for special win after cascading has completed
+		logger.Debugf("determining special wins")
+		specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
+		if specialWin.Index != "" {
+			var specialPayout int
+			specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+			relativePayout += specialPayout
+			wins = append(wins, specialWin)
+		}
+	}
+	if cascade {
 		nextActions = append([]string{"cascade",}, nextActions...)
 	}
+
 	// get first Multiplier
 	multiplier := 1
 	if len(engine.Multiplier.Multipliers) > 0 {
