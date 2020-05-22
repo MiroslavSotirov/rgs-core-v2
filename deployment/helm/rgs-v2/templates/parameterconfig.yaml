@@ -98,7 +98,7 @@ data:
       LBP: 25
       LSL: 0.1
       MAD: 0.1
-      MBC: 4
+      MBC: 0.01
       MKD: 0.5
       MWK: 1
       NAD: 0.05
@@ -118,7 +118,7 @@ data:
       TND: 0.02
       TZS: 50
       UAH: 0.25
-      UBC: 100
+      UBC: 1
       UGX: 50
       XAF: 5
       VES: 1000

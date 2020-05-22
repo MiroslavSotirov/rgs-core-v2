@@ -411,8 +411,8 @@ func TestFixedFloatConversion(t *testing.T) {
 
 func TestFixedStringConversion(t *testing.T) {
 	fixed := Fixed(18123900)
-	if fixed.ValueAsString() != "18.12" {
-		t.Errorf("Fixed string conversion failed, expected 18.12, got %v", fixed.ValueAsFloat())
+	if fixed.ValueAsString() != "18.123" {
+		t.Errorf("Fixed string conversion failed, expected 18.123, got %v", fixed.ValueAsFloat())
 	}
 }
 
