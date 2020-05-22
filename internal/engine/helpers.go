@@ -66,14 +66,24 @@ func (num Fixed) ValueAsFloat() float32 {
 }
 
 func (num Fixed) ValueAsString() string {
-	// prints number with max 2 decimal places
+	// prints number with max 3 decimal places
+	// this value is chosen due to the minimum currency value we support (3 decimal places)
 
 	s := fmt.Sprintf("%d", num/fixedExp)
 	d := fmt.Sprintf(".%06d", num%fixedExp)
 
-	return s + d[:3]
+	return s + d[:4]
 
 }
+func (num Fixed) StringFmt(p int) string {
+	// prints as a string with d decimal places
+	s := fmt.Sprintf("%d", num/fixedExp)
+	d := fmt.Sprintf(".%06d", num%fixedExp)
+
+	return s + d[:p]
+
+}
+
 func (num Fixed) ValueAsInt() int32 {
 	// nb this truncates the value
 	return int32(num / fixedExp)
