@@ -1605,6 +1605,11 @@ data:
       reelsetId: 8
       stopList: [0, 0, 0, 0, 0]
 
+    - id: scatterAndPay
+      action: base
+      reelsetId: 0
+      stopList: [2,2,2,1,2]
+
 
 
 

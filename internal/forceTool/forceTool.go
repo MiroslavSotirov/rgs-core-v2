@@ -3,10 +3,10 @@ package forceTool
 import (
 	"fmt"
 	"github.com/bradfitz/gomemcache/memcache"
+	uuid "github.com/satori/go.uuid"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"gopkg.in/yaml.v3"
@@ -159,7 +159,7 @@ func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestat
 			wins, relativePayout := engineDef.DetermineWins(symbolGrid)
 			var nextActions []string
 			specialWin := engine.DetermineSpecialWins(symbolGrid, engineDef.SpecialPayouts)
-			if specialWin.Index != "" {
+			if specialWin.Index != "" && !(engineID == "mvgEngineXIV" && len(wins) > 0){
 				var specialPayout int
 				specialPayout, nextActions = engineDef.CalculatePayoutSpecialWin(specialWin)
 				relativePayout += specialPayout
@@ -169,6 +169,9 @@ func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestat
 					nextActions = append([]string{"replaceQueuedActionType"}, nextActions...)
 
 				}
+			}
+			if engineID == "mvgEngineXIV" && len(wins) > 0 {
+				nextActions = append([]string{"cascade"}, nextActions...)
 			}
 			// get Multiplier
 			multiplier := 1
@@ -184,12 +187,12 @@ func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestat
 			gamestate.UpdateGamification(previousGamestate, gameID)
 			gamestate.PrepareActions(actions)
 			gamestate.Id = previousGamestate.NextGamestate
-			nextID := rng.RandStringRunes(8)
+			nextID := uuid.NewV4().String()
 			gamestate.NextGamestate = nextID
 			gamestate.PreviousGamestate = previousGamestate.Id
 
 			gamestate.PrepareTransactions(previousGamestate)
-
+			return gamestate
 		}
 	}
 
