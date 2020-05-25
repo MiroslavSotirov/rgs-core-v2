@@ -525,10 +525,17 @@ func (gamestate *Gamestate) PrepareTransactions(previousGamestate Gamestate) {
 	if gamestate.Action != "base" {
 		gamestate.PlaySequence = previousGamestate.PlaySequence + 1
 		gamestate.CumulativeWin = previousGamestate.CumulativeWin + gamestateWin.Amount
+		if gamestate.Action == "cascade" {
+			gamestate.SpinWin = previousGamestate.SpinWin + gamestateWin.Amount
+		} else {
+			gamestate.SpinWin = gamestateWin.Amount
+		}
 	} else {
 		gamestate.PlaySequence = 0
 		gamestate.CumulativeWin = gamestateWin.Amount
+		gamestate.SpinWin = gamestateWin.Amount
 	}
+
 }
 
 func (gamestate *Gamestate) PrepareActions(previousActions []string) {
@@ -581,6 +588,8 @@ func (engine EngineDef) DetermineWins(symbolGrid [][]int) ([]Prize, int) {
 	relativePayout := calculatePayoutWins(wins)
 	return wins, relativePayout
 }
+
+
 func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 	// the base gameplay round
 	// uses round multiplier if included
@@ -615,6 +624,15 @@ func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 	// Build gamestate
 	gamestate := Gamestate{GameID: fmt.Sprintf(":%v", engine.Index), Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: multiplier, StopList: stopList, NextActions: nextActions, SelectedWinLines: parameters.SelectedWinLines}
 
+	return gamestate
+}
+
+// Guaranteed win round
+func (engine EngineDef) GuaranteedWin(parameters GameParams) Gamestate {
+	var gamestate Gamestate
+	for len(gamestate.Prizes) == 0 {
+		gamestate = engine.BaseRound(parameters)
+	}
 	return gamestate
 }
 

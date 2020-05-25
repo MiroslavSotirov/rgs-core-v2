@@ -214,4 +214,6 @@ message GamestatePB {
   repeated WalletTransactionPB transactions = 18;
   bool closed = 19;
   string round_id = 20;
+  int64 spin_win = 21;
+  repeated Reel recovery_grid = 22;
 }

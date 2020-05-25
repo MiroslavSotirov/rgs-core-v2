@@ -133,6 +133,7 @@ type Gamestate struct {
 	NextGamestate     string                    `json:"next_gamestate,omitempty"`
 	Action            string                    `json:"action,omitempty"`
 	SymbolGrid        [][]int                   `json:"symbol_grid,omitempty"`
+	RecoveryGrid      [][]int                   `json:"recovery_grid,omitempty"`
 	Prizes            []Prize                   `json:"prizes,omitempty"`
 	SelectedWinLines  []int                     `json:"selected_win_lines,omitempty"`
 	RelativePayout    int                       `json:"relative_payout,omitempty"`
@@ -141,6 +142,7 @@ type Gamestate struct {
 	NextActions       []string                  `json:"next_actions,omitempty"`
 	Gamification      *GamestatePB_Gamification `json:"gamification,omitempty"`
 	CumulativeWin     Fixed                     `json:"cumulative_win,omitempty"`
+	SpinWin           Fixed                     `json:"spin_win,omitempty"`
 	PlaySequence      int                       `json:"play_sequence,omitempty"`
 	Closed            bool                      `json:"closed"`
 	RoundID           string                    `json:"round_id"`
@@ -324,9 +326,11 @@ func (gamestatePB GamestatePB) Convert() Gamestate {
 		NextActions:       nextActions,
 		Gamification:      gamestatePB.Gamification,
 		CumulativeWin:     Fixed(gamestatePB.CumulativeWin),
+		SpinWin:           Fixed(gamestatePB.SpinWin),
 		PlaySequence:      int(gamestatePB.PlaySequence),
 		Closed:            gamestatePB.Closed,
 		RoundID:           gamestatePB.RoundId,
+		RecoveryGrid:      convertSymbolGridFromPB(gamestatePB.RecoveryGrid),
 	}
 }
 
@@ -400,6 +404,7 @@ func (gamestate Gamestate) Convert() (GamestatePB) {
 		NextGamestate:     []byte(gamestate.NextGamestate),
 		Action:            GamestatePB_Action(GamestatePB_Action_value[gamestate.Action]),
 		SymbolGrid:        convertSymbolGridToPB(gamestate.SymbolGrid),
+		RecoveryGrid:      convertSymbolGridToPB(gamestate.RecoveryGrid),
 		Prizes:            convertPrizesToPB(gamestate.Prizes),
 		SelectedWinLines:  convertIntInt32(gamestate.SelectedWinLines),
 		RelativePayout:    int32(gamestate.RelativePayout),
@@ -408,6 +413,7 @@ func (gamestate Gamestate) Convert() (GamestatePB) {
 		NextActions:       nextActions,
 		Gamification:      gamestate.Gamification,
 		CumulativeWin:     gamestate.CumulativeWin.ValueRaw(),
+		SpinWin:           gamestate.SpinWin.ValueRaw(),
 		PlaySequence:      int32(gamestate.PlaySequence),
 		Transactions:      convertTransactionsToPB(gamestate.Transactions),
 		Closed:            gamestate.Closed,
