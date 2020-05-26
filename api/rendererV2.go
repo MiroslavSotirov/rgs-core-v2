@@ -44,10 +44,11 @@ type GameplayResponseV2 struct {
 	SessionID store.Token          `json:"host/verified-token"`
 	StateID   string              `json:"stateID"`
 	RoundID   string              `json:"roundID"`
+	ReelsetID int                 `json:"reelset"`
 	Stake     engine.Fixed        `json:"totalStake"`
 	Win       engine.Fixed
-	CumWin    engine.Fixed `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
-	//CurrentSpin int               `json:"currentSpin"`             // is this really needed ??
+	RoundWin    engine.Fixed `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
+	SpinWin     engine.Fixed   `json:"spinWin"` // total win only on this spin
 	FSRemaining *int               `json:"freeSpinsRemaining,omitempty"`
 	Balance     BalanceResponseV2 `json:"balance"`
 	View        [][]int           `json:"view"` // includes row above and below
@@ -56,6 +57,7 @@ type GameplayResponseV2 struct {
 	Closed      bool               `json:"closed"`
 	RoundMultiplier int            `json:"roundMultiplier"`
 	Gamification *engine.GamestatePB_Gamification `json:"gamification"`
+	CascadePositions []int         `json:"cascadePositions,omitempty"`
 }
 
 type BalanceResponseV2 struct {
@@ -95,33 +97,48 @@ type ReelResponse struct {
 func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceStore) GameplayResponseV2 {
 
 	var win engine.Fixed
-	var cumWin engine.Fixed
+	roundWin := gamestate.CumulativeWin
 	var stake engine.Fixed
-
+	_, rs := engine.GetGameIDAndReelset(gamestate.GameID)
 	for _, tx := range gamestate.Transactions {
 		switch tx.Type {
 		case "WAGER":
 			stake += tx.Amount.Amount
 		case "PAYOUT":
 			win += tx.Amount.Amount
-			cumWin += tx.Amount.Amount
 		}
 	}
 	var fsRemaining *int
-	if len(gamestate.NextActions) > 1 {
-		fsr := len(gamestate.NextActions)-1
-		fsRemaining = &fsr
+	fsr := 0
+	for i:=0;i<len(gamestate.NextActions); i++ {
+		if strings.Contains(gamestate.NextActions[i], "freespin") {
+			fsr ++
+		}
 	}
+	fsRemaining = &fsr
+
+	// artificially set cumulative win not to include spin win during cascade action unless it is the final round
+	if gamestate.NextActions[0] == "cascade" {
+		roundWin = roundWin.Sub(gamestate.SpinWin)
+	}
+	var cascadePositions []int
+	if gamestate.Action == "cascade" {
+		// this is a hack for now, needed for recovery. potentially in the future we add a proper cascade positions field to the gamestate message
+		cascadePositions = gamestate.SelectedWinLines
+	}
+	logger.Infof("cum: %v, spin: %v, round: %v, win: %v", gamestate.CumulativeWin, gamestate.SpinWin, roundWin, win)
+
 	return GameplayResponseV2{
 		SessionID:   balance.Token,
 		StateID:     gamestate.Id,
 		RoundID:     gamestate.RoundID,
+		ReelsetID:   rs,
 		Stake:       stake,
 		Win:         win,
-		CumWin:      gamestate.CumulativeWin,
+		RoundWin:    roundWin,
+		SpinWin:     gamestate.SpinWin,
 		NextAction:  gamestate.NextActions[0],
-		//CurrentSpin: gamestate.PlaySequence,         // zero-indexed
-		FSRemaining: fsRemaining, // for now, assume all future actions besides finish are fs (perhaps change this to bonusRdsRemaining in future)
+		FSRemaining: fsRemaining,
 		Balance:     BalanceResponseV2{
 			Amount:    balance.Balance,
 			FreeGames: balance.FreeGames.NoOfFreeSpins,
@@ -131,6 +148,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		RoundMultiplier: gamestate.Multiplier,
 		Closed:      gamestate.Closed,
 		Gamification: gamestate.Gamification,
+		CascadePositions: cascadePositions,
 	}
 }
 

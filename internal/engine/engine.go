@@ -525,10 +525,17 @@ func (gamestate *Gamestate) PrepareTransactions(previousGamestate Gamestate) {
 	if gamestate.Action != "base" {
 		gamestate.PlaySequence = previousGamestate.PlaySequence + 1
 		gamestate.CumulativeWin = previousGamestate.CumulativeWin + gamestateWin.Amount
+		if gamestate.Action == "cascade" {
+			gamestate.SpinWin = previousGamestate.SpinWin + gamestateWin.Amount
+		} else {
+			gamestate.SpinWin = gamestateWin.Amount
+		}
 	} else {
 		gamestate.PlaySequence = 0
 		gamestate.CumulativeWin = gamestateWin.Amount
+		gamestate.SpinWin = gamestateWin.Amount
 	}
+
 }
 
 func (gamestate *Gamestate) PrepareActions(previousActions []string) {
@@ -581,6 +588,8 @@ func (engine EngineDef) DetermineWins(symbolGrid [][]int) ([]Prize, int) {
 	relativePayout := calculatePayoutWins(wins)
 	return wins, relativePayout
 }
+
+
 func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 	// the base gameplay round
 	// uses round multiplier if included
@@ -618,10 +627,20 @@ func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 	return gamestate
 }
 
+// Guaranteed win round
+func (engine EngineDef) GuaranteedWin(parameters GameParams) Gamestate {
+	var gamestate Gamestate
+	for len(gamestate.Prizes) == 0 {
+		gamestate = engine.BaseRound(parameters)
+	}
+	return gamestate
+}
+
 // Cascading round
 func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 	symbolGrid := make([][]int, len(engine.ViewSize))
 	stopList := make([]int, len(engine.ViewSize))
+	var cascadePositions []int
 	if parameters.Action == "cascade" {
 		previousGamestate := parameters.previousGamestate
 		// if previous gamestate contains a win, we need to cascade new tiles into the old space
@@ -662,10 +681,10 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 		for i:=0; i<len(engine.Reels); i++ {
 			adjustedReels[i] = append(engine.Reels[i], engine.Reels[i][:engine.ViewSize[i]]...)
 		}
-
 		// return grid to full size by filling in empty spaces
 		for i:=0; i<len(engine.ViewSize); i++{
 			numToAdd := engine.ViewSize[i] - len(remainingGrid[i])
+			cascadePositions = append(cascadePositions, numToAdd)
 			stop := previousGamestate.StopList[i] - numToAdd
 			// get adjusted index if the previous win was at the top of the reel
 			if stop < 0 {
@@ -674,6 +693,7 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 			symbolGrid[i] = append(adjustedReels[i][stop:stop+numToAdd], remainingGrid[i]...)
 			stopList[i] = stop
 		}
+
 
 	} else {
 		symbolGrid, stopList = Spin(engine.Reels, engine.ViewSize)
@@ -710,9 +730,15 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 		//multiplier = SelectFromWeightedOptions(engine.Multiplier.Multipliers, engine.Multiplier.Probabilities)
 		multiplier = engine.Multiplier.Multipliers[0]
 	}
+	// for now, do a bit of a hack to get the cascade positions. as soon as we need to implement cascade with variable
+	// win lines, this will need to be adjusted to be added into a new field in the gamestate message
 
+	winlines := parameters.SelectedWinLines
+	if len(winlines) == 0 {
+		winlines = cascadePositions
+	}
 	// Build gamestate
-	gamestate := Gamestate{GameID: fmt.Sprintf(":%v", engine.Index), Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: multiplier, StopList: stopList, NextActions: nextActions, SelectedWinLines: parameters.SelectedWinLines}
+	gamestate := Gamestate{GameID: fmt.Sprintf(":%v", engine.Index), Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: multiplier, StopList: stopList, NextActions: nextActions, SelectedWinLines: winlines}
 	return gamestate
 }
 
