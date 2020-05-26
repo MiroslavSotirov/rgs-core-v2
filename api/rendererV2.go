@@ -57,6 +57,7 @@ type GameplayResponseV2 struct {
 	Closed      bool               `json:"closed"`
 	RoundMultiplier int            `json:"roundMultiplier"`
 	Gamification *engine.GamestatePB_Gamification `json:"gamification"`
+	CascadePositions []int         `json:"cascadePositions,omitempty"`
 }
 
 type BalanceResponseV2 struct {
@@ -118,8 +119,12 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 
 	// artificially set cumulative win not to include spin win during cascade action unless it is the final round
 	if gamestate.NextActions[0] == "cascade" {
-		logger.Warnf("subtracting spin win")
 		roundWin = roundWin.Sub(gamestate.SpinWin)
+	}
+	var cascadePositions []int
+	if gamestate.Action == "cascade" {
+		// this is a hack for now, needed for recovery. potentially in the future we add a proper cascade positions field to the gamestate message
+		cascadePositions = gamestate.SelectedWinLines
 	}
 	logger.Infof("cum: %v, spin: %v, round: %v, win: %v", gamestate.CumulativeWin, gamestate.SpinWin, roundWin, win)
 
@@ -143,6 +148,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		RoundMultiplier: gamestate.Multiplier,
 		Closed:      gamestate.Closed,
 		Gamification: gamestate.Gamification,
+		CascadePositions: cascadePositions,
 	}
 }
 
