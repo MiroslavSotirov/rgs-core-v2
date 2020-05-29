@@ -11,7 +11,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
@@ -428,8 +427,7 @@ func Routes() *chi.Mux {
 				return
 			}
 			gamestate := store.DeserializeGamestateFromBytes(gsbytes)
-			gameID, _ := engine.GetGameIDAndReelset(gamestate.GameID)
-			player, _, err := store.ServLocal.PlayerByToken(store.Token(token), store.ModeDemo, gameID)
+			player, _, err := store.ServLocal.PlayerByToken(store.Token(token), store.ModeDemo, gamestate.Game)
 			if err != nil {
 				logger.Errorf("error : %v", err)
 				return
@@ -444,7 +442,7 @@ func Routes() *chi.Mux {
 					Category:            store.CategoryPayout,
 					RoundStatus:         store.RoundStatusOpen,
 					PlayerId:            player.PlayerId,
-					GameId:              gameID,
+					GameId:              gamestate.Game,
 					RoundId:             gamestate.RoundID,
 					Amount:              gamestate.Transactions[0].Amount,
 					ParentTransactionId: "",
@@ -462,7 +460,7 @@ func Routes() *chi.Mux {
 					Category:            store.CategoryPayout,
 					RoundStatus:         store.RoundStatusOpen,
 					PlayerId:            player.PlayerId,
-					GameId:              gameID,
+					GameId:              gamestate.Game,
 					RoundId:             gamestate.RoundID,
 					Amount:              gamestate.Transactions[0].Amount,
 					ParentTransactionId: "",

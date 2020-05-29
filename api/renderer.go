@@ -360,7 +360,6 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 			numFs++
 		}
 	}
-	gameSlug, rsID := engine.GetGameIDAndReelset(gamestate.GameID)
 
 	var winType string
 	if strings.Contains(engineConf.EngineDefs[0].WinType, "ways") {
@@ -380,8 +379,8 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 
 		adjustedSymbolPositions := make([]int, len(p.SymbolPositions))
 
-		if len(engineConf.EngineDefs[rsID].ViewSize) == 3 {
-			if strings.Contains(gameSlug, "seasons") {
+		if len(engineConf.EngineDefs[gamestate.DefID].ViewSize) == 3 {
+			if strings.Contains(gamestate.Game, "seasons") {
 				switch p.Winline {
 				case 0:
 					adjustedSymbolPositions = []int{3, 4, 5}
@@ -395,7 +394,7 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 				adjustedSymbolPositions = []int{0, 1, 2}
 			}
 
-		} else if engineConf.EngineDefs[rsID].ViewSize[0] == 4 {
+		} else if engineConf.EngineDefs[gamestate.DefID].ViewSize[0] == 4 {
 			// [0,1,2,3,4][5,6,7,8,9][10,11,12,13,14][15,16,17,18,19]
 			// [0,4,8,12,16][1,5,9,13,17][2,6,10,14,18][3,7,11,15,19]
 			for i, pos := range p.SymbolPositions {
@@ -476,7 +475,7 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 			wl := p.Winline
 			win.WinLine = &wl
 		}
-		if strings.Contains(gameSlug, "seasons") {
+		if strings.Contains(gamestate.Game, "seasons") {
 			win.Stake = gamestate.BetPerLine.Amount.ValueAsString()
 		}
 		wins[i] = win
@@ -484,7 +483,7 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 	}
 
 	// get reel set index
-	engineID, err := config.GetEngineFromGame(gameSlug)
+	engineID, err := config.GetEngineFromGame(gamestate.Game)
 
 	//legacy adapters, in future client should recognize "base" and stake=0 on bonus rounds
 	action := "spin"
@@ -529,7 +528,7 @@ func fillGamestateResponse(engineConf engine.EngineConfig, gamestate engine.Game
 		Wins:                 wins,
 		TotalWinnings:        gamestate.CumulativeWin,
 		StopList:             gamestate.StopList,
-		ReelSetIndex:         rsID,
+		ReelSetIndex:         gamestate.DefID,
 		SelectedWinLines:     selectedWinLines,
 		Win:                  currentWinnings,
 	}
@@ -698,8 +697,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 	operator := request.FormValue("operator")
 	mode := chi.URLParam(request, "wallet")
 	authID := playerStore.Token
-	gameID := strings.Split(gamestate.GameID, ":")[0]
-	engineID, _ := config.GetEngineFromGame(gameID)
+	engineID, _ := config.GetEngineFromGame(gamestate.Game)
 	urlScheme := GetURLScheme(request)
 	status := "FINISHED"
 
@@ -726,8 +724,8 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 			TotalSpins:     totalSpins,
 		},
 	}
-	playHref := getPlayLink(gamestate, playerStore, request, gameID, mode)
-	gameInfo := &GameInfoResponse{CCY: player.Balance.Currency, HostName: operator, InterfaceName: mode, GameName: gameID, Version: "2"}
+	playHref := getPlayLink(gamestate, playerStore, request, gamestate.Game, mode)
+	gameInfo := &GameInfoResponse{CCY: player.Balance.Currency, HostName: operator, InterfaceName: mode, GameName: gamestate.Game, Version: "2"}
 	gpResponse := GameplayResponse{
 		Game:          *gameInfo,
 		Schema:        DefaultSchema,
@@ -746,7 +744,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 				Rel:    "new-game",
 				Type:   "application/vnd.maverick.slots.spin-v1+json",
 			}, {
-				Href:   fmt.Sprintf("%s%s/%s/rgs/clientstate/%s/%s/%s", urlScheme, request.Host, APIVersion, authID, gameID, mode),
+				Href:   fmt.Sprintf("%s%s/%s/rgs/clientstate/%s/%s/%s", urlScheme, request.Host, APIVersion, authID, gamestate.Game, mode),
 				Method: "PUT",
 				Rel:    "gameplay-client-state-save",
 				Type:   "application/octet-stream",

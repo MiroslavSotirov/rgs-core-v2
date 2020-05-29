@@ -99,7 +99,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 	var win engine.Fixed
 	roundWin := gamestate.CumulativeWin
 	var stake engine.Fixed
-	_, rs := engine.GetGameIDAndReelset(gamestate.GameID)
+
 	for _, tx := range gamestate.Transactions {
 		switch tx.Type {
 		case "WAGER":
@@ -132,7 +132,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		SessionID:   balance.Token,
 		StateID:     gamestate.Id,
 		RoundID:     gamestate.RoundID,
-		ReelsetID:   rs,
+		ReelsetID:   gamestate.DefID,
 		Stake:       stake,
 		Win:         win,
 		RoundWin:    roundWin,
@@ -155,23 +155,17 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance store.BalanceStore) GameInitResponseV2 {
 	var resp GameInitResponseV2
 	logger.Debugf("previousGamestate: %v; balance: %v; gameId: %v; auth: %v", previousGamestate, balance)
-	//if previousGamestate.Action != "" {
-	// otherwise, assume this is first gp round
 
 	lastRound := make(map[string]GameplayResponseV2, 2)
 	lastRound[previousGamestate.Action] = fillGamestateResponseV2(previousGamestate, balance)
 	// if last round was not base round, get triggering round ( for now no api support for this, so show default round)
 	if ! strings.Contains(previousGamestate.Action, "base") {
-		game, _ := engine.GetGameIDAndReelset(previousGamestate.GameID)
-		baseround := store.CreateInitGS(store.PlayerStore{PlayerId: balance.PlayerId, Balance:balance.Balance}, game)
+		baseround := store.CreateInitGS(store.PlayerStore{PlayerId: balance.PlayerId, Balance:balance.Balance}, previousGamestate.Game)
 		lastRound["base"] = fillGamestateResponseV2(baseround, balance)
 	}
-	//}
 	resp.LastRound = lastRound
-
-	resp.Name = previousGamestate.GameID
+	resp.Name = previousGamestate.Game
 	resp.Version = "2.0" // this is hardcoded for now
-	//resp.Balance = balance.Balance
 	return resp
 }
 

@@ -68,7 +68,6 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 		return
 	}
 
-	gameID, _ := engine.GetGameIDAndReelset(gameplay.GameID)
 	//t := template.Must(template.New("api/playcheck").Funcs(tplFuncMap).ParseGlob("*.html"))
 	var wager string
 	var payout string
@@ -86,7 +85,7 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 	currency := gameplay.Transactions[0].Amount.Currency
 	betPerLine := gameplay.BetPerLine.Amount.ValueAsString()
 	colSize := len(symbolGrid[0])
-	fields := PlaycheckFields{gameplay, gameID, wager, payout, currency, betPerLine, symbolGrid, colSize}
+	fields := PlaycheckFields{gameplay, gameplay.Game, wager, payout, currency, betPerLine, symbolGrid, colSize}
 	err = t.Execute(w, fields)
 	if err != nil {
 		logger.Errorf("template executing error: ", err)

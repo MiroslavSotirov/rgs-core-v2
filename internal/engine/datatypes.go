@@ -8,8 +8,6 @@ import (
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"gopkg.in/yaml.v3"
-	"strconv"
-	"strings"
 )
 
 // Datatypes
@@ -49,6 +47,7 @@ type EngineDef struct {
 	Probability    int                `yaml:"Probability"`    // the probability of this engine being selected if it shares id with other engines
 	ExpectedPayout Fixed              `yaml:"expectedPayout"` // the expected payout of one round of this engineDef
 	RTP            float32            `yaml:"RTP"`            // the expected payout of one round of this engineDef
+	RespinAllowed  bool               `yaml:"respin"`
 }
 
 type Fixed int64
@@ -125,15 +124,16 @@ type Prize struct {
 
 type Gamestate struct {
 	// internal representation of GamestatePB
-	Id                string                    `json:"id,omitempty"`
-	GameID            string                    `json:"engine,omitempty"`
-	BetPerLine        Money                     `json:"bet_per_line,omitempty"`
-	Transactions      []WalletTransaction       `json:"transactions,omitempty"`
-	PreviousGamestate string                    `json:"previous_gamestate,omitempty"`
-	NextGamestate     string                    `json:"next_gamestate,omitempty"`
-	Action            string                    `json:"action,omitempty"`
-	SymbolGrid        [][]int                   `json:"symbol_grid,omitempty"`
-	RecoveryGrid      [][]int                   `json:"recovery_grid,omitempty"`
+	Id                string              `json:"id,omitempty"`
+	Game              string              `json:"engine,omitempty"`
+	DefID             int                 `json:"reelset,omitempty"`
+	BetPerLine        Money               `json:"bet_per_line,omitempty"`
+	Transactions      []WalletTransaction `json:"transactions,omitempty"`
+	PreviousGamestate string              `json:"previous_gamestate,omitempty"`
+	NextGamestate     string              `json:"next_gamestate,omitempty"`
+	Action            string              `json:"action,omitempty"`
+	SymbolGrid        [][]int             `json:"symbol_grid,omitempty"`
+	RecoveryGrid      [][]int             `json:"recovery_grid,omitempty"`
 	Prizes            []Prize                   `json:"prizes,omitempty"`
 	SelectedWinLines  []int                     `json:"selected_win_lines,omitempty"`
 	RelativePayout    int                       `json:"relative_payout,omitempty"`
@@ -141,20 +141,24 @@ type Gamestate struct {
 	StopList          []int                     `json:"stop_list,omitempty"`
 	NextActions       []string                  `json:"next_actions,omitempty"`
 	Gamification      *GamestatePB_Gamification `json:"gamification,omitempty"`
-	CumulativeWin     Fixed                     `json:"cumulative_win,omitempty"`
-	SpinWin           Fixed                     `json:"spin_win,omitempty"`
-	PlaySequence      int                       `json:"play_sequence,omitempty"`
-	Closed            bool                      `json:"closed"`
-	RoundID           string                    `json:"round_id"`
+	CumulativeWin     Fixed               `json:"cumulative_win,omitempty"`
+	SpinWin           Fixed               `json:"spin_win,omitempty"`
+	PlaySequence      int                 `json:"play_sequence,omitempty"`
+	Closed            bool                `json:"closed"`
+	RoundID           string              `json:"round_id"`
 }
 
-func (gamestate Gamestate) Engine() string {
-	engine, err := config.GetEngineFromGame(strings.Split(gamestate.GameID, ":")[0])
+func (gamestate Gamestate) Engine() (engine EngineConfig, err rgserror.RGSErr) {
+	var engineID string
+	engineID, err = config.GetEngineFromGame(gamestate.Game)
 	if err != nil {
-		logger.Errorf("error parsing game name: %v", gamestate.GameID)
+		logger.Errorf("error parsing game name: %v", gamestate.Game)
+		return
 	}
-	return engine
+	engine = BuildEngineDefs(engineID)
+	return
 }
+
 
 type WalletTransaction struct {
 	// internal representation of WalletTransactionPB
@@ -274,8 +278,8 @@ func (prize Prize) Convert() PrizePB {
 	}
 }
 
-func convertPrizesFromPB(unconverted []*PrizePB, betPerLine Fixed, gameID string) []Prize {
-	engineConf, rS, err := GetEngineDefFromGame(gameID)
+func convertPrizesFromPB(unconverted []*PrizePB, betPerLine Fixed, gameID string, rS int32) []Prize {
+	engineConf, err := GetEngineDefFromGame(gameID)
 	if err != nil {
 		logger.Errorf("error convering gamestate: %v", err)
 		return []Prize{}
@@ -284,7 +288,7 @@ func convertPrizesFromPB(unconverted []*PrizePB, betPerLine Fixed, gameID string
 	converted := make([]Prize, len(unconverted))
 	for i, prize := range unconverted {
 		convertedP := prize.Convert(betPerLine)
-		convertedP.Index = engineConf.DetectSpecialWins(rS, convertedP)
+		convertedP.Index = engineConf.DetectSpecialWins(int(rS), convertedP)
 		converted[i] = convertedP
 	}
 	return converted
@@ -308,17 +312,18 @@ func (gamestatePB GamestatePB) Convert() Gamestate {
 		logger.Errorf("NO TX associated")
 		return Gamestate{}
 	}
-	gameID := fmt.Sprintf("%v:%v", GetGameIDFromPB(gamestatePB.GameId.String()), gamestatePB.EngineDef)
+	gameID := GetGameIDFromPB(gamestatePB.GameId.String())
 	return Gamestate{
 		Id:                gamestatePB.Transactions[0].Id,
-		GameID:            gameID,
+		Game:              gameID,
+		DefID:             int(gamestatePB.EngineDef),
 		BetPerLine:        Money{Amount: Fixed(gamestatePB.BetPerLine), Currency: gamestatePB.Currency.String()},
 		Transactions:      convertTransactionsFromPB(gamestatePB.Transactions),
 		PreviousGamestate: string(gamestatePB.PreviousGamestate),
 		NextGamestate:     string(gamestatePB.NextGamestate),
 		Action:            gamestatePB.Action.String(),
 		SymbolGrid:        convertSymbolGridFromPB(gamestatePB.SymbolGrid),
-		Prizes:            convertPrizesFromPB(gamestatePB.Prizes, Fixed(gamestatePB.BetPerLine), gameID),
+		Prizes:            convertPrizesFromPB(gamestatePB.Prizes, Fixed(gamestatePB.BetPerLine), gameID, gamestatePB.EngineDef),
 		SelectedWinLines:  convertInt32Int(gamestatePB.SelectedWinLines),
 		RelativePayout:    int(gamestatePB.RelativePayout),
 		Multiplier:        int(gamestatePB.Multiplier),
@@ -343,17 +348,18 @@ func (gamestatePB GamestatePB) ConvertLegacy(transactions []*WalletTransactionPB
 	// every set of transactions should begin with a WAGER. this ID is also the gamestate ID
 
 	// get Game ID
-	gameID := fmt.Sprintf("%v:%v", GetGameIDFromPB(gamestatePB.GameId.String()), gamestatePB.EngineDef)
+	gameID := GetGameIDFromPB(gamestatePB.GameId.String())
 	return Gamestate{
 		Id:                transactions[0].Id,
-		GameID:            gameID,
+		Game:              gameID,
+		DefID:             int(gamestatePB.EngineDef),
 		BetPerLine:        Money{Amount: Fixed(gamestatePB.BetPerLine), Currency: gamestatePB.Currency.String()},
 		Transactions:      convertTransactionsFromPB(transactions),
 		PreviousGamestate: string(gamestatePB.PreviousGamestate),
 		NextGamestate:     string(gamestatePB.NextGamestate),
 		Action:            gamestatePB.Action.String(),
 		SymbolGrid:        convertSymbolGridFromPB(gamestatePB.SymbolGrid),
-		Prizes:            convertPrizesFromPB(gamestatePB.Prizes, Fixed(gamestatePB.BetPerLine), gameID),
+		Prizes:            convertPrizesFromPB(gamestatePB.Prizes, Fixed(gamestatePB.BetPerLine), gameID, gamestatePB.EngineDef),
 		SelectedWinLines:  convertInt32Int(gamestatePB.SelectedWinLines),
 		RelativePayout:    int(gamestatePB.RelativePayout),
 		Multiplier:        int(gamestatePB.Multiplier),
@@ -365,27 +371,12 @@ func (gamestatePB GamestatePB) ConvertLegacy(transactions []*WalletTransactionPB
 	}
 }
 
-func GetGameIDAndReelset(gameID string) (string, int) {
-	gameInfo := strings.Split(gameID, ":")
-	if len(gameInfo) != 2 {
-		panic(fmt.Errorf("EngineInfo not correct format: %v", gameInfo))
-	}
-	engineDef, err := strconv.Atoi(gameInfo[1])
-	if err != nil {
-		logger.Warnf("Could not get engineDef integer from %v, setting zero", gameInfo)
-		engineDef = 0
-	}
-	//logger.Debugf("Engine: %v; DefID: %v", engineInfo[0], engineDef)
-	return gameInfo[0], engineDef
-}
-
-func GetEngineDefFromGame(gameID string) (EngineConfig, int, rgserror.RGSErr) {
-	gameID, rsID := GetGameIDAndReelset(gameID)
+func GetEngineDefFromGame(gameID string) (EngineConfig, rgserror.RGSErr) {
 	engineID, err := config.GetEngineFromGame(gameID)
 	if err != nil {
-		return EngineConfig{}, 0, err
+		return EngineConfig{}, err
 	}
-	return BuildEngineDefs(engineID), rsID, nil
+	return BuildEngineDefs(engineID), nil
 }
 
 func (gamestate Gamestate) Convert() (GamestatePB) {
@@ -394,10 +385,9 @@ func (gamestate Gamestate) Convert() (GamestatePB) {
 		nextActions[i] = GamestatePB_Action(GamestatePB_Action_value[action])
 	}
 	// every set of transactions should begin with a WAGER. this ID is also the gamestate ID
-	gameID, engineDef := GetGameIDAndReelset(gamestate.GameID)
 	return GamestatePB{
-		GameId:            GamestatePB_GameID(GamestatePB_GameID_value[GetPBFromGameID(gameID)]),
-		EngineDef:         int32(engineDef),
+		GameId:            GamestatePB_GameID(GamestatePB_GameID_value[GetPBFromGameID(gamestate.Game)]),
+		EngineDef:         int32(gamestate.DefID),
 		BetPerLine:        gamestate.BetPerLine.Amount.ValueRaw(),
 		Currency:          Ccy(Ccy_value[gamestate.BetPerLine.Currency]),
 		PreviousGamestate: []byte(gamestate.PreviousGamestate),
@@ -429,10 +419,9 @@ func (gamestate Gamestate) ConvertLegacy() (GamestatePB, []*WalletTransactionPB)
 		nextActions[i] = GamestatePB_Action(GamestatePB_Action_value[action])
 	}
 	// every set of transactions should begin with a WAGER. this ID is also the gamestate ID
-	gameID, engineDef := GetGameIDAndReelset(gamestate.GameID)
 	return GamestatePB{
-		GameId:            GamestatePB_GameID(GamestatePB_GameID_value[GetPBFromGameID(gameID)]),
-		EngineDef:         int32(engineDef),
+		GameId:            GamestatePB_GameID(GamestatePB_GameID_value[GetPBFromGameID(gamestate.Game)]),
+		EngineDef:         int32(gamestate.DefID),
 		BetPerLine:        gamestate.BetPerLine.Amount.ValueRaw(),
 		Currency:          Ccy(Ccy_value[gamestate.BetPerLine.Currency]),
 		PreviousGamestate: []byte(gamestate.PreviousGamestate),

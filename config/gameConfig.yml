@@ -60,3 +60,6 @@
 - engineID: mvgEngineXIV
   games:
     - valley-of-kings
+- engineID: mvgEngineXI
+  games:
+    - mah-jong

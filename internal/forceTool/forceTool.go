@@ -13,7 +13,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -27,18 +26,18 @@ func ClearForce(gameID string, playerID string) error {
 	return store.MC.Delete(playerID + "::" + gameID)
 }
 
-func GetForceValues(betPerLine engine.Fixed, previousGamestate engine.Gamestate, gameID string, playerID string) (engine.Gamestate, *rgse.RGSError) {
-	forceID, err := store.MC.Get(playerID + "::" + gameID)
+func GetForceValues(betPerLine engine.Fixed, previousGamestate engine.Gamestate, playerID string) (engine.Gamestate, *rgse.RGSError) {
+	forceID, err := store.MC.Get(playerID + "::" + previousGamestate.Game)
 	if err != nil {
 		return engine.Gamestate{}, rgse.Create(rgse.NoForceError)
 	}
 	// automatically clear the force once it has been used
-	_ = ClearForce(gameID, playerID)
+	_ = ClearForce(previousGamestate.Game, playerID)
 
 	if betPerLine == 0 && previousGamestate.Action != "base" {
 		betPerLine = previousGamestate.BetPerLine.Amount
 	}
-	forcedGamestate := smartForceFromID(betPerLine, previousGamestate, gameID, string(forceID.Value))
+	forcedGamestate := smartForceFromID(betPerLine, previousGamestate, string(forceID.Value))
 
 	logger.Warnf("Created forced gamestate: %v", forcedGamestate)
 	return forcedGamestate, nil
@@ -104,10 +103,10 @@ func generateSymbolGrid(stopList []int, engineID string, reelsetID int) [][]int 
 	return engine.GetSymbolGridFromStopList(engineDef.Reels, engineDef.ViewSize, stopList)
 }
 
-func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestate, gameID string, forceID string) engine.Gamestate {
+func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestate, forceID string) engine.Gamestate {
 	// build force gamestates
 
-	engineID, err := config.GetEngineFromGame(gameID)
+	engineID, err := config.GetEngineFromGame(previousGamestate.Game)
 	if err != nil {
 		return engine.Gamestate{}
 	}
@@ -118,22 +117,20 @@ func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestat
 		actions = []string{"base", "finish"}
 	}
 	// for engine VII make retrigger multiplier increments automatically
-	var reelSetIndex int
 	if engineID == "mvgEngineVII" && (strings.HasPrefix(forceID, "retrigger") || strings.HasSuffix(forceID, "scatter")) && strings.HasPrefix(actions[0], "freespin"){
-		reelSetIndex, _ = strconv.Atoi(strings.Split(previousGamestate.GameID, ":")[1])
 		isScatter := strings.HasSuffix(forceID, "scatter")
-		if reelSetIndex >= 5 &&  reelSetIndex < 8 { // reelset 5 and above are freespins
+		if previousGamestate.DefID >= 5 &&  previousGamestate.DefID < 8 { // reelset 5 and above are freespins
 			if isScatter {
-				fsAction := reelSetIndex - 3
+				fsAction := previousGamestate.DefID - 3
 				forceID = fmt.Sprintf("FS%d-%s", fsAction, forceID)
 			} else {
-				retriggerIndex := reelSetIndex - 4
+				retriggerIndex := previousGamestate.DefID - 4
 				forceID = fmt.Sprintf("retrigger%d", retriggerIndex)
 			}
 		}
-		if reelSetIndex >= 8 {
+		if previousGamestate.DefID >= 8 {
 			if isScatter {
-				fsAction := reelSetIndex - 6
+				fsAction := previousGamestate.DefID - 6
 				forceID = fmt.Sprintf("FS%d-%s", fsAction, forceID)
 			} else {
 				// reset
@@ -144,7 +141,7 @@ func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestat
 		}
 	}
 
-	logger.Debugf("Engine: %s ForceID: %s ReelsetID: %d", engineID, forceID, reelSetIndex)
+	logger.Debugf("Engine: %s ForceID: %s ReelsetID: %d", engineID, forceID, previousGamestate.DefID)
 	var gamestate engine.Gamestate
 	for _, force := range forces {
 		if force.ID == forceID {
@@ -179,12 +176,12 @@ func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestat
 				multiplier = engine.SelectFromWeightedOptions(engineDef.Multiplier.Multipliers, engineDef.Multiplier.Probabilities)
 			}
 			// Build gamestate
-			gamestate = engine.Gamestate{Action: force.Action, GameID: fmt.Sprintf("%v:%v", gameID, force.ReelsetId), SymbolGrid: symbolGrid, Prizes: wins, StopList: force.StopList, NextActions: nextActions, Multiplier: multiplier, RelativePayout: relativePayout, Transactions: transactions}
+			gamestate = engine.Gamestate{Action: force.Action, Game: previousGamestate.Game, DefID: force.ReelsetId, SymbolGrid: symbolGrid, Prizes: wins, StopList: force.StopList, NextActions: nextActions, Multiplier: multiplier, RelativePayout: relativePayout, Transactions: transactions}
 			gamestate.Action = actions[0]
 			gamestate.BetPerLine = engine.Money{betPerLine, previousGamestate.BetPerLine.Currency}
 			gamestate.SelectedWinLines = previousGamestate.SelectedWinLines
 			gamestate.Gamification = previousGamestate.Gamification
-			gamestate.UpdateGamification(previousGamestate, gameID)
+			gamestate.UpdateGamification(previousGamestate)
 			gamestate.PrepareActions(actions)
 			gamestate.Id = previousGamestate.NextGamestate
 			nextID := uuid.NewV4().String()
