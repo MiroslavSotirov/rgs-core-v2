@@ -1,6 +1,6 @@
 version: 2.0
-rtp: .950 #sham
-volatility: 100 #sham
+rtp: .950
+volatility: 100
 
 
 
@@ -125,14 +125,14 @@ EngineDefs:
 
 
     SpecialPayouts:
-      - {Payout: {Symbol: 36, Count: 1, Multiplier: 1}, Index: "reSpinFlop:1", Multiplier: 1}
-      - {Payout: {Symbol: 36, Count: 2, Multiplier: 1}, Index: "reSpinFlop:2", Multiplier: 1}
-      - {Payout: {Symbol: 36, Count: 3, Multiplier: 1}, Index: "reSpinFlop:3", Multiplier: 1}
-      - {Payout: {Symbol: 36, Count: 4, Multiplier: 1}, Index: "reSpinFlop:4", Multiplier: 1}
-      - {Payout: {Symbol: 37, Count: 1, Multiplier: 1}, Index: "reSpinPrime:1", Multiplier: 1}
-      - {Payout: {Symbol: 37, Count: 2, Multiplier: 1}, Index: "reSpinPrime:2", Multiplier: 1}
-      - {Payout: {Symbol: 37, Count: 3, Multiplier: 1}, Index: "reSpinPrime:3", Multiplier: 1}
-      - {Payout: {Symbol: 37, Count: 4, Multiplier: 1}, Index: "reSpinPrime:4", Multiplier: 1}
+      - {Payout: {Symbol: 36, Count: 1, Multiplier: 1}, Index: "shuffleflop:1", Multiplier: 1}
+      - {Payout: {Symbol: 36, Count: 2, Multiplier: 1}, Index: "shuffleflop:2", Multiplier: 1}
+      - {Payout: {Symbol: 36, Count: 3, Multiplier: 1}, Index: "shuffleflop:3", Multiplier: 1}
+      - {Payout: {Symbol: 36, Count: 4, Multiplier: 1}, Index: "shuffleflop:4", Multiplier: 1}
+      - {Payout: {Symbol: 37, Count: 1, Multiplier: 1}, Index: "shuffleprime:1", Multiplier: 1}
+      - {Payout: {Symbol: 37, Count: 2, Multiplier: 1}, Index: "shuffleprime:2", Multiplier: 1}
+      - {Payout: {Symbol: 37, Count: 3, Multiplier: 1}, Index: "shuffleprime:3", Multiplier: 1}
+      - {Payout: {Symbol: 37, Count: 4, Multiplier: 1}, Index: "shuffleprime:4", Multiplier: 1}
       - {Payout: {Symbol: 38, Count: 1, Multiplier: 1}, Index: "freespin:5", Multiplier: 1}
       - {Payout: {Symbol: 38, Count: 2, Multiplier: 1}, Index: "freespin:10", Multiplier: 1}
       - {Payout: {Symbol: 38, Count: 3, Multiplier: 1}, Index: "freespin:15", Multiplier: 1}
@@ -140,8 +140,8 @@ EngineDefs:
 
   - name: freespin
 
-  - name: reSpinFlop
-    function: FlopRespin
+  - name: shuffleflop
+    function: ShuffleFlop
 
-  - name: reSpinPrime
-    function: PrimeRespin
+  - name: shuffleprime
+    function: Shuffle

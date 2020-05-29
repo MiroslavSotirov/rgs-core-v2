@@ -46,12 +46,11 @@ func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, en
 
 //todo : deprecate 10/20
 func fixCorruptedGS(gamestate engine.Gamestate, player store.PlayerStore, request *http.Request) (engine.Gamestate, store.PlayerStore) {
-	game, rsid := engine.GetGameIDAndReelset(gamestate.GameID)
-	eng, err := config.GetEngineFromGame(game)
+	eng, err := config.GetEngineFromGame(gamestate.Game)
 	if err != nil {
 		return gamestate, player
 	}
-	if eng == "mvgEngineIII" && rsid == 1 {
+	if eng == "mvgEngineIII" && gamestate.DefID == 1 {
 		// check if there are multiple types of prize
 		corrupted := false
 		action := gamestate.NextActions[0]
@@ -284,7 +283,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 	}
 	gamestate, engineConf := engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
 	if config.GlobalConfig.DevMode == true {
-		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, gameSlug, txStore.PlayerId)
+		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, txStore.PlayerId)
 		if err == nil {
 			logger.Warnf("Forcing gamestate: %v", forcedGamestate)
 			gamestate = forcedGamestate

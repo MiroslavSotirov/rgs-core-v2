@@ -99,14 +99,14 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 	logger.Infof("Running %v spins for engine %v", numPlays, engineID)
 
 	chunkSize := numPlays / chunks
-	infoStructs := make([]defInfo, len(engineConf.EngineDefs))
+	infoStructs := make([]defInfo, len(engineConf.EngineDefs)*2)
 
 	initString := fmt.Sprintf("Running %v spins in %v chunks for %v \n Expected RTP: %v \n Volatility: %v\n", numPlays, chunks, engineID, engineConf.RTP, engineConf.Volatility)
 	vtInfo := []string{initString, "Chunk || RTP || RTP Feature || RTP base \n"}
 	featureWin := engine.Fixed(0)
 
-	//ctCascades := 0
-	previousGamestate := engine.Gamestate{NextActions: []string{"finish"}, GameID: fmt.Sprintf("%v:%v", getMatchingGame(engineID), 0), NextGamestate: "FirstSpinVT" + engineID}
+	ctCascades := 0
+	previousGamestate := engine.Gamestate{NextActions: []string{"finish"}, Game: getMatchingGame(engineID), DefID: 0, NextGamestate: "FirstSpinVT" + engineID}
 	for i := 0; i < chunks; i++ {
 
 		for j := 0; j < chunkSize; j++ {
@@ -127,10 +127,10 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 			totalBet += currentStake
 			s2.addSample(float64(currentWinnings.ValueAsFloat()))
 			// compile hit frequencies
-			_, defID := engine.GetGameIDAndReelset(gamestate.GameID)
-			//if gamestate.Action == "cascade" {
-			//	defID += len(engineConf.EngineDefs)
-			//}
+			defID := gamestate.DefID
+			if gamestate.Action == "cascade" {
+				defID += len(engineConf.EngineDefs)
+			}
 			newmax := infoStructs[defID].addPlay(currentWinnings)
 			if newmax {
 				logger.Debugf("new max for engine %v: %#v", defID, gamestate)
@@ -138,7 +138,7 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 			infoStructs[defID].addWins(gamestate.Prizes, gamestate.Multiplier)
 
 			if gamestate.Action != "base" {
-				//if gamestate.Action == "cascade" {ctCascades++}
+				if gamestate.Action == "cascade" {ctCascades++}
 				featureWin = featureWin.Add(currentWinnings)
 			}
 			if perSpin == true {
@@ -150,12 +150,6 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 				}
 			}
 
-			//
-			//if defID == 11 {
-			//	if gamestate.Action == "cascade" || gamestate.NextActions[0] == "cascade" {
-			//		logger.Infof("cascading: %#v", gamestate)
-			//	}
-			//}
 			previousGamestate = gamestate
 		}
 		RTP := totalWin.Div(totalBet)

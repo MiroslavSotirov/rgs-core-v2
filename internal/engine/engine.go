@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	uuid "github.com/satori/go.uuid"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"reflect"
@@ -330,7 +329,7 @@ func DetermineSpecialWins(symbolGrid [][]int, specialPayouts []Prize) Prize {
 }
 
 func determinePrimeAndFlopWins(symbolGrid [][]int, payouts []Payout, wilds []wild) []Prize {
-	// by default, prime is last reel
+	// by default, prime is first reel
 	// check if symbol grid is more than one row, if so throw error
 	// win only if any symbols on flop match the prime symbol
 	if len(symbolGrid[0]) > 1 {
@@ -359,31 +358,33 @@ func determinePrimeAndFlopWins(symbolGrid [][]int, payouts []Payout, wilds []wil
 // Play ...
 func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parameters GameParams) (Gamestate, EngineConfig) {
 	logger.Debugf("Playing round with parameters: %#v", parameters)
-	gameID, RS := GetGameIDAndReelset(previousGamestate.GameID)
-	engineID, err := config.GetEngineFromGame(gameID)
-	engineConf := BuildEngineDefs(engineID)
-	totalBet := Money{Amount: betPerLine.Mul(NewFixedFromInt(engineConf.EngineDefs[0].StakeDivisor)), Currency: currency}
-	var transactions []WalletTransaction
+
+	engineConf, err  := previousGamestate.Engine()
+	if err != nil {
+		return Gamestate{}, EngineConfig{}
+	}
+	var totalBet Money
+	chargeWager := true
 	var actions []string
 
-	//relativePayout := StrToDec("0.000")
 	if len(previousGamestate.NextActions) == 1 && previousGamestate.NextActions[0] == "finish" {
-		// if this is a respin or cascade, special case:
+		// the old game round should be closed and a new round started
+
+		// if this is a respin, special case:
 		if parameters.Action == "reSpin" {
 			// if action is respin, WAGER is dependent on reel configuration
 			// index of the reel to be respun must be passed
-			if parameters.RespinReel < 0 { //|| parameters[0].Type() != Fixed {
+			if parameters.RespinReel < 0 {
 				logger.Errorf("ERROR, NO RESPIN REEL INDEX PASSED")
+				return Gamestate{}, EngineConfig{}
 			}
-			actions = append([]string{previousGamestate.Action}, previousGamestate.NextActions...)
+			actions = []string{parameters.Action, "finish"}
 			betPerLine = previousGamestate.BetPerLine.Amount
-			reelIndex := parameters.RespinReel
-			reelCost := engineConf.EngineDefs[engineConf.getDefIdByName(previousGamestate.Action)].GetRespinPriceReel(reelIndex, engineConf, previousGamestate)
-			transactions = append(transactions, WalletTransaction{Id: previousGamestate.NextGamestate, Type: "WAGER", Amount: Money{reelCost, currency}})
+			totalBet = Money{engineConf.EngineDefs[engineConf.getDefIdByName(previousGamestate.Action)].GetRespinPriceReel(parameters.RespinReel, engineConf, previousGamestate), currency}
 			parameters.previousGamestate = previousGamestate
 		} else {
 			// new gameplay round
-			transactions = append(transactions, WalletTransaction{Id: previousGamestate.NextGamestate, Type: "WAGER", Amount: totalBet})
+			// totalbet is set after gameplay
 			// if this is engine X or any other offering maxBase, check if max winlines are selected
 			if parameters.Action == "maxBase" {
 				maxDef := engineConf.getDefIdByName("maxBase")
@@ -396,30 +397,25 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 			actions = []string{parameters.Action, "finish"}
 		}
 	} else {
+		chargeWager = false
 		logger.Debugf("Continuing game round, no WAGER charged")
-		//if parameters.Action == "cascade" {
-		//	parameters.previousGamestate = previousGamestate
-		//	betPerLine = previousGamestate.BetPerLine.Amount
-		//}
 		actions = previousGamestate.NextActions
-		if actions[0] != "base" {
-			betPerLine = previousGamestate.BetPerLine.Amount
-			parameters.previousGamestate = previousGamestate
-		}
-
-		if len(previousGamestate.SelectedWinLines) > 0 && len(parameters.SelectedWinLines) == 0 {
-			// assume this is a line game and info should be propogated
-			parameters.SelectedWinLines = previousGamestate.SelectedWinLines
-		}
+		parameters.Action = actions[0] // in theory this should be passed in by the client, once all games migrated to v2 do a check for this
+		betPerLine = previousGamestate.BetPerLine.Amount
+		parameters.previousGamestate = previousGamestate
+		parameters.SelectedWinLines = previousGamestate.SelectedWinLines
 	}
 
 	var method reflect.Value
-	if actions[0] == "cascade" || actions[0] == "reSpin" {
+	switch parameters.Action {
+	case "cascade":
 		// action must be performed on the same engine as previous round
-		//logger.Infof("prev gs: %#v, parameters: %#v", previousGamestate, parameters)
-		method = reflect.ValueOf(engineConf.EngineDefs[RS]).MethodByName(engineConf.EngineDefs[RS].Function)
-	} else {
-		method, err = engineConf.getEngineAndMethod(actions[0])
+		method = reflect.ValueOf(engineConf.EngineDefs[previousGamestate.DefID]).MethodByName(engineConf.EngineDefs[previousGamestate.DefID].Function)
+	case "reSpin":
+		// action must be performed on the same engine as previous round, but method will always be respin
+		method = reflect.ValueOf(engineConf.EngineDefs[previousGamestate.DefID].Respin)
+	default:
+		method, err = engineConf.getEngineAndMethod(parameters.Action)
 	}
 
 	if err != nil {
@@ -432,18 +428,34 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	if !ok {
 		panic("value not a gamestate")
 	}
+
+	if chargeWager {
+		logger.Warnf("totalbet: %v", totalBet)
+		if totalBet.Currency == "" {
+			sd := engineConf.EngineDefs[0].StakeDivisor
+			if len(gamestate.SelectedWinLines) > 0 {
+				sd = len(gamestate.SelectedWinLines)
+			}
+			totalBet = Money{Amount: betPerLine.Mul(NewFixedFromInt(sd)), Currency: currency}
+			logger.Warnf("totalbet2: %v", totalBet)
+
+		}
+		gamestate.Transactions = []WalletTransaction{{
+			Id:     previousGamestate.NextGamestate,
+			Amount: totalBet,
+			Type:   "WAGER",
+		}}
+	}
 	gamestate.Action = actions[0]
 	gamestate.BetPerLine = Money{betPerLine, currency}
-	gamestate.Transactions = transactions
 	gamestate.PrepareActions(actions)
 	gamestate.Gamification = previousGamestate.Gamification
-	gamestate.UpdateGamification(previousGamestate, gameID)
+	gamestate.UpdateGamification(previousGamestate)
 
-	gamestate.GameID = gameID + gamestate.GameID // engineDef should be set in method
+	gamestate.Game = previousGamestate.Game
 	gamestate.Id = previousGamestate.NextGamestate
 	gamestate.PreviousGamestate = previousGamestate.Id
 
-	//nextID := rng.RandStringRunes(16)
 	nextID := uuid.NewV4().String()
 	gamestate.NextGamestate = nextID
 	gamestate.PrepareTransactions(previousGamestate)
@@ -452,11 +464,12 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	return gamestate, engineConf
 }
 
-func (gamestate *Gamestate) UpdateGamification(previousGS Gamestate, gameSlug string) {
+
+func (gamestate *Gamestate) UpdateGamification(previousGS Gamestate) {
 	// update gamification status
 	// this must happen before nextactions is handled
 	logger.Debugf("UpdateGamification: CurrentGS: %+v  PreviousGS: %+v", gamestate.NextActions, previousGS.NextActions)
-	switch gameSlug {
+	switch gamestate.Game {
 	case "a-fairy-tale", "a-candy-girls-christmas", "battlemech", "candy-smash":
 		// trigger only on freespin,
 		if len(gamestate.NextActions) > len(previousGS.NextActions) {
@@ -595,16 +608,10 @@ func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 	// uses round multiplier if included
 	// no dynamic reel calculation
 
-	engine.ProcessWinLines(parameters.SelectedWinLines)
+	wl := engine.ProcessWinLines(parameters.SelectedWinLines)
 
 	// spin
 	symbolGrid, stopList := Spin(engine.Reels, engine.ViewSize)
-
-	//if len(parameters.stopPostitions) != 0 {
-	//	symbolGrid = GetSymbolGridFromStopList(engine.Reels, engine.ViewSize, parameters.stopPostitions)
-	//	stopList = parameters.stopPostitions
-	//}
-	// used for testing, this should be removed
 
 	wins, relativePayout := engine.DetermineWins(symbolGrid)
 	// calculate specialWin
@@ -622,7 +629,7 @@ func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 		multiplier = SelectFromWeightedOptions(engine.Multiplier.Multipliers, engine.Multiplier.Probabilities)
 	}
 	// Build gamestate
-	gamestate := Gamestate{GameID: fmt.Sprintf(":%v", engine.Index), Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: multiplier, StopList: stopList, NextActions: nextActions, SelectedWinLines: parameters.SelectedWinLines}
+	gamestate := Gamestate{DefID: engine.Index, Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: multiplier, StopList: stopList, NextActions: nextActions, SelectedWinLines: wl}
 
 	return gamestate
 }
@@ -738,7 +745,7 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 		winlines = cascadePositions
 	}
 	// Build gamestate
-	gamestate := Gamestate{GameID: fmt.Sprintf(":%v", engine.Index), Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: multiplier, StopList: stopList, NextActions: nextActions, SelectedWinLines: winlines}
+	gamestate := Gamestate{DefID: engine.Index, Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: multiplier, StopList: stopList, NextActions: nextActions, SelectedWinLines: winlines}
 	return gamestate
 }
 
@@ -759,7 +766,6 @@ func (engine EngineDef) CascadeMultiply(parameters GameParams) Gamestate {
 	} else {
 		gamestate.Multiplier = engine.Multiplier.Multipliers[0]
 	}
-	//logger.Infof("gamestate: %#v", gamestate)
 
 	return gamestate
 }
@@ -805,17 +811,23 @@ func (engine EngineDef) SelectPrize(parameters GameParams) Gamestate {
 	}
 	// Build gamestate
 
-	gamestate := Gamestate{GameID: fmt.Sprintf(":%v", engine.Index), Prizes: []Prize{specialWin}, NextActions: nextActions, RelativePayout: relativePayout, Multiplier: multiplier, SelectedWinLines: parameters.previousGamestate.SelectedWinLines} // most often, relativePayout will be zero
+	gamestate := Gamestate{DefID: engine.Index, Prizes: []Prize{specialWin}, NextActions: nextActions, RelativePayout: relativePayout, Multiplier: multiplier, SelectedWinLines: parameters.previousGamestate.SelectedWinLines} // most often, relativePayout will be zero
 	return gamestate
 }
 
 // Respin Round
-func (engine EngineDef) RespinRound(parameters GameParams) Gamestate {
+func (engine EngineDef) Respin(parameters GameParams) Gamestate {
+	// this functionality can be enabled on any engine, but a boolean must be added in the engineconfig to allow it
+	// the boolean must be set on each individual enginendef explicitly, it is not inherited as other properties
+	if !engine.RespinAllowed {
+		logger.Errorf("No respin allowed ont his engine")
+		return Gamestate{}
+	}
 	// spin only one reel
 	respinIndex := parameters.RespinReel
 	previousGamestate := parameters.previousGamestate
-	newSymbols, newStopValue := Spin([][]int{engine.Reels[respinIndex]}, []int{engine.ViewSize[respinIndex]})
 
+	newSymbols, newStopValue := Spin([][]int{engine.Reels[respinIndex]}, []int{engine.ViewSize[respinIndex]})
 	symbolGrid := previousGamestate.SymbolGrid
 	symbolGrid[respinIndex] = newSymbols[0]
 	stopList := previousGamestate.StopList
@@ -833,7 +845,64 @@ func (engine EngineDef) RespinRound(parameters GameParams) Gamestate {
 	wins = append(wins, specialWin)
 
 	// Build gamestate
-	gamestate := Gamestate{GameID: fmt.Sprintf(":%v", engine.Index), Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: 1, StopList: stopList, NextActions: nextActions}
+	gamestate := Gamestate{DefID: engine.Index, Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: 1, StopList: stopList, NextActions: nextActions}
+	return gamestate
+}
+
+
+func (engine EngineDef) ShuffleFlop(parameters GameParams) Gamestate {
+	return engine.ShuffleBase(parameters, "flop")
+}
+
+func (engine EngineDef) ShufflePrime(parameters GameParams) Gamestate {
+	return engine.ShuffleBase(parameters, "prime")
+}
+
+func (engine EngineDef) Shuffle(parameters GameParams) Gamestate {
+	return engine.ShuffleBase(parameters, "")
+}
+// Shuffle is similar to respin but no wager is charged
+func (engine EngineDef) ShuffleBase(parameters GameParams, shuffleID string) Gamestate {
+	// shuffle action should include information about which reels to shuffle
+	var shuffleReels []int
+	switch shuffleID {
+	case "prime":
+		shuffleReels = append(shuffleReels, 0)
+	case "flop":
+		for i:=1; i<len(engine.ViewSize); i++ {
+			shuffleReels = append(shuffleReels, i)
+		}
+	default:
+		for i:=0; i<len(engine.ViewSize); i++ {
+			shuffleReels = append(shuffleReels, i)
+		}
+	}
+
+
+	previousGamestate := parameters.previousGamestate
+	symbolGrid := previousGamestate.SymbolGrid
+	stopList := previousGamestate.StopList
+
+
+	for i:=0; i<len(shuffleReels); i++ {
+		newSymbols, newStopValue := Spin([][]int{engine.Reels[shuffleReels[i]]}, []int{engine.ViewSize[shuffleReels[i]]})
+		symbolGrid[shuffleReels[i]] = newSymbols[0]
+		stopList[shuffleReels[i]] = newStopValue[0]
+	}
+
+	wins, relativePayout := engine.DetermineWins(symbolGrid)
+
+	var nextActions []string
+
+	// Get scatter wins
+	specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
+
+	addlPayout, nextActions := engine.CalculatePayoutSpecialWin(specialWin)
+	relativePayout += addlPayout
+	wins = append(wins, specialWin)
+
+	// Build gamestate
+	gamestate := Gamestate{DefID: engine.Index, Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: 1, StopList: stopList, NextActions: nextActions}
 
 	return gamestate
 }
@@ -873,7 +942,7 @@ func (engine EngineDef) GetRespinPrice(gamestate Gamestate, method string) []Fix
 	// price to respin = value of respin / RTP
 
 	// get engineConfig for RTP info
-	engineConfig, _, err := GetEngineDefFromGame(gamestate.GameID)
+	engineConfig, err := gamestate.Engine()
 	if err != nil {
 		logger.Errorf("error in getting respin price: %v", err)
 		return []Fixed{}
@@ -933,13 +1002,13 @@ func (engine EngineDef) GetExpectedReelValue(gamestate Gamestate, reelIndex int)
 			// include estimated value of each round for the number of rounds that have been won
 			// todo: analyze how this works for engines with multiple matching defs
 			winInfo := strings.Split(specialWin.Index, ":")
-			engineConfig, rsID, err := GetEngineDefFromGame(gamestate.GameID)
+			engineConfig, err := gamestate.Engine()
 			if err != nil {
 				logger.Errorf("Error getting Engine Def from game id")
 				return Fixed(0)
 			}
 
-			specialEngineDef := engineConfig.EngineDefs[rsID]
+			specialEngineDef := engineConfig.EngineDefs[gamestate.DefID]
 
 			// expectedPayout is relative to the total stake, so divide by the bet multiplier
 			singleRoundPayout := specialEngineDef.ExpectedPayout.Div(NewFixedFromInt(specialEngineDef.StakeDivisor))
@@ -1013,15 +1082,10 @@ func (engine EngineDef) MaxWildRound(parameters GameParams) Gamestate {
 	}
 
 	// Build gamestate
-	gamestate := Gamestate{GameID: fmt.Sprintf(":%v", engine.Index), Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: 1, StopList: stopList, NextActions: nextActions}
+	gamestate := Gamestate{DefID: engine.Index, Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: 1, StopList: stopList, NextActions: nextActions}
 	return gamestate
 }
 
-// DynamicWildWaysRound ...
-//func (engine EngineDef) ScrambleReelsRound(parameters GameParams) Gamestate {
-//
-//
-//}
 func (engine EngineDef) DynamicWildWaysRound(parameters GameParams) Gamestate {
 	// feature is not retriggerable, empty slice of next actions always returns
 	// fs reels built randomly on each spin
@@ -1069,20 +1133,32 @@ func (engine EngineDef) DynamicWildWaysRound(parameters GameParams) Gamestate {
 	wins := DetermineWaysWins(symbolGrid, engine.Payouts, engine.Wilds)
 	logger.Debugf("symbolgrid: %v; wins: %v", symbolGrid, wins)
 	relativePayout := calculatePayoutWins(wins)
-	gamestate := Gamestate{GameID: fmt.Sprintf(":%v", engine.Index), Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: freespinMultiplier, StopList: stopList, NextActions: []string{}}
+	gamestate := Gamestate{DefID: engine.Index, Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: freespinMultiplier, StopList: stopList, NextActions: []string{}}
 	return gamestate
 }
 
-func (engine *EngineDef) ProcessWinLines(selectedWinLines []int) {
-	if len(selectedWinLines) == 0 {
+func (engine *EngineDef) ProcessWinLines(selectedWinLines []int) (wl []int) {
+	logger.Debugf("engine: %v", engine)
+	if len(selectedWinLines) == 0 || len(engine.WinLines) == 0 {
+		for i:=0; i<len(engine.WinLines); i++ {
+			wl = append(wl, i)
+		}
+		if engine.StakeDivisor == 0 {
+			engine.StakeDivisor = len(wl)
+		}
 		return
 	}
 	winLines := make([][]int, len(selectedWinLines))
 	for i, line := range selectedWinLines {
-		winLines[i] = engine.WinLines[line]
+		if line < len(engine.WinLines) {
+			winLines[i] = engine.WinLines[line]
+			wl = append(wl, line)
+		} else {
+			winLines[i] = []int{}
+		}
 	}
 	engine.WinLines = winLines
-	engine.StakeDivisor = len(winLines)
+	engine.StakeDivisor = len(wl)
 	return
 }
 

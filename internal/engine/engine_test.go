@@ -702,3 +702,36 @@ func TestDetermineBarLineWins(t *testing.T) {
 		t.Errorf("Expected bar win")
 	}
 }
+
+
+
+func TestEngineDef_ProcessWinLines(t *testing.T) {
+	var testDef = EngineDef{
+		WinLines:       [][]int{{0,0,0},{1,1,1},{2,2,2}},
+		StakeDivisor:   0,
+	}
+	wl := testDef.ProcessWinLines([]int{})
+	if len(wl) != 3 || wl[0] != 0 || wl[1] != 1 || wl[2] != 2 {
+		t.Errorf("expected win lines 0,1,2, got %v", wl)
+	}
+	if testDef.StakeDivisor != 3 {
+		t.Errorf("expected stake divisor 3, got %v", testDef.StakeDivisor)
+	}
+
+	wl = testDef.ProcessWinLines([]int{0,1,2})
+	if len(wl) != 3 || wl[0] != 0 || wl[1] != 1 || wl[2] != 2 {
+		t.Errorf("expected winlines returned [0,1,2], got %v", wl)
+	}
+	if testDef.StakeDivisor != 3 {
+		t.Errorf("expected stake divisor 3, got %v", testDef.StakeDivisor)
+	}
+
+	wl = testDef.ProcessWinLines([]int{0,2,3})
+	if len(wl) != 2 || wl[0] != 0 || wl[1] != 2 {
+		t.Errorf("expected win lines 0,2, got %v", wl)
+	}
+	if testDef.StakeDivisor != 2 {
+		t.Errorf("expected stake divisor 2, got %v", testDef.StakeDivisor)
+	}
+
+}

@@ -181,6 +181,8 @@ func (gp *GameParams) Decode(request *http.Request) rgse.RGSErr {
 	}
 	return  nil
 }
+// if this is the action, a wager must be charged
+var paidActions = []string{"base", "maxBase", "reSpin"}
 
 func (p GameParams) Validate() (err rgse.RGSErr) {
 	if p.Game == "" || p.Action == "" {
@@ -384,7 +386,7 @@ func GetMaxWin(e EngineConfig) {
 }
 
 func GetDefaultView(gameName string) (symbolGrid [][]int) {
-	e, _, err := GetEngineDefFromGame(gameName+":0")
+	e, err := GetEngineDefFromGame(gameName)
 	if err != nil {
 		return
 	}
