@@ -450,9 +450,9 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	gamestate.BetPerLine = Money{betPerLine, currency}
 	gamestate.PrepareActions(actions)
 	gamestate.Gamification = previousGamestate.Gamification
+	gamestate.Game = previousGamestate.Game
 	gamestate.UpdateGamification(previousGamestate)
 
-	gamestate.Game = previousGamestate.Game
 	gamestate.Id = previousGamestate.NextGamestate
 	gamestate.PreviousGamestate = previousGamestate.Id
 
@@ -467,7 +467,6 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 
 func (gamestate *Gamestate) UpdateGamification(previousGS Gamestate) {
 	// update gamification status
-	// this must happen before nextactions is handled
 	logger.Debugf("UpdateGamification: CurrentGS: %+v  PreviousGS: %+v", gamestate.NextActions, previousGS.NextActions)
 	switch gamestate.Game {
 	case "a-fairy-tale", "a-candy-girls-christmas", "battlemech", "candy-smash":
