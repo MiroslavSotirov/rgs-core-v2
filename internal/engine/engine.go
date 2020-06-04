@@ -430,14 +430,12 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	}
 
 	if chargeWager {
-		logger.Warnf("totalbet: %v", totalBet)
 		if totalBet.Currency == "" {
 			sd := engineConf.EngineDefs[0].StakeDivisor
 			if len(gamestate.SelectedWinLines) > 0 {
 				sd = len(gamestate.SelectedWinLines)
 			}
 			totalBet = Money{Amount: betPerLine.Mul(NewFixedFromInt(sd)), Currency: currency}
-			logger.Warnf("totalbet2: %v", totalBet)
 
 		}
 		gamestate.Transactions = []WalletTransaction{{
