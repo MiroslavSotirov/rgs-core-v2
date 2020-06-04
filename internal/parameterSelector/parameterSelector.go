@@ -102,6 +102,12 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 	case "mvgEngineX":
 		// select minimum parameter for this game
 		baseVal := fixedStakeValues[0]
+		logger.Infof("stakevals: %v", fixedStakeValues)
+		if len(fixedStakeValues) > 6 {
+			// if possible, take a higher value
+			baseVal = fixedStakeValues[6]
+		}
+
 		fixedStakeValues = []engine.Fixed{baseVal, baseVal.Mul(engine.NewFixedFromInt(2)), baseVal.Mul(engine.NewFixedFromInt(3))}
 		// default stake is max val
 		defaultStake = fixedStakeValues[2]
