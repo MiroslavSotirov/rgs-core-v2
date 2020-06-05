@@ -332,27 +332,61 @@ func determinePrimeAndFlopWins(symbolGrid [][]int, payouts []Payout, wilds []wil
 	// by default, prime is first reel
 	// check if symbol grid is more than one row, if so throw error
 	// win only if any symbols on flop match the prime symbol
-	if len(symbolGrid[0]) > 1 {
-		panic(errors.New("too many rows for this engine type"))
+	if len(symbolGrid[0]) > 1 || len(symbolGrid) < 3 {
+		panic(errors.New("too many rows for this engine type or not enough columns"))
 	}
-	symbols := symbolGrid[0]
-	prime := symbols[len(symbols)-1]
-	numMatch := 0
 
-	for _, symbol := range symbols {
-		if symbol == prime {
-			numMatch++
+
+	prime := symbolGrid[0][0]
+	multiplier := 1
+
+	for w:=0;w<len(wilds); w++ {
+		if prime == wilds[w].Symbol {
+			logger.Debugf("prime is wild, choose highest-paying combo")
+			prime = symbolGrid[1][0]
+			for s:=2;s<len(symbolGrid);s++ {
+				if symbolGrid[s][0]>prime {
+					prime = symbolGrid[s][0]
+				}
+			}
 		}
 	}
+	logger.Debugf("prime is %v", prime)
+	numMatch := 1
+	winLocations := []int{0}
+	for i:=1; i<len(symbolGrid);i++ {
+		symbol := symbolGrid[i][0]
+		if symbol == prime {
+			numMatch++
+			logger.Debugf("got a win")
+			winLocations = append(winLocations, i)
+		} else {
+			// check if symbol is a wild
+			for w:=0; w<len(wilds); w++ {
+				if wilds[w].Symbol == symbol {
+					// this is  a wild win
+					numMatch ++
+					logger.Debugf("got a wild win")
+					winLocations = append(winLocations, i)
+					mulW := SelectFromWeightedOptions(wilds[w].Multiplier.Multipliers, wilds[w].Multiplier.Probabilities)
+					if multiplier < mulW {
+						multiplier = mulW
+					}
+				}
+			}
+		}
+	}
+	logger.Debugf("symbol %v, num %v", prime, numMatch)
 	for _, payout := range payouts {
 		if prime == payout.Symbol && numMatch == payout.Count {
+			logger.Debugf("got a match for win %v", payout)
 			// copy payout NB can only do because no reference fields in Payout
 			pfPayout := payout
-			return []Prize{Prize{Payout: pfPayout, Index: strconv.Itoa(int(prime)) + "flop" + strconv.Itoa(numMatch), Multiplier: 1, Winline: -1}}
+			return []Prize{{Payout: pfPayout, Index: strconv.Itoa(prime) + ":" + strconv.Itoa(numMatch), Multiplier: multiplier, Winline: -1}}
 			// Only one win possible per line, earliest payout in payout dict takes precedence
 		}
 	}
-	return []Prize{Prize{}}
+	return []Prize{}
 }
 
 // Play ...
@@ -620,6 +654,7 @@ func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 		relativePayout += specialPayout
 		wins = append(wins, specialWin)
 	}
+	logger.Debugf("got %v wins: %v", len(wins), wins)
 	// get Multiplier
 	multiplier := 1
 	if len(engine.Multiplier.Multipliers) > 0 {
@@ -848,6 +883,7 @@ func (engine EngineDef) Respin(parameters GameParams) Gamestate {
 
 
 func (engine EngineDef) ShuffleFlop(parameters GameParams) Gamestate {
+
 	return engine.ShuffleBase(parameters, "flop")
 }
 
@@ -879,13 +915,14 @@ func (engine EngineDef) ShuffleBase(parameters GameParams, shuffleID string) Gam
 	previousGamestate := parameters.previousGamestate
 	symbolGrid := previousGamestate.SymbolGrid
 	stopList := previousGamestate.StopList
-
+	logger.Debugf("previous reels : %v", symbolGrid)
 
 	for i:=0; i<len(shuffleReels); i++ {
 		newSymbols, newStopValue := Spin([][]int{engine.Reels[shuffleReels[i]]}, []int{engine.ViewSize[shuffleReels[i]]})
 		symbolGrid[shuffleReels[i]] = newSymbols[0]
 		stopList[shuffleReels[i]] = newStopValue[0]
 	}
+	logger.Debugf("new reels : %v", symbolGrid)
 
 	wins, relativePayout := engine.DetermineWins(symbolGrid)
 
@@ -893,10 +930,13 @@ func (engine EngineDef) ShuffleBase(parameters GameParams, shuffleID string) Gam
 
 	// Get scatter wins
 	specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
+	if specialWin.Index != "" {
+		var addlPayout int
+		addlPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+		relativePayout += addlPayout
+		wins = append(wins, specialWin)
+	}
 
-	addlPayout, nextActions := engine.CalculatePayoutSpecialWin(specialWin)
-	relativePayout += addlPayout
-	wins = append(wins, specialWin)
 
 	// Build gamestate
 	gamestate := Gamestate{DefID: engine.Index, Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: 1, StopList: stopList, NextActions: nextActions}
