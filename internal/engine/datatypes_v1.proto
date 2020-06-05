@@ -187,6 +187,8 @@ message GamestatePB {
   freespin10 = 9;
   freespin25 = 10;
   cascade = 11;
+  shuffleflop = 12;
+  shuffleprime = 13;
   }
   Action action = 7;
 
