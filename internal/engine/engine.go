@@ -930,10 +930,13 @@ func (engine EngineDef) ShuffleBase(parameters GameParams, shuffleID string) Gam
 
 	// Get scatter wins
 	specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
+	if specialWin.Index != "" {
+		var addlPayout int
+		addlPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+		relativePayout += addlPayout
+		wins = append(wins, specialWin)
+	}
 
-	addlPayout, nextActions := engine.CalculatePayoutSpecialWin(specialWin)
-	relativePayout += addlPayout
-	wins = append(wins, specialWin)
 
 	// Build gamestate
 	gamestate := Gamestate{DefID: engine.Index, Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: 1, StopList: stopList, NextActions: nextActions}
