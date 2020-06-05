@@ -168,6 +168,7 @@ message GamestatePB {
   CRAZY_EASTER_EGGS=40;
   DRIFT=41;
   MAH_JONG=42;
+  MUSEUM=43;
   }
   GameID game_id = 1;
   int32 engine_def = 2;

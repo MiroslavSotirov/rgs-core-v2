@@ -47,7 +47,8 @@ type EngineDef struct {
 	Probability    int                `yaml:"Probability"`    // the probability of this engine being selected if it shares id with other engines
 	ExpectedPayout Fixed              `yaml:"expectedPayout"` // the expected payout of one round of this engineDef
 	RTP            float32            `yaml:"RTP"`            // the expected payout of one round of this engineDef
-	RespinAllowed  bool               `yaml:"respin"`
+	RespinAllowed  bool               `yaml:"respin"`         // must be explicitly enabled on each def
+	VariableWL     bool               `yaml:"variableWinLines"` // will be false by default
 }
 
 type Fixed int64
