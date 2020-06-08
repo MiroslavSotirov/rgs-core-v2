@@ -95,6 +95,8 @@ func BuildEngineDefs(engineID string) EngineConfig {
 		} // must set a sham non-zero payout if override is desired in a  non-base engine
 		// respin must be explicitly set to true if it is intended to be true, no inheritance from base
 		completeDef.RespinAllowed = c.EngineDefs[i].RespinAllowed
+		// same for variable winlines because it is a boolean and no way to tell if false or omitted
+		completeDef.VariableWL = c.EngineDefs[i].VariableWL
 		
 		filledEngineDefs = append(filledEngineDefs, completeDef)
 	}

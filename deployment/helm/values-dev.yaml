@@ -164,3 +164,6 @@ gameConfig:
   - engineID: mvgEngineXI
     games:
       - mah-jong
+  - engineID: mvgEngineXV
+    games:
+      - museum
