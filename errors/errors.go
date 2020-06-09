@@ -71,6 +71,7 @@ const (
 
 	// forceTool
 	NoForceError = 800
+	ForceProhibited = 801
 )
 
 // ErrMsg Error message key value map
@@ -112,6 +113,7 @@ var ErrMsg = map[int]string{
 	PeviousTXPendingError:  "Previous transaction still pending, please try again",
 	IncompleteRoundError:   "Not the final state in round, can't be closed",
 	NoForceError:           "No force matching that code",
+	ForceProhibited:        "Force prohibited for this gamestate",
 	NoSuchPlayer:           "No player found",
 	JsonError:              "Failure encoding/decoding json",
 	RestError:              "REST error",

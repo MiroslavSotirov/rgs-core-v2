@@ -283,7 +283,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 	}
 	gamestate, engineConf := engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
 	if config.GlobalConfig.DevMode == true {
-		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, txStore.PlayerId)
+		forcedGamestate, err := forceTool.GetForceValues(data, previousGamestate, txStore.PlayerId)
 		if err == nil {
 			logger.Warnf("Forcing gamestate: %v", forcedGamestate)
 			gamestate = forcedGamestate

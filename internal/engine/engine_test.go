@@ -85,7 +85,7 @@ func TestSpinViewSize(t *testing.T) {
 		testReelSet[i] = testReel
 	}
 
-	view, _ := Spin(testReelSet, randomTestViewSize)
+	view, _ := EngineDef{Reels: testReelSet, ViewSize: randomTestViewSize}.Spin()
 	if len(view) != len(randomTestViewSize) {
 		t.Errorf("ViewSize not matched by view: %v", view)
 	}
@@ -108,7 +108,7 @@ func slicesMatch(reel1 []int, reel2 []int) bool {
 }
 
 func TestSpin(t *testing.T) {
-	view, _ := Spin(testReels, testViewSize)
+	view, _ := EngineDef{Reels: testReels, ViewSize: testViewSize}.Spin()
 	// we know first reel is alternating zeros and ones
 	if !slicesMatch(view[0], []int{1, 0, 1}) && !slicesMatch(view[0], []int{0, 1, 0}) {
 		t.Errorf("Spin error, expected reel 1 0/1/0/1, got %v", view[0])
