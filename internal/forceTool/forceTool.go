@@ -167,7 +167,7 @@ func smartForceFromID(betPerLine engine.Fixed, previousGamestate engine.Gamestat
 
 				}
 			}
-			if engineID == "mvgEngineXIV" && len(wins) > 0 {
+			if engineID == "mvgEngineXIV" && force.ReelsetId != 8 && force.ReelsetId != 9 && force.ReelsetId != 10 && len(wins) > 0 {
 				nextActions = append([]string{"cascade"}, nextActions...)
 			}
 			// get Multiplier
