@@ -4,8 +4,10 @@ package engine
 
 import (
 	"errors"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"fmt"
 	uuid "github.com/satori/go.uuid"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"reflect"
@@ -13,20 +15,25 @@ import (
 	"strings"
 )
 
-func Spin(reels [][]int, viewSize []int) ([][]int, []int) {
+func (engine EngineDef) Spin() ([][]int, []int) {
 	// Performs a random spin of the reels
-	if len(viewSize) != len(reels) {
-		logger.Fatalf("ViewSize (%v) and Reel size (%v) mismatch", len(viewSize), len(reels))
+	if len(engine.ViewSize) != len(engine.Reels) {
+		logger.Fatalf("ViewSize (%v) and Reel size (%v) mismatch", len(engine.ViewSize), len(engine.Reels))
 		return [][]int{}, []int{}
 	}
-	stopList := make([]int, len(viewSize))
+	stopList := make([]int, len(engine.ViewSize))
 
-	for index, reel := range reels {
+	for index, reel := range engine.Reels {
 		// choose a random index on the reel
 		reelIndex := rng.RandFromRange(len(reel))
 		stopList[index] = reelIndex
 	}
-	symbolGrid := GetSymbolGridFromStopList(reels, viewSize, stopList)
+	if config.GlobalConfig.DevMode == true && len(engine.force) == len(engine.ViewSize) {
+		stopList = engine.force
+		rgse.Create(rgse.Forcing)
+		logger.Warnf("forcing engine %v", engine.ID)
+	}
+	symbolGrid := GetSymbolGridFromStopList(engine.Reels, engine.ViewSize, stopList)
 	return symbolGrid, stopList
 }
 
@@ -414,7 +421,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 			}
 			actions = []string{parameters.Action, "finish"}
 			betPerLine = previousGamestate.BetPerLine.Amount
-			totalBet = Money{engineConf.EngineDefs[engineConf.getDefIdByName(previousGamestate.Action)].GetRespinPriceReel(parameters.RespinReel, engineConf, previousGamestate), currency}
+			totalBet = Money{engineConf.EngineDefs[previousGamestate.DefID].GetRespinPriceReel(parameters.RespinReel, engineConf, previousGamestate), currency}
 			parameters.previousGamestate = previousGamestate
 		} else {
 			// new gameplay round
@@ -462,7 +469,12 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	if !ok {
 		panic("value not a gamestate")
 	}
+	gamestate.PostProcess(previousGamestate, chargeWager, totalBet, engineConf, betPerLine, actions, currency)
+	return gamestate, engineConf
+}
 
+func (gamestate *Gamestate) PostProcess(previousGamestate Gamestate, chargeWager bool, totalBet Money, engineConf EngineConfig, betPerLine Fixed, actions []string, currency string) {
+	// separated for forcetool consistency
 	if chargeWager {
 		if totalBet.Currency == "" {
 			sd := engineConf.EngineDefs[0].StakeDivisor
@@ -470,7 +482,6 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 				sd = len(gamestate.SelectedWinLines)
 			}
 			totalBet = Money{Amount: betPerLine.Mul(NewFixedFromInt(sd)), Currency: currency}
-
 		}
 		gamestate.Transactions = []WalletTransaction{{
 			Id:     previousGamestate.NextGamestate,
@@ -492,10 +503,8 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	gamestate.NextGamestate = nextID
 	gamestate.PrepareTransactions(previousGamestate)
 	logger.Debugf("gamestate: %#v", gamestate)
-
-	return gamestate, engineConf
+	return
 }
-
 
 func (gamestate *Gamestate) UpdateGamification(previousGS Gamestate) {
 	// update gamification status
@@ -642,7 +651,7 @@ func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 	wl := engine.ProcessWinLines(parameters.SelectedWinLines)
 
 	// spin
-	symbolGrid, stopList := Spin(engine.Reels, engine.ViewSize)
+	symbolGrid, stopList := engine.Spin()
 
 	wins, relativePayout := engine.DetermineWins(symbolGrid)
 	// calculate specialWin
@@ -735,7 +744,7 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 
 
 	} else {
-		symbolGrid, stopList = Spin(engine.Reels, engine.ViewSize)
+		symbolGrid, stopList = engine.Spin()
 	}
 
 
@@ -859,7 +868,7 @@ func (engine EngineDef) Respin(parameters GameParams) Gamestate {
 	respinIndex := parameters.RespinReel
 	previousGamestate := parameters.previousGamestate
 
-	newSymbols, newStopValue := Spin([][]int{engine.Reels[respinIndex]}, []int{engine.ViewSize[respinIndex]})
+	newSymbols, newStopValue := EngineDef{Reels: [][]int{engine.Reels[respinIndex]}, ViewSize: []int{engine.ViewSize[respinIndex]}}.Spin()
 	symbolGrid := previousGamestate.SymbolGrid
 	symbolGrid[respinIndex] = newSymbols[0]
 	stopList := previousGamestate.StopList
@@ -918,7 +927,7 @@ func (engine EngineDef) ShuffleBase(parameters GameParams, shuffleID string) Gam
 	logger.Debugf("previous reels : %v", symbolGrid)
 
 	for i:=0; i<len(shuffleReels); i++ {
-		newSymbols, newStopValue := Spin([][]int{engine.Reels[shuffleReels[i]]}, []int{engine.ViewSize[shuffleReels[i]]})
+		newSymbols, newStopValue := EngineDef{Reels: [][]int{engine.Reels[shuffleReels[i]]}, ViewSize: []int{engine.ViewSize[shuffleReels[i]]}}.Spin()
 		symbolGrid[shuffleReels[i]] = newSymbols[0]
 		stopList[shuffleReels[i]] = newStopValue[0]
 	}
@@ -1072,7 +1081,7 @@ func (engine EngineDef) MaxWildRound(parameters GameParams) Gamestate {
 	engine.ProcessWinLines(parameters.SelectedWinLines)
 
 	// spin
-	symbolGrid, stopList := Spin(engine.Reels, engine.ViewSize)
+	symbolGrid, stopList := engine.Spin()
 
 	// replace wilds with highest-level wild
 	type visibleWild struct {
@@ -1166,7 +1175,7 @@ func (engine EngineDef) DynamicWildWaysRound(parameters GameParams) Gamestate {
 	freespinMultiplier := SelectFromWeightedOptions([]int{1, 2, 3}, fsMultiplierP)
 	logger.Debugf("P: %v; Selected Multiplier: %v", fsMultiplierP, freespinMultiplier)
 
-	symbolGrid, stopList := Spin(fsReels, engine.ViewSize)
+	symbolGrid, stopList := engine.Spin()
 	wins := DetermineWaysWins(symbolGrid, engine.Payouts, engine.Wilds)
 	logger.Debugf("symbolgrid: %v; wins: %v", symbolGrid, wins)
 	relativePayout := calculatePayoutWins(wins)

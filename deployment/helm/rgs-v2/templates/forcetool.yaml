@@ -1605,6 +1605,11 @@ data:
       reelsetId: 8
       stopList: [0, 0, 0, 0, 0]
 
+    - id: expandingWild2
+      action: base
+      reelsetId: 9
+      stopList: [1, 16, 0, 2, 10]
+
     - id: scatterAndPay
       action: base
       reelsetId: 0

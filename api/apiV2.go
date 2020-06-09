@@ -220,14 +220,14 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 
 	gamestate, _ := engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
 	if config.GlobalConfig.DevMode == true {
-		forcedGamestate, err := forceTool.GetForceValues(data.Stake, previousGamestate, txStore.PlayerId)
+		forcedGamestate, err := forceTool.GetForceValues(data, previousGamestate, txStore.PlayerId)
 		if err == nil {
 			logger.Warnf("Forcing gamestate: %v", forcedGamestate)
 			sentry.CaptureMessage("Forcing gamestate")
 			gamestate = forcedGamestate
 		} else {
-			//assume error is of memcache.ErrCacheMiss variety
-			logger.Warnf("No force value found for player %v", txStore.PlayerId)
+			// continue play, assume no force was stored
+			logger.Debugf("Error retrieving force for player %v: %v" , txStore.PlayerId, err.Error())
 		}
 	}
 
