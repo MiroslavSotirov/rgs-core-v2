@@ -49,14 +49,12 @@ type EngineDef struct {
 	RTP            float32            `yaml:"RTP"`            // the expected payout of one round of this engineDef
 	RespinAllowed  bool               `yaml:"respin"`         // must be explicitly enabled on each def
 	VariableWL     bool               `yaml:"variableWinLines"` // will be false by default
-	isForce        bool               // may not be set via yaml
 	force          []int              // may not be set via yaml
 }
 
 
 func (engine *EngineDef) SetForce(force []int) (err rgserror.RGSErr) {
 	if config.GlobalConfig.DevMode == true {
-		engine.isForce = true
 		engine.force = force
 		return
 	}

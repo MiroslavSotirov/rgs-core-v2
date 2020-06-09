@@ -174,10 +174,3 @@ func smartForceFromID(params engine.GameParams, previousGamestate engine.Gamesta
 
 	return gamestate, rgse.Create(rgse.NoForceError)
 }
-
-
-func NewSmartForce() (forcedGS engine.Gamestate, err rgse.RGSErr) {
-	// Update Engine to
-
-	return
-}

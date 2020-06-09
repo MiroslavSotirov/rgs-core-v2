@@ -72,6 +72,7 @@ const (
 	// forceTool
 	NoForceError = 800
 	ForceProhibited = 801
+	Forcing = 802 // this is just to make sentry to report every time there's a force
 )
 
 // ErrMsg Error message key value map
@@ -114,6 +115,7 @@ var ErrMsg = map[int]string{
 	IncompleteRoundError:   "Not the final state in round, can't be closed",
 	NoForceError:           "No force matching that code",
 	ForceProhibited:        "Force prohibited for this gamestate",
+	Forcing:                "FORCING GAMESTATE",
 	NoSuchPlayer:           "No player found",
 	JsonError:              "Failure encoding/decoding json",
 	RestError:              "REST error",

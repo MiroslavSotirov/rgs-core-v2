@@ -19,14 +19,11 @@
   action: base
   reelsetId: 8
   stopList: [0, 0, 0, 0, 0]
-  prohibitedActions: [cascade, freespin]
-
 
 - id: expandingWild2
   action: base
   reelsetId: 9
   stopList: [1, 16, 0, 2, 10]
-  prohibitedActions: [cascade, freespin]
 
 - id: scatterAndPay
   action: base

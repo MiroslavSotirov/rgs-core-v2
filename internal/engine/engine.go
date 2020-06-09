@@ -4,6 +4,7 @@ package engine
 
 import (
 	"errors"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"fmt"
 	uuid "github.com/satori/go.uuid"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
@@ -27,8 +28,9 @@ func (engine EngineDef) Spin() ([][]int, []int) {
 		reelIndex := rng.RandFromRange(len(reel))
 		stopList[index] = reelIndex
 	}
-	if config.GlobalConfig.DevMode == true && engine.isForce {
+	if config.GlobalConfig.DevMode == true && len(engine.force) == len(engine.ViewSize) {
 		stopList = engine.force
+		rgse.Create(rgse.Forcing)
 		logger.Warnf("forcing engine %v", engine.ID)
 	}
 	symbolGrid := GetSymbolGridFromStopList(engine.Reels, engine.ViewSize, stopList)
