@@ -58,11 +58,7 @@ type ForceGameplay struct {
 	ID          string         `yaml:"id"`
 	Action      string         `yaml:"action"`
 	ReelsetId   int            `yaml:"reelsetId"`
-	Prizes      []engine.Prize `yaml:"prizes"`
 	StopList    []int          `yaml:"stopList"`
-	NextActions []string       `yaml:"nextActions"`
-	Multiplier  int            `yaml:"multiplier"`
-	ProhibAct   []string       `yaml:"prohibitedActions"`
 }
 
 func BuildForce(engineID string) []ForceGameplay {
@@ -91,27 +87,12 @@ func BuildForce(engineID string) []ForceGameplay {
 		if c[i].Action == "" {
 			c[i].Action = "base"
 		}
-		if c[i].Multiplier == 0 {
-			c[i].Multiplier = 1
-		}
 		if len(c[i].StopList) == 0 {
 			//todo: smart generate stop list. for now don't allow this to be empty
 			logger.Fatalf("Must set stopList")
 		}
-		if len(c[i].NextActions) == 0 {
-			c[i].NextActions = []string{"finish"}
-		}
 	}
 	return c
-}
-
-func generateSymbolGrid(stopList []int, engineID string, reelsetID int) [][]int {
-	// get engineDef
-	engineConf := engine.BuildEngineDefs(engineID)
-	engineDef := engineConf.EngineDefs[reelsetID]
-
-	// from stop positions, generate view
-	return engine.GetSymbolGridFromStopList(engineDef.Reels, engineDef.ViewSize, stopList)
 }
 
 func smartForceFromID(params engine.GameParams, previousGamestate engine.Gamestate, forceID string) (engine.Gamestate, rgse.RGSErr) {
@@ -165,16 +146,6 @@ func smartForceFromID(params engine.GameParams, previousGamestate engine.Gamesta
 			if err != nil {
 				return gamestate, err
 			}
-			//parameters := engine.GameParams{
-			//	Stake:            0,
-			//	SelectedWinLines: nil,
-			//	Selection:        "",
-			//	RespinReel:       0,
-			//	Action:           "",
-			//	Game:             "",
-			//	Wallet:           "",
-			//	PreviousID:       "",
-			//}
 			// get engine and action
 			method := reflect.ValueOf(engineDef).MethodByName(engineDef.Function)
 			gamestateAndNextActions := method.Call([]reflect.Value{reflect.ValueOf(params)})
@@ -197,54 +168,6 @@ func smartForceFromID(params engine.GameParams, previousGamestate engine.Gamesta
 			}
 			gamestate.PostProcess(previousGamestate, chargeWager, totalBet, engineConf, betPerLine, actions, currency)
 
-
-			//
-			//
-			//
-			////symbolGrid := generateSymbolGrid(force.StopList, engineID, force.ReelsetId)
-			//totalBet := engine.Money{params.Stake.Mul(engine.NewFixedFromInt(engineDef.StakeDivisor)), currency}
-			//
-			//var transactions []engine.WalletTransaction
-			//transactions = append(transactions, engine.WalletTransaction{Id: previousGamestate.NextGamestate, Type: "WAGER", Amount: totalBet})
-			//
-			//// use engine win type to determine wins
-			//wins, relativePayout := engineDef.DetermineWins(symbolGrid)
-			//var nextActions []string
-			//specialWin := engine.DetermineSpecialWins(symbolGrid, engineDef.SpecialPayouts)
-			//if specialWin.Index != "" && !(engineID == "mvgEngineXIV" && len(wins) > 0){
-			//	logger.Warnf("WE ARE HERE")
-			//	var specialPayout int
-			//	specialPayout, nextActions = engineDef.CalculatePayoutSpecialWin(specialWin)
-			//	relativePayout += specialPayout
-			//	wins = append(wins, specialWin)
-			//	// special handling for engine 7
-			//	if engineID == "mvgEngineVII" && len(nextActions) > 0 {
-			//		nextActions = append([]string{"replaceQueuedActionType"}, nextActions...)
-			//
-			//	}
-			//}
-			//if engineID == "mvgEngineXIV" && force.ReelsetId != 8 && force.ReelsetId != 9 && force.ReelsetId != 10 && len(wins) > 0 {
-			//	nextActions = append([]string{"cascade"}, nextActions...)
-			//}
-			//// get Multiplier
-			//multiplier := 1
-			//if len(engineDef.Multiplier.Multipliers) > 0 {
-			//	multiplier = engine.SelectFromWeightedOptions(engineDef.Multiplier.Multipliers, engineDef.Multiplier.Probabilities)
-			//}
-			//// Build gamestate
-			//gamestate = engine.Gamestate{Action: force.Action, Game: previousGamestate.Game, DefID: force.ReelsetId, SymbolGrid: symbolGrid, Prizes: wins, StopList: force.StopList, NextActions: nextActions, Multiplier: multiplier, RelativePayout: relativePayout, Transactions: transactions}
-			//gamestate.Action = actions[0]
-			//gamestate.BetPerLine = engine.Money{params.Stake, currency}
-			//gamestate.SelectedWinLines = previousGamestate.SelectedWinLines
-			//gamestate.Gamification = previousGamestate.Gamification
-			//gamestate.UpdateGamification(previousGamestate)
-			//gamestate.PrepareActions(actions)
-			//gamestate.Id = previousGamestate.NextGamestate
-			//nextID := uuid.NewV4().String()
-			//gamestate.NextGamestate = nextID
-			//gamestate.PreviousGamestate = previousGamestate.Id
-			//
-			//gamestate.PrepareTransactions(previousGamestate)
 			return gamestate, nil
 		}
 	}
