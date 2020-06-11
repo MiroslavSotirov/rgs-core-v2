@@ -506,37 +506,6 @@ func (gamestate *Gamestate) PostProcess(previousGamestate Gamestate, chargeWager
 	return
 }
 
-func (gamestate *Gamestate) UpdateGamification(previousGS Gamestate) {
-	// update gamification status
-	logger.Debugf("UpdateGamification: CurrentGS: %+v  PreviousGS: %+v", gamestate.NextActions, previousGS.NextActions)
-	switch gamestate.Game {
-	case "a-fairy-tale", "a-candy-girls-christmas", "battlemech", "candy-smash":
-		// trigger only on freespin,
-		if len(gamestate.NextActions) > len(previousGS.NextActions) {
-			logger.Debugf("Increment: a-fairy-tale, a-candy-girls-christmas, battlemech, candy-smash")
-			gamestate.Gamification.Increment(3)
-		}
-	case "sky-jewels":
-		// ignore freespin
-		if !isFreespin(gamestate, previousGS){
-			logger.Debugf("IncrementSpins: sky-jewels")
-			gamestate.Gamification.IncrementSpins(randomRangeInt32(50, 20), 6)
-		}
-	case "drift":
-		// ignore freespin
-		if !isFreespin(gamestate, previousGS){
-			logger.Debugf("IncrementSpins: drift")
-			gamestate.Gamification.IncrementSpins(randomRangeInt32(50, 30), 5)
-		}
-	case "goal", "cookoff-champion":
-		// ignore freespin
-		if !isFreespin(gamestate, previousGS){
-			logger.Debugf("IncrementSpins: goal, cookoff-champion")
-			gamestate.Gamification.IncrementSpins(randomRangeInt32(70, 50), 3)
-		}
-	}
-}
-
 func (engineConf EngineConfig) DetectSpecialWins(defIndex int, p Prize) string {
 	winId := p.Index
 	for _, specialPayout := range engineConf.EngineDefs[defIndex].SpecialPayouts {

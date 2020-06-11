@@ -282,7 +282,7 @@ func GetHash(filePath string) (string, string, error) {
 	return MD5String, SHA1String, nil
 }
 
-func randomRangeInt32(max, min int) int32 {
+func randomRangeInt32(min, max int) int32 {
 	// cast to int32
 	return int32(rng.RandFromRange(max-min+1) + min)
 }
