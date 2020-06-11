@@ -170,6 +170,16 @@ func (gamestate Gamestate) Engine() (engine EngineConfig, err rgserror.RGSErr) {
 	return
 }
 
+func (gamestate Gamestate) EngineDef() (engineDef EngineDef, err rgserror.RGSErr) {
+	EC, err := gamestate.Engine()
+	if err != nil {return}
+	if gamestate.DefID > len(EC.EngineDefs) {
+		err = rgserror.Create(rgserror.BadConfigError)
+		return
+	}
+	engineDef = EC.EngineDefs[gamestate.DefID]
+	return
+}
 
 type WalletTransaction struct {
 	// internal representation of WalletTransactionPB

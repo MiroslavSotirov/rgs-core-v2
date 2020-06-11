@@ -76,11 +76,14 @@ func (num Fixed) ValueAsString() string {
 
 }
 func (num Fixed) StringFmt(p int) string {
-	// prints as a string with d decimal places
+	if p>6 {
+		p = 6
+	}
+	// prints as a string with p decimal places
 	s := fmt.Sprintf("%d", num/fixedExp)
 	d := fmt.Sprintf(".%06d", num%fixedExp)
 
-	return s + d[:p]
+	return s + d[:p+1]
 
 }
 
@@ -182,7 +185,7 @@ func (gp *GameParams) Decode(request *http.Request) rgse.RGSErr {
 	return  nil
 }
 // if this is the action, a wager must be charged
-var paidActions = []string{"base", "maxBase", "reSpin"}
+var paidActions = []string{"base", "maxBase", "respin"}
 
 func (p GameParams) Validate() (err rgse.RGSErr) {
 	if p.Game == "" || p.Action == "" {
@@ -398,5 +401,28 @@ func GetDefaultView(gameName string) (symbolGrid [][]int) {
 		}
 		symbolGrid = append(symbolGrid, row)
 	}
+	return
+}
+
+var MilliUnitCCies = []Ccy{Ccy_BTC, Ccy_EGP, Ccy_TND, Ccy_KWD, Ccy_BHD, Ccy_IQD, Ccy_OMR}
+func RoundUpToNearestCCYUnit(in Money) (out Money) {
+	// this function is basically a ceiling function, but if the value is zero then it will also be incremented to the smallest allowed currency value
+	d := 10000
+	out.Currency = in.Currency
+	for ccy:=0; ccy<len(MilliUnitCCies); ccy++ {
+		if in.Currency == MilliUnitCCies[ccy].String() {
+			d /= 10
+		}
+	}
+
+	// if any digit after the final keeper digit is not zero, round up
+	r:= int(in.Amount) % d
+	if r == 0 && in.Amount != Fixed(0) {
+	//this commented would make it so that the value 0.01 is rounded up to 0.02
+		out.Amount = in.Amount
+		return
+	}
+
+	out.Amount = in.Amount.Add(Fixed(d - r))
 	return
 }
