@@ -10,6 +10,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 const configFile = "config/config.yml"
@@ -81,8 +82,46 @@ func InitConfig() {
 	if err != nil {
 		BadConfigError(err)
 	}
+	err = InitGamification()
+	if err != nil {
+		BadConfigError(err)
+	}
 	////prints configuration
 	logger.Infof("Game Config: %v", GlobalGameConfig)
+}
+
+
+type GamificationType struct {
+	Levels int32		`yaml:"levels"`
+	Stages int32		`yaml:"stages"`
+	Function string		`yaml:"function"`
+	SpinsMin int 		`yaml:"spinsMin"`
+	SpinsMax int		`yaml:"spinsMax"`
+}
+
+var GameGamification map[string]GamificationType
+
+func InitGamification() error {
+
+	currentDir, err := os.Getwd()
+	if err != nil {
+		logger.Errorf("Failed opening current directory")
+		return err
+	}
+	configFile := filepath.Join(currentDir, "config/gamification.yml")
+	yamlFile, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		logger.Fatalf("Error reading gamification config file: %v", err)
+		return err
+	}
+
+	err = yaml.Unmarshal(yamlFile, &GameGamification)
+	if err != nil {
+		logger.Fatalf("Error unmarshaling parameter yaml %v", err)
+		return err
+
+	}
+	return nil
 }
 
 func InitGameConfig() error {

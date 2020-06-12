@@ -412,7 +412,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 		// the old game round should be closed and a new round started
 
 		// if this is a respin, special case:
-		if parameters.Action == "reSpin" {
+		if parameters.Action == "respin" {
 			// if action is respin, WAGER is dependent on reel configuration
 			// index of the reel to be respun must be passed
 			if parameters.RespinReel < 0 {
@@ -421,7 +421,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 			}
 			actions = []string{parameters.Action, "finish"}
 			betPerLine = previousGamestate.BetPerLine.Amount
-			totalBet = Money{engineConf.EngineDefs[previousGamestate.DefID].GetRespinPriceReel(parameters.RespinReel, engineConf, previousGamestate), currency}
+			totalBet = RoundUpToNearestCCYUnit(Money{previousGamestate.RespinPriceReel(parameters.RespinReel), currency})
 			parameters.previousGamestate = previousGamestate
 		} else {
 			// new gameplay round
@@ -452,7 +452,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	case "cascade":
 		// action must be performed on the same engine as previous round
 		method = reflect.ValueOf(engineConf.EngineDefs[previousGamestate.DefID]).MethodByName(engineConf.EngineDefs[previousGamestate.DefID].Function)
-	case "reSpin":
+	case "respin":
 		// action must be performed on the same engine as previous round, but method will always be respin
 		method = reflect.ValueOf(engineConf.EngineDefs[previousGamestate.DefID].Respin)
 	default:
@@ -504,37 +504,6 @@ func (gamestate *Gamestate) PostProcess(previousGamestate Gamestate, chargeWager
 	gamestate.PrepareTransactions(previousGamestate)
 	logger.Debugf("gamestate: %#v", gamestate)
 	return
-}
-
-func (gamestate *Gamestate) UpdateGamification(previousGS Gamestate) {
-	// update gamification status
-	logger.Debugf("UpdateGamification: CurrentGS: %+v  PreviousGS: %+v", gamestate.NextActions, previousGS.NextActions)
-	switch gamestate.Game {
-	case "a-fairy-tale", "a-candy-girls-christmas", "battlemech", "candy-smash":
-		// trigger only on freespin,
-		if len(gamestate.NextActions) > len(previousGS.NextActions) {
-			logger.Debugf("Increment: a-fairy-tale, a-candy-girls-christmas, battlemech, candy-smash")
-			gamestate.Gamification.Increment(3)
-		}
-	case "sky-jewels":
-		// ignore freespin
-		if !isFreespin(gamestate, previousGS){
-			logger.Debugf("IncrementSpins: sky-jewels")
-			gamestate.Gamification.IncrementSpins(randomRangeInt32(50, 20), 6)
-		}
-	case "drift":
-		// ignore freespin
-		if !isFreespin(gamestate, previousGS){
-			logger.Debugf("IncrementSpins: drift")
-			gamestate.Gamification.IncrementSpins(randomRangeInt32(50, 30), 5)
-		}
-	case "goal", "cookoff-champion":
-		// ignore freespin
-		if !isFreespin(gamestate, previousGS){
-			logger.Debugf("IncrementSpins: goal, cookoff-champion")
-			gamestate.Gamification.IncrementSpins(randomRangeInt32(70, 50), 3)
-		}
-	}
 }
 
 func (engineConf EngineConfig) DetectSpecialWins(defIndex int, p Prize) string {
@@ -979,100 +948,6 @@ func (engine EngineDef) CalculatePayoutSpecialWin(specialWin Prize) (int, []stri
 	return relativePayout, nextActions
 }
 
-// Calculate price of reel respin
-// value of a reel respin is equal to the expected payout given other reels stay as they are
-
-func (engine EngineDef) GetRespinPrice(gamestate Gamestate, method string) []Fixed {
-	// we want to hold RTP constant, so the price of a respin should be relative to the value of the respin and the RTP:
-	// value of respin / price to respin = RTP
-	// price to respin = value of respin / RTP
-
-	// get engineConfig for RTP info
-	engineConfig, err := gamestate.Engine()
-	if err != nil {
-		logger.Errorf("error in getting respin price: %v", err)
-		return []Fixed{}
-	}
-
-	// prices are relative to betPerLine
-	reelPrices := make([]Fixed, len(gamestate.SymbolGrid))
-
-	for reelIndex := 0; reelIndex < len(gamestate.SymbolGrid); reelIndex++ {
-		reelPrices[reelIndex] = engine.GetRespinPriceReel(reelIndex, engineConfig, gamestate)
-	}
-	return reelPrices
-}
-
-func (engine EngineDef) GetRespinPriceReel(reelIndex int, engineConfig EngineConfig, gamestate Gamestate) Fixed {
-	// we want to hold RTP constant, so the price of a respin should be relative to the value of the respin and the RTP:
-	// value of respin / price to respin = RTP
-	// price to respin = value of respin / RTP
-	return engine.GetExpectedReelValue(gamestate, reelIndex).Div(NewFixedFromFloat(engineConfig.RTP))
-
-}
-
-// calculate expected value of a reel, given the other reels do not move
-func (engine EngineDef) GetExpectedReelValue(gamestate Gamestate, reelIndex int) Fixed {
-	// NB ::: THIS DOES NOT IMNCLUDE GAMESTATE MULTIPLIERS i.e. RANDOM WHOLE ROUND MULTIPLIERS
-	// gamestate must already have SymbolGrid calculated
-	// get engine data
-	view := gamestate.SymbolGrid
-	reel := engine.Reels[reelIndex]
-	reel = append(reel, reel[:engine.ViewSize[reelIndex]]...)
-
-	var potentialWinValue Fixed
-
-	// iterate through reel positions for the given reel to determine payouts
-	for i := 0; i < len(reel); i++ {
-		view[reelIndex] = reel[i : i+engine.ViewSize[reelIndex]]
-
-		// calculate win
-		var wins []Prize
-
-		switch engine.WinType {
-		case "ways":
-			wins = DetermineWaysWins(view, engine.Payouts, engine.Wilds)
-		case "lines":
-			wins = DetermineLineWins(view, engine.WinLines, engine.Payouts, engine.Wilds)
-		}
-		for _, win := range wins {
-			// add win amount (multipliers are relative to betPerLine)
-			potentialWinValue += NewFixedFromInt(win.Payout.Multiplier).Mul(NewFixedFromInt(win.Multiplier))
-		}
-		specialWin := DetermineSpecialWins(view, engine.SpecialPayouts)
-
-		if specialWin.Index != "" {
-			// add prize value (multiplier is for total stake, divide by bet multiplier
-			potentialWinValue += NewFixedFromInt(specialWin.Payout.Multiplier).Mul(NewFixedFromInt(specialWin.Multiplier)).Div(NewFixedFromInt(engine.StakeDivisor))
-
-			// include estimated value of each round for the number of rounds that have been won
-			// todo: analyze how this works for engines with multiple matching defs
-			winInfo := strings.Split(specialWin.Index, ":")
-			engineConfig, err := gamestate.Engine()
-			if err != nil {
-				logger.Errorf("Error getting Engine Def from game id")
-				return Fixed(0)
-			}
-
-			specialEngineDef := engineConfig.EngineDefs[gamestate.DefID]
-
-			// expectedPayout is relative to the total stake, so divide by the bet multiplier
-			singleRoundPayout := specialEngineDef.ExpectedPayout.Div(NewFixedFromInt(specialEngineDef.StakeDivisor))
-			numRounds, cerr := strconv.Atoi(winInfo[1])
-			if cerr != nil {
-				logger.Errorf("Error in special win index: %v", specialWin.Index)
-				return 0
-			}
-			for j := 0; j < numRounds; j++ {
-				potentialWinValue += singleRoundPayout
-			}
-
-		}
-	}
-
-	// calculate average for all reel positions, divide total reel potential payout by number of reel positions
-	return potentialWinValue.Div(NewFixedFromInt(len(reel)))
-}
 
 func (engine EngineDef) MaxWildRound(parameters GameParams) Gamestate {
 	// this function takes the highest-level wild of the engine present on the view for that spin and replaces all other in-view wilds with that value
