@@ -163,8 +163,8 @@
 
 - id: PicGWild
   action: base
-  reelsetId: 0
-  stopList: [0,10,4,10,16]
+  reelsetId: 1
+  stopList: [22,11,7,9,7]
 
 - id: 3PicG
   action: base
