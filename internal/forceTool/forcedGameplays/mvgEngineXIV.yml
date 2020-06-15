@@ -58,17 +58,17 @@
 - id: 3PicB
   action: base
   reelsetId: 0
-  stopList: [26,41,38,14,11]
+  stopList: [4,1,0,16,11]
 
 - id: 4PicB
   action: base
   reelsetId: 0
-  stopList: [26,41,38,42,11]
+  stopList: [4,1,0,15,11]
 
 - id: 5PicB
   action: base
   reelsetId: 0
-  stopList: [26,41,38,42,4]
+  stopList: [4,1,0,15,8]
 
 - id: 3PicC
   action: base
