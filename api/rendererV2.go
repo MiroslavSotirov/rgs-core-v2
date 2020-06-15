@@ -58,6 +58,7 @@ type GameplayResponseV2 struct {
 	RoundMultiplier int            `json:"roundMultiplier"`
 	Gamification *engine.GamestatePB_Gamification `json:"gamification"`
 	CascadePositions []int         `json:"cascadePositions,omitempty"`
+	RespinPrices []engine.Fixed    `json:"respinPrices,omitempty"`
 }
 
 type BalanceResponseV2 struct {
@@ -126,7 +127,12 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		// this is a hack for now, needed for recovery. potentially in the future we add a proper cascade positions field to the gamestate message
 		cascadePositions = gamestate.SelectedWinLines
 	}
-	logger.Infof("cum: %v, spin: %v, round: %v, win: %v", gamestate.CumulativeWin, gamestate.SpinWin, roundWin, win)
+	var respinPrices []engine.Fixed
+	ED, err := gamestate.EngineDef()
+	if err == nil && ED.RespinAllowed {
+		respinPrices, err = gamestate.RespinPrices(balance.Balance.Currency)
+		if err != nil {respinPrices = nil}
+	}
 
 	return GameplayResponseV2{
 		SessionID:   balance.Token,
@@ -149,6 +155,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		Closed:      gamestate.Closed,
 		Gamification: gamestate.Gamification,
 		CascadePositions: cascadePositions,
+		RespinPrices: respinPrices,
 	}
 }
 

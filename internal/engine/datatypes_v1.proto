@@ -169,6 +169,8 @@ message GamestatePB {
   DRIFT=41;
   MAH_JONG=42;
   MUSEUM=43;
+  BANGKOK_FIGHTER=44;
+  ASUKA_X_SAMURAI=45;
   }
   GameID game_id = 1;
   int32 engine_def = 2;

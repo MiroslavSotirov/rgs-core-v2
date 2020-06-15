@@ -735,3 +735,70 @@ func TestEngineDef_ProcessWinLines(t *testing.T) {
 	}
 
 }
+
+
+func TestMilliCcies(t *testing.T) {
+	// test 2-pt ccy
+	twoPtCcy := "USD"
+	amt := Money{Fixed(10000), twoPtCcy}
+	res := RoundUpToNearestCCYUnit(amt)
+	if res.Currency != twoPtCcy {
+		t.Errorf("Currency changed from %v to %v", twoPtCcy, res.Currency)
+	}
+	if res.Amount != Fixed(10000) {
+		t.Errorf(".01 even rounded to %v", res.Amount.ValueAsString())
+	}
+
+	amt.Amount = Fixed(10001)
+	res = RoundUpToNearestCCYUnit(amt)
+	if res.Currency != twoPtCcy {
+		t.Errorf("Currency changed from %v to %v", twoPtCcy, res.Currency)
+	}
+	if res.Amount != Fixed(20000) {
+		t.Errorf(".010001 incorrectly rounded to %v", res.Amount.ValueAsString())
+	}
+
+	// test rounding at 2 digit change
+	amt.Amount = Fixed(123491111)
+	res = RoundUpToNearestCCYUnit(amt)
+	if res.Amount != Fixed(123500000) {
+		t.Errorf("123.491111 incorrectly rounded to %v", res.Amount.ValueAsString())
+	}
+
+	// test 3-digit ccy
+	threePtCcy:= "BTC"
+
+	amt = Money{Fixed(1000), threePtCcy}
+	res = RoundUpToNearestCCYUnit(amt)
+	if res.Currency != threePtCcy {
+		t.Errorf("Currency changed from %v to %v", threePtCcy, res.Currency)
+	}
+	if res.Amount != Fixed(1000) {
+		t.Errorf(".001 even rounded to %v", res.Amount.ValueAsString())
+	}
+
+	amt.Amount = Fixed(1001)
+	res = RoundUpToNearestCCYUnit(amt)
+	if res.Currency != threePtCcy {
+		t.Errorf("Currency changed from %v to %v", threePtCcy, res.Currency)
+	}
+	if res.Amount != Fixed(2000) {
+		t.Errorf(".001001 incorrectly rounded to %v", res.Amount.ValueAsString())
+	}
+
+	// test rounding at 2 digit change
+	amt.Amount = Fixed(123459111)
+	res = RoundUpToNearestCCYUnit(amt)
+	if res.Amount != Fixed(123460000) {
+		t.Errorf("123459111 incorrectly rounded to %v", res.Amount.ValueAsString())
+	}
+
+	// test zero
+
+	amt.Amount = Fixed(0)
+	res = RoundUpToNearestCCYUnit(amt)
+	if res.Amount != Fixed(1000) {
+		t.Errorf("zero incorrectly rounded to %v", res.Amount.ValueAsString())
+	}
+
+}
