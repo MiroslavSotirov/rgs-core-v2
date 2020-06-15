@@ -103,17 +103,17 @@
 - id: 3PicE
   action: base
   reelsetId: 0
-  stopList: [0,11,0,8,1]
+  stopList: [5,11,8,8,1]
 
 - id: 4PicE
   action: base
   reelsetId: 0
-  stopList: [0,11,0,11,1]
+  stopList:  [5,11,8,3,1]
 
 - id: 5PicE
   action: base
   reelsetId: 0
-  stopList: [0,11,0,11,3]
+  stopList: [5,11,8,3,16]
 
 - id: 3PicF
   action: base
