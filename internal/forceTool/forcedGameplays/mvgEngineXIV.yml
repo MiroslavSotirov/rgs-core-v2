@@ -118,17 +118,17 @@
 - id: 3PicF
   action: base
   reelsetId: 0
-  stopList: [8,19,21,1,22]
+  stopList: [9,0,0,11,22]
 
 - id: 4PicF
   action: base
   reelsetId: 0
-  stopList: [8,19,21,13,22]
+  stopList: [9,0,0,12,22]
 
 - id: 5PicF
   action: base
   reelsetId: 0
-  stopList: [8,19,21,13,24]
+  stopList: [9,0,0,12,23]
 
 - id: 3PicG
   action: base
