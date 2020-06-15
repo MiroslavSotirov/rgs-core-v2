@@ -162,3 +162,5 @@ gameConfig:
   - engineID: mvgEngineXIV
     games:
       - valley-of-kings
+      - bangkok-fighter
+      - asuka-x-samurai
