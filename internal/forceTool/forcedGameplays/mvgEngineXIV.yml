@@ -163,22 +163,17 @@
 - id: 3PicI
   action: base
   reelsetId: 0
-  stopList: [6,47,24,13,22]
+  stopList: [7,7,15,13,22]
 
 - id: 4PicI
   action: base
   reelsetId: 0
-  stopList: [6,47,24,18,22]
+  stopList: [7,7,14,2,22]
 
 - id: 5PicI
   action: base
   reelsetId: 0
-  stopList: [6,47,24,18,19]
-
-- id: 2PicJ
-  action: base
-  reelsetId: 0
-  stopList: [16,19,13,26,4]
+  stopList: [7,7,14,2,8]
 
 - id: 3PicJ
   action: base
