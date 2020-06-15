@@ -133,17 +133,17 @@
 - id: 3PicG
   action: base
   reelsetId: 0
-  stopList: [2,29,46,49,14]
+  stopList: [1,10,4,49,14]
 
 - id: 4PicG
   action: base
   reelsetId: 0
-  stopList: [2,29,46,36,14]
+  stopList: [1,10,4,10,14]
 
 - id: 5PicG
   action: base
   reelsetId: 0
-  stopList: [2,29,46,36,1]
+  stopList: [0,10,4,10,4]
 
 - id: 3PicH
   action: base
