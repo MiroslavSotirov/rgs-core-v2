@@ -133,7 +133,6 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		respinPrices, err = gamestate.RespinPrices(balance.Balance.Currency)
 		if err != nil {respinPrices = nil}
 	}
-
 	return GameplayResponseV2{
 		SessionID:   balance.Token,
 		StateID:     gamestate.Id,
