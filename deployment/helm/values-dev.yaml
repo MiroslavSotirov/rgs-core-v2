@@ -169,6 +169,7 @@ gameConfig:
   - engineID: mvgEngineXV
     games:
       - museum
+
 gamification:
   a-fairy-tale:
     function: Increment

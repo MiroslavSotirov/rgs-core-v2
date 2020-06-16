@@ -49,7 +49,7 @@ data:
     {{- end }}
   gamification.yml: |
     {{- range $i, $game := .Values.gamification }}
-    {{ $game }}:
+    {{ $i }}:
       function: {{ $game.function }}
       stages: {{ $game.stages }}
       spinsMin: {{ $game.spinsMin }}
