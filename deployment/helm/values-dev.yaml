@@ -161,9 +161,50 @@ gameConfig:
   - engineID: mvgEngineXIV
     games:
       - valley-of-kings
+      - bangkok-fighter
+      - asuka-x-samurai
   - engineID: mvgEngineXI
     games:
       - mah-jong
   - engineID: mvgEngineXV
     games:
       - museum
+
+gamification:
+  a-fairy-tale:
+    function: Increment
+    stages: 3
+  a-candy-girls-christmas:
+    function: Increment
+    stages: 3
+  battlemech:
+    function: Increment
+    stages: 3
+  candy-smash:
+    function: Increment
+    stages: 3
+  sky-jewels:
+    function: IncrementSpins
+    stages: 6
+    spinsMin: 20
+    spinsMax: 50
+  drift:
+    function: IncrementSpins
+    stages: 5
+    spinsMin: 30
+    spinsMax: 50
+  goal:
+    function: IncrementSpins
+    stages: 3
+    spinsMin: 50
+    spinsMax: 70
+  cookoff-champion:
+    function: IncrementSpins
+    stages: 3
+    spinsMin: 50
+    spinsMax: 70
+  bangkok-fighter:
+    function: IncrementSpins
+    stages: 3
+    spinsMin: 50
+    spinsMax: 70
