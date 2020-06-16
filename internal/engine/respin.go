@@ -45,7 +45,8 @@ func (gamestate Gamestate) ExpectedReelValue(reelIndex int) Fixed {
 	if err != nil {
 		return 0
 	}
-	view := gamestate.SymbolGrid
+	view := make([][]int, len(gamestate.SymbolGrid))
+	copy(view, gamestate.SymbolGrid)
 	reel := def.Reels[reelIndex]
 	reel = append(reel, reel[:def.ViewSize[reelIndex]]...)
 
@@ -84,7 +85,6 @@ func (gamestate Gamestate) ExpectedReelValue(reelIndex int) Fixed {
 			}
 
 			specialEngineDef := engineConfig.EngineDefs[gamestate.DefID]
-
 			// expectedPayout is relative to the total stake, so divide by the bet multiplier
 			singleRoundPayout := specialEngineDef.ExpectedPayout.Div(NewFixedFromInt(specialEngineDef.StakeDivisor))
 			numRounds, cerr := strconv.Atoi(winInfo[1])
