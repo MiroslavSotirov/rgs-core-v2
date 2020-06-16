@@ -2,6 +2,8 @@ package engine
 
 import (
 	"fmt"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
+
 	// "fmt"
 	_ "gitlab.maverick-ops.com/maverick/rgs-core-v2/testing"
 	"math/rand"
@@ -801,4 +803,82 @@ func TestMilliCcies(t *testing.T) {
 		t.Errorf("zero incorrectly rounded to %v", res.Amount.ValueAsString())
 	}
 
+}
+
+
+func TestShuffleFlop(t *testing.T) {
+	rng.Init()
+	shuffleDef := EngineDef{
+		Reels:          [][]int{{0,5,5,5,5,5,5,5,5,5,5},{1,5,5,5,5,5,5,5,5,5,5,5},{2,5,5,5,5,5,5,5,5,5,5,5},{3,5,5,5,5,5,5,5,5,5,5},{4,5,5,5,5,5,5,5,5,5,5,5,5}},
+		ViewSize:       []int{1,1,1,1,1},
+		Payouts:        []Payout{},
+		WinType:        "pAndF",
+		SpecialPayouts: []Prize{},
+		Wilds:          []wild{},
+		Multiplier:     weightedMultiplier{},
+		//StakeDivisor:   1,
+	}
+	testGS := Gamestate{
+		DefID:             0,
+		BetPerLine:        Money{1, "BTC"},
+		SymbolGrid:        [][]int{{0},{1},{2},{3},{4}},
+		Prizes:            []Prize{},
+		RelativePayout:    0,
+		Multiplier:        1,
+		StopList:          []int{0,0,0,0,0},
+	}
+	params := GameParams{
+		Stake:             1,
+		previousGamestate: testGS,
+	}
+
+	GS := shuffleDef.ShuffleFlop(params)
+	if GS.SymbolGrid[0][0] !=0 {
+		//try again because there is a channnce it landed on teh same
+		GS = shuffleDef.ShuffleFlop(params)
+		if GS.SymbolGrid[0][0] !=0 {
+			t.Errorf("prime was probably shuffled %v", GS)
+		}
+	}
+	if GS.SymbolGrid[1][0] == 1 && GS.SymbolGrid[2][0] ==2 && GS.SymbolGrid[3][0] == 3 && GS.SymbolGrid[4][0] ==4 {
+		t.Errorf("flop was probably not shuffled %v", GS)
+	}
+}
+
+
+func TestShufflePrime(t *testing.T) {
+	rng.Init()
+	shuffleDef := EngineDef{
+		Reels:          [][]int{{0,5,5,5,5,5,5,5,5,5,5},{1,5,5,5,5,5,5,5,5,5,5,5},{2,5,5,5,5,5,5,5,5,5,5,5},{3,5,5,5,5,5,5,5,5,5,5},{4,5,5,5,5,5,5,5,5,5,5,5,5}},
+		ViewSize:       []int{1,1,1,1,1},
+		Payouts:        []Payout{},
+		WinType:        "pAndF",
+		SpecialPayouts: []Prize{},
+		Wilds:          []wild{},
+		Multiplier:     weightedMultiplier{},
+		//StakeDivisor:   1,
+	}
+	testGS := Gamestate{
+		DefID:             0,
+		BetPerLine:        Money{1, "BTC"},
+		SymbolGrid:        [][]int{{0},{1},{2},{3},{4}},
+		Prizes:            []Prize{},
+		RelativePayout:    0,
+		Multiplier:        1,
+		StopList:          []int{0,0,0,0,0},
+	}
+	params := GameParams{
+		Stake:             1,
+		previousGamestate: testGS,
+	}
+	GS := shuffleDef.ShufflePrime(params)
+	if GS.SymbolGrid[0][0] == 0 {
+		GS = shuffleDef.ShufflePrime(params)
+		if GS.SymbolGrid[0][0] == 0 {
+			t.Errorf("Prime was probably not shuffled: %#v", GS)
+		}
+	}
+	if GS.SymbolGrid[1][0] != 1 || GS.SymbolGrid[2][0] != 2 || GS.SymbolGrid[3][0] != 3 || GS.SymbolGrid[4][0] != 4 {
+		t.Errorf("Flop was probably shuffled: %#v", GS)
+	}
 }
