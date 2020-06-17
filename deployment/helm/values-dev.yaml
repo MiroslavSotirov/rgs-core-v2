@@ -168,7 +168,7 @@ gameConfig:
       - four-beasts
   - engineID: mvgEngineXV
     games:
-      - art-at-the-museum
+      - museum
 
 gamification:
   a-fairy-tale:
