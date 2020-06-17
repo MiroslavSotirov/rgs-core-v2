@@ -165,10 +165,10 @@ gameConfig:
       - asuka-x-samurai
   - engineID: mvgEngineXI
     games:
-      - mah-jong
+      - four-beasts
   - engineID: mvgEngineXV
     games:
-      - museum
+      - art-at-the-museum
 
 gamification:
   a-fairy-tale:
