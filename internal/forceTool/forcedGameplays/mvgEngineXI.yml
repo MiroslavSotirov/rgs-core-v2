@@ -255,3 +255,19 @@
   action: base
   reelsetId: 0
   stopList: [15, 15, 11, 10, 9]
+
+  #17
+- id: 2PicQ
+  action: base
+  reelsetId: 0
+  stopList: [16, 16, 2, 2, 3]
+
+- id: 3PicQ
+  action: base
+  reelsetId: 0
+  stopList: [16, 16, 12, 2, 3]
+
+- id: 4PicQ
+  action: base
+  reelsetId: 0
+  stopList: [16, 16, 12, 2, 9]
