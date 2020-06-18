@@ -1,0 +1,17 @@
+#this file contains the forced outcomes for engine xi
+
+#1
+- id: 2PicA
+  action: base
+  reelsetId: 0
+  stopList: [0, 0, 2, 3, 3]
+
+- id: 3PicA
+  action: base
+  reelsetId: 0
+  stopList: [0, 0, 0, 3, 3]
+
+- id: 4PicA
+  action: base
+  reelsetId: 0
+  stopList: [0, 0, 0, 0, 3]
