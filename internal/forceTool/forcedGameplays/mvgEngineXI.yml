@@ -15,3 +15,19 @@
   action: base
   reelsetId: 0
   stopList: [0, 0, 0, 0, 3]
+
+  #2
+- id: 2PicB
+  action: base
+  reelsetId: 0
+  stopList: [1, 1, 2, 5, 3]
+
+- id: 3PicB
+  action: base
+  reelsetId: 0
+  stopList: [1, 1, 2, 1, 3]
+
+- id: 4PicB
+  action: base
+  reelsetId: 0
+  stopList: [1, 1, 2, 1, 0]
