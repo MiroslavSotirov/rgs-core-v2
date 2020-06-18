@@ -1176,6 +1176,571 @@ data:
       reelsetId: 0
       stopList: [0,0,0]
 
+  mvgEngineXI.yml: |
+    #this file contains the forced outcomes for engine xi
+
+    #scatter
+    - id: scatter
+      action: base
+      reelsetId: 0
+      stopList: [21, 5, 18, 20, 24]
+
+      #shuffle prime
+    - id: shuffleprime
+      action: base
+      reelsetId: 0
+      stopList: [1, 24, 21, 12, 27]
+
+      #shuffle flop
+    - id: shuffleflop
+      action: base
+      reelsetId: 0
+      stopList: [4, 9, 21, 8, 25]
+
+      #1
+    - id: 2PicA
+      action: base
+      reelsetId: 0
+      stopList: [0, 0, 2, 3, 3]
+
+    - id: 3PicA
+      action: base
+      reelsetId: 0
+      stopList: [0, 0, 0, 3, 3]
+
+    - id: 4PicA
+      action: base
+      reelsetId: 0
+      stopList: [0, 0, 0, 0, 3]
+
+      #2
+    - id: 2PicB
+      action: base
+      reelsetId: 0
+      stopList: [1, 1, 2, 5, 3]
+
+    - id: 3PicB
+      action: base
+      reelsetId: 0
+      stopList: [1, 1, 2, 1, 3]
+
+    - id: 4PicB
+      action: base
+      reelsetId: 0
+      stopList: [1, 1, 2, 1, 0]
+
+      #3
+    - id: 2PicC
+      action: base
+      reelsetId: 0
+      stopList: [2, 2, 2, 5, 3]
+
+    - id: 3PicC
+      action: base
+      reelsetId: 0
+      stopList: [2, 2, 1, 1, 3]
+
+    - id: 4PicC
+      action: base
+      reelsetId: 0
+      stopList: [2, 2, 1, 1, 1]
+
+      #4
+    - id: 2PicD
+      action: base
+      reelsetId: 0
+      stopList: [3, 3, 3, 9, 3]
+
+    - id: 3PicD
+      action: base
+      reelsetId: 0
+      stopList: [3, 3, 2, 7, 3]
+
+    - id: 4PicD
+      action: base
+      reelsetId: 0
+      stopList: [3, 3, 2, 2, 3]
+
+      #5
+    - id: 2PicE
+      action: base
+      reelsetId: 0
+      stopList: [4, 4, 2, 7, 3]
+
+    - id: 3PicE
+      action: base
+      reelsetId: 0
+      stopList: [4, 4, 3, 7, 3]
+
+    - id: 4PicE
+      action: base
+      reelsetId: 0
+      stopList: [4, 4, 3, 7, 2]
+
+      #6
+    - id: 2PicF
+      action: base
+      reelsetId: 0
+      stopList: [5, 5, 2, 2, 1]
+
+    - id: 3PicF
+      action: base
+      reelsetId: 0
+      stopList: [5, 5, 3, 3, 1]
+
+    - id: 4PicF
+      action: base
+      reelsetId: 0
+      stopList: [5, 5, 3, 3, 3]
+
+      #7
+    - id: 2PicG
+      action: base
+      reelsetId: 0
+      stopList: [6, 6, 2, 2, 3]
+
+    - id: 3PicG
+      action: base
+      reelsetId: 0
+      stopList: [6, 6, 4, 2, 3]
+
+    - id: 4PicG
+      action: base
+      reelsetId: 0
+      stopList: [6, 6, 4, 4, 4]
+
+      #8
+    - id: 2PicH
+      action: base
+      reelsetId: 0
+      stopList: [7, 7, 2, 2, 3]
+
+    - id: 3PicH
+      action: base
+      reelsetId: 0
+      stopList: [7, 7, 5, 2, 3]
+
+    - id: 4PicH
+      action: base
+      reelsetId: 0
+      stopList: [7, 7, 5, 4, 4]
+
+      #9
+    - id: 2PicI
+      action: base
+      reelsetId: 0
+      stopList: [8, 8, 2, 1, 3]
+
+    - id: 3PicI
+      action: base
+      reelsetId: 0
+      stopList: [8, 8, 6, 1, 3]
+
+    - id: 4PicI
+      action: base
+      reelsetId: 0
+      stopList: [8, 8, 6, 5, 3]
+
+      #10
+    - id: 2PicJ
+      action: base
+      reelsetId: 0
+      stopList: [9, 9, 2, 2, 3]
+
+    - id: 3PicJ
+      action: base
+      reelsetId: 0
+      stopList: [9, 9, 2, 6, 3]
+
+    - id: 4PicJ
+      action: base
+      reelsetId: 0
+      stopList: [9, 9, 2, 6, 5]
+
+      #11
+    - id: 2PicK
+      action: base
+      reelsetId: 0
+      stopList: [10, 10, 2, 2, 3]
+
+    - id: 3PicK
+      action: base
+      reelsetId: 0
+      stopList: [10, 10, 7, 2, 3]
+
+    - id: 4PicK
+      action: base
+      reelsetId: 0
+      stopList: [10, 10, 7, 7, 3]
+
+      #12
+    - id: 2PicL
+      action: base
+      reelsetId: 0
+      stopList: [11, 11, 2, 2, 3]
+
+    - id: 3PicL
+      action: base
+      reelsetId: 0
+      stopList: [11, 11, 8, 2, 3]
+
+    - id: 4PicL
+      action: base
+      reelsetId: 0
+      stopList: [11, 11, 8, 8, 3]
+
+      #13
+    - id: 2PicM
+      action: base
+      reelsetId: 0
+      stopList: [12, 12, 2, 2, 3]
+
+    - id: 3PicM
+      action: base
+      reelsetId: 0
+      stopList: [12, 12, 9, 2, 3]
+
+    - id: 4PicM
+      action: base
+      reelsetId: 0
+      stopList: [12, 12, 9, 2, 6]
+
+      #14
+    - id: 2PicN
+      action: base
+      reelsetId: 0
+      stopList: [13, 13, 2, 2, 3]
+
+    - id: 3PicN
+      action: base
+      reelsetId: 0
+      stopList: [13, 13, 2, 9, 3]
+
+    - id: 4PicN
+      action: base
+      reelsetId: 0
+      stopList: [13, 13, 2, 9, 7]
+
+      #15
+    - id: 2PicO
+      action: base
+      reelsetId: 0
+      stopList: [14, 14, 2, 2, 3]
+
+    - id: 3PicO
+      action: base
+      reelsetId: 0
+      stopList: [14, 14, 10, 2, 3]
+
+    - id: 4PicO
+      action: base
+      reelsetId: 0
+      stopList: [14, 14, 10, 2, 8]
+
+      #16
+    - id: 2PicP
+      action: base
+      reelsetId: 0
+      stopList: [15, 15, 2, 2, 3]
+
+    - id: 3PicP
+      action: base
+      reelsetId: 0
+      stopList: [15, 15, 11, 2, 3]
+
+    - id: 4PicP
+      action: base
+      reelsetId: 0
+      stopList: [15, 15, 11, 10, 9]
+
+      #17
+    - id: 2PicQ
+      action: base
+      reelsetId: 0
+      stopList: [16, 16, 2, 2, 3]
+
+    - id: 3PicQ
+      action: base
+      reelsetId: 0
+      stopList: [16, 16, 12, 2, 3]
+
+    - id: 4PicQ
+      action: base
+      reelsetId: 0
+      stopList: [16, 16, 12, 2, 9]
+
+      #18
+    - id: 2PicR
+      action: base
+      reelsetId: 0
+      stopList: [17, 17, 2, 2, 3]
+
+    - id: 3PicR
+      action: base
+      reelsetId: 0
+      stopList: [17, 17, 2, 11, 3]
+
+    - id: 4PicR
+      action: base
+      reelsetId: 0
+      stopList: [17, 17, 2, 11, 10]
+
+      #19
+    - id: 2PicS
+      action: base
+      reelsetId: 0
+      stopList: [18, 18, 2, 2, 3]
+
+    - id: 3PicS
+      action: base
+      reelsetId: 0
+      stopList: [18, 18, 13, 2, 3]
+
+    - id: 4PicS
+      action: base
+      reelsetId: 0
+      stopList: [18, 18, 13, 2, 11]
+
+      #20
+    - id: 2PicT
+      action: base
+      reelsetId: 0
+      stopList: [19, 19, 2, 2, 3]
+
+    - id: 3PicT
+      action: base
+      reelsetId: 0
+      stopList: [19, 19, 14, 2, 3]
+
+    - id: 4PicT
+      action: base
+      reelsetId: 0
+      stopList: [19, 19, 14, 2, 12]
+
+      #21
+    - id: 2PicU
+      action: base
+      reelsetId: 0
+      stopList: [20, 20, 2, 2, 3]
+
+    - id: 3PicU
+      action: base
+      reelsetId: 0
+      stopList: [20, 20, 2, 12, 3]
+
+    - id: 4PicU
+      action: base
+      reelsetId: 0
+      stopList: [20, 20, 2, 12, 13]
+
+      #22
+    - id: 2PicV
+      action: base
+      reelsetId: 0
+      stopList: [21, 21, 2, 2, 3]
+
+    - id: 3PicV
+      action: base
+      reelsetId: 0
+      stopList: [21, 21, 2, 13, 3]
+
+    - id: 4PicV
+      action: base
+      reelsetId: 0
+      stopList: [21, 21, 2, 13, 14]
+
+      #23
+    - id: 2PicW
+      action: base
+      reelsetId: 0
+      stopList: [22, 22, 2, 2, 3]
+
+    - id: 3PicW
+      action: base
+      reelsetId: 0
+      stopList: [22, 22, 15, 2, 3]
+
+    - id: 4PicW
+      action: base
+      reelsetId: 0
+      stopList: [22, 22, 15, 2, 15]
+
+      #24
+    - id: 2PicX
+      action: base
+      reelsetId: 0
+      stopList: [23, 23, 2, 2, 3]
+
+    - id: 3PicX
+      action: base
+      reelsetId: 0
+      stopList: [23, 23, 16, 2, 3]
+
+    - id: 4PicX
+      action: base
+      reelsetId: 0
+      stopList: [23, 23, 16, 2, 16]
+
+      #25
+    - id: 2PicY
+      action: base
+      reelsetId: 0
+      stopList: [24, 24, 2, 2, 3]
+
+    - id: 3PicY
+      action: base
+      reelsetId: 0
+      stopList: [24, 24, 2, 14, 3]
+
+    - id: 4PicY
+      action: base
+      reelsetId: 0
+      stopList: [24, 24, 2, 14, 17]
+
+      #26
+    - id: 2PicZ
+      action: base
+      reelsetId: 0
+      stopList: [25, 25, 2, 2, 3]
+
+    - id: 3PicZ
+      action: base
+      reelsetId: 0
+      stopList: [25, 25, 2, 15, 3]
+
+    - id: 4PicZ
+      action: base
+      reelsetId: 0
+      stopList: [25, 25, 2, 15, 18]
+
+      #27
+    - id: 2PicAA
+      action: base
+      reelsetId: 0
+      stopList: [26, 26, 2, 2, 3]
+
+    - id: 3PicAA
+      action: base
+      reelsetId: 0
+      stopList: [26, 26, 17, 2, 3]
+
+    - id: 4PicAA
+      action: base
+      reelsetId: 0
+      stopList: [26, 26, 17, 2, 19]
+
+      #28
+    - id: 2PicAB
+      action: base
+      reelsetId: 0
+      stopList: [27, 27, 2, 2, 3]
+
+    - id: 3PicAB
+      action: base
+      reelsetId: 0
+      stopList: [27, 27, 18, 2, 3]
+
+    - id: 4PicAB
+      action: base
+      reelsetId: 0
+      stopList: [27, 27, 18, 2, 20]
+
+      #29
+    - id: 2PicAC
+      action: base
+      reelsetId: 0
+      stopList: [28, 28, 2, 2, 3]
+
+    - id: 3PicAC
+      action: base
+      reelsetId: 0
+      stopList: [28, 28, 2, 16, 3]
+
+    - id: 4PicAC
+      action: base
+      reelsetId: 0
+      stopList: [28, 28, 2, 16, 21]
+
+      #30
+    - id: 2PicAD
+      action: base
+      reelsetId: 0
+      stopList: [29, 29, 2, 2, 3]
+
+    - id: 3PicAD
+      action: base
+      reelsetId: 0
+      stopList: [29, 29, 2, 17, 3]
+
+    - id: 4PicAD
+      action: base
+      reelsetId: 0
+      stopList: [29, 29, 2, 17, 22]
+
+      #31
+    - id: 2PicAE
+      action: base
+      reelsetId: 0
+      stopList: [30, 30, 2, 2, 3]
+
+    - id: 3PicAE
+      action: base
+      reelsetId: 0
+      stopList: [30, 30, 19, 2, 3]
+
+    - id: 4PicAE
+      action: base
+      reelsetId: 0
+      stopList: [30, 30, 19, 2, 23]
+
+      #32
+    - id: 2PicAF
+      action: base
+      reelsetId: 0
+      stopList: [31, 31, 2, 2, 3]
+
+    - id: 3PicAF
+      action: base
+      reelsetId: 0
+      stopList: [31, 31, 20, 2, 3]
+
+    - id: 4PicAF
+      action: base
+      reelsetId: 0
+      stopList: [31, 31, 20, 2, 24]
+
+      #33
+    - id: 2PicAG
+      action: base
+      reelsetId: 0
+      stopList: [32, 32, 2, 2, 3]
+
+    - id: 3PicAG
+      action: base
+      reelsetId: 0
+      stopList: [32, 32, 2, 18, 3]
+
+    - id: 4PicAG
+      action: base
+      reelsetId: 0
+      stopList: [32, 32, 2, 18, 25]
+
+      #34
+    - id: 2PicAH
+      action: base
+      reelsetId: 0
+      stopList: [33,33, 2, 2, 3]
+
+    - id: 3PicAH
+      action: base
+      reelsetId: 0
+      stopList: [33, 33, 2, 19, 3]
+
+    - id: 4PicAH
+      action: base
+      reelsetId: 0
+      stopList: [33, 33, 2, 19, 26]
+
   mvgEngineXII.yml: |
     #this file contains the forced outcomes for engine xii
 
