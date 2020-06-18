@@ -431,3 +431,19 @@
   action: base
   reelsetId: 0
   stopList: [26, 26, 17, 2, 19]
+
+  #28
+- id: 2PicAB
+  action: base
+  reelsetId: 0
+  stopList: [27, 27, 2, 2, 3]
+
+- id: 3PicAB
+  action: base
+  reelsetId: 0
+  stopList: [27, 27, 18, 2, 3]
+
+- id: 4PicAB
+  action: base
+  reelsetId: 0
+  stopList: [27, 27, 18, 2, 20]
