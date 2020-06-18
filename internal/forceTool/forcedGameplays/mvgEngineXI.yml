@@ -6,6 +6,12 @@
   reelsetId: 0
   stopList: [21, 5, 18, 20, 24]
 
+  #shuffle flop
+- id: shuffleflop
+  action: base
+  reelsetId: 0
+  stopList: [4, 9, 21, 8, 25]
+
   #1
 - id: 2PicA
   action: base
