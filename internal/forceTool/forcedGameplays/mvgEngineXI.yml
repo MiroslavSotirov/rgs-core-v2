@@ -1,6 +1,12 @@
 #this file contains the forced outcomes for engine xi
 
-#1
+  #scatter
+- id: scatter
+  action: base
+  reelsetId: 0
+  stopList: [21, 5, 18, 20, 24]
+
+  #1
 - id: 2PicA
   action: base
   reelsetId: 0
