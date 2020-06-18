@@ -165,7 +165,7 @@ gameConfig:
       - asuka-x-samurai
   - engineID: mvgEngineXI
     games:
-      - four-beasts
+      - mah-jong
   - engineID: mvgEngineXV
     games:
       - museum
