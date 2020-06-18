@@ -207,3 +207,19 @@
   action: base
   reelsetId: 0
   stopList: [12, 12, 9, 2, 6]
+
+  #14
+- id: 2PicN
+  action: base
+  reelsetId: 0
+  stopList: [13, 13, 2, 2, 3]
+
+- id: 3PicN
+  action: base
+  reelsetId: 0
+  stopList: [13, 13, 2, 9, 3]
+
+- id: 4PicN
+  action: base
+  reelsetId: 0
+  stopList: [13, 13, 2, 9, 7]
