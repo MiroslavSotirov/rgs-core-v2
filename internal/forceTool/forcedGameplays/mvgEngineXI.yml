@@ -127,3 +127,19 @@
   action: base
   reelsetId: 0
   stopList: [7, 7, 5, 4, 4]
+
+  #9
+- id: 2PicI
+  action: base
+  reelsetId: 0
+  stopList: [8, 8, 2, 1, 3]
+
+- id: 3PicI
+  action: base
+  reelsetId: 0
+  stopList: [8, 8, 6, 1, 3]
+
+- id: 4PicI
+  action: base
+  reelsetId: 0
+  stopList: [8, 8, 6, 5, 3]
