@@ -289,10 +289,12 @@ func randomRangeInt32(min, max int) int32 {
 
 
 func isFreespin(gamestate *Gamestate, previousGS Gamestate) bool {
-	if len(previousGS.NextActions) == 1 && len(gamestate.NextActions) == 1 && gamestate.NextActions[0] == "finish" { // 1 means NextActions:[finish]
-		return false
+	def, err := gamestate.EngineDef()
+	if err != nil {return false}
+	if strings.Contains(def.ID, "freespin") {
+		return true
 	}
-	return true
+	return false
 }
 
 

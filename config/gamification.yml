@@ -32,6 +32,6 @@ cookoff-champion:
     spinsMax: 70
 bangkok-fighter:
     function: IncrementSpins
-    stages: 3
+    stages: 1
     spinsMin: 50
     spinsMax: 70
