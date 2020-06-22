@@ -163,6 +163,13 @@ gameConfig:
       - valley-of-kings
       - bangkok-fighter
       - asuka-x-samurai
+  - engineID: mvgEngineXI
+    games:
+      - mah-jong
+  - engineID: mvgEngineXV
+    games:
+      - museum
+
 gamification:
   a-fairy-tale:
     function: Increment
