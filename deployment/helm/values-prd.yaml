@@ -5,7 +5,7 @@
 replicaCount: 3
 
 image:
-  repository: harbor.inf01.activeops.io/maverick/mvg_rgs
+  repository: harbor.prd01.activeinfra.net/maverick/mvg_rgs
   pullPolicy: IfNotPresent
   version: v2.0.3
 
