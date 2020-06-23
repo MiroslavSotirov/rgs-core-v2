@@ -288,7 +288,7 @@ func randomRangeInt32(min, max int) int32 {
 }
 
 
-func isFreespin(gamestate *Gamestate, previousGS Gamestate) bool {
+func (gamestate Gamestate) isFreespin() bool {
 	def, err := gamestate.EngineDef()
 	if err != nil {return false}
 	if strings.Contains(def.ID, "freespin") {
