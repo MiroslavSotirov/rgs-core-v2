@@ -59,14 +59,14 @@ func (gamestate *Gamestate) UpdateGamification(previousGS Gamestate) {
 	gamification := config.GameGamification[gamestate.Game]
 	switch gamification.Function {
 	case "Increment":
-		// trigger only on freespin,
+		// trigger only on freespin trigger,
 		if len(gamestate.NextActions) > len(previousGS.NextActions) {
 			logger.Debugf("Increment Gamification triggered")
 			gamestate.Gamification.Increment(gamification.Stages)
 		}
 	case "IncrementSpins":
 		// ignore freespin
-		if !isFreespin(gamestate, previousGS){
+		if !gamestate.isFreespin(){
 			logger.Debugf("IncrementSpins Gamification triggered")
 			gamestate.Gamification.IncrementSpins(randomRangeInt32(gamification.SpinsMin, gamification.SpinsMax), gamification.Stages)
 		}

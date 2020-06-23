@@ -56,9 +56,17 @@ type GameplayResponseV2 struct {
 	NextAction  string            `json:"nextAction"`
 	Closed      bool               `json:"closed"`
 	RoundMultiplier int            `json:"roundMultiplier"`
-	Gamification *engine.GamestatePB_Gamification `json:"gamification"`
+	Gamification *GamificationRespV2 `json:"gamification,omitempty"`
 	CascadePositions []int         `json:"cascadePositions,omitempty"`
 	RespinPrices []engine.Fixed    `json:"respinPrices,omitempty"`
+}
+
+type GamificationRespV2 struct {
+	Level int32 `json:"level"`
+	Stage int32 `json:"stage"`
+	RemainingSpins int32 `json:"remainingSpins"`
+	SpinsToStageUp int32 `json:"spinsToStageUp"`
+	TotalSpins int32 `json:"totalSpins"`
 }
 
 type BalanceResponseV2 struct {
@@ -133,6 +141,20 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		respinPrices, err = gamestate.RespinPrices(balance.Balance.Currency)
 		if err != nil {respinPrices = nil}
 	}
+
+	remainingSpins := gamestate.Gamification.GetRemainingSpins()
+	level, stage := gamestate.Gamification.GetLevelAndStage()
+	stageUpSpins := gamestate.Gamification.GetSpinsToStageUp()
+	totalSpins := gamestate.Gamification.GetTotalSpins()
+	//
+
+	//		Level:          level,
+	//		Stage:          stage,
+	//		MaxLevel:       1000000,
+	//		RemainingSpins: remainingSpins,
+	//		SpinsToStageUp: stageUpSpins,
+	//		TotalSpins:     totalSpins,
+
 	return GameplayResponseV2{
 		SessionID:   balance.Token,
 		StateID:     gamestate.Id,
@@ -152,7 +174,13 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		Prizes:      gamestate.Prizes,
 		RoundMultiplier: gamestate.Multiplier,
 		Closed:      gamestate.Closed,
-		Gamification: gamestate.Gamification,
+		Gamification: &GamificationRespV2{
+			Level:          level,
+			Stage:          stage,
+			RemainingSpins: remainingSpins,
+			SpinsToStageUp: stageUpSpins,
+			TotalSpins:     totalSpins,
+		},
 		CascadePositions: cascadePositions,
 		RespinPrices: respinPrices,
 	}
