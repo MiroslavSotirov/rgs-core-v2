@@ -349,10 +349,11 @@ func GetMaxWin(e EngineConfig) {
 			Selection:        "freespin5:5",
 		}
 
-		call := reflect.ValueOf(ed).MethodByName(ed.Function)
-
+		var maxCascades = 0
+		var maxCascadesStops []int
 		var maxPayout = 0
 		var maxGS Gamestate
+		var ok bool
 		// iterate over all possible stop positions
 		// assume 5 reels
 		var stopList = make([]int, 5)
@@ -366,26 +367,54 @@ func GetMaxWin(e EngineConfig) {
 						stopList[3] = j4
 						for j5:=0; j5<len(ed.Reels[4]); j5++{
 							stopList[4] = j5
-							//parameters.stopPostitions = stopList // unccoment this for this test to work
+							var lastGS Gamestate
+							//var triggeringGS Gamestate
+							var relativePayout int
+							ed.SetForce(stopList)
+							parameters.Action = ""
+							call := reflect.ValueOf(ed).MethodByName(ed.Function)
 							gamestateAndNextActions := call.Call([]reflect.Value{reflect.ValueOf(parameters)})
-
-							gamestate, ok := gamestateAndNextActions[0].Interface().(Gamestate)
+							lastGS, ok = gamestateAndNextActions[0].Interface().(Gamestate)
 							if !ok {
 								panic("value not a gamestate")
 							}
-							relativePayout := gamestate.RelativePayout * gamestate.Multiplier
+							//triggeringGS = lastGS
+							relativePayout += lastGS.RelativePayout * lastGS.Multiplier
+							cascades := 0
+							for len(lastGS.NextActions) > 0 && lastGS.NextActions[0] == "cascade"{
+								ed.SetForce([]int{})
+								//call := reflect.ValueOf(ed).MethodByName(ed.Function)
+								parameters.Action = "cascade"
+								cascades ++
+								parameters.previousGamestate = lastGS
+								gamestateAndNextActions := call.Call([]reflect.Value{reflect.ValueOf(parameters)})
+								lastGS, ok = gamestateAndNextActions[0].Interface().(Gamestate)
+								if !ok {
+									panic("value not a gamestate")
+								}
+								relativePayout += lastGS.RelativePayout * lastGS.Multiplier
+
+							}
+							if cascades > maxCascades {
+								maxCascadesStops = stopList
+								maxCascades = cascades
+								logger.Warnf("cascaded %v times w/ stoplist %v", cascades, stopList)
+							}
 							if relativePayout > maxPayout {
 								maxPayout = relativePayout
-								maxGS = gamestate
+								maxGS = Gamestate{StopList:stopList}
 								//logger.Warnf("new max payout: %#v", gamestate)
 							}
+
+
+
 						}
 					}
 				}
 			}
 		}
 
-		logger.Infof("Found max relative multiplier %v, %#v", maxPayout, maxGS)
+		logger.Infof("Found max relative multiplier %v, %#v\nMax cascades %v: %v", maxPayout, maxGS, maxCascades, maxCascadesStops)
 
 	}
 }

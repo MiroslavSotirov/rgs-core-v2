@@ -29,3 +29,194 @@
   action: base
   reelsetId: 0
   stopList: [2,2,2,1,2]
+
+- id: max0
+  action: base
+  reelsetId: 0
+  stopList: [12, 19, 16, 0, 0]
+
+- id: max11
+  action: freespin
+  reelsetId: 11
+  stopList: [6, 14, 16, 0, 0]
+
+- id: PicAWild
+  action: base
+  reelsetId: 3
+  stopList: [2,2,14,0,5]
+
+- id: 3PicA
+  action: base
+  reelsetId: 0
+  stopList: [2,2,16,4,4]
+
+- id: 4PicA
+  action: base
+  reelsetId: 0
+  stopList: [2,2,14,0,4]
+
+- id: 5PicA
+  action: base
+  reelsetId: 0
+  stopList: [2,2,14,0,0]
+
+- id: PicBWild
+  action: base
+  reelsetId: 3
+  stopList: [4,1,2,9,5]
+
+- id: 3PicB
+  action: base
+  reelsetId: 0
+  stopList: [4,1,0,16,11]
+
+- id: 4PicB
+  action: base
+  reelsetId: 0
+  stopList: [4,1,0,15,11]
+
+- id: 5PicB
+  action: base
+  reelsetId: 0
+  stopList: [4,1,0,15,8]
+
+- id: PicCWild
+  action: base
+  reelsetId: 3
+  stopList: [0,5,1,0,5]
+
+
+- id: 3PicC
+  action: base
+  reelsetId: 0
+  stopList: [0,5,1,9,31]
+
+- id: 4PicC
+  action: base
+  reelsetId: 0
+  stopList: [0,5,1,0,31]
+
+- id: 5PicC
+  action: base
+  reelsetId: 0
+  stopList: [0,5,1,0,13]
+
+- id: PicDWild
+  action: base
+  reelsetId: 3
+  stopList: [12,10,11,3,16]
+
+- id: 3PicD
+  action: base
+  reelsetId: 0
+  stopList: [12,10,11,1,1]
+
+- id: 4PicD
+  action: base
+  reelsetId: 0
+  stopList: [12,10,11,3,1]
+
+- id: 5PicD
+  action: base
+  reelsetId: 0
+  stopList: [12,10,11,3,5]
+
+- id: PicEWild
+  action: base
+  reelsetId: 3
+  stopList: [5,11,8,3,16]
+
+- id: 3PicE
+  action: base
+  reelsetId: 0
+  stopList: [5,11,8,8,1]
+
+- id: 4PicE
+  action: base
+  reelsetId: 0
+  stopList:  [5,11,8,3,1]
+
+- id: 5PicE
+  action: base
+  reelsetId: 0
+  stopList: [5,11,8,3,16]
+
+- id: PicFWild
+  action: base
+  reelsetId: 3
+  stopList: [9,0,0,12,16]
+
+- id: 3PicF
+  action: base
+  reelsetId: 0
+  stopList: [9,0,0,11,22]
+
+- id: 4PicF
+  action: base
+  reelsetId: 0
+  stopList: [9,0,0,12,22]
+
+- id: 5PicF
+  action: base
+  reelsetId: 0
+  stopList: [9,0,0,12,23]
+
+- id: PicGWild
+  action: base
+  reelsetId: 1
+  stopList: [22,11,7,9,7]
+
+- id: 3PicG
+  action: base
+  reelsetId: 0
+  stopList: [1,10,4,49,14]
+
+- id: 4PicG
+  action: base
+  reelsetId: 0
+  stopList: [1,10,4,10,14]
+
+- id: 5PicG
+  action: base
+  reelsetId: 0
+  stopList: [0,10,4,10,4]
+
+- id: PicHWild
+  action: base
+  reelsetId: 3
+  stopList: [26,3,29,5,16]
+
+- id: 3PicH
+  action: base
+  reelsetId: 0
+  stopList: [27,3,29,11,2]
+
+- id: 4PicH
+  action: base
+  reelsetId: 0
+  stopList:  [27,3,29,5,2]
+
+- id: 5PicH
+  action: base
+  reelsetId: 0
+  stopList: [27,3,29,5,13]
+
+- id: PicIWild
+  action: base
+  reelsetId: 3
+  stopList: [7,7,14,2,16]
+
+- id: 3PicI
+  action: base
+  reelsetId: 0
+  stopList: [7,7,15,13,22]
+
+- id: 4PicI
+  action: base
+  reelsetId: 0
+  stopList: [7,7,14,2,22]
+
+- id: 5PicI
+  action: base
+  reelsetId: 0
+  stopList: [7,7,14,2,8]

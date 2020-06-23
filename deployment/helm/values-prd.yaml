@@ -164,6 +164,13 @@ gameConfig:
       - valley-of-kings
       - bangkok-fighter
       - asuka-x-samurai
+  - engineID: mvgEngineXI
+    games:
+      - mah-jong
+  - engineID: mvgEngineXV
+    games:
+      - museum
+
 gamification:
   a-fairy-tale:
     function: Increment
@@ -200,5 +207,10 @@ gamification:
   bangkok-fighter:
     function: IncrementSpins
     stages: 1
+    spinsMin: 50
+    spinsMax: 70
+  asuka-x-samurai:
+    function: IncrementSpins
+    stages: 5
     spinsMin: 50
     spinsMax: 70

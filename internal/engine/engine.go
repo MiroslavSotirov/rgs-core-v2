@@ -649,6 +649,10 @@ func (engine EngineDef) GuaranteedWin(parameters GameParams) Gamestate {
 	var gamestate Gamestate
 	for len(gamestate.Prizes) == 0 {
 		gamestate = engine.BaseRound(parameters)
+		if config.GlobalConfig.DevMode == true && len(engine.force) > 0 {
+			logger.Warnf("removing force to stop infinite iterations")
+			engine.SetForce([]int{})
+		}
 	}
 	return gamestate
 }

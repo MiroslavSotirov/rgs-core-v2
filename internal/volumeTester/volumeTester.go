@@ -148,6 +148,17 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 					perSpin = false
 					logger.Errorf("stoping perspin results")
 				}
+				//if len(gamestate.RecoveryGrid) > 0 {
+				//	for r:=0; r<len(gamestate.RecoveryGrid); r++{
+				//
+				//		err = writer.Write([]string{fmt.Sprintf("%v,%v,%v,%v -- DISCARDED", defID, gamestate.Action, time.Now().Format("02 Jan 06 15:04 MST"), gamestate.RecoveryGrid[r])})
+				//		if err != nil {
+				//			logger.Errorf("error writing to csv: %v", err)
+				//			perSpin = false
+				//			logger.Errorf("stoping perspin results")
+				//		}
+				//	}
+				//}
 			}
 
 			previousGamestate = gamestate
