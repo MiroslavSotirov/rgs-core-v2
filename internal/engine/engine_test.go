@@ -574,7 +574,7 @@ func TestEngineConfig_DetectSpecialWins(t *testing.T) {
 	}
 	testEngine = "mvgEngineVII"
 	config = BuildEngineDefs(testEngine)
-	defIndex := config.getDefIdByName("freespin2")
+	defIndex := config.DefIdByName("freespin2")
 	targetIndices = []string{"4:3", "somethingElse", "11:3", "11:4", "11:5", "aa:bb", "freespin3:10"}
 	for i := 0; i < len(testPrizes); i++ {
 		index := config.DetectSpecialWins(defIndex, testPrizes[i])
@@ -584,7 +584,7 @@ func TestEngineConfig_DetectSpecialWins(t *testing.T) {
 	}
 	testEngine = "mvgEngineVII"
 	config = BuildEngineDefs(testEngine)
-	defIndex = config.getDefIdByName("freespin3")
+	defIndex = config.DefIdByName("freespin3")
 
 	targetIndices = []string{"4:3", "somethingElse", "11:3", "11:4", "11:5", "aa:bb", "freespin4:10"}
 	for i := 0; i < len(testPrizes); i++ {
@@ -596,7 +596,7 @@ func TestEngineConfig_DetectSpecialWins(t *testing.T) {
 
 	testEngine = "mvgEngineVII"
 	config = BuildEngineDefs(testEngine)
-	defIndex = config.getDefIdByName("freespin4")
+	defIndex = config.DefIdByName("freespin4")
 	targetIndices = []string{"4:3", "somethingElse", "11:3", "11:4", "11:5", "aa:bb", "freespin5:10"}
 	for i := 0; i < len(testPrizes); i++ {
 		index := config.DetectSpecialWins(defIndex, testPrizes[i])

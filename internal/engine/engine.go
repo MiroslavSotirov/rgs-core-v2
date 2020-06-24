@@ -426,15 +426,6 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 		} else {
 			// new gameplay round
 			// totalbet is set after gameplay
-			// if this is engine X or any other offering maxBase, check if max winlines are selected
-			if parameters.Action == "maxBase" {
-				maxDef := engineConf.getDefIdByName("maxBase")
-				if maxDef < 0 || len(parameters.SelectedWinLines) != len(engineConf.EngineDefs[maxDef].WinLines) {
-					// if maxBase has been passed from api, then no action was submitted and the bet was the maximum possible\
-					// if the selected winlines is also maximum, then maintain maxBase, otherwise revert to base action
-					parameters.Action = "base"
-				}
-			}
 			actions = []string{parameters.Action, "finish"}
 		}
 	} else {

@@ -105,7 +105,7 @@ func BuildEngineDefs(engineID string) EngineConfig {
 
 }
 
-func (config EngineConfig) getDefIdByName(action string) int {
+func (config EngineConfig) DefIdByName(action string) int {
 	// gets first enginedef matching action name, returns -1 if no match
 	for i, engine := range config.EngineDefs {
 		if engine.ID == action {

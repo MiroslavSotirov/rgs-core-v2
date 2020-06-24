@@ -193,6 +193,7 @@ message GamestatePB {
   cascade = 11;
   shuffleflop = 12;
   shuffleprime = 13;
+  maxBase = 14;
   }
   Action action = 7;
 
