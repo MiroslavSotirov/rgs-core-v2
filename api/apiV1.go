@@ -145,7 +145,7 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 	minBet := false
 	if data.Action != "base" {
 		// stake value must be zero
-		// check that previous TX opened the round
+		// check that the round is open
 		if txStore.RoundStatus != store.RoundStatusOpen {
 			logger.Warnf("last TX should be open: %#v", txStore)
 			return false, data, rgse.Create(rgse.SpinSequenceError)
@@ -171,8 +171,17 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 			if data.Stake == stakeValues[i] {
 				valid = true
 				if i == len(stakeValues)-1 && data.Action == "base" {
-					// pass on when max bet is played, only if no action is passed already
-					data.Action = "maxBase"
+					// pass on when max bet is played, only if no action is passed already and game allows it
+					EC, err := engine.Gamestate{Game: game}.Engine()
+					if err == nil {
+						maxDef := EC.DefIdByName("maxBase")
+						if maxDef >= 0 && len(data.SelectedWinLines) == len(EC.EngineDefs[maxDef].WinLines) {
+							// if the selected winlines is also maximum and there is a special config for this
+							data.Action = "maxBase"
+							logger.Debugf("setting action to maxbase")
+						}
+
+					}
 				}
 				if i == 0 {
 					minBet = true
