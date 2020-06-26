@@ -2,11 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "rgs-v2.fullname" . }}
-  namespace: maverick
+  namespace: {{ .Values.namespace | default "maverick" }}
   labels:
     {{- include "rgs-v2.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.replicaCount | default 1 }}
   selector:
     matchLabels:
       {{- include "rgs-v2.selectorLabels" . | nindent 6 }}
@@ -25,8 +25,8 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.version }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.image.repository | default "harbor.inf01.activeops.io/maverick/mvg_rgs" }}:{{ .Values.image.version }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
           ports:
             - name: rgs
               containerPort: 3000
@@ -67,15 +67,8 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       volumes:
+    {{- range .Values.volumes }}
         - configMap:
-            name: engineconfigs
-          name: engineconfigs
-        - configMap:
-            name: baseconfigs
-          name: baseconfigs
-        - configMap:
-            name: parameterconfig
-          name: parameterconfig
-        - configMap:
-            name: forcetool
-          name: forcetool
+            name: {{ toYaml . }}
+          name: {{ toYaml . }}
+    {{- end }}

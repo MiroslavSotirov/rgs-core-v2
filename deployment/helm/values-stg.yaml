@@ -2,11 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 1
-
 image:
-  repository: harbor.inf01.activeops.io/maverick/mvg_rgs
-  pullPolicy: IfNotPresent
   version: v2.0.3
 
 imagePullSecrets:
@@ -66,6 +62,11 @@ resources:
 nodeSelector: {}
 
 tolerations: []
+volumes:
+  - engineconfigs
+  - baseconfigs
+  - parameterconfig
+  - forcetool
 
 affinity: {}
 

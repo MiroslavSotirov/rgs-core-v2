@@ -2,7 +2,9 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+namespace: maverick-demo
 image:
+  repository: harbor.prd01.activeinfra.net/maverick/mvg_rgs
   version: v2.0.3
 
 imagePullSecrets:
@@ -38,6 +40,7 @@ ingress:
     nginx.ingress.kubernetes.io/cors-allow-origin: "*"
     nginx.ingress.kubernetes.io/cors-max-age: "151200"
     nginx.ingress.kubernetes.io/enable-cors: "true"
+    kubernetes.io/ingress.class: "mvk-ingress"
   hosts:
     - host:
       paths:
@@ -86,19 +89,11 @@ config:
   devmode: true
   local: false
   logging: debug
-  environment: dev
+  environment: demo
   mcrouter: "mcrouter-memcached.default:11211"
   server:
     host: "0.0.0.0"
     port: 3000
-  storeurl: "https://gnrc-api.dashur.io/v1/gnrc/maverick"
-  storeappid: "VrCLq4UqYBf39rJt"
-  storeapppass: "V6Kg9muzJxsz3nWFvJeyccU7"
-  defaultlanguage: "en"
-  defaultplatform: "html5"
-  demotokenprefix: "demo-token-ezVVKaEv2nY7kP2gMCX7vfCH"
-  democurrency: "USD"
-  logaccount: "145472021_144443389"
 
 gameConfig:
   - engineID: mvgEngineI
