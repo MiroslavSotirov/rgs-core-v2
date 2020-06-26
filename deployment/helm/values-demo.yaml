@@ -45,10 +45,17 @@ ingress:
     - host:
       paths:
         - "/v2"
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+
+  tls:
+    - secretName: contentoid.com.cf
+      hosts:
+        - contentoid.com
+    - hosts:    
+        - contentopic.com
+      secretName: contentopic.com.cf
+    - hosts:
+        - maverick-ops.com
+      secretName: maverick-ops.com.cf
 
 resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
