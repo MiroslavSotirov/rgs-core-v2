@@ -76,7 +76,6 @@ volumes:
   - engineconfigs
   - baseconfigs
   - parameterconfig
-  - forcetool
 
 affinity: {}
 
