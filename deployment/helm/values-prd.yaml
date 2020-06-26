@@ -3,7 +3,6 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: 3
-namespace: maverick
 image:
   repository: harbor.prd01.activeinfra.net/maverick/mvg_rgs
   version: v2.0.3
