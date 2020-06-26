@@ -3,10 +3,8 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: 3
-
 image:
   repository: harbor.prd01.activeinfra.net/maverick/mvg_rgs
-  pullPolicy: IfNotPresent
   version: v2.0.3
 
 imagePullSecrets:
@@ -47,10 +45,17 @@ ingress:
     - host:
       paths:
         - "/v2"
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+  tls:
+    - secretName: contentoid.com.cf
+      hosts:
+        - contentoid.com
+    - hosts:    
+        - contentopic.com
+      secretName: contentopic.com.cf
+    - hosts:
+        - maverick-ops.com
+      secretName: maverick-ops.com.cf
+
 
 resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -67,6 +72,10 @@ resources:
 nodeSelector: {}
 
 tolerations: []
+volumes:
+  - engineconfigs
+  - baseconfigs
+  - parameterconfig
 
 affinity: {}
 

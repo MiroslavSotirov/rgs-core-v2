@@ -2,11 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 1
-
 image:
-  repository: harbor.inf01.activeops.io/maverick/mvg_rgs
-  pullPolicy: IfNotPresent
   version: v2.0.3
 
 imagePullSecrets:
@@ -47,9 +43,6 @@ ingress:
       paths:
         - "/v2"
   tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
 
 resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -66,6 +59,11 @@ resources:
 nodeSelector: {}
 
 tolerations: []
+volumes:
+  - engineconfigs
+  - baseconfigs
+  - parameterconfig
+  - forcetool
 
 affinity: {}
 
