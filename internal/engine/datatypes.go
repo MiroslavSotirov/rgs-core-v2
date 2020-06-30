@@ -96,6 +96,7 @@ func (f Fixed) MarshalJSON() ([]byte, error) {
 // allows us to ingest values of any yaml type as a string and run our custom conversion
 
 func (f *Fixed) UnmarshalYAML(b []byte) error {
+	// todo this function is never called ?
 	if b[0] == '"' {
 		*f = Fixed(0) // hardcode empty string to be zero stake
 		return nil
@@ -104,6 +105,7 @@ func (f *Fixed) UnmarshalYAML(b []byte) error {
 	if err := yaml.Unmarshal(b, &s); err != nil {
 		return err
 	}
+	logger.Warnf("float value %v", s)
 	*f = NewFixedFromFloat(s)
 	return nil
 }

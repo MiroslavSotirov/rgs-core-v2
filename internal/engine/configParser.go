@@ -97,7 +97,7 @@ func BuildEngineDefs(engineID string) EngineConfig {
 		completeDef.RespinAllowed = c.EngineDefs[i].RespinAllowed
 		// same for variable winlines because it is a boolean and no way to tell if false or omitted
 		completeDef.VariableWL = c.EngineDefs[i].VariableWL
-		
+		completeDef.ExpectedPayout = c.EngineDefs[i].ExpectedPayout
 		filledEngineDefs = append(filledEngineDefs, completeDef)
 	}
 	c.EngineDefs = filledEngineDefs
