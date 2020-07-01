@@ -1,0 +1,35 @@
+version: 2.0
+rtp: .97
+volatility: 100
+
+EngineDefs:
+  - name: base
+    WinType: ways
+    StakeDivisor: 5
+    function: BaseRound
+    respin: true
+    Probability: 8260
+    RTP: 0.5
+    Reels:
+      - [1,1,1,1,1]
+      - [1,2,2]
+      - [1,2,2,2,2,2,2,2,2,0]
+      - [2,2,2,2,2,2,2,2,2,0]
+      - [2,2,2,2,2,2,2,2,2,0]
+    ViewSize: [3,3,3,3,3]
+    Payouts:
+      - {Symbol: 1, Count: 3, Multiplier: 100}
+      - {Symbol: 1, Count: 4, Multiplier: 1000}
+      - {Symbol: 1, Count: 5, Multiplier: 10000}
+    SpecialPayouts:
+      - {Payout: {Symbol: 0, Count: 3, Multiplier: 2}, Index: "freespin:10", Multiplier: 1}
+  - name: freespin
+    multiplier: {multipliers: [3], probabilities: [1]}
+    expectedPayout: 100000000 #must be in fixed notation
+    respin: false
+    Reels:
+      - [1,1,1]
+      - [1,1,1]
+      - [1,2,2]
+      - [2,2,2]
+      - [2,2,2]

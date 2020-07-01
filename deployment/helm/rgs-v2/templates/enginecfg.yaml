@@ -1239,5 +1239,6 @@ data:
           - {Payout: {Symbol: 0, Count: 2, Multiplier: 1}, Index: "sham:0", Multiplier: 1}
       - name: freespin
         multiplier: {multipliers: [3], probabilities: [1]}
-
+        expectedPayout: 2225000 #units are Fixed notation
+        respin: false
 

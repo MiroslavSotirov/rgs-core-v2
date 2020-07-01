@@ -68,3 +68,6 @@
 - engineID: mvgEngineXV
   games:
     - museum
+- engineID: testRespin
+  games:
+    - test-respin
