@@ -31,7 +31,7 @@ func (engine EngineDef) Spin() ([][]int, []int) {
 	if config.GlobalConfig.DevMode == true && len(engine.force) == len(engine.ViewSize) {
 		stopList = engine.force
 		rgse.Create(rgse.Forcing)
-		logger.Warnf("forcing engine %v", engine.ID)
+		//logger.Warnf("forcing engine %v", engine.ID)
 	}
 	symbolGrid := GetSymbolGridFromStopList(engine.Reels, engine.ViewSize, stopList)
 	return symbolGrid, stopList

@@ -10,6 +10,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Constants
+const NonLineWin int = 50
+
 // Datatypes
 type weightedMultiplier struct {
 	Multipliers   []int `yaml:"multipliers,flow"`
@@ -288,11 +291,17 @@ func (prizePB PrizePB) Convert(betPerLine Fixed) Prize {
 		SymbolPositions: convertInt32Int(prizePB.SymbolPositions),
 		Winline:         int(prizePB.Winline),
 	}
+	if prize.Winline == NonLineWin {
+		prize.Winline = -1
+	}
 	prize.Win = NewFixedFromInt(prize.Payout.Multiplier * prize.Multiplier).Mul(betPerLine)
 	return prize
 }
 
 func (prize Prize) Convert() PrizePB {
+	if prize.Winline == -1 {
+		prize.Winline = NonLineWin
+	}
 	return PrizePB{
 		Payout:          prize.Payout.Convert(),
 		Multiplier:      int32(prize.Multiplier),
