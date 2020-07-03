@@ -276,7 +276,7 @@ func DetermineWaysWins(symbolGrid [][]int, waysPayouts []Payout, wilds []wild) [
 				winIndex := strconv.Itoa(waysPayout.Symbol) + ":" + strconv.Itoa(waysPayout.Count)
 				// copy waysPayout to avoid reference changing NB: we can only do this because no reference types in Payout struct
 				prizePayout := waysPayout
-				waysWins = append(waysWins, Prize{Payout: prizePayout, Index: winIndex, Multiplier: variation.multiplier, SymbolPositions: variation.symbolPositions, Winline: -1})
+				waysWins = append(waysWins, Prize{Payout: prizePayout, Index: winIndex, Multiplier: variation.multiplier, SymbolPositions: variation.symbolPositions})//, Winline: -1})
 				matchedSymbols = append(matchedSymbols, waysPayout.Symbol)
 			}
 		}
@@ -328,7 +328,7 @@ func DetermineSpecialWins(symbolGrid [][]int, specialPayouts []Prize) Prize {
 
 		if count == specialPayout.Payout.Count {
 			specialPayout.SymbolPositions = GetSymbolPositions(symbolGrid, specialPayout.Payout.Symbol)
-			specialPayout.Winline = -1
+			//specialPayout.Winline = -1
 			return specialPayout
 		}
 	}
