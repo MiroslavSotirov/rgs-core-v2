@@ -137,7 +137,10 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 	}
 
 	level, stage := gamestate.Gamification.GetLevelAndStage()
+	for p:=0;p<len(gamestate.Prizes); p++{
+		gamestate.Prizes[p].Win = engine.NewFixedFromInt(gamestate.Prizes[p].Payout.Multiplier * gamestate.Prizes[p].Multiplier * gamestate.Multiplier).Mul(gamestate.BetPerLine.Amount)
 
+	}
 	return GameplayResponseV2{
 		SessionID:   balance.Token,
 		StateID:     gamestate.Id,
