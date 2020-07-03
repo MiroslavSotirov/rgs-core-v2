@@ -34,12 +34,6 @@ type GameLinkResponse struct {
 	Results []LinkResponse `json:"results"`
 }
 
-//type GameplayResponseV2 struct {
-//	Base BaseGameResponse `json:"base"`
-//	FreeSpin FreeGameResponse `json:"freeSpin"`
-//	Bonus PickGameResp `json:"bonusId"`
-//}
-
 type GameplayResponseV2 struct {
 	SessionID store.Token          `json:"host/verified-token"`
 	StateID   string              `json:"stateID"`
@@ -138,22 +132,11 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 	var respinPrices []engine.Fixed
 	ED, err := gamestate.EngineDef()
 	if err == nil && ED.RespinAllowed {
-		respinPrices, err = gamestate.RespinPrices(balance.Balance.Currency)
+		respinPrices, err = gamestate.RespinPrices()
 		if err != nil {respinPrices = nil}
 	}
 
-	remainingSpins := gamestate.Gamification.GetRemainingSpins()
 	level, stage := gamestate.Gamification.GetLevelAndStage()
-	stageUpSpins := gamestate.Gamification.GetSpinsToStageUp()
-	totalSpins := gamestate.Gamification.GetTotalSpins()
-	//
-
-	//		Level:          level,
-	//		Stage:          stage,
-	//		MaxLevel:       1000000,
-	//		RemainingSpins: remainingSpins,
-	//		SpinsToStageUp: stageUpSpins,
-	//		TotalSpins:     totalSpins,
 
 	return GameplayResponseV2{
 		SessionID:   balance.Token,
@@ -177,22 +160,23 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		Gamification: &GamificationRespV2{
 			Level:          level,
 			Stage:          stage,
-			RemainingSpins: remainingSpins,
-			SpinsToStageUp: stageUpSpins,
-			TotalSpins:     totalSpins,
+			RemainingSpins: gamestate.Gamification.GetRemainingSpins(),
+			SpinsToStageUp: gamestate.Gamification.GetSpinsToStageUp(),
+			TotalSpins:     gamestate.Gamification.GetTotalSpins(),
 		},
 		CascadePositions: cascadePositions,
 		RespinPrices: respinPrices,
 	}
 }
 
-func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance store.BalanceStore) GameInitResponseV2 {
-	var resp GameInitResponseV2
+func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance store.BalanceStore) (resp GameInitResponseV2) {
+
 	logger.Debugf("previousGamestate: %v; balance: %v; gameId: %v; auth: %v", previousGamestate, balance)
 
 	lastRound := make(map[string]GameplayResponseV2, 2)
 	lastRound[previousGamestate.Action] = fillGamestateResponseV2(previousGamestate, balance)
-	// if last round was not base round, get triggering round ( for now no api support for this, so show default round)
+
+	// if last round was not base round, get triggering round ( for now no dashur api support for this, so show default round)
 	if ! strings.Contains(previousGamestate.Action, "base") {
 		baseround := store.CreateInitGS(store.PlayerStore{PlayerId: balance.PlayerId, Balance:balance.Balance}, previousGamestate.Game)
 		lastRound["base"] = fillGamestateResponseV2(baseround, balance)
