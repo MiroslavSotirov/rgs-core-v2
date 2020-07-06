@@ -10,6 +10,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Constants
+
 // Datatypes
 type weightedMultiplier struct {
 	Multipliers   []int `yaml:"multipliers,flow"`

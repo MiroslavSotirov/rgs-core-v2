@@ -542,6 +542,9 @@ func Routes() *chi.Mux {
 			}
 			return
 		})
+		r.Get("/stakes", func(w http.ResponseWriter, r *http.Request) {
+			stakeInfo(r, w)
+		})
 
 	})
 

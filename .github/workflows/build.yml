@@ -37,12 +37,8 @@ jobs:
         id: install
       - name: Deploy Dev and Stg
         run: |
-          export BUILDVERSION=v$(cat /home/runner/work/rgs-core-v2/rgs-core-v2/version.txt)
           cd deployment/helm
-          sed -i "s/version.*/version: ${{ steps.tag.outputs.new_tag }}/" values-dev.yaml
-          sed -i "s/version.*/version: ${{ steps.tag.outputs.new_tag }}/" values-stg.yaml
-          sed -i "s/version.*/version: ${{ steps.tag.outputs.new_tag }}/" values-prd.yaml
-          sed -i "s/version.*/version: ${{ steps.tag.outputs.new_tag }}/" values-demo.yaml
+          sed -i "s/version.*/version: ${{ steps.tag.outputs.new_tag }}/" values-dev.yaml values-stg.yaml values-prd.yaml values-demo.yaml
           git clone "https://${{ secrets.BUILDER_TOKEN }}@github.com/mvk-tech/mvk-deploy-dev.git"
           helm template rgs-v2/ -f values-dev.yaml --output-dir mvk-deploy-dev/dev --name-template=rgs-v2
           helm template rgs-v2/ -f values-stg.yaml --output-dir mvk-deploy-dev/stg --name-template=rgs-v2
@@ -59,7 +55,8 @@ jobs:
           cd ..
           git clone "https://${{ secrets.BUILDER_TOKEN }}@github.com/mvk-tech/mvk-deploy-prd01.git"
           helm template rgs-v2/ -f values-prd.yaml --output-dir mvk-deploy-prd01/prd --name-template=rgs-v2
-          helm template rgs-v2/ -f values-demo.yaml --output-dir mvk-deploy-prd01/prd --name-template=rgs-demo
+          cp -R rgs-v2/ rgs-demo/
+          helm template rgs-demo/ -f values-demo.yaml --output-dir mvk-deploy-prd01/prd --name-template=rgs-demo
           cd mvk-deploy-prd01
           rm prd/rgs-v2/templates/forcetool.yaml
           git checkout -b feature/deploy-rgs-${{ steps.tag.outputs.new_tag }}

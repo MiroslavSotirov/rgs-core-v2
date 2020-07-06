@@ -11,15 +11,10 @@ import (
 // value of a reel respin is equal to the expected payout given other reels stay as they are
 
 
-func (gamestate Gamestate) RespinPrices(ccy string) (prices []Fixed, err rgse.RGSErr) {
-	// we want to hold RTP constant, so the price of a respin should be relative to the value of the respin and the RTP:
-	// value of respin / price to respin = RTP
-	// price to respin = value of respin / RTP
-
-	// prices are relative to betPerLine
-
+func (gamestate Gamestate) RespinPrices() (prices []Fixed, err rgse.RGSErr) {
+	// get the respin prices
 	for reelIndex := 0; reelIndex < len(gamestate.SymbolGrid); reelIndex++ {
-		prices = append(prices, RoundUpToNearestCCYUnit(Money{gamestate.RespinPriceReel(reelIndex), ccy}).Amount)
+		prices = append(prices, RoundUpToNearestCCYUnit(Money{gamestate.RespinPriceReel(reelIndex), gamestate.BetPerLine.Currency}).Amount)
 	}
 	return
 }
@@ -38,9 +33,8 @@ func (gamestate Gamestate) RespinPriceReel(reelIndex int) Fixed {
 
 // calculate expected value of a reel, given the other reels do not move
 func (gamestate Gamestate) ExpectedReelValue(reelIndex int) Fixed {
-	// NB ::: THIS DOES NOT IMNCLUDE GAMESTATE MULTIPLIERS i.e. RANDOM WHOLE ROUND MULTIPLIERS
-	// gamestate must already have SymbolGrid calculated
-	// get engine data
+	// NB ::: THIS DOES NOT INCLUDE GAMESTATE MULTIPLIERS i.e. RANDOM WHOLE ROUND MULTIPLIERS
+
 	logger.Debugf("Getting expected value of reel %v", reelIndex)
 	def, err := gamestate.EngineDef()
 	if err != nil {
@@ -49,15 +43,15 @@ func (gamestate Gamestate) ExpectedReelValue(reelIndex int) Fixed {
 	view := make([][]int, len(gamestate.SymbolGrid))
 	copy(view, gamestate.SymbolGrid)
 	reel := def.Reels[reelIndex]
-	reel = append(reel, reel[:def.ViewSize[reelIndex]]...)
+	viewSize := def.ViewSize[reelIndex]
+	reel = append(reel, reel[:viewSize]...)
 
 	var potentialWinValue Fixed
 
 	// iterate through reel positions for the given reel to determine payouts
-	for i := 0; i < len(reel)-def.ViewSize[reelIndex]; i++ {
+	for i := 0; i < len(reel)-viewSize; i++ {
 
-		view[reelIndex] = reel[i : i+def.ViewSize[reelIndex]]
-		logger.Debugf("Simulating result of view %v", view)
+		view[reelIndex] = reel[i : i+viewSize]
 		// calculate win
 		var wins []Prize
 
@@ -70,7 +64,6 @@ func (gamestate Gamestate) ExpectedReelValue(reelIndex int) Fixed {
 		for _, win := range wins {
 			// add win amount (multipliers are relative to betPerLine)
 			potentialWinValue += NewFixedFromInt(win.Payout.Multiplier).Mul(NewFixedFromInt(win.Multiplier))
-			logger.Debugf("added value %v for win %v for total of %v", NewFixedFromInt(win.Payout.Multiplier).Mul(NewFixedFromInt(win.Multiplier)), win.Index, potentialWinValue)
 		}
 		specialWin := DetermineSpecialWins(view, def.SpecialPayouts)
 
@@ -78,9 +71,8 @@ func (gamestate Gamestate) ExpectedReelValue(reelIndex int) Fixed {
 			// add prize value (multiplier is for total stake, multiply by bet multiplier
 			// total prize = totalstake * multiplier = betperline * stakedivisor * multiplier
 			potentialWinValue += NewFixedFromInt(specialWin.Payout.Multiplier).Mul(NewFixedFromInt(specialWin.Multiplier)).Mul(NewFixedFromInt(def.StakeDivisor))
-			logger.Debugf("non-null special prize detected %v, win value %v", specialWin, NewFixedFromInt(specialWin.Payout.Multiplier).Mul(NewFixedFromInt(specialWin.Multiplier)).Mul(NewFixedFromInt(def.StakeDivisor)))
+
 			// include estimated value of each round for the number of rounds that have been won
-			// todo: analyze how to make this work for engines with multiple matching defs
 			winInfo := strings.Split(specialWin.Index, ":")
 			engineConfig, err := gamestate.Engine()
 			if err != nil {
@@ -91,29 +83,28 @@ func (gamestate Gamestate) ExpectedReelValue(reelIndex int) Fixed {
 			if numRounds < 1 {
 				continue
 			}
-			specialDefID := engineConfig.DefIdByName(winInfo[0])
-			specialEngineDef := engineConfig.EngineDefs[specialDefID]
-			// expectedPayout is relative to the total stake, so multiply by the bet multiplier
-			singleRoundPayout := specialEngineDef.ExpectedPayout.Mul(NewFixedFromInt(specialEngineDef.StakeDivisor))
 			if cerr != nil {
 				logger.Errorf("Error in special win index: %v", specialWin.Index)
 				return 0
 			}
+
+			specialEngineDef := engineConfig.EngineDefs[engineConfig.DefIdByName(winInfo[0])]
+
+			// expectedPayout is relative to the total stake, so multiply by the bet multiplier
+			// (N.B. the ExpectedPayout field must be set on the first def for the overall expected payout for all matching defs)
+
+			singleRoundPayout := specialEngineDef.ExpectedPayout.Mul(NewFixedFromInt(specialEngineDef.StakeDivisor))
+
 			for j := 0; j < numRounds; j++ {
 				potentialWinValue += singleRoundPayout
-				logger.Debugf("Adding single round payout %v for total %v", singleRoundPayout, potentialWinValue)
 			}
 
 		}
 	}
-	logger.Debugf("potential total: %v", potentialWinValue)
-	logger.Debugf("length of reel %v", NewFixedFromInt(len(reel)-def.ViewSize[reelIndex]))
-	logger.Debugf("division result %v", potentialWinValue.Div(NewFixedFromInt(len(reel)-def.ViewSize[reelIndex])))
 
-	logger.Debugf("betperline %v", gamestate.BetPerLine.Amount)
-	logger.Debugf("result %v", potentialWinValue.Div(NewFixedFromInt(len(reel)-def.ViewSize[reelIndex])).Mul(gamestate.BetPerLine.Amount))
-
-	// calculate average for all reel positions, divide total reel potential payout by number of reel positions, multiply by bet per line and stakedivisor
-	return potentialWinValue.Div(NewFixedFromInt(len(reel)-def.ViewSize[reelIndex])).Mul(gamestate.BetPerLine.Amount)
+	// calculate average for all reel positions
+	// divide total reel potential payout by number of reel positions
+	// multiply by bet per line
+	return potentialWinValue.Div(NewFixedFromInt(len(reel)-viewSize)).Mul(gamestate.BetPerLine.Amount)
 }
 

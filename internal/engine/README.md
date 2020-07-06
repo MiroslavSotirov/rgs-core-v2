@@ -41,3 +41,8 @@ type GamestatePB struct {
 cd internal/engine
 protoc --go_out=. *.proto
 ```
+
+
+NB: WIN LINES
+-1 takes up a lot of space in a protobuf message, so for a gamestate with a lot of non-win-line lines, we set an arbitrary ID of 50 in the pb message because we currently have max winline 49 in our games.
+in the future we should think of a better way to handle this
