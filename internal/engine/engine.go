@@ -389,7 +389,7 @@ func determinePrimeAndFlopWins(symbolGrid [][]int, payouts []Payout, wilds []wil
 			logger.Debugf("got a match for win %v", payout)
 			// copy payout NB can only do because no reference fields in Payout
 			pfPayout := payout
-			return []Prize{{Payout: pfPayout, Index: strconv.Itoa(prime) + ":" + strconv.Itoa(numMatch), Multiplier: multiplier, Winline: -1, SymbolPositions: winLocations}}
+			return []Prize{{Payout: pfPayout, Index: strconv.Itoa(prime) + ":" + strconv.Itoa(numMatch), Multiplier: multiplier, Winline: 0, SymbolPositions: winLocations}}
 			// Only one win possible per line, earliest payout in payout dict takes precedence
 		}
 	}
