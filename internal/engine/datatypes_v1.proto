@@ -171,6 +171,7 @@ message GamestatePB {
   MUSEUM=43;
   BANGKOK_FIGHTER=44;
   ASUKA_X_SAMURAI=45;
+  SPARTA=46;
   }
   GameID game_id = 1;
   int32 engine_def = 2;
