@@ -174,7 +174,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 
 func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance store.BalanceStore) (resp GameInitResponseV2) {
 
-	logger.Debugf("previousGamestate: %v; balance: %v; gameId: %v; auth: %v", previousGamestate, balance)
+	logger.Debugf("previousGamestate: %v; balance: %v;", previousGamestate, balance)
 
 	lastRound := make(map[string]GameplayResponseV2, 2)
 	lastRound[previousGamestate.Action] = fillGamestateResponseV2(previousGamestate, balance)
