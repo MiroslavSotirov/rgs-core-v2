@@ -71,16 +71,16 @@ type (
 	}
 
 	GameStateStore struct {
-		GameState []byte
+		GameState            []byte
 		WalletInternalStatus int
 	}
 
 	BalanceStore struct {
-		PlayerId string
-		Token    Token
-		Mode     Mode
-		Balance  engine.Money
-		FreeGames           FreeGamesStore
+		PlayerId  string
+		Token     Token
+		Mode      Mode
+		Balance   engine.Money
+		FreeGames FreeGamesStore
 	}
 
 	TransactionStore struct {
@@ -147,7 +147,7 @@ type (
 		defaultLanguage string
 		demoTokenPrefix string
 		demoCurrency    string
-		logAccount		string
+		logAccount      string
 	}
 
 	// local service eq implemenation of service. so that unit test of services can be easily mocked.
@@ -164,9 +164,9 @@ type (
 	LocalServiceImpl struct{}
 
 	restMetadata struct {
-		ReqId          string `json:"req_id"`
-		ProcessingTime int    `json:"processing_time"`
-		VendorInfo      restVendorResponse `json:"vendor"`
+		ReqId          string             `json:"req_id"`
+		ProcessingTime int                `json:"processing_time"`
+		VendorInfo     restVendorResponse `json:"vendor"`
 	}
 
 	restAuthenticateRequest struct {
@@ -191,19 +191,19 @@ type (
 	}
 
 	restAuthenticateResponse struct {
-		Metadata        restMetadata      `json:"metadata"`
-		Token           string            `json:"token"`
-		ResponseCode    string            `json:"code"`
-		Message         string            `json:"message"`
-		Id              string            `json:"id"`
-		Username        string            `json:"username"`
-		BetLimit        string            `json:"bet_limit"`
-		FreeGames       restFreeGame      `json:"free_games"`
-		Balance         int64             `json:"balance"`
-		Currency        string            `json:"currency"`
+		Metadata     restMetadata `json:"metadata"`
+		Token        string       `json:"token"`
+		ResponseCode string       `json:"code"`
+		Message      string       `json:"message"`
+		Id           string       `json:"id"`
+		Username     string       `json:"username"`
+		BetLimit     string       `json:"bet_limit"`
+		FreeGames    restFreeGame `json:"free_games"`
+		Balance      int64        `json:"balance"`
+		Currency     string       `json:"currency"`
 		//LastGameState   string            `json:"last_game_state"`
-		PlayerMessage   restPlayerMessage `json:"player_message"`
-		Urls            map[string]string `json:"urls"`
+		PlayerMessage restPlayerMessage `json:"player_message"`
+		Urls          map[string]string `json:"urls"`
 		//LastGameStatus  int               `json:"last_game_status"`
 
 	}
@@ -288,24 +288,24 @@ type (
 	}
 
 	restTransactionRequest struct {
-		ReqId       string `json:"req_id"`
-		Token       string `json:"token"`
-		Game        string `json:"game"`
-		Platform    string `json:"platform"`
-		Mode        string `json:"mode"`
-		Session     string `json:"session"`
-		Currency    string `json:"currency"`
-		Amount      int64  `json:"amount"`
-		BonusAmount int64  `json:"bonus_amount"`
-		JpAmount    int64  `json:"jp_amount"`
-		Category    string `json:"category"`
-		CampaignRef string `json:"campaign_ref"`
-		CloseRound  bool   `json:"close_round"`
-		GameState   string `json:"game_state"`
-		Round       string `json:"round"`
-		TxRef       string `json:"tx_ref"`
-		Description string `json:"description"`
-		InternalStatus int `json:"internal_status"`
+		ReqId          string `json:"req_id"`
+		Token          string `json:"token"`
+		Game           string `json:"game"`
+		Platform       string `json:"platform"`
+		Mode           string `json:"mode"`
+		Session        string `json:"session"`
+		Currency       string `json:"currency"`
+		Amount         int64  `json:"amount"`
+		BonusAmount    int64  `json:"bonus_amount"`
+		JpAmount       int64  `json:"jp_amount"`
+		Category       string `json:"category"`
+		CampaignRef    string `json:"campaign_ref"`
+		CloseRound     bool   `json:"close_round"`
+		GameState      string `json:"game_state"`
+		Round          string `json:"round"`
+		TxRef          string `json:"tx_ref"`
+		Description    string `json:"description"`
+		InternalStatus int    `json:"internal_status"`
 	}
 
 	restTransactionResponse struct {
@@ -330,11 +330,11 @@ type (
 	}
 
 	restQueryResponse struct {
-		Metadata       restMetadata `json:"metadata"`
+		Metadata restMetadata `json:"metadata"`
 		//Token          string       `json:"token"`
-		ResponseCode   string       `json:"code"`
-		Message        string       `json:"message"`
-		ReqId          string       `json:"req_id"`
+		ResponseCode string `json:"code"`
+		Message      string `json:"message"`
+		ReqId        string `json:"req_id"`
 		//Game           string       `json:"game"`
 		//Platform       string       `json:"platform"`
 		//Mode           string       `json:"mode"`
@@ -350,10 +350,10 @@ type (
 		//Round          string       `json:"round"`
 		//TxRef          string       `json:"tx_ref"`
 		//Description    string       `json:"description"`
-		BetLimit       string       `json:"bet_limit"`
-		FreeGames      restFreeGame `json:"free_games"`
+		BetLimit  string       `json:"bet_limit"`
+		FreeGames restFreeGame `json:"free_games"`
 		//InternalStatus int          `json:"internal_status"`
-		LastTx         restTransactionRequest `json:"last_tx"`
+		LastTx restTransactionRequest `json:"last_tx"`
 	}
 )
 
@@ -418,34 +418,34 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 
 		if txExists && tx.GameState != nil && len(tx.GameState) > 0 {
 			player = PlayerStore{
-					PlayerId: player.PlayerId,
-					Token:    newToken,
-					Mode:     player.Mode,
-					Username: player.Username,
-					Balance: engine.Money{
-						Currency: player.Balance.Currency,
-						Amount:   player.Balance.Amount,
-					},
-					FreeGames:       FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
-					BetLimitSettingCode: player.BetLimitSettingCode,
-				}
+				PlayerId: player.PlayerId,
+				Token:    newToken,
+				Mode:     player.Mode,
+				Username: player.Username,
+				Balance: engine.Money{
+					Currency: player.Balance.Currency,
+					Amount:   player.Balance.Amount,
+				},
+				FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
+				BetLimitSettingCode: player.BetLimitSettingCode,
+			}
 			gs = GameStateStore{GameState: tx.GameState, WalletInternalStatus: 1}
 			return
 		} else {
 			// if in V1 api, this is likely an error, if player exists, there should be a previous gameplay unless init was called and never spun, which will throw an error
 			logger.Warnf("DEMO WALLET PLAYER EXISTS BUT NO PREVIOUS TX")
 			player = PlayerStore{
-					PlayerId: player.PlayerId,
-					Token:    newToken,
-					Mode:     player.Mode,
-					Username: player.Username,
-					Balance: engine.Money{
-						Currency: player.Balance.Currency,
-						Amount:   player.Balance.Amount,
-					},
-					FreeGames:       FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
-					BetLimitSettingCode: player.BetLimitSettingCode,
-				}
+				PlayerId: player.PlayerId,
+				Token:    newToken,
+				Mode:     player.Mode,
+				Username: player.Username,
+				Balance: engine.Money{
+					Currency: player.Balance.Currency,
+					Amount:   player.Balance.Amount,
+				},
+				FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
+				BetLimitSettingCode: player.BetLimitSettingCode,
+			}
 			return
 		}
 	} else {
@@ -592,12 +592,12 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 	}
 
 	return PlayerStore{
-			PlayerId: authResp.Id,
-			Token:    balance.Token,
-			Mode:     mode,
-			Username: authResp.Username,
-			Balance:  balance.Balance,
-			FreeGames:       balance.FreeGames,
+			PlayerId:            authResp.Id,
+			Token:               balance.Token,
+			Mode:                mode,
+			Username:            authResp.Username,
+			Balance:             balance.Balance,
+			FreeGames:           balance.FreeGames,
 			BetLimitSettingCode: authResp.BetLimit,
 		},
 		GameStateStore{GameState: gameState, WalletInternalStatus: lastTransaction.InternalStatus},
@@ -703,7 +703,7 @@ func (i *LocalServiceImpl) PlayerSave(token Token, mode Mode, player PlayerStore
 			Currency: player.Balance.Currency,
 			Amount:   player.Balance.Amount,
 		},
-		FreeGames:       FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
+		FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
 		BetLimitSettingCode: player.BetLimitSettingCode,
 	}, nil
 }
@@ -731,7 +731,7 @@ func (i *LocalServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore,
 			Currency: player.Balance.Currency,
 			Amount:   player.Balance.Amount,
 		},
-		FreeGames:       FreeGamesStore{0, ""},
+		FreeGames: FreeGamesStore{0, ""},
 	}, nil
 }
 
@@ -779,7 +779,7 @@ func (i *RemoteServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore
 			Currency: balResp.Currency,
 			Amount:   engine.Fixed(balResp.Balance * 10000),
 		},
-		FreeGames:       FreeGamesStore{balResp.FreeGames.NrGames, balResp.FreeGames.CampaignRef},
+		FreeGames: FreeGamesStore{balResp.FreeGames.NrGames, balResp.FreeGames.CampaignRef},
 	}, nil
 }
 
@@ -799,7 +799,7 @@ func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction Trans
 
 	if transaction.Category == CategoryWager {
 		// process free game
-		if transaction.FreeGames.CampaignRef != "" && player.FreeGames.CampaignRef == transaction.FreeGames.CampaignRef && player.FreeGames.NoOfFreeSpins > 0{
+		if transaction.FreeGames.CampaignRef != "" && player.FreeGames.CampaignRef == transaction.FreeGames.CampaignRef && player.FreeGames.NoOfFreeSpins > 0 {
 			player.FreeGames.NoOfFreeSpins -= 1
 			logger.Warnf("DEBITING FREE SPIN")
 		} else {
@@ -834,7 +834,7 @@ func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction Trans
 			Currency: player.Balance.Currency,
 			Amount:   player.Balance.Amount,
 		},
-		FreeGames:       FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
+		FreeGames: FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef},
 	}, nil
 }
 
@@ -909,7 +909,7 @@ func (i *RemoteServiceImpl) txSend(txRq restTransactionRequest) (BalanceStore, r
 			Currency: txResp.Currency,
 			Amount:   engine.Fixed(txResp.Balance * 10000),
 		},
-		FreeGames:       FreeGamesStore{txResp.FreeGames.NrGames, txResp.FreeGames.CampaignRef},
+		FreeGames: FreeGamesStore{txResp.FreeGames.NrGames, txResp.FreeGames.CampaignRef},
 	}, nil
 }
 
@@ -962,8 +962,8 @@ func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId st
 		TxTime:              transaction.TxTime,
 		GameState:           transaction.GameState,
 		BetLimitSettingCode: player.BetLimitSettingCode,
-		FreeGames:      player.FreeGames,
-		WalletStatus: 1,
+		FreeGames:           player.FreeGames,
+		WalletStatus:        1,
 	}, nil
 }
 
@@ -1004,9 +1004,9 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 	finalErr = i.errorResponseCode(queryResp.ResponseCode)
 	if finalErr != nil {
 
-			// special handling for err does not exists
+		// special handling for err does not exists
 		if queryResp.ResponseCode == ResponseCodeUnknownError && strings.Contains(queryResp.Message, "E-CODE: [004:1003]") {
-			return TransactionStore{},  rgse.Create(rgse.EntityNotFound)
+			return TransactionStore{}, rgse.Create(rgse.EntityNotFound)
 		} else {
 			return TransactionStore{}, finalErr
 		}
@@ -1044,7 +1044,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 	//	logger.Infof("%v request took %v for account %v", ApiTypeBalance, time.Now().Sub(start).String(), balResp.PlayerId)
 	//}
 	return TransactionStore{
-		TransactionId: lastTx.TxRef,
+		TransactionId:       lastTx.TxRef,
 		Token:               balance.Token, // the token returned in the queryResp is the token used to make the tx call, not a new token
 		Mode:                mode,
 		Category:            Category(lastTx.Category),
@@ -1062,7 +1062,6 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 	}, nil
 }
 
-
 func (i *RemoteServiceImpl) restQueryResponse(response *http.Response) restQueryResponse {
 	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
@@ -1070,7 +1069,6 @@ func (i *RemoteServiceImpl) restQueryResponse(response *http.Response) restQuery
 	json.Unmarshal(body, &data)
 	return data
 }
-
 
 func (i *RemoteServiceImpl) restGameStateResponse(response *http.Response) restGameStateResponse {
 	defer response.Body.Close()
@@ -1101,7 +1099,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 		ParentTransactionId: "",
 		TxTime:              time.Now(),
 		GameState:           gamestate,
-		FreeGames:     player.FreeGames,
+		FreeGames:           player.FreeGames,
 	})
 
 	if err != nil {
@@ -1160,7 +1158,7 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 		return BalanceStore{}, finalErr
 	}
 	if txResp.PlayerId == i.logAccount {
-			logger.Infof("%v request took %v for account %v", ApiTypeTransaction, time.Now().Sub(start).String(), txResp.PlayerId)
+		logger.Infof("%v request took %v for account %v", ApiTypeTransaction, time.Now().Sub(start).String(), txResp.PlayerId)
 	}
 	return BalanceStore{
 		PlayerId: txResp.PlayerId,
@@ -1339,7 +1337,7 @@ func New(c *config.Config) Service {
 		defaultPlatform: c.DefaultPlatform,
 		demoTokenPrefix: c.DemoTokenPrefix,
 		demoCurrency:    c.DemoCurrency,
-		logAccount:		 c.LogAccount,
+		logAccount:      c.LogAccount,
 	}
 }
 

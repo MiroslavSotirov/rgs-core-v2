@@ -11,8 +11,8 @@ import (
 
 // GameInitResponse reponse
 type GameInitResponseV2 struct {
-	Name        string                        `json:"name"`
-	Version     string                        `json:"version"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
 	//Balance     engine.Money                  `json:"balance"`
 	Wallet      string                        `json:"wallet"`
 	StakeValues []engine.Fixed                `json:"stakeValues"`
@@ -35,32 +35,33 @@ type GameLinkResponse struct {
 }
 
 type GameplayResponseV2 struct {
-	SessionID store.Token          `json:"host/verified-token"`
-	StateID   string              `json:"stateID"`
-	RoundID   string              `json:"roundID"`
-	ReelsetID int                 `json:"reelset"`
-	Stake     engine.Fixed        `json:"totalStake"`
-	Win       engine.Fixed
-	RoundWin    engine.Fixed `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
-	SpinWin     engine.Fixed   `json:"spinWin"` // total win only on this spin
-	FSRemaining *int               `json:"freeSpinsRemaining,omitempty"`
-	Balance     BalanceResponseV2 `json:"balance"`
-	View        [][]int           `json:"view"` // includes row above and below
-	Prizes      []engine.Prize    `json:"wins"` // []WinResponseV2
-	NextAction  string            `json:"nextAction"`
-	Closed      bool               `json:"closed"`
-	RoundMultiplier int            `json:"roundMultiplier"`
-	Gamification *GamificationRespV2 `json:"gamification,omitempty"`
-	CascadePositions []int         `json:"cascadePositions,omitempty"`
-	RespinPrices []engine.Fixed    `json:"respinPrices,omitempty"`
+	SessionID        store.Token  `json:"host/verified-token"`
+	StateID          string       `json:"stateID"`
+	RoundID          string       `json:"roundID"`
+	ReelsetID        int          `json:"reelset"`
+	Stake            engine.Fixed `json:"totalStake"`
+	Win              engine.Fixed
+	RoundWin         engine.Fixed        `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
+	SpinWin          engine.Fixed        `json:"spinWin"`                 // total win only on this spin
+	FSRemaining      *int                `json:"freeSpinsRemaining,omitempty"`
+	Balance          BalanceResponseV2   `json:"balance"`
+	View             [][]int             `json:"view"` // includes row above and below
+	Prizes           []engine.Prize      `json:"wins"` // []WinResponseV2
+	NextAction       string              `json:"nextAction"`
+	Closed           bool                `json:"closed"`
+	RoundMultiplier  int                 `json:"roundMultiplier"`
+	Gamification     *GamificationRespV2 `json:"gamification,omitempty"`
+	CascadePositions []int               `json:"cascadePositions,omitempty"`
+	RespinPrices     []engine.Fixed      `json:"respinPrices,omitempty"`
+	Choices			 []string			 `json:"choices,omitempty"`
 }
 
 type GamificationRespV2 struct {
-	Level int32 `json:"level"`
-	Stage int32 `json:"stage"`
+	Level          int32 `json:"level"`
+	Stage          int32 `json:"stage"`
 	RemainingSpins int32 `json:"remainingSpins"`
 	SpinsToStageUp int32 `json:"spinsToStageUp"`
-	TotalSpins int32 `json:"totalSpins"`
+	TotalSpins     int32 `json:"totalSpins"`
 }
 
 type BalanceResponseV2 struct {
@@ -69,10 +70,7 @@ type BalanceResponseV2 struct {
 }
 
 // todo: incorporate this into gameplay response
-//type ChoiceResponse struct {
-//	Position int `json:"position"`
-//	Value string	`json:"value"`
-//}
+
 //type PickGameResp struct {
 //	NumPicks int `json:"numPicks"`
 //	PickedItems []ChoiceResponse `json:"pickedItems"`
@@ -113,9 +111,9 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 	}
 	var fsRemaining *int
 	fsr := 0
-	for i:=0;i<len(gamestate.NextActions); i++ {
+	for i := 0; i < len(gamestate.NextActions); i++ {
 		if strings.Contains(gamestate.NextActions[i], "freespin") {
-			fsr ++
+			fsr++
 		}
 	}
 	fsRemaining = &fsr
@@ -133,11 +131,13 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 	ED, err := gamestate.EngineDef()
 	if err == nil && ED.RespinAllowed {
 		respinPrices, err = gamestate.RespinPrices()
-		if err != nil {respinPrices = nil}
+		if err != nil {
+			respinPrices = nil
+		}
 	}
 
 	level, stage := gamestate.Gamification.GetLevelAndStage()
-	for p:=0;p<len(gamestate.Prizes); p++{
+	for p := 0; p < len(gamestate.Prizes); p++ {
 		gamestate.Prizes[p].Win = engine.NewFixedFromInt(gamestate.Prizes[p].Payout.Multiplier * gamestate.Prizes[p].Multiplier * gamestate.Multiplier).Mul(gamestate.BetPerLine.Amount)
 
 	}
@@ -152,14 +152,14 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		SpinWin:     gamestate.SpinWin,
 		NextAction:  gamestate.NextActions[0],
 		FSRemaining: fsRemaining,
-		Balance:     BalanceResponseV2{
+		Balance: BalanceResponseV2{
 			Amount:    balance.Balance,
 			FreeGames: balance.FreeGames.NoOfFreeSpins,
 		},
-		View:        gamestate.SymbolGrid,
-		Prizes:      gamestate.Prizes,
+		View:            gamestate.SymbolGrid,
+		Prizes:          gamestate.Prizes,
 		RoundMultiplier: gamestate.Multiplier,
-		Closed:      gamestate.Closed,
+		Closed:          gamestate.Closed,
 		Gamification: &GamificationRespV2{
 			Level:          level,
 			Stage:          stage,
@@ -168,7 +168,8 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 			TotalSpins:     gamestate.Gamification.GetTotalSpins(),
 		},
 		CascadePositions: cascadePositions,
-		RespinPrices: respinPrices,
+		RespinPrices:     respinPrices,
+		Choices: 		  gamestate.GetChoices(),
 	}
 }
 
@@ -180,8 +181,8 @@ func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance st
 	lastRound[previousGamestate.Action] = fillGamestateResponseV2(previousGamestate, balance)
 
 	// if last round was not base round, get triggering round ( for now no dashur api support for this, so show default round)
-	if ! strings.Contains(previousGamestate.Action, "base") {
-		baseround := store.CreateInitGS(store.PlayerStore{PlayerId: balance.PlayerId, Balance:balance.Balance}, previousGamestate.Game)
+	if !strings.Contains(previousGamestate.Action, "base") {
+		baseround := store.CreateInitGS(store.PlayerStore{PlayerId: balance.PlayerId, Balance: balance.Balance}, previousGamestate.Game)
 		lastRound["base"] = fillGamestateResponseV2(baseround, balance)
 	}
 	resp.LastRound = lastRound

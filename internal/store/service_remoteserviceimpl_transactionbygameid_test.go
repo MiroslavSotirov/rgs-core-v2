@@ -70,7 +70,7 @@ func TestRemoteServiceImpl_TransactionByGameId_1(t *testing.T) {
 					NrGames:     0,
 				},
 				BetLimit: "",
-				LastTx:          lastTx,
+				LastTx:   lastTx,
 			}
 			b := new(bytes.Buffer)
 			json.NewEncoder(b).Encode(rs)

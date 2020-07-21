@@ -49,12 +49,11 @@ func PlayerBalance(r *http.Request) (BalanceCheckResponse, rgse.RGSErr) {
 	memID = strings.Trim(memID, "'")
 	logger.Debugf("MemID: %s", memID)
 
-
 	wallet := chi.URLParam(r, "wallet")
 
 	balance, err := store.PlayerBalance(memID, wallet)
 	if err != nil {
 		return BalanceCheckResponse{}, err
 	}
-	return BalanceCheckResponse{Token: balance.Token, BalanceResponseV2: BalanceResponseV2{Amount:balance.Balance, FreeGames:balance.FreeGames.NoOfFreeSpins}}, nil
+	return BalanceCheckResponse{Token: balance.Token, BalanceResponseV2: BalanceResponseV2{Amount: balance.Balance, FreeGames: balance.FreeGames.NoOfFreeSpins}}, nil
 }

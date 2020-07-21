@@ -4,10 +4,10 @@ package engine
 
 import (
 	"errors"
-	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"fmt"
 	uuid "github.com/satori/go.uuid"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"reflect"
@@ -129,7 +129,6 @@ func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payou
 	}
 	return lineWins
 }
-
 
 func determineBarLineWins(symbolGrid [][]int, winLines [][]int, payouts []Payout, bars []bar, wilds []wild) []Prize {
 	// assume no symbol is included in two bar types
@@ -276,7 +275,7 @@ func DetermineWaysWins(symbolGrid [][]int, waysPayouts []Payout, wilds []wild) [
 				winIndex := strconv.Itoa(waysPayout.Symbol) + ":" + strconv.Itoa(waysPayout.Count)
 				// copy waysPayout to avoid reference changing NB: we can only do this because no reference types in Payout struct
 				prizePayout := waysPayout
-				waysWins = append(waysWins, Prize{Payout: prizePayout, Index: winIndex, Multiplier: variation.multiplier, SymbolPositions: variation.symbolPositions})//, Winline: -1})
+				waysWins = append(waysWins, Prize{Payout: prizePayout, Index: winIndex, Multiplier: variation.multiplier, SymbolPositions: variation.symbolPositions}) //, Winline: -1})
 				matchedSymbols = append(matchedSymbols, waysPayout.Symbol)
 			}
 		}
@@ -343,16 +342,15 @@ func determinePrimeAndFlopWins(symbolGrid [][]int, payouts []Payout, wilds []wil
 		panic(errors.New("too many rows for this engine type or not enough columns"))
 	}
 
-
 	prime := symbolGrid[0][0]
 	multiplier := 1
 
-	for w:=0;w<len(wilds); w++ {
+	for w := 0; w < len(wilds); w++ {
 		if prime == wilds[w].Symbol {
 			logger.Debugf("prime is wild, choose highest-paying combo")
 			prime = symbolGrid[1][0]
-			for s:=2;s<len(symbolGrid);s++ {
-				if symbolGrid[s][0]>prime {
+			for s := 2; s < len(symbolGrid); s++ {
+				if symbolGrid[s][0] > prime {
 					prime = symbolGrid[s][0]
 				}
 			}
@@ -361,7 +359,7 @@ func determinePrimeAndFlopWins(symbolGrid [][]int, payouts []Payout, wilds []wil
 	logger.Debugf("prime is %v", prime)
 	numMatch := 1
 	winLocations := []int{0}
-	for i:=1; i<len(symbolGrid);i++ {
+	for i := 1; i < len(symbolGrid); i++ {
 		symbol := symbolGrid[i][0]
 		if symbol == prime {
 			numMatch++
@@ -369,10 +367,10 @@ func determinePrimeAndFlopWins(symbolGrid [][]int, payouts []Payout, wilds []wil
 			winLocations = append(winLocations, i)
 		} else {
 			// check if symbol is a wild
-			for w:=0; w<len(wilds); w++ {
+			for w := 0; w < len(wilds); w++ {
 				if wilds[w].Symbol == symbol {
 					// this is  a wild win
-					numMatch ++
+					numMatch++
 					logger.Debugf("got a wild win")
 					winLocations = append(winLocations, i)
 					mulW := SelectFromWeightedOptions(wilds[w].Multiplier.Multipliers, wilds[w].Multiplier.Probabilities)
@@ -400,7 +398,7 @@ func determinePrimeAndFlopWins(symbolGrid [][]int, payouts []Payout, wilds []wil
 func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parameters GameParams) (Gamestate, EngineConfig) {
 	logger.Debugf("Playing round with parameters: %#v", parameters)
 
-	engineConf, err  := previousGamestate.Engine()
+	engineConf, err := previousGamestate.Engine()
 	if err != nil {
 		return Gamestate{}, EngineConfig{}
 	}
@@ -602,7 +600,6 @@ func (engine EngineDef) DetermineWins(symbolGrid [][]int) ([]Prize, int) {
 	return wins, relativePayout
 }
 
-
 func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 	// the base gameplay round
 	// uses round multiplier if included
@@ -659,16 +656,16 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 		previousGrid := previousGamestate.SymbolGrid
 		remainingGrid := [][]int{}
 		//determine map of symbols to disappear
-		for i:=0; i< len(previousGamestate.Prizes); i++{
-			for j:=0; j<len(previousGamestate.Prizes[i].SymbolPositions);j++{
+		for i := 0; i < len(previousGamestate.Prizes); i++ {
+			for j := 0; j < len(previousGamestate.Prizes[i].SymbolPositions); j++ {
 				// to avoid having to assume symbol grid is regular:
 				col := 0
 				row := 0
 
-				for ii := 0; ii<previousGamestate.Prizes[i].SymbolPositions[j]; ii++ {
-					row ++
+				for ii := 0; ii < previousGamestate.Prizes[i].SymbolPositions[j]; ii++ {
+					row++
 					if row >= len(previousGamestate.SymbolGrid[col]) {
-						col ++
+						col++
 						row = 0
 					}
 				}
@@ -676,10 +673,10 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 			}
 		}
 
-		for i:=0; i< len(previousGrid); i++{
+		for i := 0; i < len(previousGrid); i++ {
 			remainingReel := []int{}
 			// remove winning symbols from the view
-			for j:=0; j<len(previousGrid[i]); j++ {
+			for j := 0; j < len(previousGrid[i]); j++ {
 				if previousGrid[i][j] >= 0 {
 					remainingReel = append(remainingReel, previousGrid[i][j])
 				}
@@ -690,11 +687,11 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 		// adjust reels in case need to cascade symbols from the end of the strip
 		adjustedReels := make([][]int, len(engine.Reels))
 
-		for i:=0; i<len(engine.Reels); i++ {
+		for i := 0; i < len(engine.Reels); i++ {
 			adjustedReels[i] = append(engine.Reels[i], engine.Reels[i][:engine.ViewSize[i]]...)
 		}
 		// return grid to full size by filling in empty spaces
-		for i:=0; i<len(engine.ViewSize); i++{
+		for i := 0; i < len(engine.ViewSize); i++ {
 			numToAdd := engine.ViewSize[i] - len(remainingGrid[i])
 			cascadePositions = append(cascadePositions, numToAdd)
 			stop := previousGamestate.StopList[i] - numToAdd
@@ -706,11 +703,9 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 			stopList[i] = stop
 		}
 
-
 	} else {
 		symbolGrid, stopList = engine.Spin()
 	}
-
 
 	// calculate wins
 	wins, relativePayout := engine.DetermineWins(symbolGrid)
@@ -733,7 +728,7 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 		}
 	}
 	if cascade {
-		nextActions = append([]string{"cascade",}, nextActions...)
+		nextActions = append([]string{"cascade"}, nextActions...)
 	}
 
 	// get first Multiplier
@@ -777,7 +772,7 @@ func (engine EngineDef) CascadeMultiply(parameters GameParams) Gamestate {
 
 func getIndex(a int, s []int) int {
 	// gets the first index of appearance of value a in slice s
-	for i:=0; i<len(s); i++ {
+	for i := 0; i < len(s); i++ {
 		if a == s[i] {
 			return i
 		}
@@ -787,7 +782,7 @@ func getIndex(a int, s []int) int {
 
 func minInt(a int, b int) int {
 	// returns the minimum of two integers
-	if a>b {
+	if a > b {
 		return b
 	}
 	return a
@@ -854,7 +849,6 @@ func (engine EngineDef) Respin(parameters GameParams) Gamestate {
 	return gamestate
 }
 
-
 func (engine EngineDef) ShuffleFlop(parameters GameParams) Gamestate {
 
 	return engine.ShuffleBase(parameters, "flop")
@@ -867,6 +861,7 @@ func (engine EngineDef) ShufflePrime(parameters GameParams) Gamestate {
 func (engine EngineDef) Shuffle(parameters GameParams) Gamestate {
 	return engine.ShuffleBase(parameters, "")
 }
+
 // Shuffle is similar to respin but no wager is charged
 func (engine EngineDef) ShuffleBase(parameters GameParams, shuffleID string) Gamestate {
 	// shuffle action should include information about which reels to shuffle
@@ -875,11 +870,11 @@ func (engine EngineDef) ShuffleBase(parameters GameParams, shuffleID string) Gam
 	case "prime":
 		shuffleReels = append(shuffleReels, 0)
 	case "flop":
-		for i:=1; i<len(engine.ViewSize); i++ {
+		for i := 1; i < len(engine.ViewSize); i++ {
 			shuffleReels = append(shuffleReels, i)
 		}
 	default:
-		for i:=0; i<len(engine.ViewSize); i++ {
+		for i := 0; i < len(engine.ViewSize); i++ {
 			shuffleReels = append(shuffleReels, i)
 		}
 	}
@@ -889,7 +884,7 @@ func (engine EngineDef) ShuffleBase(parameters GameParams, shuffleID string) Gam
 	stopList := previousGamestate.StopList
 	logger.Debugf("previous reels : %v", symbolGrid)
 
-	for i:=0; i<len(shuffleReels); i++ {
+	for i := 0; i < len(shuffleReels); i++ {
 		newSymbols, newStopValue := EngineDef{Reels: [][]int{engine.Reels[shuffleReels[i]]}, ViewSize: []int{engine.ViewSize[shuffleReels[i]]}}.Spin()
 		symbolGrid[shuffleReels[i]] = newSymbols[0]
 		stopList[shuffleReels[i]] = newStopValue[0]
@@ -908,7 +903,6 @@ func (engine EngineDef) ShuffleBase(parameters GameParams, shuffleID string) Gam
 		relativePayout += addlPayout
 		wins = append(wins, specialWin)
 	}
-
 
 	// Build gamestate
 	gamestate := Gamestate{DefID: engine.Index, Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: 1, StopList: stopList, NextActions: nextActions}
@@ -941,7 +935,6 @@ func (engine EngineDef) CalculatePayoutSpecialWin(specialWin Prize) (int, []stri
 
 	return relativePayout, nextActions
 }
-
 
 func (engine EngineDef) MaxWildRound(parameters GameParams) Gamestate {
 	// this function takes the highest-level wild of the engine present on the view for that spin and replaces all other in-view wilds with that value
@@ -1055,7 +1048,7 @@ func (engine EngineDef) DynamicWildWaysRound(parameters GameParams) Gamestate {
 func (engine *EngineDef) ProcessWinLines(selectedWinLines []int) (wl []int) {
 	logger.Debugf("engine: %v", engine)
 	if len(selectedWinLines) == 0 || len(engine.WinLines) == 0 {
-		for i:=0; i<len(engine.WinLines); i++ {
+		for i := 0; i < len(engine.WinLines); i++ {
 			wl = append(wl, i)
 		}
 		if engine.StakeDivisor == 0 {

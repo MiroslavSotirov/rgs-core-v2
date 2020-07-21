@@ -30,10 +30,10 @@ func getGameLink(request *http.Request) GameLinkResponse {
 }
 
 type initParams struct {
-	Game string `json:"game"`
+	Game     string `json:"game"`
 	Operator string `json:"operator"`
-	Mode string `json:"mode"`
-	Ccy string `json:"currency"`
+	Mode     string `json:"mode"`
+	Ccy      string `json:"currency"`
 }
 
 func (i *initParams) decode(request *http.Request) rgse.RGSErr {
@@ -43,7 +43,7 @@ func (i *initParams) decode(request *http.Request) rgse.RGSErr {
 	if decoderror != nil {
 		return rgse.Create(rgse.JsonError)
 	}
-	return  nil
+	return nil
 }
 
 func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
@@ -145,7 +145,7 @@ func playV2(request *http.Request) (GameplayResponseV2, rgse.RGSErr) {
 		return GameplayResponseV2{}, rgse.Create(rgse.UnexpectedWalletStatus)
 	}
 
- 	return getRoundResults(data, previousGamestate, txStore)
+	return getRoundResults(data, previousGamestate, txStore)
 }
 
 func handleAuth(r *http.Request) (token store.Token, err rgse.RGSErr) {
@@ -197,17 +197,16 @@ func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV
 	txStoreInit := store.TransactionStore{
 		RoundStatus:         store.RoundStatusClose,
 		BetLimitSettingCode: player.BetLimitSettingCode,
-		PlayerId: player.PlayerId,
-		FreeGames: player.FreeGames,
-		Token: player.Token,
-		Amount: engine.Money{0, player.Balance.Currency},
+		PlayerId:            player.PlayerId,
+		FreeGames:           player.FreeGames,
+		Token:               player.Token,
+		Amount:              engine.Money{0, player.Balance.Currency},
 	}
 
 	// don't need to worry about the wallet status as the GS ID is randomly generated on reload
 
 	return getRoundResults(data, initGS, txStoreInit)
 }
-
 
 func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate, txStore store.TransactionStore) (gameplay GameplayResponseV2, err rgse.RGSErr) {
 	if txStore.Amount.Currency == "" {
@@ -227,7 +226,7 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 			gamestate = forcedGamestate
 		} else {
 			// continue play, assume no force was stored
-			logger.Debugf("Error retrieving force for player %v: %v" , txStore.PlayerId, err.Error())
+			logger.Debugf("Error retrieving force for player %v: %v", txStore.PlayerId, err.Error())
 		}
 	}
 
@@ -256,7 +255,7 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 			TxTime:              time.Now(),
 			GameState:           gs,
 			BetLimitSettingCode: txStore.BetLimitSettingCode,
-			FreeGames: 			 store.FreeGamesStore{NoOfFreeSpins:0, CampaignRef:freeGameRef},
+			FreeGames:           store.FreeGamesStore{NoOfFreeSpins: 0, CampaignRef: freeGameRef},
 		}
 		switch data.Wallet {
 		case "demo":
@@ -283,6 +282,7 @@ type CloseRoundParams struct {
 	Wallet  string `json:"wallet"`
 	RoundID string `json:"round"`
 }
+
 func (i *CloseRoundParams) decode(request *http.Request) rgse.RGSErr {
 	decoder := json.NewDecoder(request.Body)
 	decoderror := decoder.Decode(i)
@@ -290,7 +290,7 @@ func (i *CloseRoundParams) decode(request *http.Request) rgse.RGSErr {
 	if decoderror != nil {
 		return rgse.Create(rgse.JsonError)
 	}
-	return  nil
+	return nil
 }
 
 func CloseGS(r *http.Request) (err rgse.RGSErr) {
@@ -299,7 +299,7 @@ func CloseGS(r *http.Request) (err rgse.RGSErr) {
 		return autherr
 	}
 	var data CloseRoundParams
-	if err := data.decode(r); err!= nil{
+	if err := data.decode(r); err != nil {
 		return err
 	}
 

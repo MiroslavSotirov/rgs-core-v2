@@ -1,15 +1,14 @@
 package engine
 
 import (
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"strconv"
 	"strings"
 )
 
 // Calculate price of reel respin
 // value of a reel respin is equal to the expected payout given other reels stay as they are
-
 
 func (gamestate Gamestate) RespinPrices() (prices []Fixed, err rgse.RGSErr) {
 	// get the respin prices
@@ -29,7 +28,6 @@ func (gamestate Gamestate) RespinPriceReel(reelIndex int) Fixed {
 	}
 	return gamestate.ExpectedReelValue(reelIndex).Div(NewFixedFromFloat(EC.RTP))
 }
-
 
 // calculate expected value of a reel, given the other reels do not move
 func (gamestate Gamestate) ExpectedReelValue(reelIndex int) Fixed {
@@ -105,6 +103,5 @@ func (gamestate Gamestate) ExpectedReelValue(reelIndex int) Fixed {
 	// calculate average for all reel positions
 	// divide total reel potential payout by number of reel positions
 	// multiply by bet per line
-	return potentialWinValue.Div(NewFixedFromInt(len(reel)-viewSize)).Mul(gamestate.BetPerLine.Amount)
+	return potentialWinValue.Div(NewFixedFromInt(len(reel) - viewSize)).Mul(gamestate.BetPerLine.Amount)
 }
-

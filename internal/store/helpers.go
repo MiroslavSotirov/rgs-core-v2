@@ -74,7 +74,6 @@ func DeserializeGamestateFromBytes(serialized []byte) engine.Gamestate {
 	return gs
 }
 
-
 func DeserializeGamestateFromBytesLegacy(serialized []byte) engine.Gamestate {
 	// turns serialized session information into session struct
 	var deserializedGS engine.GamestatePB

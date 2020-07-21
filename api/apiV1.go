@@ -54,7 +54,7 @@ func fixCorruptedGS(gamestate engine.Gamestate, player store.PlayerStore, reques
 		// check if there are multiple types of prize
 		corrupted := false
 		action := gamestate.NextActions[0]
-		for i:=1; i < len(gamestate.NextActions); i++ {
+		for i := 1; i < len(gamestate.NextActions); i++ {
 			if gamestate.NextActions[i] != action && gamestate.NextActions[i] != "finish" {
 				corrupted = true
 				break
@@ -117,6 +117,7 @@ func validateParams(data engine.GameParams) engine.GameParams {
 	}
 	return data
 }
+
 // Play function for engines
 // todo: deprecate this once v1 api is no longer used
 func getInitPlayValues(request *http.Request, clientID string, memID string, gameSlug string) (txStore store.TransactionStore, previousGamestate engine.Gamestate) {
@@ -126,7 +127,7 @@ func getInitPlayValues(request *http.Request, clientID string, memID string, gam
 	ccy := request.FormValue("ccy")
 	playerID := request.FormValue("playerId")
 
-	previousGamestate = store.CreateInitGS(store.PlayerStore{PlayerId:playerID, Balance:engine.Money{0,ccy}}, gameSlug)
+	previousGamestate = store.CreateInitGS(store.PlayerStore{PlayerId: playerID, Balance: engine.Money{0, ccy}}, gameSlug)
 	previousGamestate.Id = clientID
 	txStore.RoundStatus = store.RoundStatusClose
 	txStore.Token = store.Token(memID)
@@ -250,7 +251,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 		sentry.CaptureMessage("Fixing engine III corruption")
 		action := previousGamestate.NextActions[0]
 		var nextActions []string
-		for i:=1; i<len(previousGamestate.NextActions); i++ {
+		for i := 1; i < len(previousGamestate.NextActions); i++ {
 			if previousGamestate.NextActions[i] != action {
 				nextActions = append(nextActions, previousGamestate.NextActions[i])
 			}
@@ -329,7 +330,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 			TxTime:              time.Now(),
 			GameState:           gs,
 			BetLimitSettingCode: txStore.BetLimitSettingCode,
-			FreeGames: 			 store.FreeGamesStore{NoOfFreeSpins:0, CampaignRef:freeGameRef},
+			FreeGames:           store.FreeGamesStore{NoOfFreeSpins: 0, CampaignRef: freeGameRef},
 		}
 		switch wallet {
 		case "demo":
@@ -350,8 +351,8 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 	player := store.PlayerStore{Token: token, PlayerId: txStore.PlayerId, Balance: balance.Balance}
 
 	balanceResponse := BalanceResponse{
-		Amount:   balance.Balance.Amount,
-		Currency: balance.Balance.Currency,
+		Amount:    balance.Balance.Amount,
+		Currency:  balance.Balance.Currency,
 		FreeGames: balance.FreeGames.NoOfFreeSpins,
 	}
 

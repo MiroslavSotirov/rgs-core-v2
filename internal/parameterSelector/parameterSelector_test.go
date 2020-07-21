@@ -16,7 +16,7 @@ func TestLowLastBet(t *testing.T) {
 	if ds == engine.Fixed(0) {
 		t.Error(fmt.Sprintf("Expected last bet to be overridden by default. defaultStake: %v", ds))
 	}
-	_, ds, _ = GetGameplayParameters(engine.Money{engine.Fixed(10000),testCcy}, testBetLimitCode, testGameID)
+	_, ds, _ = GetGameplayParameters(engine.Money{engine.Fixed(10000), testCcy}, testBetLimitCode, testGameID)
 	if ds != engine.Fixed(10000) {
 		t.Error(fmt.Sprintf("Expected last bet to be maintained. defaultStake: %v", ds))
 	}

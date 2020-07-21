@@ -6,7 +6,7 @@ import (
 )
 
 type BalanceCheckResponse struct {
-	Token     store.Token  `json:"host/verified-token,omitempty"`
+	Token store.Token `json:"host/verified-token,omitempty"`
 	BalanceResponseV2
 }
 

@@ -79,8 +79,8 @@ func Routes() *chi.Mux {
 				previousGamestate = store.CreateInitGS(player, gameSlug)
 			}
 			balanceResponse := BalanceResponse{
-				Currency: player.Balance.Currency,
-				Amount:   player.Balance.Amount,
+				Currency:  player.Balance.Currency,
+				Amount:    player.Balance.Amount,
 				FreeGames: player.FreeGames.NoOfFreeSpins,
 			}
 			logger.Debugf("previous Gamestate: %#v", previousGamestate)
@@ -374,7 +374,7 @@ func Routes() *chi.Mux {
 			fmt.Fprint(w, []byte("OK"))
 		})
 
-		r.Get("/force", func(w http.ResponseWriter, r *http.Request){
+		r.Get("/force", func(w http.ResponseWriter, r *http.Request) {
 			if config.GlobalConfig.DevMode == true {
 				listForceTools(r, w)
 			}
@@ -392,9 +392,9 @@ func Routes() *chi.Mux {
 			if param.PlayerID == "" {
 				e = errors.New("missing field: player ID")
 			} else if param.GameSlug == "" {
-					e =  errors.New("missing field: game name")
+				e = errors.New("missing field: game name")
 			} else if param.ForceID == "" {
-				e =  errors.New("missing field: force ID")
+				e = errors.New("missing field: force ID")
 			}
 			if e != nil {
 				w.WriteHeader(400)
@@ -403,7 +403,7 @@ func Routes() *chi.Mux {
 			}
 			if err := forceTool.SetForce(param.GameSlug, param.ForceID, param.PlayerID); err != nil {
 				w.WriteHeader(400)
-				logger.Infof("Force Tool Active : %v, %v %v", param.PlayerID, param.GameSlug, param.ForceID )
+				logger.Infof("Force Tool Active : %v, %v %v", param.PlayerID, param.GameSlug, param.ForceID)
 				fmt.Fprint(w, err.Error())
 				return
 			} else {
@@ -491,7 +491,7 @@ func Routes() *chi.Mux {
 			if param.PlayerID == "" {
 				e = errors.New("missing field: player ID")
 			} else if param.GameSlug == "" {
-				e =  errors.New("missing field: game name")
+				e = errors.New("missing field: game name")
 			}
 			if e != nil {
 				w.WriteHeader(400)
@@ -522,7 +522,7 @@ func Routes() *chi.Mux {
 		r.Get("/playcheck/{gameplayID:[A-Za-z0-9-:]+}", func(w http.ResponseWriter, r *http.Request) {
 			playcheck(r, w)
 		})
-		r.Get("/balance/{wallet:[A-Za-z0-9-]+}",  func(w http.ResponseWriter, r *http.Request) {
+		r.Get("/balance/{wallet:[A-Za-z0-9-]+}", func(w http.ResponseWriter, r *http.Request) {
 			balResp, err := PlayerBalance(r)
 			if err != nil {
 				logger.Errorf("Error getting balance %s", err.Error())

@@ -46,14 +46,13 @@ type EngineDef struct {
 	Bars           []bar              `yaml:"bars"`
 	Multiplier     weightedMultiplier `yaml:"multiplier"`
 	StakeDivisor   int                `yaml:"StakeDivisor"`
-	Probability    int                `yaml:"Probability"`    // the probability of this engine being selected if it shares id with other engines
-	ExpectedPayout Fixed              `yaml:"expectedPayout"` // the expected payout of one round of this engineDef
-	RTP            float32            `yaml:"RTP"`            // the expected payout of one round of this engineDef
-	RespinAllowed  bool               `yaml:"respin"`         // must be explicitly enabled on each def
+	Probability    int                `yaml:"Probability"`      // the probability of this engine being selected if it shares id with other engines
+	ExpectedPayout Fixed              `yaml:"expectedPayout"`   // the expected payout of one round of this engineDef
+	RTP            float32            `yaml:"RTP"`              // the expected payout of one round of this engineDef
+	RespinAllowed  bool               `yaml:"respin"`           // must be explicitly enabled on each def
 	VariableWL     bool               `yaml:"variableWinLines"` // will be false by default
 	force          []int              // may not be set via yaml
 }
-
 
 func (engine *EngineDef) SetForce(force []int) (err rgserror.RGSErr) {
 	if config.GlobalConfig.DevMode == true {
@@ -139,16 +138,16 @@ type Prize struct {
 
 type Gamestate struct {
 	// internal representation of GamestatePB
-	Id                string              `json:"id,omitempty"`
-	Game              string              `json:"engine,omitempty"`
-	DefID             int                 `json:"reelset,omitempty"`
-	BetPerLine        Money               `json:"bet_per_line,omitempty"`
-	Transactions      []WalletTransaction `json:"transactions,omitempty"`
-	PreviousGamestate string              `json:"previous_gamestate,omitempty"`
-	NextGamestate     string              `json:"next_gamestate,omitempty"`
-	Action            string              `json:"action,omitempty"`
-	SymbolGrid        [][]int             `json:"symbol_grid,omitempty"`
-	RecoveryGrid      [][]int             `json:"recovery_grid,omitempty"`
+	Id                string                    `json:"id,omitempty"`
+	Game              string                    `json:"engine,omitempty"`
+	DefID             int                       `json:"reelset,omitempty"`
+	BetPerLine        Money                     `json:"bet_per_line,omitempty"`
+	Transactions      []WalletTransaction       `json:"transactions,omitempty"`
+	PreviousGamestate string                    `json:"previous_gamestate,omitempty"`
+	NextGamestate     string                    `json:"next_gamestate,omitempty"`
+	Action            string                    `json:"action,omitempty"`
+	SymbolGrid        [][]int                   `json:"symbol_grid,omitempty"`
+	RecoveryGrid      [][]int                   `json:"recovery_grid,omitempty"`
 	Prizes            []Prize                   `json:"prizes,omitempty"`
 	SelectedWinLines  []int                     `json:"selected_win_lines,omitempty"`
 	RelativePayout    int                       `json:"relative_payout,omitempty"`
@@ -156,11 +155,11 @@ type Gamestate struct {
 	StopList          []int                     `json:"stop_list,omitempty"`
 	NextActions       []string                  `json:"next_actions,omitempty"`
 	Gamification      *GamestatePB_Gamification `json:"gamification,omitempty"`
-	CumulativeWin     Fixed               `json:"cumulative_win,omitempty"`
-	SpinWin           Fixed               `json:"spin_win,omitempty"`
-	PlaySequence      int                 `json:"play_sequence,omitempty"`
-	Closed            bool                `json:"closed"`
-	RoundID           string              `json:"round_id"`
+	CumulativeWin     Fixed                     `json:"cumulative_win,omitempty"`
+	SpinWin           Fixed                     `json:"spin_win,omitempty"`
+	PlaySequence      int                       `json:"play_sequence,omitempty"`
+	Closed            bool                      `json:"closed"`
+	RoundID           string                    `json:"round_id"`
 }
 
 func (gamestate Gamestate) Engine() (engine EngineConfig, err rgserror.RGSErr) {
@@ -176,7 +175,9 @@ func (gamestate Gamestate) Engine() (engine EngineConfig, err rgserror.RGSErr) {
 
 func (gamestate Gamestate) EngineDef() (engineDef EngineDef, err rgserror.RGSErr) {
 	EC, err := gamestate.Engine()
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 	if gamestate.DefID > len(EC.EngineDefs) {
 		err = rgserror.Create(rgserror.BadConfigError)
 		return
@@ -364,7 +365,6 @@ func (gamestatePB GamestatePB) Convert() Gamestate {
 	}
 }
 
-
 func (gamestatePB GamestatePB) ConvertLegacy(transactions []*WalletTransactionPB) Gamestate {
 	nextActions := make([]string, len(gamestatePB.NextActions))
 	for i, action := range gamestatePB.NextActions {
@@ -404,7 +404,7 @@ func GetEngineDefFromGame(gameID string) (EngineConfig, rgserror.RGSErr) {
 	return BuildEngineDefs(engineID), nil
 }
 
-func (gamestate Gamestate) Convert() (GamestatePB) {
+func (gamestate Gamestate) Convert() GamestatePB {
 	nextActions := make([]GamestatePB_Action, len(gamestate.NextActions))
 	for i, action := range gamestate.NextActions {
 		nextActions[i] = GamestatePB_Action(GamestatePB_Action_value[action])
