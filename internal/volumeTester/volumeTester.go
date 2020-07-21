@@ -16,23 +16,22 @@ import (
 	"time"
 )
 
-
 type defInfo struct {
-	totalWin    engine.Fixed
-	totalPlays  int
-	prizes      map[string]*prizeInfo
-	maxWin      engine.Fixed
+	totalWin   engine.Fixed
+	totalPlays int
+	prizes     map[string]*prizeInfo
+	maxWin     engine.Fixed
 }
 
 type prizeInfo struct {
 	totalWin int
-	hits int
-	maxWin int
+	hits     int
+	maxWin   int
 }
 
 func (d *defInfo) addPlay(win engine.Fixed) bool {
 	d.totalWin += win
-	d.totalPlays ++
+	d.totalPlays++
 	if win > d.maxWin {
 		d.maxWin = win
 		return true
@@ -45,7 +44,7 @@ func (d *defInfo) addWins(p []engine.Prize, mul int) {
 		d.prizes = make(map[string]*prizeInfo)
 	}
 
-	for i:=0; i<len(p); i++ {
+	for i := 0; i < len(p); i++ {
 		if d.prizes[p[i].Index] == nil {
 			d.prizes[p[i].Index] = &prizeInfo{}
 		}
@@ -55,7 +54,7 @@ func (d *defInfo) addWins(p []engine.Prize, mul int) {
 }
 
 func (p *prizeInfo) addWin(win int) {
-	p.hits ++
+	p.hits++
 	p.totalWin += win
 	if win > p.maxWin {
 		p.maxWin = win
@@ -69,7 +68,6 @@ func GetMaxes(engineID string) {
 	engine.GetMaxWin(engineConf)
 	logger.Infof("took %v", time.Now().Sub(refTime))
 }
-
 
 func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) ([]string, bool) {
 	refTime := time.Now()
@@ -94,7 +92,7 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 		numPlays = engineConf.NumSpinsStat()
 	}
 
-	s2 := variance{xBar: float64(engineConf.RTP), betMult:float64(engineConf.EngineDefs[0].StakeDivisor)}
+	s2 := variance{xBar: float64(engineConf.RTP), betMult: float64(engineConf.EngineDefs[0].StakeDivisor)}
 
 	logger.Infof("Running %v spins for engine %v", numPlays, engineID)
 
@@ -104,6 +102,8 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 	initString := fmt.Sprintf("Running %v spins in %v chunks for %v \n Expected RTP: %v \n Volatility: %v\n", numPlays, chunks, engineID, engineConf.RTP, engineConf.Volatility)
 	vtInfo := []string{initString, "Chunk || RTP || RTP Feature || RTP base \n"}
 	featureWin := engine.Fixed(0)
+	respinWin := engine.Fixed(0)
+	respinBet := engine.Fixed(0)
 
 	ctCascades := 0
 	previousGamestate := engine.Gamestate{NextActions: []string{"finish"}, Game: getMatchingGame(engineID), DefID: 0, NextGamestate: "FirstSpinVT" + engineID}
@@ -111,7 +111,14 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 
 		for j := 0; j < chunkSize; j++ {
 			var params engine.GameParams
-			params.Action = "base" // change this to maxBase or to any other special function for a particular wallet to see special RTP
+			if previousGamestate.Action == "freespin" || (j == 0 && i == 0) {
+				params.Action = "base" // change this to maxBase or to any other special function for a particular wallet to see special RTP
+			} else {
+				params.Action = "respin"
+				params.RespinReel = rng.RandFromRange(5)
+				logger.Warnf("Need to uncomment the next line and the SetPG function for this to work for respin engine")
+				//params.SetPG(previousGamestate)
+			}
 			if previousGamestate.NextActions[0] == "cascade" {
 				params.Action = "cascade"
 			}
@@ -120,7 +127,7 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 				params.Selection = []string{"freespin25:25", "freespin10:10", "freespin5:5"}[engine.SelectFromWeightedOptions([]int{0, 1, 2}, []int{1, 1, 1})]
 				// we do not add any selected win lines, always assume all lines. NB: ENGINE X has variable RTP based on selected win lines
 			}
-			gamestate, _ := engine.Play(previousGamestate, engine.Fixed(1), "BTC", params)
+			gamestate, _ := engine.Play(previousGamestate, engine.Fixed(1000), "BTC", params)
 			currentWinnings, currentStake := engine.GetCurrentWinAndStake(gamestate)
 
 			totalWin += currentWinnings
@@ -138,8 +145,14 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 			infoStructs[defID].addWins(gamestate.Prizes, gamestate.Multiplier)
 
 			if gamestate.Action != "base" {
-				if gamestate.Action == "cascade" {ctCascades++}
+				if gamestate.Action == "cascade" {
+					ctCascades++
+				}
 				featureWin = featureWin.Add(currentWinnings)
+				if gamestate.Action == "respin" {
+					respinBet += currentStake
+					respinWin += currentWinnings
+				}
 			}
 			if perSpin == true {
 				err := writer.Write([]string{fmt.Sprintf("%v,%v,%v,%v,%v,%v", defID, gamestate.Action, time.Now().Format("02 Jan 06 15:04 MST"), currentStake, currentWinnings, gamestate.StopList)})
@@ -166,6 +179,7 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 		RTP := totalWin.Div(totalBet)
 		RTPBase := totalWin.Sub(featureWin).Div(totalBet)
 		RTPFeature := featureWin.Div(totalBet)
+		RTPRespin := respinWin.Div(respinBet)
 		// fsPct := float64(fsTriggers) / (float64(chunkSize) * float64(i+1))
 		ftInfo := ""
 		//logger.Infof("avg feature multiplier: %v%%", float64(featureMultiplier)/float64(ftTriggers[1]["rounds"])*100)
@@ -193,10 +207,12 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 			logger.Infof(chunkInfo)
 		} else {
 			failed = false
-			if i == chunks - 1 {
+			if i == chunks-1 {
 				logger.Infof(chunkInfo)
 			}
 		}
+		logger.Warnf("Respin RTP: %v", RTPRespin.ValueAsFloat()*100)
+
 		//logger.Warnf("%v cascades total", ctCascades)
 		logger.Infof("Chunk %v done in %v", i+1, time.Now().Sub(refTime))
 		refTime = time.Now()
@@ -215,24 +231,23 @@ func getMatchingGame(engineID string) string {
 }
 
 type variance struct {
-	xBar float64
+	xBar    float64
 	sumDist float64
-	n int
+	n       int
 	betMult float64
 }
 
-
 func (v *variance) addSample(val float64) {
-	val = val/v.betMult
+	val = val / v.betMult
 	v.sumDist += math.Pow(val-v.xBar, 2)
-	v.n ++
+	v.n++
 }
 
 func (v *variance) getS2() float64 {
 	if v.n < 2 {
 		return 0
 	}
-	return v.sumDist/float64(v.n)
+	return v.sumDist / float64(v.n)
 }
 
 func RunVT(engineID string, spins int, chunks int, perSpin bool, maxes bool) (failed bool) {
@@ -275,7 +290,8 @@ func RunVT(engineID string, spins int, chunks int, perSpin bool, maxes bool) (fa
 			} else {
 				newResults, newFail := VolumeTestEngine(strings.Split(engines.Name(), ".")[0], spins, chunks, perSpin)
 				failed = failed || newFail
-				results = append(results, newResults...)			}
+				results = append(results, newResults...)
+			}
 
 		}
 	}

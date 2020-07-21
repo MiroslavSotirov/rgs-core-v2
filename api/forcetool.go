@@ -10,8 +10,8 @@ import (
 )
 
 type GameFields struct {
-	ID   string
-	Name string
+	ID     string
+	Name   string
 	Engine string
 }
 
@@ -22,10 +22,10 @@ type ForceValuesFields struct {
 }
 
 type ForceToolData struct {
-	PlayerID string
+	PlayerID     string
 	SelectedGame string
-	Games     []GameFields
-	ForceValues []ForceValuesFields
+	Games        []GameFields
+	ForceValues  []ForceValuesFields
 }
 
 func removeDuplicates(elements []ForceValuesFields) []ForceValuesFields {
@@ -69,7 +69,7 @@ func listForceTools(r *http.Request, w http.ResponseWriter) {
 		for _, f := range forceGP {
 			engine := strings.TrimSuffix(f.Engine, ".yml")
 			if g.Engine == engine {
-				canonicalName := func(n string) string{
+				canonicalName := func(n string) string {
 					return strings.Title(strings.ReplaceAll(n, "-", " "))
 				}
 				games = append(games, GameFields{ID: g.GameName, Name: canonicalName(g.GameName), Engine: engine})
@@ -80,7 +80,7 @@ func listForceTools(r *http.Request, w http.ResponseWriter) {
 				// Instead we'll list only a single retrigger and let force tool automatically choose what retrigger to appy
 				// don't add retriggers from Engine VII forcetool config, we'll add the separately
 				if engine == "mvgEngineVII" {
-					if strings.HasPrefix(i.ID, "retrigger") || strings.HasPrefix(i.ID,"FS") {
+					if strings.HasPrefix(i.ID, "retrigger") || strings.HasPrefix(i.ID, "FS") {
 						appendOK = false
 					}
 				}
@@ -99,17 +99,17 @@ func listForceTools(r *http.Request, w http.ResponseWriter) {
 		}
 
 	}
-	
+
 	sort.Slice(games, func(i, j int) bool {
 		return games[i].ID < games[j].ID
 	})
 
-	forceValuesList =  removeDuplicates(forceValuesList)
+	forceValuesList = removeDuplicates(forceValuesList)
 	data := ForceToolData{
-		PlayerID: playerID,
+		PlayerID:     playerID,
 		SelectedGame: gameName,
-		Games:     games,
-		ForceValues: forceValuesList,
+		Games:        games,
+		ForceValues:  forceValuesList,
 	}
 	tpl.Execute(w, data)
 }

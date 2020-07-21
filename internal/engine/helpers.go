@@ -76,7 +76,7 @@ func (num Fixed) ValueAsString() string {
 
 }
 func (num Fixed) StringFmt(p int) string {
-	if p>6 {
+	if p > 6 {
 		p = 6
 	}
 	// prints as a string with p decimal places
@@ -174,6 +174,12 @@ type GameParams struct {
 	previousGamestate Gamestate // this cannot be passed in
 	//stopPostitions    []int     // this can also not be passed in from outside the package (only for testing)
 }
+//
+//func (params *GameParams) SetPG(pg Gamestate) {
+//// used for VT
+//	params.previousGamestate = pg
+//	return
+//}
 
 func (gp *GameParams) Decode(request *http.Request) rgse.RGSErr {
 	decoder := json.NewDecoder(request.Body)
@@ -182,8 +188,9 @@ func (gp *GameParams) Decode(request *http.Request) rgse.RGSErr {
 	if decoderror != nil {
 		return rgse.Create(rgse.JsonError)
 	}
-	return  nil
+	return nil
 }
+
 // if this is the action, a wager must be charged
 var paidActions = []string{"base", "maxBase", "respin"}
 
@@ -193,7 +200,6 @@ func (p GameParams) Validate() (err rgse.RGSErr) {
 	}
 	return nil
 }
-
 
 func GetGameIDFromPB(gameID string) string {
 	// switch all uppercase to lowercase, all underscore to dash
@@ -287,20 +293,19 @@ func randomRangeInt32(min, max int) int32 {
 	return int32(rng.RandFromRange(max-min+1) + min)
 }
 
-
 func (gamestate Gamestate) isFreespin() bool {
 	def, err := gamestate.EngineDef()
-	if err != nil {return false}
+	if err != nil {
+		return false
+	}
 	if strings.Contains(def.ID, "freespin") {
 		return true
 	}
 	return false
 }
 
-
-
 func GetMaxWin(e EngineConfig) {
-	for i:=0; i<len(e.EngineDefs); i++ {
+	for i := 0; i < len(e.EngineDefs); i++ {
 		logger.Infof("finding max win for def %v", i)
 		ed := e.EngineDefs[i]
 		if len(ed.Reels) != 5 {
@@ -308,22 +313,22 @@ func GetMaxWin(e EngineConfig) {
 			continue
 		}
 		var winLines []int
-		for x:=0;x<len(ed.WinLines);x++ {
+		for x := 0; x < len(ed.WinLines); x++ {
 			winLines = append(winLines, x)
 		}
 		// set all multipliers to max
 
 		// wilds
 		var wilds []wild
-		for j:=0; j<len(ed.Wilds);j++{
+		for j := 0; j < len(ed.Wilds); j++ {
 			var max = 1
-			for k:=0;k<len(ed.Wilds[j].Multiplier.Multipliers);k++ {
+			for k := 0; k < len(ed.Wilds[j].Multiplier.Multipliers); k++ {
 				if ed.Wilds[j].Multiplier.Multipliers[k] > max {
 					max = ed.Wilds[j].Multiplier.Multipliers[k]
 				}
 			}
 			wilds = append(wilds, wild{
-				Symbol:     ed.Wilds[j].Symbol,
+				Symbol: ed.Wilds[j].Symbol,
 				Multiplier: weightedMultiplier{
 					Multipliers:   []int{max},
 					Probabilities: []int{1},
@@ -334,7 +339,7 @@ func GetMaxWin(e EngineConfig) {
 
 		// multiplier
 		var max = 1
-		for j:=0;j<len(ed.Multiplier.Multipliers);j++ {
+		for j := 0; j < len(ed.Multiplier.Multipliers); j++ {
 			if ed.Multiplier.Multipliers[j] > max {
 				max = ed.Multiplier.Multipliers[j]
 			}
@@ -349,23 +354,23 @@ func GetMaxWin(e EngineConfig) {
 			Selection:        "freespin5:5",
 		}
 
-		var maxCascades = 0
-		var maxCascadesStops []int
+		//var maxCascades = 0
+		//var maxCascadesStops []int
 		var maxPayout = 0
 		var maxGS Gamestate
 		var ok bool
 		// iterate over all possible stop positions
 		// assume 5 reels
 		var stopList = make([]int, 5)
-		for j1:=0; j1<len(ed.Reels[0]); j1++{
+		for j1 := 0; j1 < len(ed.Reels[0]); j1++ {
 			stopList[0] = j1
-			for j2:=0; j2<len(ed.Reels[1]); j2++{
+			for j2 := 0; j2 < len(ed.Reels[1]); j2++ {
 				stopList[1] = j2
-				for j3:=0; j3<len(ed.Reels[2]); j3++{
+				for j3 := 0; j3 < len(ed.Reels[2]); j3++ {
 					stopList[2] = j3
-					for j4:=0; j4<len(ed.Reels[3]); j4++{
+					for j4 := 0; j4 < len(ed.Reels[3]); j4++ {
 						stopList[3] = j4
-						for j5:=0; j5<len(ed.Reels[4]); j5++{
+						for j5 := 0; j5 < len(ed.Reels[4]); j5++ {
 							stopList[4] = j5
 							var lastGS Gamestate
 							//var triggeringGS Gamestate
@@ -380,41 +385,40 @@ func GetMaxWin(e EngineConfig) {
 							}
 							//triggeringGS = lastGS
 							relativePayout += lastGS.RelativePayout * lastGS.Multiplier
-							cascades := 0
-							for len(lastGS.NextActions) > 0 && lastGS.NextActions[0] == "cascade"{
-								ed.SetForce([]int{})
-								//call := reflect.ValueOf(ed).MethodByName(ed.Function)
-								parameters.Action = "cascade"
-								cascades ++
-								parameters.previousGamestate = lastGS
-								gamestateAndNextActions := call.Call([]reflect.Value{reflect.ValueOf(parameters)})
-								lastGS, ok = gamestateAndNextActions[0].Interface().(Gamestate)
-								if !ok {
-									panic("value not a gamestate")
-								}
-								relativePayout += lastGS.RelativePayout * lastGS.Multiplier
-
-							}
-							if cascades > maxCascades {
-								maxCascadesStops = stopList
-								maxCascades = cascades
-								logger.Warnf("cascaded %v times w/ stoplist %v", cascades, stopList)
-							}
+							//cascades := 0
+							//for len(lastGS.NextActions) > 0 && lastGS.NextActions[0] == "cascade"{
+							//	ed.SetForce([]int{})
+							//	//call := reflect.ValueOf(ed).MethodByName(ed.Function)
+							//	parameters.Action = "cascade"
+							//	cascades ++
+							//	parameters.previousGamestate = lastGS
+							//	gamestateAndNextActions := call.Call([]reflect.Value{reflect.ValueOf(parameters)})
+							//	lastGS, ok = gamestateAndNextActions[0].Interface().(Gamestate)
+							//	if !ok {
+							//		panic("value not a gamestate")
+							//	}
+							//	relativePayout += lastGS.RelativePayout * lastGS.Multiplier
+							//
+							//}
+							//if cascades > maxCascades {
+							//	maxCascadesStops = stopList
+							//	maxCascades = cascades
+							//	logger.Warnf("cascaded %v times w/ stoplist %v", cascades, stopList)
+							//}
 							if relativePayout > maxPayout {
 								maxPayout = relativePayout
-								maxGS = Gamestate{StopList:stopList}
-								//logger.Warnf("new max payout: %#v", gamestate)
+								maxGS = lastGS //Gamestate{StopList:stopList}
+								logger.Warnf("new max payout: %#v", lastGS)
 							}
-
-
 
 						}
 					}
 				}
+
 			}
 		}
 
-		logger.Infof("Found max relative multiplier %v, %#v\nMax cascades %v: %v", maxPayout, maxGS, maxCascades, maxCascadesStops)
+		logger.Infof("Found max relative multiplier %v, %#v", maxPayout, maxGS) //,\nMax cascades %v: %v maxCascades, maxCascadesStops)
 
 	}
 }
@@ -425,9 +429,9 @@ func GetDefaultView(gameName string) (symbolGrid [][]int) {
 		return
 	}
 
-	for i:=0; i<len(e.EngineDefs[0].ViewSize); i++ {
+	for i := 0; i < len(e.EngineDefs[0].ViewSize); i++ {
 		row := []int{}
-		for j:=0; j<e.EngineDefs[0].ViewSize[i]; j++{
+		for j := 0; j < e.EngineDefs[0].ViewSize[i]; j++ {
 			row = append(row, e.EngineDefs[0].Reels[i][j])
 		}
 		symbolGrid = append(symbolGrid, row)
@@ -436,24 +440,41 @@ func GetDefaultView(gameName string) (symbolGrid [][]int) {
 }
 
 var MilliUnitCCies = []Ccy{Ccy_BTC, Ccy_EGP, Ccy_TND, Ccy_KWD, Ccy_BHD, Ccy_IQD, Ccy_OMR}
+
 func RoundUpToNearestCCYUnit(in Money) (out Money) {
 	// this function is basically a ceiling function, but if the value is zero then it will also be incremented to the smallest allowed currency value
 	d := 10000
 	out.Currency = in.Currency
-	for ccy:=0; ccy<len(MilliUnitCCies); ccy++ {
+	for ccy := 0; ccy < len(MilliUnitCCies); ccy++ {
 		if in.Currency == MilliUnitCCies[ccy].String() {
 			d /= 10
 		}
 	}
 
 	// if any digit after the final keeper digit is not zero, round up
-	r:= int(in.Amount) % d
+	r := int(in.Amount) % d
 	if r == 0 && in.Amount != Fixed(0) {
-	//this commented would make it so that the value 0.01 is rounded up to 0.02
+		//this commented would make it so that the value 0.01 is rounded up to 0.02
 		out.Amount = in.Amount
 		return
 	}
 
 	out.Amount = in.Amount.Add(Fixed(d - r))
+	return
+}
+
+
+func (gamestate Gamestate) GetChoices() (choices []string) {
+	// returns allowed selections for a pickspins round
+	if len(gamestate.NextActions) < 1 || gamestate.NextActions[0] != "pickSpins" {
+		return
+	}
+	EC, err := gamestate.Engine()
+	if err != nil {return}
+	ED := EC.EngineDefs[EC.DefIdByName("pickSpins")]
+
+	for i:=0;i<len(ED.SpecialPayouts);i++{
+		choices = append(choices, ED.SpecialPayouts[i].Index)
+	}
 	return
 }

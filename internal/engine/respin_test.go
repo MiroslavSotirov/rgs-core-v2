@@ -5,38 +5,36 @@ import (
 	"testing"
 )
 
-
 var baseGS = Gamestate{
-	Id:                "testbase",
-	Game:              "test-respin",
-	DefID:             0,
-	BetPerLine:        Money{Fixed(1), "BTC"},
-	Transactions:      nil,
-	NextGamestate:     "testbase2",
-	Action:            "base",
-	SymbolGrid:        [][]int{{1,1,1},{1,2,2},{1,2,2},{2,2,2},{2,2,2}},
-	Multiplier:        1,
-	StopList:          []int{0,0,0,0,0},
-	NextActions:       []string{"finish"},
-	Closed:            false,
-	RoundID:           "test",
+	Id:            "testbase",
+	Game:          "test-respin",
+	DefID:         0,
+	BetPerLine:    Money{Fixed(1), "BTC"},
+	Transactions:  nil,
+	NextGamestate: "testbase2",
+	Action:        "base",
+	SymbolGrid:    [][]int{{1, 1, 1}, {1, 2, 2}, {1, 2, 2}, {2, 2, 2}, {2, 2, 2}},
+	Multiplier:    1,
+	StopList:      []int{0, 0, 0, 0, 0},
+	NextActions:   []string{"finish"},
+	Closed:        false,
+	RoundID:       "test",
 }
 
-
 var almostFeatureGS = Gamestate{
-	Id:                "testbase",
-	Game:              "test-respin",
-	DefID:             0,
-	BetPerLine:        Money{Fixed(1), "BTC"},
-	Transactions:      nil,
-	NextGamestate:     "testbase2",
-	Action:            "base",
-	SymbolGrid:        [][]int{{1,1,1},{1,2,2},{2,2,0},{2,2,0},{2,2,2}},
-	Multiplier:        1,
-	StopList:          []int{0,0,7,7,0},
-	NextActions:       []string{"finish"},
-	Closed:            false,
-	RoundID:           "test",
+	Id:            "testbase",
+	Game:          "test-respin",
+	DefID:         0,
+	BetPerLine:    Money{Fixed(1), "BTC"},
+	Transactions:  nil,
+	NextGamestate: "testbase2",
+	Action:        "base",
+	SymbolGrid:    [][]int{{1, 1, 1}, {1, 2, 2}, {2, 2, 0}, {2, 2, 0}, {2, 2, 2}},
+	Multiplier:    1,
+	StopList:      []int{0, 0, 7, 7, 0},
+	NextActions:   []string{"finish"},
+	Closed:        false,
+	RoundID:       "test",
 }
 
 func TestRespin(t *testing.T) {
@@ -50,7 +48,7 @@ func TestRespin(t *testing.T) {
 	//}
 
 	// reel 0 should give same results as existing gs, all results are equivalent
-	if baseGS.ExpectedReelValue(0) !=  Fixed(300) || baseGS.ExpectedReelValue(1) != Fixed(300) {
+	if baseGS.ExpectedReelValue(0) != Fixed(300) || baseGS.ExpectedReelValue(1) != Fixed(300) {
 		t.Errorf("Expected payout of 300 for any combination got %v", baseGS.ExpectedReelValue(0))
 	}
 
@@ -62,7 +60,6 @@ func TestRespin(t *testing.T) {
 		t.Errorf("expected payout 150, got %v", almostFeatureGS.ExpectedReelValue(4))
 
 	}
-
 
 	//GS := shuffleDef.ShuffleFlop(params)
 	//if GS.SymbolGrid[0][0] !=0 {
@@ -76,4 +73,3 @@ func TestRespin(t *testing.T) {
 	//	t.Errorf("flop was probably not shuffled %v", GS)
 	//}
 }
-

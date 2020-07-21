@@ -232,15 +232,15 @@ func GetPrizeDefResponse(engineConf engine.EngineConfig, engineID string) map[st
 // ParameterResponse ..
 type ParameterResponse struct {
 	StakeValues  string      `json:"stakeValues"`
-	DefaultStake string     `json:"defaultStake"`
+	DefaultStake string      `json:"defaultStake"`
 	SessionID    store.Token `json:"host/verified-token"`
 }
 
 // PlayerResponse ..
 type PlayerResponse struct {
-	ID         string          `json:"id"`
-	Balance    BalanceResponse `json:"balance"`
-	Level      LevelResponse   `json:"level"`
+	ID      string          `json:"id"`
+	Balance BalanceResponse `json:"balance"`
+	Level   LevelResponse   `json:"level"`
 }
 
 type LevelResponse struct {
@@ -254,9 +254,9 @@ type LevelResponse struct {
 
 // BalanceResponse ...
 type BalanceResponse struct {
-	Amount   engine.Fixed `json:"amount"`
-	Currency string `json:"currency"`
-	FreeGames int    `json:"free_games"`
+	Amount    engine.Fixed `json:"amount"`
+	Currency  string       `json:"currency"`
+	FreeGames int          `json:"free_games"`
 }
 
 // Render game init response
@@ -290,19 +290,19 @@ type GameplayResponse struct {
 
 // GamestateResponse ...
 type GamestateResponse struct {
-	Id              string  `json:"id"`
-	Action          string  `json:"action"`
-	CurrentPlay     int     `json:"currentPlay"`
+	Id              string       `json:"id"`
+	Action          string       `json:"action"`
+	CurrentPlay     int          `json:"currentPlay"`
 	CurrentWinnings engine.Fixed `json:"currentWinnings"`
 	//freespinWinnings 0
-	NumFreeSpins     int     `json:"numFreeSpins"`
-	FreeSpinWinnings float32 `json:"freespinWinnings"`
+	NumFreeSpins     int          `json:"numFreeSpins"`
+	FreeSpinWinnings float32      `json:"freespinWinnings"`
 	Stake            engine.Fixed `json:"stake"`
 	StakePerLine     engine.Fixed `json:"stakePerLine"`
 	TotalStake       engine.Fixed `json:"totalStake"`
 	//stopList: [23, 0, 55, 16, 8]
 	//totalStake 3
-	TotalWinnings        engine.Fixed       `json:"totalWinnings"` // 4
+	TotalWinnings        engine.Fixed  `json:"totalWinnings"` // 4
 	View                 [][]string    `json:"view"`          //[["4", "4", "3", "0", "6"], ["7", "8", "6", "3", "5"], ["3", "3", "2", "6", "0"]]
 	WildSingleMultiplier int           `json:"wildSingleMultiplier"`
 	Wins                 []WinResponse `json:"wins"`
@@ -310,7 +310,7 @@ type GamestateResponse struct {
 	ReelSetIndex         int           `json:"reelSetIndex"`
 	SelectedWinLines     []string      `json:"selectedWinLines"`
 	FreeSpinMultiplier   int           `json:"freespin_multiplier,omitempty"`
-	Win                  engine.Fixed       `json:"win"`
+	Win                  engine.Fixed  `json:"win"`
 	//parameters: {}
 	FreeSpinReelset *WinRSResponse `json:"freespinReelset,omitempty"`
 }
@@ -333,13 +333,13 @@ type WinResponse struct {
 	ID              string         `json:"id"`           // "3:3"
 	PayoutFactor    int            `json:"payoutFactor"` // 10
 	PrizeResponse   *PrizeResponse `json:"prize,omitempty"`
-	ScatterWinnings string        `json:"ScatterWinnings"`
-	Stake           string        `json:"stake"`
+	ScatterWinnings string         `json:"ScatterWinnings"`
+	Stake           string         `json:"stake"`
 	Type            string         `json:"type"`
 	Symbol          int            `json:"symbol"`
 	SymbolPos       []int          `json:"symbolPos"`      // ["0", "1", "12"]
 	WildMultiplier  int            `json:"wildMultiplier"` // 1
-	Winnings        string        `json:"winnings"`       // 0.1
+	Winnings        string         `json:"winnings"`       // 0.1
 	WinLine         *int           `json:"winLine,omitempty"`
 	StakeIndex      string         `json:"stake_index,omitempty"`
 	Frequency       string         `json:"freq, omitempty"`
@@ -605,7 +605,6 @@ type LinkResponse struct {
 	Rel    string `json:"rel"`
 	ID     string `json:"id"`
 	Type   string `json:"type"`
-
 }
 
 //FormResponse ...
@@ -683,7 +682,7 @@ func BuildForm(g engine.Gamestate, engineID string, showFeature ...bool) FormRes
 	return forms
 }
 func getPlayLink(gamestate engine.Gamestate, playerStore store.PlayerStore, request *http.Request, gameID string, mode string) (playHref string) {
-	playHref = fmt.Sprintf("%s%s/%s/rgs/play/%s/%s/%s",  GetURLScheme(request), request.Host, APIVersion, gameID, gamestate.Id, mode)
+	playHref = fmt.Sprintf("%s%s/%s/rgs/play/%s/%s/%s", GetURLScheme(request), request.Host, APIVersion, gameID, gamestate.Id, mode)
 	// determine if this is the first sham gamestate being rendered:
 	if len(gamestate.Transactions) == 0 {
 		playHref += fmt.Sprintf("?playerId=%v&ccy=%v&betLimitCode=%v&campaign=%v", playerStore.PlayerId, playerStore.Balance.Currency, playerStore.BetLimitSettingCode, playerStore.FreeGames.CampaignRef)
@@ -713,8 +712,8 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 	totalSpins := gamestate.Gamification.GetTotalSpins()
 
 	player := PlayerResponse{
-		ID:         playerStore.PlayerId,
-		Balance:    balance,
+		ID:      playerStore.PlayerId,
+		Balance: balance,
 		Level: LevelResponse{
 			Level:          level,
 			Stage:          stage,
@@ -758,7 +757,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 		gpResponse.Player.Balance.Amount = gpResponse.Player.Balance.Amount.Sub(gamestate.CumulativeWin)
 
 		gpResponse.Links[1].Rel = "option"
-		if strings.Contains(gamestate.NextActions[0], "freespin") ||  strings.Contains(gamestate.NextActions[0], "cascade"){
+		if strings.Contains(gamestate.NextActions[0], "freespin") || strings.Contains(gamestate.NextActions[0], "cascade") {
 			gpResponse.Links[1].Type = "application/vnd.maverick.slots.freespin-v1+json"
 		} else if strings.Contains(gamestate.NextActions[0], "pick") {
 			gpResponse.Links[1].Type = "application/vnd.maverick.slots.feature-select-v1+json"

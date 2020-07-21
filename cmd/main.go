@@ -17,13 +17,13 @@ import (
 )
 
 var (
-	runVT    bool
-	engineID string
-	spins    int
-	chunks   int
-	perSpin  bool
-	maxes    bool
-	getHashes    bool
+	runVT     bool
+	engineID  string
+	spins     int
+	chunks    int
+	perSpin   bool
+	maxes     bool
+	getHashes bool
 )
 
 func main() {
@@ -78,8 +78,8 @@ func main() {
 		Dsn: config.GlobalConfig.SentryDsn,
 		// Enable printing of SDK debug messages.
 		// Useful when getting started or trying to figure something out.
-		Debug: false,
-		Environment: config.GlobalConfig.Environment,
+		Debug:        false,
+		Environment:  config.GlobalConfig.Environment,
 		IgnoreErrors: []string{"Insufficient Fund", "No force matching that code", "No player found"},
 	})
 	if err != nil {
@@ -91,5 +91,5 @@ func main() {
 
 	srv := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: router}
 	logger.Infof("Starting RGS Core on port: %d", port)
-	logger.Fatalf("%v",srv.ListenAndServe())
+	logger.Fatalf("%v", srv.ListenAndServe())
 }

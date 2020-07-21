@@ -26,7 +26,7 @@ data:
       host: {{ .Values.config.server.host }}
       port: {{ .Values.config.server.port }}
     
-    sentryDsn: "https://b2727e77bbbd40909706b518cf244379:df61f5f384b947249e9e3361f5d2f7c6@sentry.maverick-ops.com/42"
+    sentryDsn: "https://9e9385a737394a4ead1619bc53bcce81@o422612.ingest.sentry.io/5351538"
 
     # dashur configuration
     dashurconf:

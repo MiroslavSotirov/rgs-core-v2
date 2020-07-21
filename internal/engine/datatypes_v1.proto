@@ -108,6 +108,8 @@ enum Ccy {
   UGX = 90;
   XAF = 91;
   BTC = 92;
+  ARX = 93;
+  VEX = 94;
 }
 
 message WalletTransactionPB {

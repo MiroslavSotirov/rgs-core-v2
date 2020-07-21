@@ -11,10 +11,11 @@ import (
 )
 
 type GameStakeInfo struct {
-	GameName   string		`json:"name"`
-	GameID     string		`json:"id"`
-	BetLevels  []BetInfo	`json:"betLevels"`
+	GameName  string    `json:"name"`
+	GameID    string    `json:"id"`
+	BetLevels []BetInfo `json:"betLevels"`
 }
+
 // Render Gameplay Resonse
 func (gp GameStakeInfo) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
@@ -49,9 +50,11 @@ func stakeInfo(request *http.Request, w http.ResponseWriter) {
 		return
 	}
 
-	for i, ccy := range(engine.Ccy_name) {
+	for i, ccy := range engine.Ccy_name {
 		ccyInfo := BetInfo{Currency: ccy, Values: []string{}}
-		if i == 0 {continue}
+		if i == 0 {
+			continue
+		}
 		stakeVals, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, ccy}, "", gameSlug)
 		if err != nil {
 			logger.Errorf("Error getting stake values with ccy %v: %v", ccy, err)
@@ -59,7 +62,7 @@ func stakeInfo(request *http.Request, w http.ResponseWriter) {
 		}
 
 		// multiply stake per line by num lines or bet multiplier
-		for j:=0; j<len(stakeVals);j++ {
+		for j := 0; j < len(stakeVals); j++ {
 			ccyInfo.Values = append(ccyInfo.Values, stakeVals[j].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).ValueAsString())
 		}
 		stakeInfo.BetLevels = append(stakeInfo.BetLevels, ccyInfo)

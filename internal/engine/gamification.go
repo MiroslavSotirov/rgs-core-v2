@@ -50,9 +50,6 @@ func (data *GamestatePB_Gamification) GetSpins() int32 {
 	return data.RemainingSpins
 }
 
-
-
-
 func (gamestate *Gamestate) UpdateGamification(previousGS Gamestate) {
 	// update gamification status
 	logger.Debugf("UpdateGamification: CurrentGS: %+v  PreviousGS: %+v", gamestate.NextActions, previousGS.NextActions)
@@ -66,7 +63,7 @@ func (gamestate *Gamestate) UpdateGamification(previousGS Gamestate) {
 		}
 	case "IncrementSpins":
 		// ignore freespin
-		if !gamestate.isFreespin(){
+		if !gamestate.isFreespin() {
 			logger.Debugf("IncrementSpins Gamification triggered")
 			gamestate.Gamification.IncrementSpins(randomRangeInt32(gamification.SpinsMin, gamification.SpinsMax), gamification.Stages)
 		}

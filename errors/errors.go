@@ -7,16 +7,16 @@ import (
 
 // Error code constants
 const (
-	RgsInitError        = 1
-	StoreInitError      = 2
-	BadConfigError      = 10
-	EngineHashError     = 11
-	EngineConfigError   = 12
-	GenericEngineError  = 100
-	SpinSequenceError   = 101
-	EngineNotFoundError = 102
-	BetConfigError      = 103
-	InvalidStakeError   = 104
+	RgsInitError         = 1
+	StoreInitError       = 2
+	BadConfigError       = 10
+	EngineHashError      = 11
+	EngineConfigError    = 12
+	GenericEngineError   = 100
+	SpinSequenceError    = 101
+	EngineNotFoundError  = 102
+	BetConfigError       = 103
+	InvalidStakeError    = 104
 	IncompleteRoundError = 105
 
 	// Gamestate JSON marshalling
@@ -70,9 +70,9 @@ const (
 	// Generic errors
 
 	// forceTool
-	NoForceError = 800
+	NoForceError    = 800
 	ForceProhibited = 801
-	Forcing = 802 // this is just to make sentry to report every time there's a force
+	Forcing         = 802 // this is just to make sentry to report every time there's a force
 )
 
 // ErrMsg Error message key value map
@@ -109,24 +109,24 @@ var ErrMsg = map[int]string{
 	FetchSessionError:                "Failure fetching session",
 	CreateDemoSessionError:           "Error setting demo session ",
 	BadOperatorConfig:                "Bad Operator configuration",
-	InternalServerError:    "System Error",
-	GenericWalletError:     "Generic wallet error",
-	PeviousTXPendingError:  "Previous transaction still pending, please try again",
-	IncompleteRoundError:   "Not the final state in round, can't be closed",
-	NoForceError:           "No force matching that code",
-	ForceProhibited:        "Force prohibited for this gamestate",
-	Forcing:                "FORCING GAMESTATE",
-	NoSuchPlayer:           "No player found",
-	JsonError:              "Failure encoding/decoding json",
-	RestError:              "REST error",
-	B64Error:               "Failure encoding/decoding base64",
-	TokenExpired:           "Token expired",
-	EntityNotFound:         "Entity not found",
-	BadRequest:             "Unable to perform rest function, found data input error",
-	NoTxHistory:            "No transaction history",
-	UnexpectedTx:           "Got unexpected WAGER tx",
-	UnexpectedWalletStatus: "Unexpected Wallet status",
-	YamlError:              "Error encoding/decoding yaml",
+	InternalServerError:              "System Error",
+	GenericWalletError:               "Generic wallet error",
+	PeviousTXPendingError:            "Previous transaction still pending, please try again",
+	IncompleteRoundError:             "Not the final state in round, can't be closed",
+	NoForceError:                     "No force matching that code",
+	ForceProhibited:                  "Force prohibited for this gamestate",
+	Forcing:                          "FORCING GAMESTATE",
+	NoSuchPlayer:                     "No player found",
+	JsonError:                        "Failure encoding/decoding json",
+	RestError:                        "REST error",
+	B64Error:                         "Failure encoding/decoding base64",
+	TokenExpired:                     "Token expired",
+	EntityNotFound:                   "Entity not found",
+	BadRequest:                       "Unable to perform rest function, found data input error",
+	NoTxHistory:                      "No transaction history",
+	UnexpectedTx:                     "Got unexpected WAGER tx",
+	UnexpectedWalletStatus:           "Unexpected Wallet status",
+	YamlError:                        "Error encoding/decoding yaml",
 }
 
 type RGSErr interface {
@@ -157,6 +157,7 @@ func (e *RGSError) Error() (errorMsg string) {
 	}
 	return fmt.Sprintf("Error %d, %s - %s", e.ErrCode, e.DefaultErrorText, e.ErrorText)
 }
+
 //
 //func (e *RGSError) Init(code int, msgs ...string) {
 //	// this isn't actually used anywhere
@@ -169,6 +170,7 @@ func (e *RGSError) Error() (errorMsg string) {
 func (e *RGSError) AppendErrorText(text string) {
 	e.ErrorText = text
 }
+
 //
 ////SetErrorTextByCode set custom error message
 //func (e *RGSError) SetErrorTextByCode(code int) {

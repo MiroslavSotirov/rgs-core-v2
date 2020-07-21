@@ -122,6 +122,8 @@ data:
       UGX: 50
       XAF: 5
       VES: 1000
+      ARX: 1.25
+      VEX: 2000
 
     profiles:
       low:

@@ -55,10 +55,10 @@ func GetForceValues(params engine.GameParams, previousGamestate engine.Gamestate
 
 type ForceGameplay struct {
 	// stores values for forcing a gameplay
-	ID          string         `yaml:"id"`
-	Action      string         `yaml:"action"`
-	ReelsetId   int            `yaml:"reelsetId"`
-	StopList    []int          `yaml:"stopList"`
+	ID        string `yaml:"id"`
+	Action    string `yaml:"action"`
+	ReelsetId int    `yaml:"reelsetId"`
+	StopList  []int  `yaml:"stopList"`
 }
 
 func BuildForce(engineID string) []ForceGameplay {
@@ -109,9 +109,9 @@ func smartForceFromID(params engine.GameParams, previousGamestate engine.Gamesta
 		actions = []string{"base", "finish"}
 	}
 	// for engine VII make retrigger multiplier increments automatically
-	if engineID == "mvgEngineVII" && (strings.HasPrefix(forceID, "retrigger") || strings.HasSuffix(forceID, "scatter")) && strings.HasPrefix(actions[0], "freespin"){
+	if engineID == "mvgEngineVII" && (strings.HasPrefix(forceID, "retrigger") || strings.HasSuffix(forceID, "scatter")) && strings.HasPrefix(actions[0], "freespin") {
 		isScatter := strings.HasSuffix(forceID, "scatter")
-		if previousGamestate.DefID >= 5 &&  previousGamestate.DefID < 8 { // reelset 5 and above are freespins
+		if previousGamestate.DefID >= 5 && previousGamestate.DefID < 8 { // reelset 5 and above are freespins
 			if isScatter {
 				fsAction := previousGamestate.DefID - 3
 				forceID = fmt.Sprintf("FS%d-%s", fsAction, forceID)
@@ -155,7 +155,7 @@ func smartForceFromID(params engine.GameParams, previousGamestate engine.Gamesta
 				panic("value not a gamestate")
 			}
 			chargeWager := true
-			betPerLine :=  params.Stake
+			betPerLine := params.Stake
 			if previousGamestate.NextActions[0] != "finish" {
 				chargeWager = false
 				betPerLine = previousGamestate.BetPerLine.Amount

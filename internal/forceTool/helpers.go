@@ -83,7 +83,7 @@ type GamesEngines struct {
 	Engine   string
 }
 
-func ReadGamesEngines() []GamesEngines{
+func ReadGamesEngines() []GamesEngines {
 	var ge []GamesEngines
 
 	for i := 0; i < len(config.GlobalGameConfig); i++ {
@@ -101,5 +101,5 @@ func ReadGamesEngines() []GamesEngines{
 type ForceToolParams struct {
 	PlayerID string `json:"playerID"`
 	GameSlug string `json:"gameSlug"`
-	ForceID string `json:"forceID"`
+	ForceID  string `json:"forceID"`
 }

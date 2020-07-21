@@ -44,7 +44,7 @@ type Config struct {
 	DefaultLanguage string      `yaml:"defaultlanguage" cfg:"defaultlanguage" cfgDefault:"en"`
 	DemoTokenPrefix string      `yaml:"demotokenprefix" cfg:"demotokenprefix" cfgDefault:"demo-token"`
 	DemoCurrency    string      `yaml:"democurrency" cfg:"democurrency" cfgDefault:"USD"`
-	LogAccount		string		`yaml:"logaccount" cfg:"logaccount" cfgDefault:"145472021_144443389"`
+	LogAccount      string      `yaml:"logaccount" cfg:"logaccount" cfgDefault:"145472021_144443389"`
 	SentryDsn       string      `yaml:"sentryDsn" cfg:"sentryDsn" cfgDefault:""`
 	Environment     string      `yaml:"environment" cfg:"environment" cfgDefault:"local"`
 }
@@ -90,13 +90,12 @@ func InitConfig() {
 	logger.Infof("Game Config: %v", GlobalGameConfig)
 }
 
-
 type GamificationType struct {
-	Levels int32		`yaml:"levels"`
-	Stages int32		`yaml:"stages"`
-	Function string		`yaml:"function"`
-	SpinsMin int 		`yaml:"spinsMin"`
-	SpinsMax int		`yaml:"spinsMax"`
+	Levels   int32  `yaml:"levels"`
+	Stages   int32  `yaml:"stages"`
+	Function string `yaml:"function"`
+	SpinsMin int    `yaml:"spinsMin"`
+	SpinsMax int    `yaml:"spinsMax"`
 }
 
 var GameGamification map[string]GamificationType

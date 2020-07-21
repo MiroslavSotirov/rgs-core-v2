@@ -27,37 +27,37 @@ var testWilds = []wild{{Symbol: 7, Multiplier: weightedMultiplier{
 
 var cascadeEngine = EngineDef{
 	Reels: [][]int{
-		{0,0,0,0,1},
-		{1,0,0,1,0,0,1},
-		{2,3,4,5,1,0},
+		{0, 0, 0, 0, 1},
+		{1, 0, 0, 1, 0, 0, 1},
+		{2, 3, 4, 5, 1, 0},
 	},
-	ViewSize: []int{3,3,3},
-	Payouts: testWaysPayouts,
-	WinType: "ways",
-	Multiplier:weightedMultiplier{
-		Multipliers:   []int{1,2,5},
-		Probabilities: []int{1,1,1},
+	ViewSize: []int{3, 3, 3},
+	Payouts:  testWaysPayouts,
+	WinType:  "ways",
+	Multiplier: weightedMultiplier{
+		Multipliers:   []int{1, 2, 5},
+		Probabilities: []int{1, 1, 1},
 	},
 }
 
 var cascadeGS = Gamestate{
-	SymbolGrid:        [][]int{{0,0,1},{1,0,0},{1,0,2}},
-	Prizes:            []Prize{{
+	SymbolGrid: [][]int{{0, 0, 1}, {1, 0, 0}, {1, 0, 2}},
+	Prizes: []Prize{{
 		Payout:          testWaysPayouts[0],
 		Index:           "1:3",
 		Multiplier:      1,
-		SymbolPositions: []int{2,3,6},
+		SymbolPositions: []int{2, 3, 6},
 	}},
-	Multiplier:        2,
-	StopList:          []int{2,0,4},
-	NextActions:       []string{"cascade", "finish"},
+	Multiplier:  2,
+	StopList:    []int{2, 0, 4},
+	NextActions: []string{"cascade", "finish"},
 }
 
 func TestEngineDef_Cascade(t *testing.T) {
-	gs := cascadeEngine.Cascade(GameParams{previousGamestate:cascadeGS, Action:"cascade"})
-	expectedSymbolGrid := [][]int{{0,0,0},{1,0,0},{5,0,2}}
-	for reel := 0; reel < len(expectedSymbolGrid); reel ++ {
-		for symbol:=0; symbol<len(expectedSymbolGrid[reel]); symbol ++ {
+	gs := cascadeEngine.Cascade(GameParams{previousGamestate: cascadeGS, Action: "cascade"})
+	expectedSymbolGrid := [][]int{{0, 0, 0}, {1, 0, 0}, {5, 0, 2}}
+	for reel := 0; reel < len(expectedSymbolGrid); reel++ {
+		for symbol := 0; symbol < len(expectedSymbolGrid[reel]); symbol++ {
 			if expectedSymbolGrid[reel][symbol] != gs.SymbolGrid[reel][symbol] {
 				t.Errorf("Expected %v, got %v", expectedSymbolGrid, gs.SymbolGrid)
 			}
@@ -67,7 +67,7 @@ func TestEngineDef_Cascade(t *testing.T) {
 }
 
 func TestEngineDef_CascadeMultiply(t *testing.T) {
-	gs := cascadeEngine.CascadeMultiply(GameParams{previousGamestate:cascadeGS, Action:"cascade"})
+	gs := cascadeEngine.CascadeMultiply(GameParams{previousGamestate: cascadeGS, Action: "cascade"})
 	if gs.Multiplier != 5 {
 		t.Errorf("Expected multiplier 5, got %v", gs.Multiplier)
 	}
@@ -261,7 +261,6 @@ func TestPrepareTransactions(t *testing.T) {
 	if gsTest.PlaySequence != 6 {
 		t.Errorf("play sequence calculation failed, expected 6, got %v", gsTest.PlaySequence)
 	}
-
 
 }
 
@@ -705,12 +704,10 @@ func TestDetermineBarLineWins(t *testing.T) {
 	}
 }
 
-
-
 func TestEngineDef_ProcessWinLines(t *testing.T) {
 	var testDef = EngineDef{
-		WinLines:       [][]int{{0,0,0},{1,1,1},{2,2,2}},
-		StakeDivisor:   0,
+		WinLines:     [][]int{{0, 0, 0}, {1, 1, 1}, {2, 2, 2}},
+		StakeDivisor: 0,
 	}
 	wl := testDef.ProcessWinLines([]int{})
 	if len(wl) != 3 || wl[0] != 0 || wl[1] != 1 || wl[2] != 2 {
@@ -720,7 +717,7 @@ func TestEngineDef_ProcessWinLines(t *testing.T) {
 		t.Errorf("expected stake divisor 3, got %v", testDef.StakeDivisor)
 	}
 
-	wl = testDef.ProcessWinLines([]int{0,1,2})
+	wl = testDef.ProcessWinLines([]int{0, 1, 2})
 	if len(wl) != 3 || wl[0] != 0 || wl[1] != 1 || wl[2] != 2 {
 		t.Errorf("expected winlines returned [0,1,2], got %v", wl)
 	}
@@ -728,7 +725,7 @@ func TestEngineDef_ProcessWinLines(t *testing.T) {
 		t.Errorf("expected stake divisor 3, got %v", testDef.StakeDivisor)
 	}
 
-	wl = testDef.ProcessWinLines([]int{0,2,3})
+	wl = testDef.ProcessWinLines([]int{0, 2, 3})
 	if len(wl) != 2 || wl[0] != 0 || wl[1] != 2 {
 		t.Errorf("expected win lines 0,2, got %v", wl)
 	}
@@ -737,7 +734,6 @@ func TestEngineDef_ProcessWinLines(t *testing.T) {
 	}
 
 }
-
 
 func TestMilliCcies(t *testing.T) {
 	// test 2-pt ccy
@@ -768,7 +764,7 @@ func TestMilliCcies(t *testing.T) {
 	}
 
 	// test 3-digit ccy
-	threePtCcy:= "BTC"
+	threePtCcy := "BTC"
 
 	amt = Money{Fixed(1000), threePtCcy}
 	res = RoundUpToNearestCCYUnit(amt)
@@ -805,12 +801,11 @@ func TestMilliCcies(t *testing.T) {
 
 }
 
-
 func TestShuffleFlop(t *testing.T) {
 	rng.Init()
 	shuffleDef := EngineDef{
-		Reels:          [][]int{{0,5,5,5,5,5,5,5,5,5,5},{1,5,5,5,5,5,5,5,5,5,5,5},{2,5,5,5,5,5,5,5,5,5,5,5},{3,5,5,5,5,5,5,5,5,5,5},{4,5,5,5,5,5,5,5,5,5,5,5,5}},
-		ViewSize:       []int{1,1,1,1,1},
+		Reels:          [][]int{{0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, {1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, {2, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, {3, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, {4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}},
+		ViewSize:       []int{1, 1, 1, 1, 1},
 		Payouts:        []Payout{},
 		WinType:        "pAndF",
 		SpecialPayouts: []Prize{},
@@ -819,13 +814,13 @@ func TestShuffleFlop(t *testing.T) {
 		//StakeDivisor:   1,
 	}
 	testGS := Gamestate{
-		DefID:             0,
-		BetPerLine:        Money{1, "BTC"},
-		SymbolGrid:        [][]int{{0},{1},{2},{3},{4}},
-		Prizes:            []Prize{},
-		RelativePayout:    0,
-		Multiplier:        1,
-		StopList:          []int{0,0,0,0,0},
+		DefID:          0,
+		BetPerLine:     Money{1, "BTC"},
+		SymbolGrid:     [][]int{{0}, {1}, {2}, {3}, {4}},
+		Prizes:         []Prize{},
+		RelativePayout: 0,
+		Multiplier:     1,
+		StopList:       []int{0, 0, 0, 0, 0},
 	}
 	params := GameParams{
 		Stake:             1,
@@ -833,24 +828,23 @@ func TestShuffleFlop(t *testing.T) {
 	}
 
 	GS := shuffleDef.ShuffleFlop(params)
-	if GS.SymbolGrid[0][0] !=0 {
+	if GS.SymbolGrid[0][0] != 0 {
 		//try again because there is a channnce it landed on teh same
 		GS = shuffleDef.ShuffleFlop(params)
-		if GS.SymbolGrid[0][0] !=0 {
+		if GS.SymbolGrid[0][0] != 0 {
 			t.Errorf("prime was probably shuffled %v", GS)
 		}
 	}
-	if GS.SymbolGrid[1][0] == 1 && GS.SymbolGrid[2][0] ==2 && GS.SymbolGrid[3][0] == 3 && GS.SymbolGrid[4][0] ==4 {
+	if GS.SymbolGrid[1][0] == 1 && GS.SymbolGrid[2][0] == 2 && GS.SymbolGrid[3][0] == 3 && GS.SymbolGrid[4][0] == 4 {
 		t.Errorf("flop was probably not shuffled %v", GS)
 	}
 }
 
-
 func TestShufflePrime(t *testing.T) {
 	rng.Init()
 	shuffleDef := EngineDef{
-		Reels:          [][]int{{0,5,5,5,5,5,5,5,5,5,5},{1,5,5,5,5,5,5,5,5,5,5,5},{2,5,5,5,5,5,5,5,5,5,5,5},{3,5,5,5,5,5,5,5,5,5,5},{4,5,5,5,5,5,5,5,5,5,5,5,5}},
-		ViewSize:       []int{1,1,1,1,1},
+		Reels:          [][]int{{0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, {1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, {2, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, {3, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, {4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5}},
+		ViewSize:       []int{1, 1, 1, 1, 1},
 		Payouts:        []Payout{},
 		WinType:        "pAndF",
 		SpecialPayouts: []Prize{},
@@ -859,13 +853,13 @@ func TestShufflePrime(t *testing.T) {
 		//StakeDivisor:   1,
 	}
 	testGS := Gamestate{
-		DefID:             0,
-		BetPerLine:        Money{1, "BTC"},
-		SymbolGrid:        [][]int{{0},{1},{2},{3},{4}},
-		Prizes:            []Prize{},
-		RelativePayout:    0,
-		Multiplier:        1,
-		StopList:          []int{0,0,0,0,0},
+		DefID:          0,
+		BetPerLine:     Money{1, "BTC"},
+		SymbolGrid:     [][]int{{0}, {1}, {2}, {3}, {4}},
+		Prizes:         []Prize{},
+		RelativePayout: 0,
+		Multiplier:     1,
+		StopList:       []int{0, 0, 0, 0, 0},
 	}
 	params := GameParams{
 		Stake:             1,

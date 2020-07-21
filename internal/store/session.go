@@ -10,6 +10,7 @@ import (
 )
 
 func InitPlayerGS(refreshToken string, playerID string, gameName string, currency string, wallet string) (engine.Gamestate, PlayerStore, rgse.RGSErr) {
+	logger.Debugf("init game %v for player %v", gameName, playerID)
 	var newPlayer PlayerStore
 	var latestGamestateStore GameStateStore
 	var err rgse.RGSErr
@@ -26,6 +27,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 	var latestGamestate engine.Gamestate
 
 	if len(latestGamestateStore.GameState) == 0 {
+		logger.Debugf("latest gamestate had length zero")
 		if wallet == "demo" {
 			// todo: get this per currency
 			balance := engine.NewFixedFromInt(5000)
@@ -56,7 +58,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 
 func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.Gamestate) {
 	// from player we use balance currency and id
-	logger.Debugf("First gameplay for player %v, creating sham gamestate", player)
+	logger.Debugf("First %v gameplay for player %v, creating sham gamestate", gameName, player)
 
 	gsID := player.PlayerId + gameName + "GSinit"
 	latestGamestate = engine.Gamestate{Game: gameName, DefID: 0, Id: gsID, BetPerLine: engine.Money{0, player.Balance.Currency}, NextActions: []string{"finish"}, Action: "init", Gamification: &engine.GamestatePB_Gamification{}, SymbolGrid: engine.GetDefaultView(gameName), NextGamestate: uuid.NewV4().String(), Closed: true}
@@ -66,7 +68,7 @@ func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.G
 	return
 }
 
-func PlayerBalance(token, wallet string) (BalanceStore , rgse.RGSErr) {
+func PlayerBalance(token, wallet string) (BalanceStore, rgse.RGSErr) {
 	logger.Debugf("Token [%s] Wallet [%s]", token, wallet)
 	var balance BalanceStore
 	var err rgse.RGSErr
@@ -77,14 +79,14 @@ func PlayerBalance(token, wallet string) (BalanceStore , rgse.RGSErr) {
 			logger.Debugf("PlayerBalance Error: %v", &err)
 			return BalanceStore{}, err
 		}
-		return balance,  nil
+		return balance, nil
 	case "demo":
 		balance, err = ServLocal.BalanceByToken(Token(token), ModeDemo)
 		if err != nil {
 			logger.Debugf("PlayerBalance Error: %v", err)
 			return BalanceStore{}, err
 		}
-		return balance,  nil
+		return balance, nil
 	default:
 		logger.Debugf("PlayerBalance Error: %v", "No wallet specified")
 		return BalanceStore{}, err
