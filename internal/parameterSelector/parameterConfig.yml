@@ -32,8 +32,8 @@ ccyMultipliers:
   THB: 0.2
   MYR: 0.02
   IDR: 100
-  XBT: 0.004
-  BTC: 0.004
+  XBT: 0.001
+  BTC: 0.001
   TRY: 0.05
   BRL: 0.04
   SEK: 0.01
@@ -114,6 +114,10 @@ ccyMultipliers:
   VES: 1000
   ARX: 1.25
   VEX: 2000
+  UST: 0.01
+  ETH: 0.001
+  BCH: 0.001
+  LTC: 0.001
 
 profiles:
   low:
