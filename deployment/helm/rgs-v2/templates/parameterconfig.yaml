@@ -124,6 +124,10 @@ data:
       VES: 1000
       ARX: 1.25
       VEX: 2000
+      UST: 0.01
+      ETH: 0.001
+      BCH: 0.001
+      LTC: 0.001
 
     profiles:
       low:

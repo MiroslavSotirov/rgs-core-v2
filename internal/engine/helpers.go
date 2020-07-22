@@ -439,7 +439,7 @@ func GetDefaultView(gameName string) (symbolGrid [][]int) {
 	return
 }
 
-var MilliUnitCCies = []Ccy{Ccy_BTC, Ccy_EGP, Ccy_TND, Ccy_KWD, Ccy_BHD, Ccy_IQD, Ccy_OMR}
+var MilliUnitCCies = []Ccy{Ccy_BTC, Ccy_EGP, Ccy_TND, Ccy_KWD, Ccy_BHD, Ccy_IQD, Ccy_OMR, Ccy_XBT, Ccy_ETH, Ccy_LTC, Ccy_BCH}
 
 func RoundUpToNearestCCYUnit(in Money) (out Money) {
 	// this function is basically a ceiling function, but if the value is zero then it will also be incremented to the smallest allowed currency value
