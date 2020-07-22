@@ -40,3 +40,8 @@ asuka-x-samurai:
     stages: 5
     spinsMin: 50
     spinsMax: 70
+battlemech-mars:
+    function: IncrementSpins
+    stages: 5
+    spinsMin: 50
+    spinsMax: 70

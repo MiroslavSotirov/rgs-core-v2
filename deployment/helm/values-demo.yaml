@@ -166,6 +166,7 @@ gameConfig:
       - valley-of-kings
       - bangkok-fighter
       - asuka-x-samurai
+      - battlemech-mars
   - engineID: mvgEngineXI
     games:
       - mah-jong
@@ -212,6 +213,11 @@ gamification:
     spinsMin: 50
     spinsMax: 70
   asuka-x-samurai:
+    function: IncrementSpins
+    stages: 5
+    spinsMin: 50
+    spinsMax: 70
+  battlemech-mars:
     function: IncrementSpins
     stages: 5
     spinsMin: 50
