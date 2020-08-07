@@ -117,7 +117,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 	var fsRemaining *int
 	fsr := 0
 	for i := 0; i < len(gamestate.NextActions); i++ {
-		if strings.Contains(gamestate.NextActions[i], "freespin") {
+		if strings.Contains(gamestate.NextActions[i], "freespin") || strings.Contains(gamestate.NextActions[i], "shuffle") {
 			fsr++
 		}
 	}
