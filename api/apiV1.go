@@ -142,14 +142,13 @@ func getInitPlayValues(request *http.Request, clientID string, memID string, gam
 	return
 }
 
-func validateBet(data engine.GameParams, txStore store.TransactionStore, game string) (bool, engine.GameParams, rgse.RGSErr) {
-	minBet := false
+func validateBet(data engine.GameParams, txStore store.TransactionStore, game string) (engine.GameParams, rgse.RGSErr) {
 	if data.Action != "base" {
 		// stake value must be zero
 		// check that the round is open
 		if txStore.RoundStatus != store.RoundStatusOpen {
 			logger.Warnf("last TX should be open: %#v", txStore)
-			return false, data, rgse.Create(rgse.SpinSequenceError)
+			return data, rgse.Create(rgse.SpinSequenceError)
 		}
 		logger.Debugf("setting zero stake value for %v round", data.Action)
 		if data.Action != "respin" {
@@ -159,12 +158,12 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 		// check that previous TX was endround
 		if txStore.RoundStatus != store.RoundStatusClose {
 			logger.Warnf("last TX: %#v", txStore)
-			return false, data, rgse.Create(rgse.SpinSequenceError)
+			return data, rgse.Create(rgse.SpinSequenceError)
 		}
 
 		stakeValues, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, txStore.Amount.Currency}, txStore.BetLimitSettingCode, game)
 		if err != nil {
-			return false, data, err
+			return data, err
 		}
 
 		valid := false
@@ -184,18 +183,15 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 
 					}
 				}
-				if i == 0 {
-					minBet = true
-				}
 				break
 			}
 		}
 		if valid == false {
 			logger.Debugf("invalid stake: %v (options: %v)", data.Stake, stakeValues)
-			return false, data, rgse.Create(rgse.InvalidStakeError)
+			return data, rgse.Create(rgse.InvalidStakeError)
 		}
 	}
-	return minBet, data, nil
+	return data, nil
 }
 
 func play(request *http.Request, data engine.GameParams) (engine.Gamestate, store.PlayerStore, BalanceResponse, engine.EngineConfig, rgse.RGSErr) {
@@ -270,7 +266,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 	if txStore.Amount.Currency == "" {
 		txStore.Amount.Currency = previousGamestate.BetPerLine.Currency
 	}
-	minBet, data, betValidationErr := validateBet(data, txStore, gameSlug)
+	data, betValidationErr := validateBet(data, txStore, gameSlug)
 	if betValidationErr != nil {
 		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, betValidationErr
 	}
@@ -305,7 +301,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 	}
 
 	var freeGameRef string
-	if minBet == true {
+	if data.Stake == txStore.FreeGames.WagerAmt {
 		// this game qualifies as a free game!
 		freeGameRef = txStore.FreeGames.CampaignRef
 		logger.Debugf("Free game campaign %v", freeGameRef)
