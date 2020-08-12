@@ -66,9 +66,14 @@ type GamificationRespV2 struct {
 
 type BalanceResponseV2 struct {
 	Amount    engine.Money `json:"amount"`
-	FreeGames int          `json:"freeGames"`
+	FreeGames int          `json:"freeGames"` // todo: deprecate once all games switched over
+	FreeSpinInfo *FreespinResponse `json:"free_spins"`
 }
 
+type FreespinResponse struct {
+	CtRemaining int	`json:"num_remaining"`
+	WagerAmt	engine.Fixed `json:"wager_amount"`
+}
 // todo: incorporate this into gameplay response
 
 //type PickGameResp struct {
@@ -112,7 +117,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 	var fsRemaining *int
 	fsr := 0
 	for i := 0; i < len(gamestate.NextActions); i++ {
-		if strings.Contains(gamestate.NextActions[i], "freespin") {
+		if strings.Contains(gamestate.NextActions[i], "freespin") || strings.Contains(gamestate.NextActions[i], "shuffle") {
 			fsr++
 		}
 	}
@@ -141,6 +146,14 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		gamestate.Prizes[p].Win = engine.NewFixedFromInt(gamestate.Prizes[p].Payout.Multiplier * gamestate.Prizes[p].Multiplier * gamestate.Multiplier).Mul(gamestate.BetPerLine.Amount)
 
 	}
+
+	var fsresp FreespinResponse
+
+	if balance.FreeGames.NoOfFreeSpins > 0 {
+		fsresp.CtRemaining = balance.FreeGames.NoOfFreeSpins
+		fsresp.WagerAmt = balance.FreeGames.WagerAmt
+	}
+
 	return GameplayResponseV2{
 		SessionID:   balance.Token,
 		StateID:     gamestate.Id,
@@ -154,7 +167,8 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		FSRemaining: fsRemaining,
 		Balance: BalanceResponseV2{
 			Amount:    balance.Balance,
-			FreeGames: balance.FreeGames.NoOfFreeSpins,
+			FreeGames: balance.FreeGames.NoOfFreeSpins, // todo: deprecate once moved over to new fw completely
+			FreeSpinInfo: &fsresp,
 		},
 		View:            gamestate.SymbolGrid,
 		Prizes:          gamestate.Prizes,

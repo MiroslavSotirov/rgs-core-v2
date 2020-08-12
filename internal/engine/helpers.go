@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"crypto/md5"
+	// "crypto/md5"
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
@@ -262,29 +262,30 @@ func GetHash(filePath string) (string, string, error) {
 	}
 
 	//Open a new hash interface to write to
-	hash1 := md5.New()
+	// hash1 := md5.New()
 	hash2 := sha1.New()
 
 	//Copy the file in the hash interface and check for any error
-	if _, err := io.Copy(hash1, file); err != nil {
-		return "", "", err
-	}
+	// if _, err := io.Copy(hash1, file); err != nil {
+		// return "", "", err
+	// }
 	if _, err := io.Copy(hash2, file); err != nil {
 		return "", "", err
 	}
 	//Get the 16 bytes hash
-	hashInBytes1 := hash1.Sum(nil)
+	// hashInBytes1 := hash1.Sum(nil)
 	hashInBytes2 := hash2.Sum(nil)
-	logger.Infof("MD5: %v", hex.EncodeToString(hashInBytes1))
+	// logger.Infof("MD5: %v", hex.EncodeToString(hashInBytes1))
 	logger.Infof("SHA1: %v", hex.EncodeToString(hashInBytes2))
 
 	//ConvertLegacy the bytes to a string
-	MD5String := hex.EncodeToString(hashInBytes1)
+	// MD5String := hex.EncodeToString(hashInBytes1)
 	SHA1String := hex.EncodeToString(hashInBytes2)
 	err = file.Close()
 	if err != nil {
 		return "", "", err
 	}
+	MD5String := "sham"
 	return MD5String, SHA1String, nil
 }
 

@@ -4,7 +4,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"strings"
 )
@@ -29,22 +29,18 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 	if len(latestGamestateStore.GameState) == 0 {
 		logger.Debugf("latest gamestate had length zero")
 		if wallet == "demo" {
+			// todo : allow setting of betlimitsettignscode
+			balance, ctFS, waFS, err := parameterSelector.GetDemoWalletDefaults(currency, gameName, "", playerID)
 			// todo: get this per currency
-			balance := engine.NewFixedFromInt(5000)
-			freeGames := FreeGamesStore{
-				NoOfFreeSpins: 0,
-				CampaignRef:   "",
+			if err != nil {
+				return engine.Gamestate{}, PlayerStore{}, err
 			}
-			// solution for testing low balance
-			if playerID == "lowbalance" {
-				balance = 0
-			} else if playerID == "" {
-				playerID = rng.RandStringRunes(8)
-			} else if strings.Contains(playerID, "campaign") {
-				freeGames.NoOfFreeSpins = 10
-				freeGames.CampaignRef = playerID
-			}
-			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, engine.Money{balance, currency}, "", freeGames}
+
+			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, balance, "", FreeGamesStore{
+				NoOfFreeSpins: ctFS,
+				CampaignRef:   playerID,
+				WagerAmt:      waFS,
+			}}
 			newPlayer, err = ServLocal.PlayerSave(newPlayer.Token, ModeDemo, newPlayer)
 		}
 		latestGamestate = CreateInitGS(newPlayer, gameName)

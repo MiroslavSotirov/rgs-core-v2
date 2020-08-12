@@ -4,11 +4,14 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 // Module for selecting stakeValue and defaultBet parameters given currency, operator-specific settings, and player history and classification
@@ -44,6 +47,45 @@ func parseBetConfig() (betConfig, rgse.RGSErr) {
 	}
 	return conf, nil
 }
+
+
+func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode string, playerID string) (walletInitBal engine.Money, ctFS int, waFS engine.Fixed, err rgse.RGSErr) {
+
+
+	// default wallet amt is 100x the max bet amount for the game
+	stakeValues, _, paramErr := GetGameplayParameters(engine.Money{0, currency}, betSettingsCode, gameID)
+	if paramErr != nil {
+		err = paramErr
+		return
+	}
+
+	EC, confErr := engine.GetEngineDefFromGame(gameID)
+	if confErr != nil {
+		err = confErr
+		return
+	}
+
+	// solution for testing low balance
+	if playerID == "lowbalance" {
+		walletInitBal = engine.Money{0, currency}
+	} else if playerID == "" {
+		walletInitBal = engine.Money{stakeValues[len(stakeValues)-1].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).Mul(engine.NewFixedFromInt(100)), currency}
+		playerID = rng.RandStringRunes(8)
+	} else if strings.Contains(playerID, "campaign") {
+		walletInitBal = engine.Money{stakeValues[len(stakeValues)-1].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).Mul(engine.NewFixedFromInt(100)), currency}
+
+		ctFS = 10
+		waFS = stakeValues[0]
+		if len(playerID) > 8 {
+			i, strerr := strconv.Atoi(playerID[8:])
+			if strerr == nil && i < len(stakeValues) {
+				waFS = stakeValues[i]
+			}
+		}
+	}
+	return
+}
+
 
 func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string) ([]engine.Fixed, engine.Fixed, rgse.RGSErr) {
 	// returns stakeValues and defaultBet based on host and player configuration

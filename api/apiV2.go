@@ -212,7 +212,7 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 	if txStore.Amount.Currency == "" {
 		txStore.Amount.Currency = previousGamestate.BetPerLine.Currency
 	}
-	minBet, data, betValidationErr := validateBet(data, txStore, data.Game)
+	data, betValidationErr := validateBet(data, txStore, data.Game)
 	if betValidationErr != nil {
 		return GameplayResponseV2{}, betValidationErr
 	}
@@ -231,10 +231,15 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 	}
 
 	var freeGameRef string
-	if txStore.FreeGames.NoOfFreeSpins > 0 && minBet == true {
+	if txStore.FreeGames.NoOfFreeSpins > 0 && data.Stake == txStore.FreeGames.WagerAmt {
 		// this game qualifies as a free game!
 		freeGameRef = txStore.FreeGames.CampaignRef
 		logger.Warnf("Free game campaign %v", freeGameRef)
+	} else if previousGamestate.RoundID == gamestate.RoundID && gamestate.Transactions[0].Type != "WAGER" {
+		// if the game is a continuation of a round propogate the previous campaign ref to all txs linked to this round
+		// except if there is a tx on this state that is a wager and it is not the first wager of  the round
+		freeGameRef = txStore.FreeGames.CampaignRef
+		logger.Warnf("Campaign %v continues", freeGameRef)
 	}
 
 	// settle transactions
