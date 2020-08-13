@@ -35,6 +35,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 			if err != nil {
 				return engine.Gamestate{}, PlayerStore{}, err
 			}
+			logger.Debugf("balance: %v, freespins: %v, wageramt: %v", balance, ctFS, waFS)
 
 			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, balance, "", FreeGamesStore{
 				NoOfFreeSpins: ctFS,
