@@ -8,7 +8,7 @@ image:
   version: v2.0.3
 
 imagePullSecrets:
-  - name: harborcred2
+  - name: harborcred
 
 nameOverride: ""
 fullnameOverride: ""
@@ -95,9 +95,9 @@ readinessProbe:
 config:
   devmode: true
   local: false
-  logging: debug
+  logging: info
   environment: demo
-  mcrouter: "mcrouter-memcached.default:11211"
+  mcrouter: "mcrouter-memcached:11211"
   server:
     host: "0.0.0.0"
     port: 3000
