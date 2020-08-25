@@ -296,12 +296,12 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 			gamestate = forcedGamestate
 		} else {
 			//assume error is of memcache.ErrCacheMiss variety
-			logger.Warnf("No force value found for player %v", txStore.PlayerId)
+			logger.Infof("No force value found for player %v", txStore.PlayerId)
 		}
 	}
 
 	var freeGameRef string
-	if data.Stake == txStore.FreeGames.WagerAmt {
+	if data.Stake.Mul(engine.NewFixedFromInt(engineConf.EngineDefs[0].StakeDivisor)) == txStore.FreeGames.TotalWagerAmt { // this will also be true if the stake is 2x the wager but half the max lines are selected, but we will have to assume that's ok for the operators as the total exposure is even less
 		// this game qualifies as a free game!
 		freeGameRef = txStore.FreeGames.CampaignRef
 		logger.Debugf("Free game campaign %v", freeGameRef)

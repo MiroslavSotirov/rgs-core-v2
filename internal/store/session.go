@@ -31,7 +31,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 		if wallet == "demo" {
 			// todo : allow setting of betlimitsettignscode
 			balance, ctFS, waFS, err := parameterSelector.GetDemoWalletDefaults(currency, gameName, "", playerID)
-			// todo: get this per currency
+
 			if err != nil {
 				return engine.Gamestate{}, PlayerStore{}, err
 			}
@@ -40,7 +40,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, balance, "", FreeGamesStore{
 				NoOfFreeSpins: ctFS,
 				CampaignRef:   playerID,
-				WagerAmt:      waFS,
+				TotalWagerAmt: waFS,
 			}}
 			newPlayer, err = ServLocal.PlayerSave(newPlayer.Token, ModeDemo, newPlayer)
 		}

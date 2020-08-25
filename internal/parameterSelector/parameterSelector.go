@@ -72,14 +72,15 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 		playerID = rng.RandStringRunes(8)
 	} else if strings.Contains(playerID, "campaign") {
 		ctFS = 10
-		waFS = stakeValues[0]
+		waFS = stakeValues[0].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor))
 		if len(playerID) > 8 {
 			i, strerr := strconv.Atoi(playerID[8:])
 			if strerr == nil && i < len(stakeValues) {
-				waFS = stakeValues[i]
+				waFS = stakeValues[i].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor))
 			}
 		}
 	}
+	logger.Debugf("set balance: %v ; freespins: %v; fs value: %v", walletInitBal, ctFS, waFS)
 	return
 }
 

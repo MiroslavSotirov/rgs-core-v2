@@ -62,8 +62,8 @@ func TestLocalServiceImpl_Player(t *testing.T) {
 		t.Errorf("Value not match [%v] <> [%v]", player.BetLimitSettingCode, player2.BetLimitSettingCode)
 	}
 
-	if player.FreeGames.WagerAmt != player2.FreeGames.WagerAmt {
-		t.Errorf("Value not match [%v] <> [%v]", player.FreeGames.WagerAmt, player2.FreeGames.WagerAmt)
+	if player.FreeGames.TotalWagerAmt != player2.FreeGames.TotalWagerAmt {
+		t.Errorf("Value not match [%v] <> [%v]", player.FreeGames.TotalWagerAmt, player2.FreeGames.TotalWagerAmt)
 
 	}
 
