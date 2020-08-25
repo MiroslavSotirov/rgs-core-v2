@@ -8,7 +8,7 @@ image:
   version: v2.0.3
 
 imagePullSecrets:
-  - name: harborcred2
+  - name: harborcred
 
 nameOverride: ""
 fullnameOverride: ""
@@ -100,7 +100,7 @@ config:
   server:
     host: "0.0.0.0"
     port: 3000
-  storeurl: "https://gnrc-api.maverick-ops.com/v1/gnrc/maverick"
+  storeurl: "http://gnrc-integ.dashur-integ/v1/gnrc/maverick"
   storeappid: "HAAJ6njttH"
   storeapppass: "WKXUZWTzNzvmTqYxiHnH9hKc"
   defaultlanguage: "en"
