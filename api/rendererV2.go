@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
@@ -151,7 +152,14 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 
 	if balance.FreeGames.NoOfFreeSpins > 0 {
 		fsresp.CtRemaining = balance.FreeGames.NoOfFreeSpins
-		fsresp.WagerAmt = balance.FreeGames.WagerAmt
+		if ED.StakeDivisor != 0 {
+			fsresp.WagerAmt = balance.FreeGames.TotalWagerAmt.Div(engine.NewFixedFromInt(ED.StakeDivisor))
+		} else {
+			// there has been an error parsing the amount for freespins, return zero to keep client from trying to execute bad fs
+			rgserror.Create(rgserror.BadFSWagerAmt)
+			fsresp.WagerAmt = 0
+			fsresp.CtRemaining = 0
+		}
 	}
 
 	return GameplayResponseV2{

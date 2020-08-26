@@ -58,6 +58,7 @@ const (
 
 	// Wallet & Operator
 	BadOperatorConfig = 600
+	BadFSWagerAmt = 601
 	// System Error
 	InternalServerError = 500
 	// Session Error
@@ -127,6 +128,8 @@ var ErrMsg = map[int]string{
 	UnexpectedTx:                     "Got unexpected WAGER tx",
 	UnexpectedWalletStatus:           "Unexpected Wallet status",
 	YamlError:                        "Error encoding/decoding yaml",
+	BadFSWagerAmt:					  "Bad freespin wager amount",
+
 }
 
 type RGSErr interface {
