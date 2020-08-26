@@ -102,9 +102,9 @@ type (
 	}
 
 	FreeGamesStore struct {
-		NoOfFreeSpins int    `json:"count"`
-		CampaignRef   string `json:"ref"`
-		WagerAmt      engine.Fixed `json:"wager_amount"`
+		NoOfFreeSpins int          `json:"count"`
+		CampaignRef   string       `json:"ref"`
+		TotalWagerAmt engine.Fixed `json:"wager_amount"`
 	}
 
 	//Error struct {
@@ -428,7 +428,7 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 					Currency: player.Balance.Currency,
 					Amount:   player.Balance.Amount,
 				},
-				FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef, player.FreeGames.WagerAmt},
+				FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef, player.FreeGames.TotalWagerAmt},
 				BetLimitSettingCode: player.BetLimitSettingCode,
 			}
 			gs = GameStateStore{GameState: tx.GameState, WalletInternalStatus: 1}
@@ -445,7 +445,7 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 					Currency: player.Balance.Currency,
 					Amount:   player.Balance.Amount,
 				},
-				FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef, player.FreeGames.WagerAmt},
+				FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef, player.FreeGames.TotalWagerAmt},
 				BetLimitSettingCode: player.BetLimitSettingCode,
 			}
 			return
@@ -705,7 +705,7 @@ func (i *LocalServiceImpl) PlayerSave(token Token, mode Mode, player PlayerStore
 			Currency: player.Balance.Currency,
 			Amount:   player.Balance.Amount,
 		},
-		FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef, player.FreeGames.WagerAmt},
+		FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef, player.FreeGames.TotalWagerAmt},
 		BetLimitSettingCode: player.BetLimitSettingCode,
 	}, nil
 }
@@ -836,7 +836,7 @@ func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction Trans
 			Currency: player.Balance.Currency,
 			Amount:   player.Balance.Amount,
 		},
-		FreeGames: FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef, player.FreeGames.WagerAmt},
+		FreeGames: FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef, player.FreeGames.TotalWagerAmt},
 	}, nil
 }
 

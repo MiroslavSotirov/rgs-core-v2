@@ -217,7 +217,7 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 		return GameplayResponseV2{}, betValidationErr
 	}
 
-	gamestate, _ := engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
+	gamestate, EC := engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
 	if config.GlobalConfig.DevMode == true {
 		forcedGamestate, err := forceTool.GetForceValues(data, previousGamestate, txStore.PlayerId)
 		if err == nil {
@@ -229,9 +229,8 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 			logger.Debugf("Error retrieving force for player %v: %v", txStore.PlayerId, err.Error())
 		}
 	}
-
 	var freeGameRef string
-	if txStore.FreeGames.NoOfFreeSpins > 0 && data.Stake == txStore.FreeGames.WagerAmt {
+	if txStore.FreeGames.NoOfFreeSpins > 0 && data.Stake.Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)) == txStore.FreeGames.TotalWagerAmt {
 		// this game qualifies as a free game!
 		freeGameRef = txStore.FreeGames.CampaignRef
 		logger.Warnf("Free game campaign %v", freeGameRef)
