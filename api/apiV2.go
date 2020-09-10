@@ -94,7 +94,7 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 		}
 	}
 
-		giResp.DefaultBet = defaultBet
+	giResp.DefaultBet = defaultBet
 	return giResp, nil
 }
 
