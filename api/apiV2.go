@@ -86,7 +86,15 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 		return GameInitResponseV2{}, err
 	}
 	giResp.StakeValues = stakeValues
-	giResp.DefaultBet = defaultBet
+	for i:=0; i<len(stakeValues); i++ {
+		if player.FreeGames.NoOfFreeSpins > 0 && stakeValues[i].Mul(engine.NewFixedFromInt(engineConfig.EngineDefs[0].StakeDivisor)) == player.FreeGames.TotalWagerAmt {
+			defaultBet = stakeValues[i]
+			logger.Debugf("setting defaultbet to %v for freegames", defaultBet)
+			break
+		}
+	}
+
+		giResp.DefaultBet = defaultBet
 	return giResp, nil
 }
 
@@ -230,15 +238,16 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 		}
 	}
 	var freeGameRef string
+
 	if txStore.FreeGames.NoOfFreeSpins > 0 && data.Stake.Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)) == txStore.FreeGames.TotalWagerAmt {
 		// this game qualifies as a free game!
 		freeGameRef = txStore.FreeGames.CampaignRef
-		logger.Warnf("Free game campaign %v", freeGameRef)
+		logger.Infof("Free game campaign %v", freeGameRef)
 	} else if previousGamestate.RoundID == gamestate.RoundID && gamestate.Transactions[0].Type != "WAGER" {
 		// if the game is a continuation of a round propogate the previous campaign ref to all txs linked to this round
 		// except if there is a tx on this state that is a wager and it is not the first wager of  the round
 		freeGameRef = txStore.FreeGames.CampaignRef
-		logger.Warnf("Campaign %v continues", freeGameRef)
+		logger.Infof("Campaign %v continues", freeGameRef)
 	}
 
 	// settle transactions
