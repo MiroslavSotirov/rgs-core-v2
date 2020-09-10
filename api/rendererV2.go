@@ -200,7 +200,12 @@ func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance st
 	logger.Debugf("previousGamestate: %v; balance: %v;", previousGamestate, balance)
 
 	lastRound := make(map[string]GameplayResponseV2, 2)
-	lastRound[previousGamestate.Action] = fillGamestateResponseV2(previousGamestate, balance)
+	// edit name of games with actions like "freespin3"
+	action := previousGamestate.Action
+	if strings.Contains(action, "freespin") {
+		action = "freespin"
+	}
+	lastRound[action] = fillGamestateResponseV2(previousGamestate, balance)
 
 	// if last round was not base round, get triggering round ( for now no dashur api support for this, so show default round)
 	if !strings.Contains(previousGamestate.Action, "base") {
