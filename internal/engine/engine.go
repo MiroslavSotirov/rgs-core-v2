@@ -285,6 +285,9 @@ func DetermineWaysWins(symbolGrid [][]int, waysPayouts []Payout, wilds []wild) [
 }
 
 func TransposeGrid(symbolGrid [][]int) [][]int {
+	if len(symbolGrid) == 0 {
+		return [][]int{}
+	}
 	newGrid := make([][]int, len(symbolGrid[0]))
 	for _, row := range symbolGrid {
 		for j, symbol := range row {

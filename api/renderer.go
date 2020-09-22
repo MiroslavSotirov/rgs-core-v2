@@ -685,7 +685,7 @@ func getPlayLink(gamestate engine.Gamestate, playerStore store.PlayerStore, requ
 	playHref = fmt.Sprintf("%s%s/%s/rgs/play/%s/%s/%s", GetURLScheme(request), request.Host, APIVersion, gameID, gamestate.Id, mode)
 	// determine if this is the first sham gamestate being rendered:
 	if len(gamestate.Transactions) == 0 {
-		playHref += fmt.Sprintf("?playerId=%v&ccy=%v&betLimitCode=%v&campaign=%v", playerStore.PlayerId, playerStore.Balance.Currency, playerStore.BetLimitSettingCode, playerStore.FreeGames.CampaignRef)
+		playHref += fmt.Sprintf("?playerId=%v&ccy=%v&betLimitCode=%v&campaign=%v&wagerAmt=%v", playerStore.PlayerId, playerStore.Balance.Currency, playerStore.BetLimitSettingCode, playerStore.FreeGames.CampaignRef, int(playerStore.FreeGames.TotalWagerAmt))
 		logger.Debugf("Rendering sham init gamestate: %v", gamestate)
 	}
 	return

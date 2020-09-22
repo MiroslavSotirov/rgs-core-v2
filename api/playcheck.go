@@ -84,7 +84,12 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 	symbolGrid := engine.TransposeGrid(gameplay.SymbolGrid)
 	currency := gameplay.Transactions[0].Amount.Currency
 	betPerLine := gameplay.BetPerLine.Amount.ValueAsString()
-	colSize := len(symbolGrid[0])
+	var colSize int
+	if len(symbolGrid) > 0 {
+		colSize = len(symbolGrid[0])
+	} else {
+		colSize = 0
+	}
 	fields := PlaycheckFields{gameplay, gameplay.Game, wager, payout, currency, betPerLine, symbolGrid, colSize}
 	err = t.Execute(w, fields)
 	if err != nil {
