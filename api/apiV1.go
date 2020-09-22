@@ -13,6 +13,7 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -133,12 +134,18 @@ func getInitPlayValues(request *http.Request, clientID string, memID string, gam
 	txStore.Token = store.Token(memID)
 	txStore.Amount.Currency = ccy
 	txStore.PlayerId = playerID
-	campaign := request.FormValue("campaign")
-	if campaign != "" {
-		txStore.FreeGames.CampaignRef = campaign
-	}
 	txStore.BetLimitSettingCode = request.FormValue("betLimitCode")
 	txStore.WalletStatus = 1
+	campaign := request.FormValue("campaign")
+	if campaign != "" {
+		wagerAmt, err := strconv.Atoi(request.FormValue("wagerAmt"))
+		if err != nil {
+			return
+		}
+		txStore.FreeGames.CampaignRef = campaign
+		txStore.FreeGames.TotalWagerAmt = engine.Fixed(wagerAmt)
+	}
+
 	return
 }
 
