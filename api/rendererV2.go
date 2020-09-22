@@ -161,7 +161,10 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 			fsresp.CtRemaining = 0
 		}
 	}
-
+	nextAction := gamestate.NextActions[0]
+	if strings.Contains(nextAction, "freespin") {
+		nextAction = "freespin"
+	}
 	return GameplayResponseV2{
 		SessionID:   balance.Token,
 		StateID:     gamestate.Id,
@@ -171,7 +174,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		Win:         win,
 		RoundWin:    roundWin,
 		SpinWin:     gamestate.SpinWin,
-		NextAction:  gamestate.NextActions[0],
+		NextAction:  nextAction,
 		FSRemaining: fsRemaining,
 		Balance: BalanceResponseV2{
 			Amount:    balance.Balance,
