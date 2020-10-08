@@ -111,14 +111,14 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 
 		for j := 0; j < chunkSize; j++ {
 			var params engine.GameParams
-			if previousGamestate.Action == "freespin" || (j == 0 && i == 0) {
+			//if strings.Contains(previousGamestate.Action,"freespin") || (j == 0 && i == 0) {
 				params.Action = "base" // change this to maxBase or to any other special function for a particular wallet to see special RTP
-			} else {
-				params.Action = "respin"
-				params.RespinReel = rng.RandFromRange(5)
-				logger.Warnf("Need to uncomment the next line and the SetPG function for this to work for respin engine")
-				//params.SetPG(previousGamestate)
-			}
+			//} else {
+			//	params.Action = "respin"
+			//	params.RespinReel = rng.RandFromRange(5)
+			//	logger.Warnf("Need to uncomment the next line and the SetPG function for this to work for respin engine")
+			//	//params.SetPG(previousGamestate)
+			//}
 			if previousGamestate.NextActions[0] == "cascade" {
 				params.Action = "cascade"
 			}
@@ -129,7 +129,10 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 			}
 			gamestate, _ := engine.Play(previousGamestate, engine.Fixed(1000), "BTC", params)
 			currentWinnings, currentStake := engine.GetCurrentWinAndStake(gamestate)
-
+			//if strings.Contains(gamestate.Action, "freespin") {
+			//	logger.Warnf("winnings: %v, gamesate: %v", currentWinnings, gamestate)
+			//
+			//}
 			totalWin += currentWinnings
 			totalBet += currentStake
 			s2.addSample(float64(currentWinnings.ValueAsFloat()))
@@ -179,7 +182,7 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 		RTP := totalWin.Div(totalBet)
 		RTPBase := totalWin.Sub(featureWin).Div(totalBet)
 		RTPFeature := featureWin.Div(totalBet)
-		RTPRespin := respinWin.Div(respinBet)
+		//RTPRespin := respinWin.Div(respinBet)
 		// fsPct := float64(fsTriggers) / (float64(chunkSize) * float64(i+1))
 		ftInfo := ""
 		//logger.Infof("avg feature multiplier: %v%%", float64(featureMultiplier)/float64(ftTriggers[1]["rounds"])*100)
@@ -211,7 +214,7 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 				logger.Infof(chunkInfo)
 			}
 		}
-		logger.Warnf("Respin RTP: %v", RTPRespin.ValueAsFloat()*100)
+		//logger.Warnf("Respin RTP: %v", RTPRespin.ValueAsFloat()*100)
 
 		//logger.Warnf("%v cascades total", ctCascades)
 		logger.Infof("Chunk %v done in %v", i+1, time.Now().Sub(refTime))

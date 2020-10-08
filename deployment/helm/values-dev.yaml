@@ -171,6 +171,9 @@ gameConfig:
   - engineID: mvgEngineXVI
     games:
       - sparta
+  - engineID: mvgEngineXVII
+    games:
+      - princess
 
 gamification:
   a-fairy-tale:

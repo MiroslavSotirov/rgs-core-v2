@@ -481,7 +481,10 @@ func (gamestate *Gamestate) PostProcess(previousGamestate Gamestate, chargeWager
 			Type:   "WAGER",
 		}}
 	}
-	gamestate.Action = actions[0]
+	if gamestate.Action == "" {
+		// allow the function to set its own action
+		gamestate.Action = actions[0]
+	}
 	gamestate.BetPerLine = Money{betPerLine, currency}
 	gamestate.PrepareActions(actions)
 	gamestate.Gamification = previousGamestate.Gamification
@@ -1085,3 +1088,71 @@ func (engine EngineDef) LinesRoundReplaceType(parameters GameParams) Gamestate {
 	}
 	return gamestate
 }
+
+
+func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
+	// this is a base round but with a special expanding symbol (indicated by the value after ":" in Action field of previous gamestate
+	// the expansion happens in the second phase, so this function serves only to prepare the next phase
+	// if it is the first in a series of gamestates of this type, the special symbol needs to be inferred from the multiplier of the previous gs, which should have payout zero
+
+	gamestate := engine.BaseRound(parameters)
+
+	var expandSymbol int
+	var err error
+	if strings.Contains(parameters.previousGamestate.Action, parameters.Action) {
+		// expand symbol should be propogated from previous state
+		expandSymbol, err = strconv.Atoi(strings.Split(parameters.previousGamestate.Action, ":")[1])
+		if err != nil {
+			logger.Errorf("misconfigured engine: %v", engine.ID)
+			return Gamestate{}
+		}
+	} else {
+		// this is the first expansion state, get expand symbol from the multiplier of the previous state
+		expandSymbol = parameters.previousGamestate.Multiplier
+	}
+
+	// check if the reels contain the expand symbol
+	expandReels := make([]int, len(gamestate.SymbolGrid)) // this will be a grid of zeroes and ones, we will take the sum to get the prize
+	ctExpandReels := 0
+	for i:=0; i<len(gamestate.SymbolGrid); i++ {
+		for j:=0; j<len(gamestate.SymbolGrid[i]); j++ {
+			if gamestate.SymbolGrid[i][j] == expandSymbol {
+				expandReels[i] = 1
+				ctExpandReels ++
+				// this should only break innermost for loop and continue to next reel
+				break
+			}
+		}
+	}
+	// search for prize matching the count and symbol
+	for p:=0; p<len(engine.Payouts); p++ {
+		if engine.Payouts[p].Symbol == expandSymbol && engine.Payouts[p].Count == ctExpandReels {
+			// in theory we could make expand a separate gs but let's do it all together to reduce api calls
+			// this is hardcoded to work for engine XVII, where the payout after expansion is different than base payout
+			// rather than following strict lines, the payout can happen in nonadjacent positions
+
+			// the client will know which symbol to display as the expand symbol, so we don't need to calculate a new grid.
+			// we simply need to know which reels contain the symbol that has expanded, and we will do a special win calculation on that
+			for l:=0; l<len(engine.WinLines); l++ {
+				// for each win line, create a win matching the payout type
+				winPos := engine.WinLines[l]
+				// turn every reel with no matching symbol to -1
+				for i:=0; i<len(expandReels); i++ {
+					if expandReels[i] == 0 {
+						winPos[i] = -1
+					}
+				}
+				gamestate.Prizes = append(gamestate.Prizes, Prize{Payout: engine.Payouts[p], Index: fmt.Sprintf("E%v:%v", expandSymbol, ctExpandReels), Multiplier: 1, SymbolPositions: winPos, Winline: l})
+
+			}
+
+			// this should only match once per round
+			break
+		}
+	}
+	relativePayout := calculatePayoutWins(gamestate.Prizes)
+	gamestate.RelativePayout = relativePayout // override
+	gamestate.Action = fmt.Sprintf("%v:%v",parameters.Action, expandSymbol)
+	return gamestate
+}
+

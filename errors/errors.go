@@ -84,7 +84,7 @@ var sentryIgnoreList = []int{
 	SpinSequenceError,
 	InvalidStakeError,
 	TokenExpired,
-	
+
 }
 
 // ErrMsg Error message key value map
