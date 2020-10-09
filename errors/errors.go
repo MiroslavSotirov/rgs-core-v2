@@ -73,8 +73,19 @@ const (
 	// forceTool
 	NoForceError    = 800
 	ForceProhibited = 801
-	Forcing         = 802 // this is just to make sentry to report every time there's a force
+	Forcing         = 802
 )
+var sentryIgnoreList = []int{
+	NoForceError,
+	ForceProhibited,
+	Forcing,
+	EntityNotFound, // this error happens a lot
+	GenericWalletError, // this error happens a lot
+	SpinSequenceError,
+	InvalidStakeError,
+	TokenExpired,
+
+}
 
 // ErrMsg Error message key value map
 var ErrMsg = map[int]string{
@@ -146,8 +157,14 @@ type RGSError struct {
 	ErrorText        string `json:"err_msg,omitempty"` // application-level error message
 }
 
+
 func Create(code int) *RGSError {
 	e := &RGSError{ErrCode: code, DefaultErrorText: ErrMsg[code]}
+	for i:=0; i<len(sentryIgnoreList); i++ {
+		if e.ErrCode == sentryIgnoreList[i] {
+			return e
+		}
+	}
 	sentry.CaptureException(e)
 	return e
 }

@@ -1241,4 +1241,93 @@ data:
         multiplier: {multipliers: [3], probabilities: [1]}
         expectedPayout: 2225000 #units are Fixed notation
         respin: false
+  mvgEngineXVII.yml: |
+    version: 2.0
+    rtp: .959716
+    volatility: 74.10328
+    # UNCONFIRMED
+
+    EngineDefs:
+      - name: base
+        WinType: lines
+        StakeDivisor: 10
+        function: BaseRound
+        Reels:
+          - [6,3,3,6,9,0,4,3,1,4,4,2,2,3,1,8,4,3,0,4,3,2,0,4,2,1,4,3,0,6,2,1,2,3,2,7,6,9,6,1,0,3,2,8,4,3,5,0,2,4,1,4,7,6,3,0,2,3,4,2,4,4,4,2,5,3,7,0,6,2,8,3,1,1,6,3,9,2,4,1,3,2,4,3,5,8,0,1,4,0,3,6,3,4,2,6,0,2,7,1,8,5,3,2,4,6,9,4,1,2,3,0,5,2,7,3,4,6,1,3,4,0,2,6,2,3]
+          - [0,3,0,8,5,3,5,1,2,7,0,3,5,8,1,4,2,3,2,6,1,0,3,3,0,1,3,2,1,8,3,0,1,1,3,6,1,5,9,0,3,4,2,7,0,3,4,3,0,3,0,3,0,1,4,6,3,2,0,3,0,8,2,3,0,1,4,3,3,1,0,5,3,0,1,2,4,0,3,1,5,3,1,0,0,4,0,1,4,1,0,1,0,5,4,2,0,7,1,0,1,1,5,3,2,7,0,1,3,9,4,1,5,1,2,3,1,0,5,7,1,2,4,5]
+          - [2,5,0,7,4,0,2,5,4,3,0,6,1,4,6,0,2,4,7,4,5,0,8,1,2,1,4,0,2,4,2,0,6,3,1,5,7,4,0,2,4,0,1,4,9,7,6,3,0,1,4,2,0,4,7,0,6,5,1,2,1,9,6,4,7,0,1,3,0,2,8,1,4,5,1,6,2,2,1,3,7,4,0,4,0,2,0,1,0,8,1,3,0,6,9,4,0,1,2,0,8,1,2,4,1,2,1,4,3,0,5,2,7,3,0,4,1,2,1,0,7,1,2,0,7,5]
+          - [1,7,3,5,2,0,4,6,5,3,2,1,3,4,0,7,3,4,6,2,1,3,0,5,6,2,7,3,4,9,0,5,2,4,3,5,2,3,4,0,6,1,7,3,2,9,4,8,2,1,2,0,4,1,6,5,2,7,0,9,6,3,4,2,2,0,6,2,3,2,4,7,6,1,3,0,8,6,9,0,4,6,1,3,2,2,4,0,9,4,6,8,0,3,2,4,1,5,6,0,2,4,3,7,3,1,8,2,0,3,9,0,4,2,7,3,2,1,0,4,2]
+          - [0,5,8,6,7,3,5,4,3,2,3,5,7,3,6,1,0,5,6,2,1,2,5,3,8,6,4,1,0,6,2,3,0,7,2,6,8,3,2,4,1,9,6,2,0,1,2,4,0,3,8,6,9,0,2,1,5,4,8,2,1,4,5,4,6,3,2,4,1,4,0,9,0,3,5,4,2,7,1,0,2,4,8,3,0,5,7,1,4,2,1,0,3,4,6,9,2,1,0,3,5,1,2,7,4,3,6,1,2,1,4,0,2,6,4,7,5,3,4,3,7,4,6]
+        ViewSize: [3,3,3,3,3]
+        WinLines:
+          - [0,0,0,0,0]
+          - [1,1,1,1,1]
+          - [2,2,2,2,2]
+          - [0,1,2,1,0]
+          - [2,1,0,1,2]
+          - [1,0,0,0,1]
+          - [1,2,2,2,1]
+          - [2,2,1,0,0]
+          - [0,0,1,2,2]
+          - [2,1,1,1,0]
+
+        wilds:
+          - symbol: 9
+            multiplier: {multipliers: [1], probabilities: [1.0]}
+        Payouts:
+          - {Symbol: 0, Count: 3, Multiplier: 5}
+          - {Symbol: 0, Count: 4, Multiplier: 25}
+          - {Symbol: 0, Count: 5, Multiplier: 100}
+          - {Symbol: 1, Count: 3, Multiplier: 5}
+          - {Symbol: 1, Count: 4, Multiplier: 25}
+          - {Symbol: 1, Count: 5, Multiplier: 100}
+          - {Symbol: 2, Count: 3, Multiplier: 5}
+          - {Symbol: 2, Count: 4, Multiplier: 25}
+          - {Symbol: 2, Count: 5, Multiplier: 100}
+          - {Symbol: 3, Count: 3, Multiplier: 5}
+          - {Symbol: 3, Count: 4, Multiplier: 40}
+          - {Symbol: 3, Count: 5, Multiplier: 150}
+          - {Symbol: 4, Count: 3, Multiplier: 5}
+          - {Symbol: 4, Count: 4, Multiplier: 40}
+          - {Symbol: 4, Count: 5, Multiplier: 150}
+          - {Symbol: 5, Count: 2, Multiplier: 5}
+          - {Symbol: 5, Count: 3, Multiplier: 30}
+          - {Symbol: 5, Count: 4, Multiplier: 100}
+          - {Symbol: 5, Count: 5, Multiplier: 750}
+          - {Symbol: 6, Count: 2, Multiplier: 5}
+          - {Symbol: 6, Count: 3, Multiplier: 30}
+          - {Symbol: 6, Count: 4, Multiplier: 100}
+          - {Symbol: 6, Count: 5, Multiplier: 750}
+          - {Symbol: 7, Count: 2, Multiplier: 5}
+          - {Symbol: 7, Count: 3, Multiplier: 40}
+          - {Symbol: 7, Count: 4, Multiplier: 400}
+          - {Symbol: 7, Count: 5, Multiplier: 2000}
+          - {Symbol: 8, Count: 2, Multiplier: 10}
+          - {Symbol: 8, Count: 3, Multiplier: 100}
+          - {Symbol: 8, Count: 4, Multiplier: 1000}
+          - {Symbol: 8, Count: 5, Multiplier: 5000}
+    #no 5 wild payout bc wild is also scatter w/ own payout
+        SpecialPayouts:
+          - {Payout: {Symbol: 9, Count: 5, Multiplier: 200}, Index: "randomPrize:1", Multiplier: 1}
+          - {Payout: {Symbol: 9, Count: 4, Multiplier: 20}, Index: "randomPrize:1", Multiplier: 1}
+          - {Payout: {Symbol: 9, Count: 3, Multiplier: 2}, Index: "randomPrize:1", Multiplier: 1}
+
+      - name: randomPrize
+        function: BaseRound
+        multiplier: {multipliers: [0,1,2,3,4,5,6,7,8], probabilities: [14,13,13,14,13,9,10,8,6]}
+        ViewSize: [1]
+        WinType: none
+        Reels:
+          - [0]
+        SpecialPayouts:
+          - {Payout: {Symbol: 0, Count: 1, Multiplier: 0}, Index: "freespin:10", Multiplier: 0}
+
+      - name: freespin
+        function: TwoStageExpand
+        multiplier: {multipliers: [2], probabilities: [1]}
+        SpecialPayouts:
+          - {Payout: {Symbol: 9, Count: 5, Multiplier: 200}, Index: "freespin:10", Multiplier: 1}
+          - {Payout: {Symbol: 9, Count: 4, Multiplier: 20}, Index: "freespin:10", Multiplier: 1}
+          - {Payout: {Symbol: 9, Count: 3, Multiplier: 2}, Index: "freespin:10", Multiplier: 1}
+
 

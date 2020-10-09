@@ -72,6 +72,9 @@
 - engineID: mvgEngineXVI
   games:
     - sparta
+- engineID: mvgEngineXVII
+  games:
+    - princess
 - engineID: testRespin
   games:
     - test-respin
