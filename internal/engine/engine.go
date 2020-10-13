@@ -840,15 +840,16 @@ func (engine EngineDef) Respin(parameters GameParams) Gamestate {
 	stopList[respinIndex] = newStopValue[0]
 
 	wins, relativePayout := engine.DetermineWins(symbolGrid)
-
 	var nextActions []string
 
 	// Get scatter wins
 	specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
-
-	addlPayout, nextActions := engine.CalculatePayoutSpecialWin(specialWin)
-	relativePayout += addlPayout
-	wins = append(wins, specialWin)
+	if specialWin.Index != "" {
+		var specialPayout int
+		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+		relativePayout += specialPayout
+		wins = append(wins, specialWin)
+	}
 
 	// Build gamestate
 	gamestate := Gamestate{DefID: engine.Index, Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: 1, StopList: stopList, NextActions: nextActions}
