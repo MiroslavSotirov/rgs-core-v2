@@ -57,6 +57,7 @@
     - goal
     - cookoff-champion
     - drift
+    - princess
 - engineID: mvgEngineXIV
   games:
     - valley-of-kings
@@ -74,7 +75,10 @@
     - sparta
 - engineID: mvgEngineXVII
   games:
-    - princess
+    - book-of-living
+- engineID: mvgEngineXVIII
+  games:
+    - zodiac-elements
 - engineID: testRespin
   games:
     - test-respin

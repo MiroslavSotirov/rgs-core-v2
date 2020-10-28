@@ -22,6 +22,7 @@ type weightedMultiplier struct {
 type wild struct {
 	Symbol     int                `yaml:"symbol"`
 	Multiplier weightedMultiplier `yaml:"multiplier"`
+	Sticky	   bool				  `yaml:"sticky"`
 }
 
 // bar symbols
@@ -51,6 +52,7 @@ type EngineDef struct {
 	RTP            float32            `yaml:"RTP"`              // the expected payout of one round of this engineDef
 	RespinAllowed  bool               `yaml:"respin"`           // must be explicitly enabled on each def
 	VariableWL     bool               `yaml:"variableWinLines"` // will be false by default
+	Compounding	   bool				  `yaml:"compoundingWilds"` // will be false by default
 	force          []int              // may not be set via yaml
 }
 
