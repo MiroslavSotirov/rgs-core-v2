@@ -25,7 +25,7 @@ start:
 
 runvt:
 	$(GOBUILD) -v ./...
-	$(GORUN) $(PACKAGE_NAME)/cmd -vt=true -logtostderr=true -engine=RNG
+	$(GORUN) $(PACKAGE_NAME)/cmd -vt=true -logtostderr=true -engine=mvgEngineXVIII -spins=100000 -chunks=5
 
 push:
 	docker push $(IMAGE):$(BUILDVERSION)

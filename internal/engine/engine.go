@@ -47,14 +47,146 @@ func GetSymbolGridFromStopList(reels [][]int, viewSize []int, stopList []int) []
 	return symbolGrid
 }
 
-// DetermineLineWins ...
-func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payout, wilds []wild) []Prize {
+func getNewWildMultiplier(previousMultiplier int, newMultiplier int, compounding bool) int {
+	if compounding {
+		return previousMultiplier * newMultiplier
+	} else {
+		if newMultiplier > previousMultiplier {
+			return newMultiplier
+		} else {
+			return previousMultiplier
+		}
+	}
+}
+
+func DetermineLineWinsAnywhere(symbolGrid [][]int, WinLines [][]int, linePayouts []Payout, wilds []wild, compounding bool) (lineWins []Prize) {
+	// this function determines line wins not necessarily starting at the first symbol
+	// only one win per symbol per line is permitted
+
+	wildMultipliers := make(map[int]int)
+
+	for winLineIndex, winLine := range WinLines {
+		// because we can have multiple wins per line, but we can only have one line per win per symbol, we need to keep track of which symbols have been matched already
+		var matchedSymbols []int
+
+		lineContent := make([]int, len(symbolGrid))
+		symbolPositions := make([]int, len(symbolGrid))
+		for reel, index := range winLine {
+			lineContent[reel] = symbolGrid[reel][index]
+			// to determine a unique symbol position per location in the view, this only works if view is regularly sized (i.e. all reels show same number of symbols. todo: make this dynamic for all reel configurations
+			symbolPositions[reel] = len(symbolGrid[reel])*reel + index
+		}
+
+		// iterate through the line content
+		for i:=0; i<len(lineContent)-1; i++ {
+			// adjust payouts to exclude any symbols already matched
+
+			var adjustedPayouts []Payout
+			for j:=0; j<len(linePayouts); j++ {
+				seen := false
+				for k:=0; k<len(matchedSymbols); k++{
+					if linePayouts[j].Symbol == matchedSymbols[k] {
+						seen = true
+						break
+					}
+				}
+				if !seen {
+					adjustedPayouts = append(adjustedPayouts, linePayouts[j])
+				}
+			}
+			win := GetWinInLine(lineContent[i:], wilds, adjustedPayouts, compounding, wildMultipliers)
+			if win.Index == "" {
+				continue
+			}
+			// add any new wins to matchedSymbols
+			matchedSymbols = append(matchedSymbols, win.Payout.Symbol)
+
+			win.SymbolPositions = symbolPositions[:win.Payout.Count]
+			win.Winline = winLineIndex
+			lineWins = append(lineWins, win)
+		}
+	}
+	return lineWins
+}
+
+func GetWinInLine(lineContent []int, wilds []wild, linePayouts []Payout, compounding bool, wildMultipliers map[int]int) (prize Prize) {
+	// wildMultipliers is the list of multipliers already defined for variable wilds. if each wild multiplier is meant
+	// to be determined independently regardless of previous setting, wildMultipliers should be empty
+
+	numMatch := 1
+	lineSymbol := lineContent[0]
+	multiplier := 1
+
+	// Determine how many consecutive symbols are in the line
+	for _, symbol := range lineContent[1:] {
+		match := false
+		if symbol == lineSymbol {
+			numMatch++
+			match = true
+		} else {
+			// process wilds
+			// NB Multipliers override here. i.e. a line with 4 wilds of multiplier 2 will have total multiplier 2, not 16
+			for _, engineWild := range wilds {
+				if lineSymbol == engineWild.Symbol {
+					// if the lineSymbol is a wild then all symbols so far have been wild, and this one is not, so update lineSymbol
+					// if all 5 symbols are wild then no multiplier will be added. this should be handled in the payout
+					lineSymbol = symbol
+					// multipliers do not compound, there may be only one line multiplier
+					engineWildMultiplier, ok := wildMultipliers[engineWild.Symbol]
+					if !ok {
+						engineWildMultiplier = SelectFromWeightedOptions(engineWild.Multiplier.Multipliers, engineWild.Multiplier.Probabilities)
+						wildMultipliers[engineWild.Symbol] = engineWildMultiplier
+					}
+
+					multiplier = getNewWildMultiplier(multiplier, engineWildMultiplier, compounding)
+
+					numMatch++
+					// stop checking for wilds if one has been matched
+					match = true
+					break
+				} else if symbol == engineWild.Symbol {
+					// if the new symbol on the line is a wild count it as a match
+					numMatch++
+					engineWildMultiplier, ok := wildMultipliers[engineWild.Symbol]
+					if !ok {
+						engineWildMultiplier = SelectFromWeightedOptions(engineWild.Multiplier.Multipliers, engineWild.Multiplier.Probabilities)
+						wildMultipliers[engineWild.Symbol] = engineWildMultiplier
+					}
+
+					multiplier = getNewWildMultiplier(multiplier, engineWildMultiplier, compounding)
+
+					match = true
+					break
+				}
+			}
+		}
+		if match == false {
+			// stop checking the line once a non-matching symbol is found
+			break
+		}
+	}
+
+	// Compare best run to Payouts, not duplicating any symbols
+	for _, payout := range linePayouts {
+		if lineSymbol == payout.Symbol && numMatch == payout.Count {
+			//copy payout object, NB can only do because no reference fields in Payout
+			linePayout := payout
+			prize = Prize{Payout: linePayout, Index: fmt.Sprintf("%v:%v", lineSymbol, numMatch), Multiplier: multiplier}
+			// Only one win possible per line, earliest payout in payout dict takes precedence
+			break
+		}
+	}
+	return prize
+}
+
+
+func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payout, wilds []wild, compounding bool) (lineWins []Prize) {
 	// determines prizes from line wins including wilds with multipliers
 	// highest wild multiplier takes precedence for multiple wilds on the same line (i.e. wild multipliers do not compound)
 
-	var lineWins []Prize
 	// store wild multiplier selections if they are to be reused for future wilds
 	wildMultipliers := make(map[int]int)
+
 	for winLineIndex, winLine := range WinLines {
 		lineContent := make([]int, len(symbolGrid))
 		symbolPositions := make([]int, len(symbolGrid))
@@ -63,74 +195,22 @@ func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payou
 			// to determine a unique symbol position per location in the view, this only works if view is regularly sized (i.e. all reels show same number of symbols. todo: make this dynamic for all reel configurations
 			symbolPositions[reel] = len(symbolGrid[reel])*reel + index
 		}
-		numMatch := 1
-		lineSymbol := lineContent[0]
-		multiplier := 1
-		// Determine how many consecutive symbols are in the line
-		for _, symbol := range lineContent[1:] {
-			match := false
-			if symbol == lineSymbol {
-				numMatch++
-				match = true
-			} else {
-				// process wilds
-				// NB Multipliers override here. i.e. a line with 4 wilds of multiplier 2 will have total multiplier 2, not 16
-				for _, engineWild := range wilds {
-					if lineSymbol == engineWild.Symbol {
-						// if the lineSymbol is a wild then all symbols so far have been wild, and this one is not, so update lineSymbol
-						// as is, if all 5 symbols are wild then no multiplier will be added. this should be defined in the payout
-						lineSymbol = symbol
-						// multipliers do not compound, there may be only one line multiplier
-						engineWildMultiplier, ok := wildMultipliers[engineWild.Symbol]
-						if !ok {
-							engineWildMultiplier = SelectFromWeightedOptions(engineWild.Multiplier.Multipliers, engineWild.Multiplier.Probabilities)
-							wildMultipliers[engineWild.Symbol] = engineWildMultiplier
-						}
-						if engineWildMultiplier > multiplier {
-							multiplier = engineWildMultiplier
-						}
-						numMatch++
-						// stop checking for wilds if one has been matched
-						match = true
-						break
-					} else if symbol == engineWild.Symbol {
-						// if the new symbol on the line is a wild count it as a match
-						numMatch++
-						engineWildMultiplier, ok := wildMultipliers[engineWild.Symbol]
-						if !ok {
-							engineWildMultiplier = SelectFromWeightedOptions(engineWild.Multiplier.Multipliers, engineWild.Multiplier.Probabilities)
-							wildMultipliers[engineWild.Symbol] = engineWildMultiplier
-						}
-						// NB: highest multiplier replaces others, multipliers do not compound. uncomment next line to change that. potentially make this an option in inputs (	to compound: //multiplier = multiplier*engineWildMultiplier)
-						if engineWildMultiplier > multiplier {
-							multiplier = engineWildMultiplier
-						}
-						match = true
-						break
-					}
-				}
-			}
-			if match == false {
-				// stop checking the line once a non-matching symbol is found
-				break
-			}
+
+		// wildMultipliers is passed in and modulated, we get to keep the results of the modulation in the next rounds of the for loop
+		win := GetWinInLine(lineContent, wilds, linePayouts, compounding, wildMultipliers)
+		if win.Index == "" {
+			continue
 		}
 
-		// Compare best run to Payouts, not duplicating any symbols
-		for _, payout := range linePayouts {
-			if lineSymbol == payout.Symbol && numMatch == payout.Count {
-				//copy payout object, NB can only do because no reference fields in Payout
-				linePayout := payout
-				lineWins = append(lineWins, Prize{Payout: linePayout, Index: fmt.Sprintf("%v:%v", lineSymbol, numMatch), Multiplier: multiplier, SymbolPositions: symbolPositions[:numMatch], Winline: winLineIndex})
-				// Only one win possible per line, earliest payout in payout dict takes precedence
-				break
-			}
-		}
+		win.SymbolPositions = symbolPositions[:win.Payout.Count]
+		win.Winline = winLineIndex
+		lineWins = append(lineWins, win)
 	}
+
 	return lineWins
 }
 
-func determineBarLineWins(symbolGrid [][]int, winLines [][]int, payouts []Payout, bars []bar, wilds []wild) []Prize {
+func determineBarLineWins(symbolGrid [][]int, winLines [][]int, payouts []Payout, bars []bar, wilds []wild, compoundingMultipliers bool) []Prize {
 	// assume no symbol is included in two bar types
 	adjustedSymbolGrid := make([][]int, len(symbolGrid))
 	for _, bar := range bars {
@@ -148,8 +228,8 @@ func determineBarLineWins(symbolGrid [][]int, winLines [][]int, payouts []Payout
 			adjustedSymbolGrid[i] = adjustedRow
 		}
 	}
-	lineWinsWithBar := DetermineLineWins(adjustedSymbolGrid, winLines, payouts, wilds)
-	lineWinsWithoutBar := DetermineLineWins(symbolGrid, winLines, payouts, wilds)
+	lineWinsWithBar := DetermineLineWins(adjustedSymbolGrid, winLines, payouts, wilds, compoundingMultipliers)
+	lineWinsWithoutBar := DetermineLineWins(symbolGrid, winLines, payouts, wilds, compoundingMultipliers)
 	var highestWinsPerLine []Prize
 
 	for _, barWin := range lineWinsWithBar {
@@ -596,9 +676,32 @@ func (engine EngineDef) DetermineWins(symbolGrid [][]int) ([]Prize, int) {
 	case "ways":
 		wins = DetermineWaysWins(symbolGrid, engine.Payouts, engine.Wilds)
 	case "lines":
-		wins = DetermineLineWins(symbolGrid, engine.WinLines, engine.Payouts, engine.Wilds)
+		wins = DetermineLineWins(symbolGrid, engine.WinLines, engine.Payouts, engine.Wilds, engine.Compounding)
 	case "barLines":
-		wins = determineBarLineWins(symbolGrid, engine.WinLines, engine.Payouts, engine.Bars, engine.Wilds)
+		wins = determineBarLineWins(symbolGrid, engine.WinLines, engine.Payouts, engine.Bars, engine.Wilds, engine.Compounding)
+	case "blazeLines":
+		// this is a special kind of line win defined for blaze games-- horizontal lines are mirrored vertically
+		// and wins can exist anywhere within the line-- multiple payouts per line are possible
+		// this will only work if grid width is same dimension as height
+		if len(symbolGrid) != len(symbolGrid[0]) {
+			logger.Errorf("Requesting vertical and horizontal line win calculation on non-standard grid size")
+			return []Prize{}, 0
+		}
+		wins = DetermineLineWinsAnywhere(symbolGrid, engine.WinLines, engine.Payouts, engine.Wilds, engine.Compounding)
+		// transpose grid
+		sGTransposed := TransposeGrid(symbolGrid)
+		vWins := DetermineLineWinsAnywhere(sGTransposed, engine.WinLines, engine.Payouts, engine.Wilds, engine.Compounding)
+		for w:=0; w<len(vWins); w++{
+			// add prefix to index and adjust line number
+			vWins[w].Winline += len(engine.WinLines)
+			vWins[w].Index = fmt.Sprintf("V%v", vWins[w].Index)
+			var convSymbolPos []int
+			for i:=0; i<len(vWins[w].SymbolPositions); i++ {
+				convSymbolPos = append(convSymbolPos, (vWins[w].SymbolPositions[i]-(engine.ViewSize[0]*i))*engine.ViewSize[0] + i)
+			}
+			vWins[w].SymbolPositions = convSymbolPos
+		}
+		wins = append(wins, vWins...)
 	case "pAndF":
 		wins = determinePrimeAndFlopWins(symbolGrid, engine.Payouts, engine.Wilds)
 	}

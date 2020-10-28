@@ -57,7 +57,7 @@ func (gamestate Gamestate) ExpectedReelValue(reelIndex int) Fixed {
 		case "ways":
 			wins = DetermineWaysWins(view, def.Payouts, def.Wilds)
 		case "lines":
-			wins = DetermineLineWins(view, def.WinLines, def.Payouts, def.Wilds)
+			wins = DetermineLineWins(view, def.WinLines, def.Payouts, def.Wilds, def.Compounding)
 		}
 		for _, win := range wins {
 			// add win amount (multipliers are relative to betPerLine)

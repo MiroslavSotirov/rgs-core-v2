@@ -156,6 +156,7 @@ gameConfig:
       - goal
       - cookoff-champion
       - drift
+      - princess
   - engineID: mvgEngineXIV
     games:
       - valley-of-kings
@@ -173,7 +174,7 @@ gameConfig:
       - sparta
   - engineID: mvgEngineXVII
     games:
-      - princess
+      - book-of-living
 
 gamification:
   a-fairy-tale:
