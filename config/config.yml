@@ -5,7 +5,7 @@ local: true
 
 # Log levels
 # debug, info, warn, error, fatal
-logging: debugs
+logging: info
 
 # mcrouter address
 mcrouter: "127.0.0.1:11211"

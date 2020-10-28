@@ -709,6 +709,32 @@ func (engine EngineDef) DetermineWins(symbolGrid [][]int) ([]Prize, int) {
 	return wins, relativePayout
 }
 
+func (engine EngineDef) addStickyWilds(previousGamestate Gamestate, symbolGrid [][]int) [][]int {
+	// this will fail if previous symbolGrid is of different dimensions than current
+	if len(symbolGrid) != len(previousGamestate.SymbolGrid) {
+		return symbolGrid
+	}
+
+	for w:=0; w<len(engine.Wilds); w++ {
+		if engine.Wilds[w].Sticky {
+			for i:=0; i<len(previousGamestate.SymbolGrid); i++ {
+				for j:=0; j<len(previousGamestate.SymbolGrid[i]); j++ {
+					if previousGamestate.SymbolGrid[i][j] == engine.Wilds[w].Symbol {
+						if previousGamestate.Action == "base" {
+							logger.Infof("Adding sticky wild %v from previous round", engine.Wilds[w].Symbol)
+
+						}
+						symbolGrid[i][j] = engine.Wilds[w].Symbol
+					}
+				}
+			}
+
+
+		}
+	}
+	return symbolGrid
+}
+
 func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 	// the base gameplay round
 	// uses round multiplier if included
@@ -718,6 +744,9 @@ func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 
 	// spin
 	symbolGrid, stopList := engine.Spin()
+
+	// replace any symbols with sticky wilds
+	symbolGrid = engine.addStickyWilds(parameters.previousGamestate, symbolGrid)
 
 	wins, relativePayout := engine.DetermineWins(symbolGrid)
 	// calculate specialWin

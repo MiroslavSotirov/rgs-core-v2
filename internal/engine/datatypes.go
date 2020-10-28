@@ -22,6 +22,7 @@ type weightedMultiplier struct {
 type wild struct {
 	Symbol     int                `yaml:"symbol"`
 	Multiplier weightedMultiplier `yaml:"multiplier"`
+	Sticky	   bool				  `yaml:"sticky"`
 }
 
 // bar symbols
