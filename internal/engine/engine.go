@@ -100,8 +100,7 @@ func DetermineLineWinsAnywhere(symbolGrid [][]int, WinLines [][]int, linePayouts
 			}
 			// add any new wins to matchedSymbols
 			matchedSymbols = append(matchedSymbols, win.Payout.Symbol)
-
-			win.SymbolPositions = symbolPositions[:win.Payout.Count]
+			win.SymbolPositions = symbolPositions[i:i+win.Payout.Count]
 			win.Winline = winLineIndex
 			lineWins = append(lineWins, win)
 		}
@@ -693,11 +692,13 @@ func (engine EngineDef) DetermineWins(symbolGrid [][]int) ([]Prize, int) {
 		vWins := DetermineLineWinsAnywhere(sGTransposed, engine.WinLines, engine.Payouts, engine.Wilds, engine.Compounding)
 		for w:=0; w<len(vWins); w++{
 			// add prefix to index and adjust line number
+			// get base ref which is i reel first symbol
+			base := vWins[w].SymbolPositions[0] / (len(symbolGrid[0]))
 			vWins[w].Winline += len(engine.WinLines)
 			vWins[w].Index = fmt.Sprintf("V%v", vWins[w].Index)
 			var convSymbolPos []int
 			for i:=0; i<len(vWins[w].SymbolPositions); i++ {
-				convSymbolPos = append(convSymbolPos, (vWins[w].SymbolPositions[i]-(engine.ViewSize[0]*i))*engine.ViewSize[0] + i)
+				convSymbolPos = append(convSymbolPos, (vWins[w].SymbolPositions[i]-(engine.ViewSize[0]*(i+base)))*engine.ViewSize[0] + i+base)
 			}
 			vWins[w].SymbolPositions = convSymbolPos
 		}
@@ -1070,7 +1071,7 @@ func (engine EngineDef) CalculatePayoutSpecialWin(specialWin Prize) (int, []stri
 		// special payout is not paid per line, it's a total stake multiplier
 		relativePayout = specialWin.Payout.Multiplier * engine.StakeDivisor
 	}
-	logger.Debugf("Calculagted payout for special win %v: %v", specialWin.Index, relativePayout)
+	logger.Debugf("Calculated payout for special win %v: %v", specialWin.Index, relativePayout)
 
 	return relativePayout, nextActions
 }

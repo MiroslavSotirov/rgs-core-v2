@@ -38,44 +38,8 @@ func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, en
 		return store.PlayerStore{}, engine.EngineConfig{}, engine.Gamestate{}, err
 	}
 
-	// fix for engine iii issue
-	latestGamestate, player = fixCorruptedGS(latestGamestate, player, request)
-
 	return player, engineConfig, latestGamestate, nil
 
-}
-
-//todo : deprecate 10/20
-func fixCorruptedGS(gamestate engine.Gamestate, player store.PlayerStore, request *http.Request) (engine.Gamestate, store.PlayerStore) {
-	eng, err := config.GetEngineFromGame(gamestate.Game)
-	if err != nil {
-		return gamestate, player
-	}
-	if eng == "mvgEngineIII" && gamestate.DefID == 1 {
-		// check if there are multiple types of prize
-		corrupted := false
-		action := gamestate.NextActions[0]
-		for i := 1; i < len(gamestate.NextActions); i++ {
-			if gamestate.NextActions[i] != action && gamestate.NextActions[i] != "finish" {
-				corrupted = true
-				break
-			}
-		}
-		if corrupted {
-			logger.Warnf("Fixing corrupted engine iii gamestate")
-			// play the round and return the gamestate
-			request.Header.Set("Authorization", "\""+string(player.Token))
-			data := engine.GameParams{
-				Stake:            gamestate.BetPerLine.Amount,
-				SelectedWinLines: gamestate.SelectedWinLines,
-				Action:           gamestate.NextActions[0],
-				Selection:        "fixCorruption",
-			}
-			logger.Debugf("engine3, calculating next round: %#v", data)
-			gamestate, player, _, _, err = play(request, data)
-		}
-	}
-	return gamestate, player
 }
 
 func renderNextGamestate(request *http.Request) (GameplayResponse, rgse.RGSErr) {
@@ -239,28 +203,13 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 	if clientID != previousGamestate.Id {
 		// make an exception for engine iii, where on pickSpins the clientID should match the previous previous ID
 		if previousGamestate.Action != "pickSpins" || clientID != previousGamestate.PreviousGamestate {
-			// make a further exception for the recovery of an engine III gs
-			if data.Selection != "fixCorruption" {
-				return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgse.Create(rgse.SpinSequenceError)
-			}
+			return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgse.Create(rgse.SpinSequenceError)
 		}
 	}
 	logger.Debugf("Previous Gamestate: %v", previousGamestate)
 	// get parameters from post form (perhaps this should be handled POST func)
 
 	data = validateParams(data)
-	if data.Selection == "fixCorruption" {
-		// remove the initial actions, only play the second ones
-		sentry.CaptureMessage("Fixing engine III corruption")
-		action := previousGamestate.NextActions[0]
-		var nextActions []string
-		for i := 1; i < len(previousGamestate.NextActions); i++ {
-			if previousGamestate.NextActions[i] != action {
-				nextActions = append(nextActions, previousGamestate.NextActions[i])
-			}
-		}
-		previousGamestate.NextActions = nextActions
-	}
 
 	// bugfix for engine xiii (this should really be fixed in the client)
 	if gameSlug == "sky-jewels" || gameSlug == "goal" || gameSlug == "cookoff-champion" && len(data.SelectedWinLines) == 49 {

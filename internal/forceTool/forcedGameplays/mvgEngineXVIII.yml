@@ -1,0 +1,6 @@
+#this file contains the forced outcomes for engine xviii
+
+- id: 3scatterFS
+  action: base
+  reelsetId: 0
+  stopList: [2,13,10,22,0]

@@ -33,6 +33,12 @@ EngineDefs:
       - symbol: 11
         multiplier: {multipliers: [3], probabilities: [1]}
         sticky: true
+      - symbol: 12
+        multiplier: {multipliers: [4], probabilities: [1]}
+        sticky: true
+      - symbol: 13
+        multiplier: {multipliers: [5], probabilities: [1]}
+        sticky: true
     Payouts:
       - {Symbol: 1, Count: 3, Multiplier: 1}
       - {Symbol: 1, Count: 4, Multiplier: 2}
