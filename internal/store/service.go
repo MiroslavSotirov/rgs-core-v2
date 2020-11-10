@@ -77,6 +77,7 @@ type (
 
 	BalanceStore struct {
 		PlayerId  string
+		Message   string
 		Token     Token
 		Mode      Mode
 		Balance   engine.Money
@@ -117,6 +118,7 @@ type (
 		Player                  map[string]PlayerStore
 		Transaction             map[string]TransactionStore
 		TransactionByPlayerGame map[string]TransactionStore
+		Message					map[string]string
 		Lock                    sync.RWMutex
 	}
 
@@ -160,6 +162,7 @@ type (
 		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgse.RGSErr)
 		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, rgse.RGSErr)
 		GamestateById(gamestateId string) (GameStateStore, rgse.RGSErr)
+		SetMessage(playerId string, message string) (rgse.RGSErr)
 	}
 
 	LocalServiceImpl struct{}
@@ -828,10 +831,11 @@ func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction Trans
 	i.setTransactionByPlayerGame(key, transaction)
 	i.setPlayer(playerId, player)
 	newToken := i.renewToken(token)
-
+	message, _ := i.getMessage(playerId)
 	return BalanceStore{
 		PlayerId: player.PlayerId,
 		Token:    newToken,
+		Message:  message,
 		Balance: engine.Money{
 			Currency: player.Balance.Currency,
 			Amount:   player.Balance.Amount,
@@ -1240,6 +1244,34 @@ func (i *LocalServiceImpl) getPlayer(playerId string) (PlayerStore, bool) {
 	return player, ok
 }
 
+func (i *LocalServiceImpl) SetMessage(playerId string, message string) (rgse.RGSErr) {
+	// this is used
+	err := internalCheck()
+	if err != nil {
+		return rgse.Create(rgse.InternalServerError)
+	}
+
+	ld.Lock.Lock()
+	defer ld.Lock.Unlock()
+
+	ld.Message[playerId] = message
+	return nil
+}
+
+func (i *LocalServiceImpl) getMessage(playerId string) (string, bool) {
+	err := internalCheck()
+	if err != nil {
+		panic(err)
+	}
+
+	ld.Lock.RLock()
+	defer ld.Lock.RUnlock()
+
+	message, ok := ld.Message[playerId]
+
+	return message, ok
+}
+
 func (i *LocalServiceImpl) setTransaction(transactionId string, transaction TransactionStore) {
 	err := internalCheck()
 	if err != nil {
@@ -1299,6 +1331,7 @@ func internalInit(c *config.Config) {
 			ld = new(LocalData)
 			ld.Token = make(map[Token]string)
 			ld.Player = make(map[string]PlayerStore)
+			ld.Message = make(map[string]string)
 			ld.Transaction = make(map[string]TransactionStore)
 			ld.TransactionByPlayerGame = make(map[string]TransactionStore)
 		}
