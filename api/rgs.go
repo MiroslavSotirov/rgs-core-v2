@@ -326,6 +326,7 @@ func Routes() *chi.Mux {
 		})
 		r.Put("/close", func(w http.ResponseWriter, r *http.Request) {
 			err := CloseGS(r)
+			logger.Debugf("error on round close: %v", err)
 			if err != nil {
 				w.WriteHeader(400)
 				return
@@ -372,6 +373,25 @@ func Routes() *chi.Mux {
 				fmt.Fprint(w, []byte("ERROR"))
 			}
 			fmt.Fprint(w, []byte("OK"))
+		})
+
+		r.Get("/stopAuto/{playerId:[a-zA-Z0-9-]+}/{on:[a-z-]+}", func(w http.ResponseWriter, r *http.Request) {
+			playerId := chi.URLParam(r, "playerId")
+			on := chi.URLParam(r, "on")
+			var err rgserror.RGSErr
+			switch on {
+			case "on":
+				err = store.ServLocal.SetMessage(playerId, "stopAuto")
+			default:
+				err = store.ServLocal.SetMessage(playerId, "")
+			}
+			if err != nil {
+				w.WriteHeader(400)
+				fmt.Fprint(w, err)
+				return
+			}
+			w.WriteHeader(200)
+			return
 		})
 
 		r.Get("/force", func(w http.ResponseWriter, r *http.Request) {

@@ -35,7 +35,15 @@ type GameLinkResponse struct {
 	Results []LinkResponse `json:"results"`
 }
 
+type OperatorResponse struct {
+	StopAutoPlay bool `json:"stopAutoPlay,omitempty"'`
+}
+type MetaResponse struct{
+	OperatorRequests OperatorResponse `json:"operatorRequests"`
+}
+
 type GameplayResponseV2 struct {
+	MetaData		 MetaResponse `json:"meta"'`
 	SessionID        store.Token  `json:"host/verified-token"`
 	StateID          string       `json:"stateID"`
 	RoundID          string       `json:"roundID"`
@@ -166,6 +174,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		nextAction = "freespin"
 	}
 	return GameplayResponseV2{
+		MetaData:	MetaResponse{OperatorRequests: OperatorResponse{StopAutoPlay: balance.Message=="stopAuto"}},
 		SessionID:   balance.Token,
 		StateID:     gamestate.Id,
 		RoundID:     gamestate.RoundID,
