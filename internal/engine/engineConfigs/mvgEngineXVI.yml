@@ -8,70 +8,71 @@ EngineDefs:
     StakeDivisor: 40
     function: BaseRound
     Reels:
-      - [0,0,0,9,6,9,1,5,6,9,2,9,5,6,3,9,7,5,1,5,10,9,4,8,9,5,2,5,10,9,4,10,10,10,11,5,10,5,4,5,9,5]
+      - [0,0,0,9,6,9,1,5,6,9,2,9,5,6,3,9,7,5,1,5,10,9,4,8,9,5,2,5,10,9,4,10,10,10,11,5,10,5,4,5,9]
       - [12,8,7,8,3,8,7,0,3,7,6,7,11,4,8,7,3,8,0,7,9,3,8,3,7,1,10,10,10,2,10,7,8,3,5,7,8]
-      - [12,9,9,8,1,9,4,4,11,9,2,8,1,1,9,4,9,3,5,9,8,3,3,6,9,7,1,5,9,10,0,9,4,7,9]
+      - [12,8,9,7,1,9,4,4,11,9,2,7,1,1,8,4,9,3,5,9,7,3,3,6,9,7,1,5,9,10,0,9,4,7,9]
       - [12,8,6,6,2,8,2,6,3,8,8,7,11,2,2,8,9,6,0,8,0,5,2,8,0,6,4,8,6,1,6,4,6,2,10,8,4,4,6,8]
-      - [0,10,6,1,7,10,2,7,10,2,8,5,3,6,5,4,10,10,3,7,6,0,9,10,1,7,10,2,5,5,3,10,7,2,5,10,2,6,5,11,10,1,5,3,5]
+      - [0,10,6,1,7,10,2,8,5,3,6,5,4,10,10,3,7,6,0,9,10,1,7,10,2,5,5,3,10,7,2,5,10,2,6,5,11,10,1,5,3,5]
     ViewSize: [4,4,4,4,4]
 
     wilds:
       - symbol: 12
-        multiplier: {multipliers: [2,3], probabilities: [1, 1]}
+        multiplier: {multipliers: [1], probabilities: [1]}
     Payouts:
-      - {Symbol: 0, Count: 2, Multiplier: 2} # PICA
-      - {Symbol: 0, Count: 3, Multiplier: 5} #
-      - {Symbol: 0, Count: 4, Multiplier: 20}
-      - {Symbol: 0, Count: 5, Multiplier: 100}
-      - {Symbol: 1, Count: 3, Multiplier: 5}  # PICB
-      - {Symbol: 1, Count: 4, Multiplier: 20}
-      - {Symbol: 1, Count: 5, Multiplier: 100}
-      - {Symbol: 2, Count: 3, Multiplier: 5}  # PICc
-      - {Symbol: 2, Count: 4, Multiplier: 40}
-      - {Symbol: 2, Count: 5, Multiplier: 120}
-      - {Symbol: 3, Count: 3, Multiplier: 5}  # PICD
-      - {Symbol: 3, Count: 4, Multiplier: 40}
-      - {Symbol: 3, Count: 5, Multiplier: 120}
-      - {Symbol: 4, Count: 3, Multiplier: 10}  # PICE
-      - {Symbol: 4, Count: 4, Multiplier: 50}
-      - {Symbol: 4, Count: 5, Multiplier: 140}
+      - {Symbol: 0, Count: 2, Multiplier: 50} # PICA
+      - {Symbol: 0, Count: 3, Multiplier: 150} #
+      - {Symbol: 0, Count: 4, Multiplier: 200}
+      - {Symbol: 0, Count: 5, Multiplier: 250}
+      - {Symbol: 1, Count: 2, Multiplier: 20}  # PICB
+      - {Symbol: 1, Count: 3, Multiplier: 80}  # PICB
+      - {Symbol: 1, Count: 4, Multiplier: 150}
+      - {Symbol: 1, Count: 5, Multiplier: 200}
+      - {Symbol: 2, Count: 2, Multiplier: 20}  # PICc
+      - {Symbol: 2, Count: 3, Multiplier: 80}  # PICc
+      - {Symbol: 2, Count: 4, Multiplier: 150}
+      - {Symbol: 2, Count: 5, Multiplier: 200}
+      - {Symbol: 3, Count: 2, Multiplier: 10}  # PICD
+      - {Symbol: 3, Count: 3, Multiplier: 40}  # PICD
+      - {Symbol: 3, Count: 4, Multiplier: 100}
+      - {Symbol: 3, Count: 5, Multiplier: 150}
+      - {Symbol: 4, Count: 2, Multiplier: 10}  # PICE
+      - {Symbol: 4, Count: 3, Multiplier: 40}  # PICE
+      - {Symbol: 4, Count: 4, Multiplier: 100}
+      - {Symbol: 4, Count: 5, Multiplier: 150}
       - {Symbol: 5, Count: 3, Multiplier: 10}  # A
       - {Symbol: 5, Count: 4, Multiplier: 50}
       - {Symbol: 5, Count: 5, Multiplier: 140}
-      - {Symbol: 6, Count: 2, Multiplier: 10} # K
-      - {Symbol: 6, Count: 3, Multiplier: 40}
-      - {Symbol: 6, Count: 4, Multiplier: 100}
-      - {Symbol: 6, Count: 5, Multiplier: 150}
-      - {Symbol: 7, Count: 2, Multiplier: 10}  # Q
-      - {Symbol: 7, Count: 3, Multiplier: 40}
-      - {Symbol: 7, Count: 4, Multiplier: 100}
-      - {Symbol: 7, Count: 5, Multiplier: 150}
-      - {Symbol: 8, Count: 2, Multiplier: 20}  # J
-      - {Symbol: 8, Count: 3, Multiplier: 80}
-      - {Symbol: 8, Count: 4, Multiplier: 150}
-      - {Symbol: 8, Count: 5, Multiplier: 200}
-      - {Symbol: 9, Count: 2, Multiplier: 20}  # T
-      - {Symbol: 9, Count: 3, Multiplier: 80}
-      - {Symbol: 9, Count: 4, Multiplier: 150}
-      - {Symbol: 9, Count: 5, Multiplier: 200}
-      - {Symbol: 10, Count: 2, Multiplier: 50}  # N
-      - {Symbol: 10, Count: 3, Multiplier: 150}
-      - {Symbol: 10, Count: 4, Multiplier: 200}
-      - {Symbol: 10, Count: 5, Multiplier: 250}
+      - {Symbol: 6, Count: 3, Multiplier: 10} #K
+      - {Symbol: 6, Count: 4, Multiplier: 50}
+      - {Symbol: 6, Count: 5, Multiplier: 140}
+      - {Symbol: 7, Count: 3, Multiplier: 5} #Q
+      - {Symbol: 7, Count: 4, Multiplier: 40}
+      - {Symbol: 7, Count: 5, Multiplier: 120}
+      - {Symbol: 8, Count: 3, Multiplier: 5} #J
+      - {Symbol: 8, Count: 4, Multiplier: 40}
+      - {Symbol: 8, Count: 5, Multiplier: 120}
+      - {Symbol: 9, Count: 3, Multiplier: 5} #T
+      - {Symbol: 9, Count: 4, Multiplier: 20}
+      - {Symbol: 9, Count: 5, Multiplier: 100}
+      - {Symbol: 10, Count: 2, Multiplier: 2}  # N
+      - {Symbol: 10, Count: 3, Multiplier: 5}
+      - {Symbol: 10, Count: 4, Multiplier: 20}
+      - {Symbol: 10, Count: 5, Multiplier: 100}
     SpecialPayouts:
-      - {Payout: {Symbol: 11, Count: 5, Multiplier: 20}, Index: "freespin:20", Multiplier: 1}
-      - {Payout: {Symbol: 11, Count: 4, Multiplier: 10}, Index: "freespin:10", Multiplier: 1}
-      - {Payout: {Symbol: 11, Count: 3, Multiplier: 2}, Index: "freespin:5", Multiplier: 1}
-  - name: freespin
-    Reels:
-      - [6,7,8,6,7,0,8,6,6,7,8,1,6,8,7,8,11,6,0,7,4,8,6,8,7,0,8,6,8,7,0,8,6,8,7,8,8,0,6,2,7,6,10,9,7,8,10,7,8,0,6,3,5,7,8,0,6,7,6,6,7,0,8,6,7,6,7,0,8,7,1,7,8,6,8,1,1,0,6,8,6,7,8,0,6,7,6,6,7,0,8,6,11,7,8,7,6,7,0,8,7]
-      - [4,4,2,9,2,6,2,10,5,7,1,7,1,7,4,4,9,11,5,4,7,5,4,9,12,5,4,4,9,5,5,4,9,5,4,9,4,9,11,5,9,9,4,5,9,9,5,4,9,9,5,9,4,9,12,5,4,10,4,5,9,5,2,1,5,9,5,9,4,5,9,5,9,3,9,5,5,0,0,8,5,2,0]
-      - [10,4,9,10,12,9,9,3,10,9,10,3,9,8,9,8,11,9,8,3,9,3,9,3,3,7,9,9,3,10,9,10,3,9,8,9,8,11,9,7,3,9,3,9,3,3,7,9,9,3,9,12,8,10,3,9,3,3,10,9,10,9,3,10,9,11,3,7,7,8,10,6,3,10,12,2,10,3,1,4,3,10,5,10,8,9,3,8,8,10,0,10,0,9,8,10,9,10,10,10,9,3,10,11,2,3,10,8,9,3,8,10]
-      - [10,6,10,11,10,10,9,10,10,7,9,12,10,4,3,2,10,10,2,11,10,2,2,10,10,9,9,10,12,9,9,10,2,5,9,10,10,5,8,12,10,5,5,9,10,5,12,9,5,5,9,5,10,5,5,5,9,1,6,2,7,0,0,9,6,9,5,6,7,9,0,0,9,6,9,7,0,0,9,7,9]
-      - [4,5,2,3,4,5,3,5,4,3,3,5,5,3,4,3,2,3,4,3,2,11,3,2,2,2,4,3,2,2,4,4,3,2,0,0,4,9,3,2,4,4,3,2,4,3,2,4,4,3,8,4,10,3,2,4,11,3,2,4,5,3,4,4,1,4,2,7,6,0,0,0,4,2,0,0,0,2,0,0,0,4,0,0,4,5,0,0,2,0,0,2,4,5,3,4]
-
-SpecialPayouts:
       - {Payout: {Symbol: 11, Count: 5, Multiplier: 20}, Index: "freespin:20", Multiplier: 1}
       - {Payout: {Symbol: 11, Count: 4, Multiplier: 10}, Index: "freespin:15", Multiplier: 1}
       - {Payout: {Symbol: 11, Count: 3, Multiplier: 2}, Index: "freespin:8", Multiplier: 1}
-      - {Payout: {Symbol: 11, Count: 2, Multiplier: 0}, Index: "freespin:5", Multiplier: 1}
+  - name: freespin
+    function: MultiplierXWilds
+    Reels:
+      - [6,7,8,6,7,0,8,6,6,7,8,1,6,8,7,8,11,6,0,7,4,8,6,8,7,0,8,6,8,7,0,8,6,8,7,8,8,0,6,2,7,6,10,9,7,8,10,7,8,0,6,3,5,7,8,0,6,7,6,6,7,0,8,6,7,6,7,0,8,7,1,7,8,6,8,1,1,0,6,8,6,7,8,0,6,7,6,6,7,0,8,6,11,7,8,7,6,7,0,8,7]
+      - [4,4,2,9,2,6,2,10,5,7,1,7,4,4,9,11,5,4,7,5,4,9,12,5,4,4,9,5,5,4,9,5,4,9,4,9,11,5,9,9,4,5,9,9,5,4,9,9,5,9,4,9,12,5,4,10,4,5,9,5,2,1,5,9,5,9,4,5,9,5,9,3,9,5,5,0,0,8,5,2,0]
+      - [10,3,9,10,12,9,9,3,10,9,10,3,9,8,9,8,11,9,7,3,9,3,9,3,3,7,9,9,3,10,9,10,3,9,8,9,8,11,9,7,3,9,3,9,3,3,7,9,9,3,9,12,8,10,3,9,3,3,10,9,10,9,3,10,9,11,3,7,7,8,10,6,3,10,12,2,10,3,1,4,3,10,5,10,8,9,3,8,8,10,0,10,0,9,8,10,9,10,10,10,9,3,10,11,2,3,10,8,9,3,8,10]
+      - [10,6,10,11,10,10,9,10,10,7,9,12,10,4,3,2,10,10,2,11,10,2,2,10,10,9,9,10,12,9,9,10,2,5,9,10,10,5,8,12,10,5,5,9,10,5,12,9,5,5,9,5,10,5,5,5,9,1,6,2,7,0,0,9,6,9,5,6,7,9,0,0,9,6,9,7,0,0,9,7,9]
+      - [4,5,2,3,4,5,3,5,4,3,3,5,5,3,4,3,2,3,4,3,2,11,3,2,2,2,4,3,2,2,4,4,3,2,0,0,4,9,3,2,4,4,3,2,4,3,2,4,4,3,8,4,10,3,2,4,11,3,2,4,5,3,4,4,1,4,2,7,6,0,0,0,4,2,0,0,0,2,0,0,0,4,0,0,4,5,0,0,2,0,0,2,4,5,3,4]
+    SpecialPayouts:
+          - {Payout: {Symbol: 11, Count: 5, Multiplier: 20}, Index: "freespin:20", Multiplier: 1}
+          - {Payout: {Symbol: 11, Count: 4, Multiplier: 10}, Index: "freespin:15", Multiplier: 1}
+          - {Payout: {Symbol: 11, Count: 3, Multiplier: 2}, Index: "freespin:8", Multiplier: 1}
+          - {Payout: {Symbol: 11, Count: 2, Multiplier: 0}, Index: "freespin:5", Multiplier: 1}
+    multiplier: {multipliers: [2,3], probabilities: [1,1]}

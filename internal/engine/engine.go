@@ -771,6 +771,30 @@ func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 	return gamestate
 }
 
+func (engine EngineDef) MultiplierXWilds(parameters GameParams) Gamestate {
+	// wild multipliers multiply all winnings
+
+	gamestate := engine.BaseRound(parameters)
+	ctWilds := 0
+	for w:= 0; w<len(engine.Wilds); w++ {
+
+		for r:= 0; r<len(gamestate.SymbolGrid); r++ {
+			//iterate through reels
+			for x:=0;x<len(gamestate.SymbolGrid[r]);x++ {
+				if engine.Wilds[w].Symbol == gamestate.SymbolGrid[r][x] {
+					ctWilds ++
+				}
+			}
+		}
+	}
+	gamestate.Multiplier = 1
+
+	for w:=0;w<ctWilds;w++ {
+		gamestate.Multiplier *= SelectFromWeightedOptions(engine.Multiplier.Multipliers, engine.Multiplier.Probabilities)
+	}
+
+	return gamestate
+}
 // Guaranteed win round
 func (engine EngineDef) GuaranteedWin(parameters GameParams) Gamestate {
 	var gamestate Gamestate

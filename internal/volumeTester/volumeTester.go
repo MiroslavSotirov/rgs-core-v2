@@ -104,7 +104,7 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 	featureWin := engine.Fixed(0)
 	respinWin := engine.Fixed(0)
 	respinBet := engine.Fixed(0)
-
+	featureHits := 0
 	ctCascades := 0
 	previousGamestate := engine.Gamestate{NextActions: []string{"finish"}, Game: getMatchingGame(engineID), DefID: 0, NextGamestate: "FirstSpinVT" + engineID}
 	for i := 0; i < chunks; i++ {
@@ -200,6 +200,7 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 				ftInfo += fmt.Sprintf("%v ==  %.2f%% | RTP %.2f%% | max win: %v\n", x, float64(prizeInfo.hits)/float64(reelsetInfo.totalPlays)*100, engine.Fixed(prizeInfo.totalWin).Div(totalBet).ValueAsFloat()*100, prizeInfo.maxWin)
 			}
 		}
+		logger.Infof("FS HIT RATE: %v in %v", featureHits, infoStructs[0].totalPlays)
 
 		chunkInfo := fmt.Sprintf(" %v | RTP: %v%% | Feature: %v%% | Base: %v%% | Variance: %.5f | \n %v \n", i+1, RTP.ValueAsFloat()*100., RTPFeature.ValueAsFloat()*100., RTPBase.ValueAsFloat()*100., s2.getS2(), ftInfo)
 		vtInfo = append(vtInfo, chunkInfo)

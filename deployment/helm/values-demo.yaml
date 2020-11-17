@@ -173,6 +173,9 @@ gameConfig:
   - engineID: mvgEngineXV
     games:
       - museum
+  - engineID: mvgEngineXVI
+    games:
+      - sparta
 
 gamification:
   a-fairy-tale:
