@@ -1209,8 +1209,15 @@ func (engine EngineDef) DynamicWildWaysRound(parameters GameParams) Gamestate {
 	return gamestate
 }
 
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func (engine *EngineDef) ProcessWinLines(selectedWinLines []int) (wl []int) {
-	logger.Debugf("engine: %v", engine)
+	logger.Debugf("processing %v winlines: %v", selectedWinLines, engine.WinLines)
 	if len(selectedWinLines) == 0 || len(engine.WinLines) == 0 {
 		for i := 0; i < len(engine.WinLines); i++ {
 			wl = append(wl, i)
@@ -1220,13 +1227,12 @@ func (engine *EngineDef) ProcessWinLines(selectedWinLines []int) (wl []int) {
 		}
 		return
 	}
-	winLines := make([][]int, len(selectedWinLines))
+	winLines := make([][]int, min(len(selectedWinLines), len(engine.WinLines)))
+
 	for i, line := range selectedWinLines {
 		if line < len(engine.WinLines) {
 			winLines[i] = engine.WinLines[line]
 			wl = append(wl, line)
-		} else {
-			winLines[i] = []int{}
 		}
 	}
 	engine.WinLines = winLines
