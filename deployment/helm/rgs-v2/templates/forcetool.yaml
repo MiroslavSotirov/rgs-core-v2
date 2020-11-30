@@ -2635,8 +2635,7 @@ data:
       stopList: [3,6,3,30,8]
 
   mvgEngineXVI.yml: |
-  #this file contains the forced outcomes for engine xvi
-
+    #this file contains the forced outcomes for engine xvi
     - id: 5scatter
       action: base
       reelsetId: 0
