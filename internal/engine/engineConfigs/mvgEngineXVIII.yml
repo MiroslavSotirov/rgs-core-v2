@@ -22,7 +22,6 @@ EngineDefs:
       - [2,2,2,2,2]
       - [3,3,3,3,3]
       - [4,4,4,4,4]
-
     wilds:
       - symbol: 9
         multiplier: {multipliers: [1], probabilities: [1]}

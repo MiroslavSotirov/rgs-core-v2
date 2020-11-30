@@ -2634,4 +2634,64 @@ data:
       reelsetId: 0
       stopList: [3,6,3,30,8]
 
+  mvgEngineXVI.yml: |
+  #this file contains the forced outcomes for engine xvi
+
+    - id: 5scatter
+      action: base
+      reelsetId: 0
+      stopList: [33,11,8,12,36]
+
+    - id: 4scatter
+      action: base
+      reelsetId: 0
+      stopList: [33,11,8,12,5]
+
+    - id: 3scatter
+      action: base
+      reelsetId: 0
+      stopList: [33,11,8,3,5]
+
+    - id: 2scatterFS
+      action: freespin
+      reelsetId: 1
+      stopList: [16,15,5,22,5]
+
+    - id: wilds
+      action: freespin
+      reelsetId: 1
+      stopList: [1,22,5,11,1]
+
+
+  mvgEngineXVII.yml: |
+    #this file contains the forced outcomes for engine xvii
+
+    - id: 2scatter
+      action: base
+      reelsetId: 0
+      stopList: [3,37,5,11,11]
+
+    - id: 3scatterFS
+      action: base
+      reelsetId: 0
+      stopList: [3,37,55,22,5]
+
+    - id: 4scatterFS
+      action: base
+      reelsetId: 0
+      stopList: [3,37,55,28,2]
+
+    - id: 5scatterFS
+      action: base
+      reelsetId: 0
+      stopList: [3,37,55,28,37]
+
+
+
+  mvgEngineXVIII.yml: |
+
+    - id: 3scatterFS
+      action: base
+      reelsetId: 0
+      stopList: [2,13,10,22,0]
 
