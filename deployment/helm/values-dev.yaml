@@ -175,6 +175,9 @@ gameConfig:
   - engineID: mvgEngineXVII
     games:
       - book-of-living
+  - engineID: mvgEngineXVIII
+    games:
+      - zodiac-elements
 
 gamification:
   a-fairy-tale:
