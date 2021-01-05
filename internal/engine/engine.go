@@ -1297,19 +1297,18 @@ func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
 
 			// the client will know which symbol to display as the expand symbol, so we don't need to calculate a new grid.
 			// we simply need to know which reels contain the symbol that has expanded, and we will do a special win calculation on that
-			for l:=0; l<len(engine.WinLines); l++ {
-				// for each win line, create a win matching the payout type
-				winPos := engine.WinLines[l]
-				// turn every reel with no matching symbol to -1
-				for i:=0; i<len(expandReels); i++ {
-					if expandReels[i] == 0 {
-						winPos[i] = -1
-					}
+
+			// create a win matching the payout type
+			winPos := engine.WinLines[0]
+			//	// turn every reel with no matching symbol to -1
+			for i:=0; i<len(expandReels); i++ {
+				if expandReels[i] == 0 {
+					winPos[i] = -1
+				} else {
+					winPos[i] = 1
 				}
-				gamestate.Prizes = append(gamestate.Prizes, Prize{Payout: engine.Payouts[p], Index: fmt.Sprintf("E%v:%v", expandSymbol, ctExpandReels), Multiplier: 1, SymbolPositions: winPos, Winline: l})
-
 			}
-
+			gamestate.Prizes = append(gamestate.Prizes, Prize{Payout: engine.Payouts[p], Index: fmt.Sprintf("%v:%v", expandSymbol, ctExpandReels), Multiplier: len(engine.WinLines), SymbolPositions: winPos, Winline: -1})
 			// this should only match once per round
 			break
 		}
