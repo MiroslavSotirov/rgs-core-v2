@@ -118,6 +118,13 @@ ccyMultipliers:
   ETH: 0.001
   BCH: 0.001
   LTC: 0.001
+  BYN: 0.02
+  UZS: 100
+  MDL: 0.15
+  LKR: 1.5
+  MGA: 30
+  TJS: .1
+  KGS: .8
 
 profiles:
   low:

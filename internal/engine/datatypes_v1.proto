@@ -114,6 +114,13 @@ enum Ccy {
   ETH = 96;
   BCH = 97;
   LTC = 98;
+  BYN = 99;
+  UZS = 100;
+  MDL = 101;
+  LKR = 102;
+  MGA = 103;
+  TJS = 104;
+  KGS = 105;
 }
 
 message WalletTransactionPB {
