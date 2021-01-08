@@ -1178,8 +1178,17 @@ data:
 
   mvgEngineXI.yml: |
     #this file contains the forced outcomes for engine xi
+    - id: wild2
+      action: base
+      reelsetId: 0
+      stopList: [9, 29, 0, 0, 0]
 
-    #scatter
+    - id: wild3
+      action: base
+      reelsetId: 0
+      stopList: [1, 29, 0, 0, 0]
+
+      #scatter
     - id: scatter
       action: base
       reelsetId: 0
@@ -1740,7 +1749,6 @@ data:
       action: base
       reelsetId: 0
       stopList: [33, 33, 2, 19, 26]
-
   mvgEngineXII.yml: |
     #this file contains the forced outcomes for engine xii
 
