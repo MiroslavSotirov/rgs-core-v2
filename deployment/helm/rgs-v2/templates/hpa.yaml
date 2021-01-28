@@ -3,6 +3,7 @@ apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "rgs-v2.fullname" . }}
+  namespace: {{ .Values.namespace | default "maverick" }}
   labels:
     {{- include "rgs-v2.labels" . | nindent 4 }}
 spec:
