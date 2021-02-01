@@ -55,7 +55,9 @@ jobs:
           cd ..
           git clone "https://${{ secrets.BUILDER_TOKEN }}@github.com/mvk-tech/mvk-deploy-prd01.git"
           helm template rgs-v2/ -f values-prd.yaml --output-dir mvk-deploy-prd01/prd --name-template=rgs-v2
-          sed -i "s/rgs-v2/rgs-demo/g" rgs-v2/Chart.yaml
+          sed -i "/forcetool/d" mvk-deploy-prd01/prd/rgs-v2/templates/deployment.yaml
+          sed -i "/forceTool/d" mvk-deploy-prd01/prd/rgs-v2/templates/deployment.yaml
+          sed -i "s/rgs-v2/rgs-v2-demo/g" rgs-v2/Chart.yaml
           helm template rgs-v2/ -f values-demo.yaml --output-dir mvk-deploy-prd01/prd --name-template=rgs-v2-demo
           cd mvk-deploy-prd01
           rm prd/rgs-v2/templates/forcetool.yaml
