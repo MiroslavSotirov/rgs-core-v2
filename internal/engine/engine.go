@@ -503,6 +503,21 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 			betPerLine = previousGamestate.BetPerLine.Amount
 			totalBet = RoundUpToNearestCCYUnit(Money{previousGamestate.RespinPriceReel(parameters.RespinReel), currency})
 			parameters.previousGamestate = previousGamestate
+		} else if parameters.Action == "gamble" {
+			// verify that the previous action was freespin and nextaction is finish
+			if !(previousGamestate.Action == "freespin" && len(previousGamestate.NextActions) == 1 && previousGamestate.NextActions[0] == "finish") {
+				// this is not allowed
+				logger.Errorf("ERROR, NOT A VALID GAMBLE ROUND")
+				return Gamestate{}, EngineConfig{}
+			}
+			if parameters.RespinReel < 0 {
+				logger.Errorf("ERROR, NO GAMBLE INDEX PASSED")
+				return Gamestate{}, EngineConfig{}
+			}
+			actions = []string{fmt.Sprintf("%v%v",parameters.Action, parameters.RespinReel), "finish"}
+			betPerLine = previousGamestate.CumulativeWin
+			totalBet = Money{previousGamestate.CumulativeWin, currency}
+
 		} else {
 			// new gameplay round
 			// totalbet is set after gameplay
@@ -526,6 +541,9 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	case "respin":
 		// action must be performed on the same engine as previous round, but method will always be respin
 		method = reflect.ValueOf(engineConf.EngineDefs[previousGamestate.DefID].Respin)
+	//case "gamble":
+	//	// action must be performed on the gamble engine
+	//	method = reflect.ValueOf(engineConf.EngineDefs[previousGamestate.DefID]).MethodByName(engineConf.EngineDefs[previousGamestate.DefID].Function)
 	default:
 		method, err = engineConf.getEngineAndMethod(parameters.Action)
 	}

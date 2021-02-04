@@ -2681,17 +2681,17 @@ data:
     - id: 3scatterFS
       action: base
       reelsetId: 0
-      stopList: [3,37,55,22,5]
+      stopList: [3,37,44,22,5]
 
     - id: 4scatterFS
       action: base
       reelsetId: 0
-      stopList: [3,37,55,28,2]
+      stopList: [3,37,44,28,2]
 
     - id: 5scatterFS
       action: base
       reelsetId: 0
-      stopList: [3,37,55,28,37]
+      stopList: [3,37,44,28,37]
 
 
 

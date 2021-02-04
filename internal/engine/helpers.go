@@ -192,7 +192,7 @@ func (gp *GameParams) Decode(request *http.Request) rgse.RGSErr {
 }
 
 // if this is the action, a wager must be charged
-var paidActions = []string{"base", "maxBase", "respin"}
+var paidActions = []string{"base", "maxBase", "respin", "gamble"}
 
 func (p GameParams) Validate() (err rgse.RGSErr) {
 	if p.Game == "" || p.Action == "" {
