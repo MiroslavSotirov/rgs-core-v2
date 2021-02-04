@@ -213,6 +213,9 @@ message GamestatePB {
   shuffleprime = 13;
   maxBase = 14;
   randomPrize = 15;
+  gamble1 = 16;
+  gamble2 = 17;
+  gamble3 = 18;
   }
   Action action = 7;
 

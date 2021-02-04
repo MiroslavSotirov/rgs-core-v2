@@ -124,7 +124,7 @@ type Money struct {
 }
 
 type Payout struct {
-	Symbol     int `json:"symbol,omitempty" yaml:"Symbol"`
+	Symbol     int `json:"symbol" yaml:"Symbol"`
 	Count      int `json:"count,omitempty" yaml:"Count"`
 	Multiplier int `json:"multiplier,omitempty" yaml:"Multiplier"`
 }

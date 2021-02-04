@@ -47,7 +47,7 @@ ingress:
     nginx.ingress.kubernetes.io/cors-allow-origin: "*"
     nginx.ingress.kubernetes.io/cors-max-age: "151200"
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    kubernetes.io/ingress.class: "mvk-ingress"
+    kubernetes.io/ingress.class: "mvk-demo-ingress"
   hosts:
     - host:
       paths:
