@@ -122,7 +122,7 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 			return data, rgse.Create(rgse.SpinSequenceError)
 		}
 		logger.Debugf("setting zero stake value for %v round", data.Action)
-		if data.Action != "respin" {
+		if data.Action != "respin" && data.Action != "gamble" {
 			data.Stake = 0
 		}
 	} else {

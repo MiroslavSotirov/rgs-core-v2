@@ -505,7 +505,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 			parameters.previousGamestate = previousGamestate
 		} else if parameters.Action == "gamble" {
 			// verify that the previous action was freespin and nextaction is finish
-			if !(previousGamestate.Action == "freespin" && len(previousGamestate.NextActions) == 1 && previousGamestate.NextActions[0] == "finish") {
+			if !(strings.Contains(previousGamestate.Action, "freespin") && len(previousGamestate.NextActions) == 1 && previousGamestate.NextActions[0] == "finish") {
 				// this is not allowed
 				logger.Errorf("ERROR, NOT A VALID GAMBLE ROUND")
 				return Gamestate{}, EngineConfig{}
