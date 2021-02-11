@@ -44,6 +44,7 @@ type MetaResponse struct{
 
 type GameplayResponseV2 struct {
 	MetaData		 MetaResponse `json:"meta"'`
+	Action           string     `json:"action,omitempty"`
 	SessionID        store.Token  `json:"host/verified-token"`
 	StateID          string       `json:"stateID"`
 	RoundID          string       `json:"roundID"`
@@ -176,6 +177,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 	return GameplayResponseV2{
 		MetaData:	MetaResponse{OperatorRequests: OperatorResponse{StopAutoPlay: balance.Message=="stopAuto"}},
 		SessionID:   balance.Token,
+		Action:      gamestate.Action,
 		StateID:     gamestate.Id,
 		RoundID:     gamestate.RoundID,
 		ReelsetID:   gamestate.DefID,
