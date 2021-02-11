@@ -1283,7 +1283,7 @@ func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
 	var err error
 	if strings.Contains(parameters.previousGamestate.Action, parameters.Action) {
 		// expand symbol should be propogated from previous state
-		expandSymbol, err = strconv.Atoi(strings.Split(parameters.previousGamestate.Action, ":")[1])
+		expandSymbol, err = strconv.Atoi(strings.Split(parameters.previousGamestate.Action, "E")[1])
 		if err != nil {
 			logger.Errorf("misconfigured engine: %v", engine.ID)
 			return Gamestate{}
@@ -1333,7 +1333,7 @@ func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
 	}
 	relativePayout := calculatePayoutWins(gamestate.Prizes)
 	gamestate.RelativePayout = relativePayout // override
-	gamestate.Action = fmt.Sprintf("%v:%v",parameters.Action, expandSymbol)
+	gamestate.Action = fmt.Sprintf("%vE%v",parameters.Action, expandSymbol)
 	return gamestate
 }
 

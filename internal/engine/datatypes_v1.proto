@@ -216,6 +216,17 @@ message GamestatePB {
   gamble1 = 16;
   gamble2 = 17;
   gamble3 = 18;
+  freespinE1 = 19;
+  freespinE2 = 20;
+  freespinE3 = 21;
+  freespinE4 = 22;
+  freespinE5 = 23;
+  freespinE6 = 24;
+  freespinE7 = 25;
+  freespinE8 = 26;
+  freespinE0 = 27;
+  gamble0 = 28;
+
   }
   Action action = 7;
 
