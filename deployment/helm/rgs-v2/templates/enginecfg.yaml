@@ -1411,8 +1411,11 @@ data:
 
       - name: gamble0
         function: BaseRound
-        ViewSize: [1]
+        ViewSize: [1,1]
+        WinLines:
+          - [0,0]
         Reels:
+          - [1]
           - [1]
         multiplier: {multipliers: [1], probabilities: [1]}
         Payouts:
@@ -1422,8 +1425,11 @@ data:
 
       - name: gamble1
         function: BaseRound
-        ViewSize: [1]
+        ViewSize: [1,1]
+        WinLines:
+          - [0,0]
         Reels:
+          - [1]
           - [1]
         multiplier: {multipliers: [0,2,5,8,10], probabilities: [84,4,4,4,4]}
         Payouts:
@@ -1433,8 +1439,11 @@ data:
 
       - name: gamble2
         function: BaseRound
-        ViewSize: [1]
+        ViewSize: [1,1]
+        WinLines:
+          - [0,0]
         Reels:
+          - [1]
           - [1]
         multiplier: {multipliers: [0,1,3,5], probabilities: [66,11,13,10]}
         Payouts:
@@ -1444,8 +1453,11 @@ data:
 
       - name: gamble3
         function: BaseRound
-        ViewSize: [1]
+        ViewSize: [1,1]
+        WinLines:
+          - [0,0]
         Reels:
+          - [1]
           - [1]
         multiplier: {multipliers: [0,1,2], probabilities: [3,4,3]}
         Payouts:

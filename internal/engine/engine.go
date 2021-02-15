@@ -515,6 +515,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 				return Gamestate{}, EngineConfig{}
 			}
 			actions = []string{fmt.Sprintf("%v%v",parameters.Action, parameters.RespinReel), "finish"}
+			parameters.Action = actions[0]
 			betPerLine = previousGamestate.CumulativeWin
 			totalBet = Money{previousGamestate.CumulativeWin, currency}
 
