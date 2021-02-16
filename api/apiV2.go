@@ -253,7 +253,9 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 	// settle transactions
 	var balance store.BalanceStore
 	token := txStore.Token
+	logger.Debugf("%v txs", len(gamestate.Transactions))
 	for _, transaction := range gamestate.Transactions {
+		logger.Debugf("%#v", transaction)
 		gs := store.SerializeGamestateToBytes(gamestate)
 		tx := store.TransactionStore{
 			TransactionId:       transaction.Id,
@@ -315,7 +317,8 @@ func CloseGS(r *http.Request) (err rgse.RGSErr) {
 	if err := data.decode(r); err != nil {
 		return err
 	}
-
+	logger.Debugf("#v", data)
+	logger.Debugf("#v", token)
 	var txStore store.TransactionStore
 	switch data.Wallet {
 	case "demo":
