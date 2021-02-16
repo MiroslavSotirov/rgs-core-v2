@@ -613,9 +613,9 @@ func (gamestate *Gamestate) PrepareTransactions(previousGamestate Gamestate) {
 	// prepares transactions and sets round ID
 
 	// check if WAGER TX exists
-	if len(gamestate.Transactions) == 0 {
+	if len(gamestate.Transactions) == 0 || gamestate.Action == "respin" || strings.Contains(gamestate.Action, "gamble") {
 		if previousGamestate.RoundID == "" {
-			//hack for games begun before this fix was implemented
+			// hack for games begun before this fix was implemented
 			previousGamestate.RoundID = previousGamestate.Id
 		}
 		// this is a continued game round

@@ -824,6 +824,7 @@ func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction Trans
 		}
 	}
 	if player.Balance.Amount < 0 {
+		logger.Debugf("insufficient funds: %#v, %#v", transaction, player.Balance)
 		return BalanceStore{}, rgse.Create(rgse.InsufficientFundError)
 	}
 	i.setTransaction(transaction.TransactionId, transaction)
