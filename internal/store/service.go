@@ -100,6 +100,7 @@ type (
 		GameState           []byte
 		FreeGames           FreeGamesStore
 		WalletStatus        int
+		Ttl 				int64
 	}
 
 	FreeGamesStore struct {
@@ -311,6 +312,8 @@ type (
 		TxRef          string `json:"tx_ref"`
 		Description    string `json:"description"`
 		InternalStatus int    `json:"internal_status"`
+		Ttl            int64  `json:"ttl"`
+		TtlStamp       int64  `json:"ttlstamp"`
 	}
 
 	restTransactionResponse struct {
@@ -874,6 +877,8 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 		Round:       transaction.RoundId,
 		TxRef:       transaction.TransactionId,
 		CampaignRef: transaction.FreeGames.CampaignRef,
+		Ttl:		 transaction.Ttl,
+		TtlStamp:	 transaction.TxTime.Add(time.Duration(transaction.Ttl*1e9)).Unix(),
 	}
 
 	return i.txSend(txRq)
@@ -971,6 +976,7 @@ func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId st
 		BetLimitSettingCode: player.BetLimitSettingCode,
 		FreeGames:           player.FreeGames,
 		WalletStatus:        1,
+		Ttl:				 transaction.Ttl,
 	}, nil
 }
 
@@ -1039,6 +1045,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		roundStatus = RoundStatusClose
 	}
 
+	var ttl int64 = 3600
 	if len(lastTx.GameState) > 0 {
 		gameState, err = base64.StdEncoding.DecodeString(lastTx.GameState)
 
@@ -1046,6 +1053,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		if finalErr != nil {
 			return TransactionStore{}, finalErr
 		}
+		ttl = DeserializeGamestateFromBytes(gameState).GetTtl()
 	}
 	//if queryResp.PlayerId == i.logAccount {
 	//	logger.Infof("%v request took %v for account %v", ApiTypeBalance, time.Now().Sub(start).String(), balResp.PlayerId)
@@ -1066,6 +1074,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		BetLimitSettingCode: queryResp.BetLimit,
 		FreeGames:           balance.FreeGames,
 		WalletStatus:        lastTx.InternalStatus,
+		Ttl:				 ttl,
 	}, nil
 }
 

@@ -271,6 +271,7 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 			GameState:           gs,
 			BetLimitSettingCode: txStore.BetLimitSettingCode,
 			FreeGames:           store.FreeGamesStore{NoOfFreeSpins: 0, CampaignRef: freeGameRef},
+			Ttl:				 gamestate.GetTtl(),
 		}
 		switch data.Wallet {
 		case "demo":
