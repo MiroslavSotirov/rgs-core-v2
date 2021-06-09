@@ -283,6 +283,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 			GameState:           gs,
 			BetLimitSettingCode: txStore.BetLimitSettingCode,
 			FreeGames:           store.FreeGamesStore{NoOfFreeSpins: 0, CampaignRef: freeGameRef},
+			Ttl:				 gamestate.GetTtl(),
 		}
 		switch wallet {
 		case "demo":

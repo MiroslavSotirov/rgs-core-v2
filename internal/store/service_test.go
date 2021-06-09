@@ -120,6 +120,7 @@ func TestLocalServiceImpl_Transaction(t *testing.T) {
 		ParentTransactionId: "",
 		TxTime:              time.Now(),
 		GameState:           nil,
+		Ttl:                 3600,
 	}
 	balance, _ := serv2.Transaction(player.Token, ModeReal, tx1)
 
@@ -147,6 +148,7 @@ func TestLocalServiceImpl_Transaction(t *testing.T) {
 		ParentTransactionId: "",
 		TxTime:              time.Now(),
 		GameState:           nil,
+		Ttl:                 3600,
 	}
 	balance2, _ := serv2.Transaction(balance.Token, ModeReal, tx2)
 

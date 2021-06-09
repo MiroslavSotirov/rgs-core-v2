@@ -479,3 +479,15 @@ func (gamestate Gamestate) GetChoices() (choices []string) {
 	}
 	return
 }
+
+func (gamestate Gamestate) GetTtl() int64 {
+	// returns number of seconds a completed round should stay open depending on features
+	if (gamestate.Gamification.GetLevel() > 0 || 
+		gamestate.Gamification.GetStage() > 0 ||
+		gamestate.Gamification.GetRemainingSpins() > 0 ||
+		gamestate.Gamification.GetSpinsToStageUp() > 0 ||
+		gamestate.Gamification.GetTotalSpins() > 0) {
+			return 3600*24*2
+		}
+	return 3600
+}

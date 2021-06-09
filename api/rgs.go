@@ -471,6 +471,7 @@ func Routes() *chi.Mux {
 					GameState:           gsbytes,
 					FreeGames:           store.FreeGamesStore{},
 					WalletStatus:        0,
+					Ttl:				 gamestate.GetTtl(),
 				})
 			case "dashur":
 				_, err = store.Serv.Transaction(player.Token, store.ModeReal, store.TransactionStore{
@@ -489,6 +490,7 @@ func Routes() *chi.Mux {
 					GameState:           gsbytes,
 					FreeGames:           store.FreeGamesStore{},
 					WalletStatus:        0,
+					Ttl:				 gamestate.GetTtl(),
 				})
 			}
 

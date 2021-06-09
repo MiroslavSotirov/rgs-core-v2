@@ -46,6 +46,7 @@ func testTransactinoStoreRemoteServiceForTransaction(token string) TransactionSt
 		ParentTransactionId: "",
 		TxTime:              time.Now(),
 		GameState:           nil,
+		Ttl:                 3600,
 	}
 }
 
