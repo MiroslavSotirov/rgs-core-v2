@@ -1116,6 +1116,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 		TxTime:              time.Now(),
 		GameState:           gamestate,
 		FreeGames:           player.FreeGames,
+		Ttl:                 DeserializeGamestateFromBytes(gamestate).GetTtl(),
 	})
 
 	if err != nil {
