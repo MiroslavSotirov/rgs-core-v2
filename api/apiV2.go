@@ -209,6 +209,7 @@ func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV
 		FreeGames:           player.FreeGames,
 		Token:               player.Token,
 		Amount:              engine.Money{0, player.Balance.Currency},
+		Ttl:                 3600,
 	}
 
 	// don't need to worry about the wallet status as the GS ID is randomly generated on reload
