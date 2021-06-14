@@ -878,7 +878,7 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 		TxRef:       transaction.TransactionId,
 		CampaignRef: transaction.FreeGames.CampaignRef,
 		Ttl:		 transaction.Ttl,
-		TtlStamp:	 transaction.TxTime.Add(time.Duration(transaction.Ttl*1e9)).Unix(),
+		TtlStamp:	 transaction.TxTime.Unix() + transaction.Ttl,
 	}
 
 	return i.txSend(txRq)
@@ -1045,7 +1045,6 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		roundStatus = RoundStatusClose
 	}
 
-	var ttl int64 = 3600
 	if len(lastTx.GameState) > 0 {
 		gameState, err = base64.StdEncoding.DecodeString(lastTx.GameState)
 
@@ -1053,7 +1052,6 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		if finalErr != nil {
 			return TransactionStore{}, finalErr
 		}
-		ttl = DeserializeGamestateFromBytes(gameState).GetTtl()
 	}
 	//if queryResp.PlayerId == i.logAccount {
 	//	logger.Infof("%v request took %v for account %v", ApiTypeBalance, time.Now().Sub(start).String(), balResp.PlayerId)
@@ -1074,7 +1072,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		BetLimitSettingCode: queryResp.BetLimit,
 		FreeGames:           balance.FreeGames,
 		WalletStatus:        lastTx.InternalStatus,
-		Ttl:				 ttl,
+		Ttl:				 lastTx.Ttl,
 	}, nil
 }
 
@@ -1132,6 +1130,7 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 	// Used in clientstate call
 	closeRound := true
 
+	ttl := DeserializeGamestateFromBytes(gamestate).GetTtl()
 	txRq := restTransactionRequest{
 		ReqId:       uuid.NewV4().String(),
 		Token:       string(token),
@@ -1146,6 +1145,8 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 		Round:       roundId,
 		TxRef:       roundId,
 		GameState:   base64.StdEncoding.EncodeToString(gamestate),
+		Ttl:         ttl,
+		TtlStamp:    time.Now().Unix() + ttl,
 	}
 
 	b := new(bytes.Buffer)

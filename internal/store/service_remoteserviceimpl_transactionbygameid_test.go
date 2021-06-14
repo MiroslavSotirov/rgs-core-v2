@@ -52,6 +52,8 @@ func TestRemoteServiceImpl_TransactionByGameId_1(t *testing.T) {
 				TxRef:          "",
 				Description:    "",
 				InternalStatus: 0,
+				Ttl:            3600,
+				TTlStamp:       time.Now().Unix() + 3600,
 			}
 			rs := restQueryResponse{
 				Metadata: restMetadata{
