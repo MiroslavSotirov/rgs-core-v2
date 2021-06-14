@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"	
 )
 
 func testRemoteServiceForTransactionByGameId(url string) Service {
@@ -53,7 +54,7 @@ func TestRemoteServiceImpl_TransactionByGameId_1(t *testing.T) {
 				Description:    "",
 				InternalStatus: 0,
 				Ttl:            3600,
-				TTlStamp:       time.Now().Unix() + 3600,
+				TtlStamp:       time.Now().Unix() + 3600,
 			}
 			rs := restQueryResponse{
 				Metadata: restMetadata{
