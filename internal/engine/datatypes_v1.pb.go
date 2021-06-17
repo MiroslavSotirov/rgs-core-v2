@@ -5,8 +5,9 @@ package engine
 
 import (
 	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
 	math "math"
+
+	proto "github.com/golang/protobuf/proto"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -439,6 +440,7 @@ const (
 	GamestatePB_ZODIAC_ELEMENTS         GamestatePB_GameID = 48
 	GamestatePB_BOOK_OF_LIVING          GamestatePB_GameID = 49
 	GamestatePB_PRINCESS                GamestatePB_GameID = 50
+	GamestatePB_SUPA_CREW               GamestatePB_GameID = 51
 )
 
 var GamestatePB_GameID_name = map[int32]string{
@@ -493,6 +495,7 @@ var GamestatePB_GameID_name = map[int32]string{
 	48: "ZODIAC_ELEMENTS",
 	49: "BOOK_OF_LIVING",
 	50: "PRINCESS",
+	51: "SUPA_CREW",
 }
 
 var GamestatePB_GameID_value = map[string]int32{
@@ -547,6 +550,7 @@ var GamestatePB_GameID_value = map[string]int32{
 	"ZODIAC_ELEMENTS":         48,
 	"BOOK_OF_LIVING":          49,
 	"PRINCESS":                50,
+	"SUPA_CREW":               51,
 }
 
 func (x GamestatePB_GameID) String() string {
