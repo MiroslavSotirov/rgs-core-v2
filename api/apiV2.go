@@ -3,6 +3,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/getsentry/sentry-go"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
@@ -12,9 +16,6 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
-	"net/http"
-	"strings"
-	"time"
 )
 
 func getGameLink(request *http.Request) GameLinkResponse {
@@ -47,6 +48,8 @@ func (i *initParams) decode(request *http.Request) rgse.RGSErr {
 }
 
 func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
+	sentry.CaptureMessage("ttl enabled call to initV2")
+
 	var data initParams
 	if err := data.decode(request); err != nil {
 		return GameInitResponseV2{}, err
@@ -86,7 +89,7 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 		return GameInitResponseV2{}, err
 	}
 	giResp.StakeValues = stakeValues
-	for i:=0; i<len(stakeValues); i++ {
+	for i := 0; i < len(stakeValues); i++ {
 		if player.FreeGames.NoOfFreeSpins > 0 && stakeValues[i].Mul(engine.NewFixedFromInt(engineConfig.EngineDefs[0].StakeDivisor)) == player.FreeGames.TotalWagerAmt {
 			defaultBet = stakeValues[i]
 			logger.Debugf("setting defaultbet to %v for freegames", defaultBet)
@@ -272,7 +275,7 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 			GameState:           gs,
 			BetLimitSettingCode: txStore.BetLimitSettingCode,
 			FreeGames:           store.FreeGamesStore{NoOfFreeSpins: 0, CampaignRef: freeGameRef},
-			Ttl:				 gamestate.GetTtl(),
+			Ttl:                 gamestate.GetTtl(),
 		}
 		switch data.Wallet {
 		case "demo":
