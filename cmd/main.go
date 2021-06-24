@@ -86,7 +86,6 @@ func main() {
 	if err != nil {
 		logger.Errorf("sentry.Init: %s", err)
 	}
-	sentry.CaptureMessage("ttl enabled init")
 	// Flush buffered events before the program terminates.
 	// Set the timeout to the maximum duration the program can afford to wait.
 	//defer sentry.Flush(20 * time.Millisecond)
