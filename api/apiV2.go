@@ -48,8 +48,6 @@ func (i *initParams) decode(request *http.Request) rgse.RGSErr {
 }
 
 func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
-	sentry.CaptureMessage("ttl enabled call to initV2")
-
 	var data initParams
 	if err := data.decode(request); err != nil {
 		return GameInitResponseV2{}, err
