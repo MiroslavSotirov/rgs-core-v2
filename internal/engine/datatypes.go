@@ -3,9 +3,11 @@ package engine
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/getsentry/sentry-go"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"gopkg.in/yaml.v3"
 )
@@ -22,7 +24,7 @@ type weightedMultiplier struct {
 type wild struct {
 	Symbol     int                `yaml:"symbol"`
 	Multiplier weightedMultiplier `yaml:"multiplier"`
-	Sticky	   bool				  `yaml:"sticky"`
+	Sticky     bool               `yaml:"sticky"`
 }
 
 // bar symbols
@@ -41,19 +43,20 @@ type EngineDef struct {
 	Payouts  []Payout `yaml:"Payouts"`                 // the payouts for line wins (can be nil for ways games)
 	WinType  string   `yaml:"WinType"`                 // ways, lines, or barLines (specifying lines insteadof barLines saves comp. power)
 	// The string represents the method to be run. should be ordered by precedence
-	SpecialPayouts []Prize            `yaml:"SpecialPayouts"`
-	WinLines       [][]int            `yaml:"WinLines,flow"`
-	Wilds          []wild             `yaml:"wilds"`
-	Bars           []bar              `yaml:"bars"`
-	Multiplier     weightedMultiplier `yaml:"multiplier"`
-	StakeDivisor   int                `yaml:"StakeDivisor"`
-	Probability    int                `yaml:"Probability"`      // the probability of this engine being selected if it shares id with other engines
-	ExpectedPayout Fixed              `yaml:"expectedPayout"`   // the expected payout of one round of this engineDef
-	RTP            float32            `yaml:"RTP"`              // the expected payout of one round of this engineDef
-	RespinAllowed  bool               `yaml:"respin"`           // must be explicitly enabled on each def
-	VariableWL     bool               `yaml:"variableWinLines"` // will be false by default
-	Compounding	   bool				  `yaml:"compoundingWilds"` // will be false by default
-	force          []int              // may not be set via yaml
+	SpecialPayouts []Prize               `yaml:"SpecialPayouts"`
+	WinLines       [][]int               `yaml:"WinLines,flow"`
+	Wilds          []wild                `yaml:"wilds"`
+	Bars           []bar                 `yaml:"bars"`
+	Multiplier     weightedMultiplier    `yaml:"multiplier"`
+	StakeDivisor   int                   `yaml:"StakeDivisor"`
+	Probability    int                   `yaml:"Probability"`      // the probability of this engine being selected if it shares id with other engines
+	ExpectedPayout Fixed                 `yaml:"expectedPayout"`   // the expected payout of one round of this engineDef
+	RTP            float32               `yaml:"RTP"`              // the expected payout of one round of this engineDef
+	RespinAllowed  bool                  `yaml:"respin"`           // must be explicitly enabled on each def
+	VariableWL     bool                  `yaml:"variableWinLines"` // will be false by default
+	Compounding    bool                  `yaml:"compoundingWilds"` // will be false by default
+	force          []int                 // may not be set via yaml
+	Features       []features.FeatureDef `yaml:"Features"`
 }
 
 func (engine *EngineDef) SetForce(force []int) (err rgserror.RGSErr) {
@@ -162,6 +165,7 @@ type Gamestate struct {
 	PlaySequence      int                       `json:"play_sequence,omitempty"`
 	Closed            bool                      `json:"closed"`
 	RoundID           string                    `json:"round_id"`
+	Features          []features.Feature        `json:"features"`
 }
 
 func (gamestate Gamestate) Engine() (engine EngineConfig, err rgserror.RGSErr) {
@@ -330,6 +334,48 @@ func convertPrizesToPB(unconverted []Prize) []*PrizePB {
 	}
 	return converted
 }
+
+func convertFeaturesFromPB(unconverted []*FeaturePB) []features.Feature {
+	converted := make([]features.Feature, len(unconverted))
+	for i, featurepb := range unconverted {
+		feature := features.MakeFeature(featurepb.Type)
+		if feature != nil {
+			feature.SetId(featurepb.Id)
+			feature.SetType(featurepb.Type)
+			err := feature.Deserialize(featurepb.Data)
+			if err != nil {
+				logger.Errorf(err.Error())
+				return []features.Feature{}
+			} else {
+				converted[i] = feature
+			}
+		} else {
+			logger.Errorf("could not deserialize unknown feature %s"+
+				", check engine.EnabledFeatureSet", featurepb.Type)
+			return []features.Feature{}
+		}
+	}
+	return converted
+}
+
+func convertFeaturesToPB(unconverted []features.Feature) []*FeaturePB {
+	converted := make([]*FeaturePB, len(unconverted))
+	for i, feature := range unconverted {
+		var featurepb FeaturePB
+		var err error
+		featurepb.Id = feature.GetId()
+		featurepb.Type = feature.GetType()
+		featurepb.Data, err = feature.Serialize()
+		if err != nil {
+			logger.Errorf("could not serialize feature %s"+
+				", error: %s", feature.GetType(), err.Error())
+			return []*FeaturePB{}
+		}
+		converted[i] = &featurepb
+	}
+	return converted
+}
+
 func (gamestatePB GamestatePB) Convert() Gamestate {
 	nextActions := make([]string, len(gamestatePB.NextActions))
 	for i, action := range gamestatePB.NextActions {
@@ -364,6 +410,7 @@ func (gamestatePB GamestatePB) Convert() Gamestate {
 		Closed:            gamestatePB.Closed,
 		RoundID:           gamestatePB.RoundId,
 		RecoveryGrid:      convertSymbolGridFromPB(gamestatePB.RecoveryGrid),
+		Features:          convertFeaturesFromPB(gamestatePB.Features),
 	}
 }
 
@@ -435,6 +482,7 @@ func (gamestate Gamestate) Convert() GamestatePB {
 		Transactions:      convertTransactionsToPB(gamestate.Transactions),
 		Closed:            gamestate.Closed,
 		RoundId:           gamestate.RoundID,
+		Features:          convertFeaturesToPB(gamestate.Features),
 	}
 }
 

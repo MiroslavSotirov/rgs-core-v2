@@ -5,14 +5,16 @@ package engine
 import (
 	"errors"
 	"fmt"
-	uuid "github.com/satori/go.uuid"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"reflect"
 	"strconv"
 	"strings"
+
+	uuid "github.com/satori/go.uuid"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 func (engine EngineDef) Spin() ([][]int, []int) {
@@ -78,13 +80,13 @@ func DetermineLineWinsAnywhere(symbolGrid [][]int, WinLines [][]int, linePayouts
 		}
 
 		// iterate through the line content
-		for i:=0; i<len(lineContent)-1; i++ {
+		for i := 0; i < len(lineContent)-1; i++ {
 			// adjust payouts to exclude any symbols already matched
 
 			var adjustedPayouts []Payout
-			for j:=0; j<len(linePayouts); j++ {
+			for j := 0; j < len(linePayouts); j++ {
 				seen := false
-				for k:=0; k<len(matchedSymbols); k++{
+				for k := 0; k < len(matchedSymbols); k++ {
 					if linePayouts[j].Symbol == matchedSymbols[k] {
 						seen = true
 						break
@@ -100,7 +102,7 @@ func DetermineLineWinsAnywhere(symbolGrid [][]int, WinLines [][]int, linePayouts
 			}
 			// add any new wins to matchedSymbols
 			matchedSymbols = append(matchedSymbols, win.Payout.Symbol)
-			win.SymbolPositions = symbolPositions[i:i+win.Payout.Count]
+			win.SymbolPositions = symbolPositions[i : i+win.Payout.Count]
 			win.Winline = winLineIndex
 			lineWins = append(lineWins, win)
 		}
@@ -177,7 +179,6 @@ func GetWinInLine(lineContent []int, wilds []wild, linePayouts []Payout, compoun
 	}
 	return prize
 }
-
 
 func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payout, wilds []wild, compounding bool) (lineWins []Prize) {
 	// determines prizes from line wins including wilds with multipliers
@@ -514,7 +515,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 				logger.Errorf("ERROR, NO GAMBLE INDEX PASSED")
 				return Gamestate{}, EngineConfig{}
 			}
-			actions = []string{fmt.Sprintf("%v%v",parameters.Action, parameters.RespinReel), "finish"}
+			actions = []string{fmt.Sprintf("%v%v", parameters.Action, parameters.RespinReel), "finish"}
 			parameters.Action = actions[0]
 			betPerLine = previousGamestate.CumulativeWin
 			totalBet = Money{previousGamestate.CumulativeWin, currency}
@@ -709,15 +710,15 @@ func (engine EngineDef) DetermineWins(symbolGrid [][]int) ([]Prize, int) {
 		// transpose grid
 		sGTransposed := TransposeGrid(symbolGrid)
 		vWins := DetermineLineWinsAnywhere(sGTransposed, engine.WinLines, engine.Payouts, engine.Wilds, engine.Compounding)
-		for w:=0; w<len(vWins); w++{
+		for w := 0; w < len(vWins); w++ {
 			// add prefix to index and adjust line number
 			// get base ref which is i reel first symbol
 			base := vWins[w].SymbolPositions[0] / (len(symbolGrid[0]))
 			vWins[w].Winline += len(engine.WinLines)
 			vWins[w].Index = fmt.Sprintf("V%v", vWins[w].Index)
 			var convSymbolPos []int
-			for i:=0; i<len(vWins[w].SymbolPositions); i++ {
-				convSymbolPos = append(convSymbolPos, (vWins[w].SymbolPositions[i]-(engine.ViewSize[0]*(i+base)))*engine.ViewSize[0] + i+base)
+			for i := 0; i < len(vWins[w].SymbolPositions); i++ {
+				convSymbolPos = append(convSymbolPos, (vWins[w].SymbolPositions[i]-(engine.ViewSize[0]*(i+base)))*engine.ViewSize[0]+i+base)
 			}
 			vWins[w].SymbolPositions = convSymbolPos
 		}
@@ -735,10 +736,10 @@ func (engine EngineDef) addStickyWilds(previousGamestate Gamestate, symbolGrid [
 		return symbolGrid
 	}
 
-	for w:=0; w<len(engine.Wilds); w++ {
+	for w := 0; w < len(engine.Wilds); w++ {
 		if engine.Wilds[w].Sticky {
-			for i:=0; i<len(previousGamestate.SymbolGrid); i++ {
-				for j:=0; j<len(previousGamestate.SymbolGrid[i]); j++ {
+			for i := 0; i < len(previousGamestate.SymbolGrid); i++ {
+				for j := 0; j < len(previousGamestate.SymbolGrid[i]); j++ {
 					if previousGamestate.SymbolGrid[i][j] == engine.Wilds[w].Symbol {
 						if previousGamestate.Action == "base" {
 							logger.Infof("Adding sticky wild %v from previous round", engine.Wilds[w].Symbol)
@@ -748,7 +749,6 @@ func (engine EngineDef) addStickyWilds(previousGamestate Gamestate, symbolGrid [
 					}
 				}
 			}
-
 
 		}
 	}
@@ -795,25 +795,26 @@ func (engine EngineDef) MultiplierXWilds(parameters GameParams) Gamestate {
 
 	gamestate := engine.BaseRound(parameters)
 	ctWilds := 0
-	for w:= 0; w<len(engine.Wilds); w++ {
+	for w := 0; w < len(engine.Wilds); w++ {
 
-		for r:= 0; r<len(gamestate.SymbolGrid); r++ {
+		for r := 0; r < len(gamestate.SymbolGrid); r++ {
 			//iterate through reels
-			for x:=0;x<len(gamestate.SymbolGrid[r]);x++ {
+			for x := 0; x < len(gamestate.SymbolGrid[r]); x++ {
 				if engine.Wilds[w].Symbol == gamestate.SymbolGrid[r][x] {
-					ctWilds ++
+					ctWilds++
 				}
 			}
 		}
 	}
 	gamestate.Multiplier = 1
 
-	for w:=0;w<ctWilds;w++ {
+	for w := 0; w < ctWilds; w++ {
 		gamestate.Multiplier *= SelectFromWeightedOptions(engine.Multiplier.Multipliers, engine.Multiplier.Probabilities)
 	}
 
 	return gamestate
 }
+
 // Guaranteed win round
 func (engine EngineDef) GuaranteedWin(parameters GameParams) Gamestate {
 	var gamestate Gamestate
@@ -1272,7 +1273,6 @@ func (engine EngineDef) LinesRoundReplaceType(parameters GameParams) Gamestate {
 	return gamestate
 }
 
-
 func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
 	// this is a base round but with a special expanding symbol (indicated by the value after ":" in Action field of previous gamestate
 	// the expansion happens in the second phase, so this function serves only to prepare the next phase
@@ -1297,18 +1297,18 @@ func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
 	// check if the reels contain the expand symbol
 	expandReels := make([]int, len(gamestate.SymbolGrid)) // this will be a grid of zeroes and ones, we will take the sum to get the prize
 	ctExpandReels := 0
-	for i:=0; i<len(gamestate.SymbolGrid); i++ {
-		for j:=0; j<len(gamestate.SymbolGrid[i]); j++ {
+	for i := 0; i < len(gamestate.SymbolGrid); i++ {
+		for j := 0; j < len(gamestate.SymbolGrid[i]); j++ {
 			if gamestate.SymbolGrid[i][j] == expandSymbol {
 				expandReels[i] = 1
-				ctExpandReels ++
+				ctExpandReels++
 				// this should only break innermost for loop and continue to next reel
 				break
 			}
 		}
 	}
 	// search for prize matching the count and symbol
-	for p:=0; p<len(engine.Payouts); p++ {
+	for p := 0; p < len(engine.Payouts); p++ {
 		if engine.Payouts[p].Symbol == expandSymbol && engine.Payouts[p].Count == ctExpandReels {
 			// in theory we could make expand a separate gs but let's do it all together to reduce api calls
 			// this is hardcoded to work for engine XVII, where the payout after expansion is different than base payout
@@ -1320,7 +1320,7 @@ func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
 			// create a win matching the payout type
 			winPos := engine.WinLines[0]
 			//	// turn every reel with no matching symbol to -1
-			for i:=0; i<len(expandReels); i++ {
+			for i := 0; i < len(expandReels); i++ {
 				if expandReels[i] == 0 {
 					winPos[i] = -1
 				} else {
@@ -1334,7 +1334,28 @@ func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
 	}
 	relativePayout := calculatePayoutWins(gamestate.Prizes)
 	gamestate.RelativePayout = relativePayout // override
-	gamestate.Action = fmt.Sprintf("%vE%v",parameters.Action, expandSymbol)
+	gamestate.Action = fmt.Sprintf("%vE%v", parameters.Action, expandSymbol)
 	return gamestate
 }
 
+func TriggerConfiguredFeatures(engine EngineDef, gamestate Gamestate) Gamestate {
+	var featurestate features.FeatureState
+	featurestate.SymbolGrid = gamestate.SymbolGrid
+	for _, featuredef := range engine.Features {
+		feature := features.MakeFeature(featuredef.Type)
+		if feature == nil {
+			logger.Errorf("misconfigured engine: %v, unknown feature %s", engine.ID, featuredef.Type)
+			return Gamestate{}
+		}
+		feature.Init(featuredef)
+		triggered := feature.Trigger(featurestate)
+		featurestate.Features = append(featurestate.Features, triggered...)
+	}
+	gamestate.Features = append(gamestate.Features, featurestate.Features...)
+	return gamestate
+}
+
+func (engine EngineDef) FatTileReelRound(parameters GameParams) Gamestate {
+	logger.Debugf("FatTileReel function, engine features: %v\n", engine.Features)
+	return TriggerConfiguredFeatures(engine, engine.BaseRound(parameters))
+}
