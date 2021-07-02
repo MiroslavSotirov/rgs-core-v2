@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
+type FeatureParams map[string]interface{}
+
 type FeatureDef struct {
-	Id     int32                  `yaml:"Id"`
-	Type   string                 `yaml:"Type"`
-	Params map[string]interface{} `yaml:"Params"`
+	Id       int32         `yaml:"Id" json:"id"`
+	Type     string        `yaml:"Type" json:"type"`
+	Params   FeatureParams `yaml:"Params" json:"-"`
+	Features []FeatureDef  `yaml:"Features" json:"-"`
 }
 
 type FeatureState struct {
@@ -20,21 +21,23 @@ type FeatureState struct {
 }
 
 type Feature interface {
-	GetId() int32
-	GetType() string
-	SetId(int32)
-	SetType(string)
+	DefPtr() *FeatureDef
 	DataPtr() interface{}
 	Init(FeatureDef) error
-	Trigger(FeatureState) []Feature
+	Trigger(FeatureState, FeatureParams) []Feature
 	Serialize() ([]byte, error)
 	Deserialize([]byte) error
 }
 
 // features must be included here to make them deserializable by the engine
 type EnabledFeatureSet struct {
-	_ FatTileReel
-	_ FatTileChance
+	_ FatTile
+	_ InstaWin
+	_ ReplaceTile
+	_ TriggerSupaCrew
+	_ TriggerSupaCrewActionSymbol
+	_ TriggerSupaCrewFatTileChance
+	_ TriggerSupaCrewFatTileReel
 }
 
 func MakeFeature(typename string) Feature {
@@ -73,18 +76,50 @@ func buildFeatureMap(featureset EnabledFeatureSet) map[string]reflect.Type {
 	return featuremap
 }
 
-func deserializeFeatureDef(f Feature, def FeatureDef) error {
-	f.SetId(def.Id)
-	f.SetType(def.Type)
-	err := DeserializeStruct(f.DataPtr(), def.Params)
-	if err != nil {
-		logger.Errorf("err: %s", err.Error())
-		return err
+func mergeParams(p1 FeatureParams, p2 FeatureParams) (p FeatureParams) {
+	p = make(FeatureParams, len(p1)+len(p2))
+	for k, v := range p1 {
+		p[k] = v
 	}
-	var dataptr interface{} = f.DataPtr()
-	logger.Debugf("FeatureDef created: %v from params %v\n", dataptr, def.Params)
+	for k, v := range p2 {
+		p[k] = v
+	}
+	return
+}
 
-	return err
+func activateFeatures(def FeatureDef, state FeatureState, params FeatureParams) []Feature {
+	activated := []Feature{}
+	for _, featuredef := range def.Features {
+		feature := MakeFeature(featuredef.Type)
+		feature.Init(featuredef)
+		activated = append(activated, feature.Trigger(state, mergeParams(featuredef.Params, params))...)
+		// if mode, ok := params["mode"]; ok == true && mode.(string) == "replace" {
+		//   state.Features = activated
+		// } else {
+		//   state.Features = append(state.Features, [...]activated)
+		// }
+
+	}
+	return activated
+}
+
+func deserializeFeatureDef(f Feature, def FeatureDef) error {
+	//	f.SetId(def.Id)
+	//	f.SetType(def.Type)
+
+	f.DefPtr().Id = def.Id
+	f.DefPtr().Type = def.Type
+	//	err := DeserializeStruct(f.DataPtr(), def.Params)
+	//	if err != nil {
+	//		logger.Errorf("err: %s", err.Error())
+	//		return err
+	//	}
+	//	var dataptr interface{} = f.DataPtr()
+	//	logger.Debugf("FeatureDef created: %v from params %v\n", dataptr, def.Params)
+	// return err
+	f.DefPtr().Params = def.Params
+	f.DefPtr().Features = def.Features
+	return nil
 }
 
 func deserializeFeatureFromBytes(f Feature, b []byte) error {
@@ -95,167 +130,10 @@ func serializeFeatureToBytes(f Feature) ([]byte, error) {
 	return json.Marshal(f)
 }
 
-func DeserializeStruct(data interface{}, params map[string]interface{}) error {
-	datainterptr := reflect.ValueOf(data)
-	datainterval := datainterptr.Elem()
-	dataintertype := datainterval.Type()
-	numfields := datainterval.NumField()
-	for i := 0; i < numfields; i++ {
-		dataval := datainterval.Field(i)
-		datatype := dataval.Type()
-		datakind := datatype.Kind()
-		dataname := dataintertype.Field(i).Name
-		param, ok := params[dataname]
-		if !ok {
-			//			return fmt.Errorf("DeserializeStruct could not find param %s in map", dataname)
-			continue
-		}
-		paramval := reflect.ValueOf(param)
-		//		paramtype := paramval.Type()
-		switch datakind {
-		case reflect.Bool:
-			v, ok := param.(bool)
-			if !ok {
-				return fmt.Errorf("DeserializeStruct could not set %s as a bool", dataname)
-			}
-			dataval.SetBool(v)
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			v, ok := deserializeInt(param)
-			if !ok {
-				return fmt.Errorf("DeserializeStruct could not set %s as an int", dataname)
-			}
-			dataval.SetInt(v)
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			v, ok := deserializeUint(param)
-			if !ok {
-				return fmt.Errorf("DeserializeStruct could not set %s as an uint", dataname)
-			}
-			dataval.SetUint(v)
-		case reflect.Float32, reflect.Float64:
-			v, ok := deserializeFloat(param)
-			if !ok {
-				return fmt.Errorf("DeserializeStruct could not set %s as a float", dataname)
-			}
-			dataval.SetFloat(v)
-		case reflect.Complex64, reflect.Complex128:
-			v, ok := deserializeComplex(param)
-			if !ok {
-				return fmt.Errorf("DeserializeStruct could not set %s as a complex", dataname)
-			}
-			dataval.SetComplex(v)
-		case reflect.String:
-			v, ok := params[dataname].(string)
-			if !ok {
-				return fmt.Errorf("DeserializeStruct could not set %s as a string", dataname)
-			}
-			dataval.SetString(v)
-			//		case reflect.Struct:
-			//			if paramkind == reflect.Map {
-			//				parammap, ok := param.(map[string]interface{})
-			//				if !ok {
-			//					return fmt.Errorf("DeserializeStruct could not assert map type of param %s", dataname)
-			//				}
-			//				err := DeserializeStruct(dataval.Addr().Interface(), parammap)
-			//				if err != nil {
-			//					return err
-			//				}
-			//			} else {
-			//				dataval.Set(paramval)
-			//			}
-		default:
-			dataval.Set(paramval)
-		}
-	}
-	return nil
+func deserializeTriggerFromBytes(f Feature, b []byte) error {
+	return fmt.Errorf("trying to deserialize feature trigger %s from bytes", f.DefPtr().Type)
 }
 
-func SerializeStruct(data interface{}) map[string]interface{} {
-	datainterval := reflect.ValueOf(data)
-	dataintertype := datainterval.Type()
-	numfields := datainterval.NumField()
-	params := make(map[string]interface{})
-	for i := 0; i < numfields; i++ {
-		dataval := datainterval.Field(i)
-		datatype := dataval.Type()
-		datakind := datatype.Kind()
-		dataname := dataintertype.Field(i).Name
-		switch datakind {
-		case reflect.Bool:
-			params[dataname] = dataval.Bool()
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			params[dataname] = dataval.Int()
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			params[dataname] = dataval.Uint()
-		case reflect.Float32, reflect.Float64:
-			params[dataname] = dataval.Float()
-		case reflect.Complex64, reflect.Complex128:
-			params[dataname] = dataval.Complex()
-		case reflect.String:
-			params[dataname] = dataval.String()
-			//    	case reflect.Struct:
-		default: //reflect.Interface, reflect.Map, reflect.Array, reflect.Slize:
-			params[dataname] = dataval.Interface()
-		}
-	}
-	return params
-}
-
-func deserializeInt(in interface{}) (val int64, ok bool) {
-	switch in.(type) {
-	case int:
-		val, ok = int64(in.(int)), true
-	case int8:
-		val, ok = int64(in.(int8)), true
-	case int16:
-		val, ok = int64(in.(int16)), true
-	case int32:
-		val, ok = int64(in.(int32)), true
-	case int64:
-		val, ok = in.(int64), true
-	default:
-		val, ok = 0, false
-	}
-	return
-}
-
-func deserializeUint(in interface{}) (val uint64, ok bool) {
-	switch in.(type) {
-	case uint:
-		val, ok = uint64(in.(uint)), true
-	case uint8:
-		val, ok = uint64(in.(uint8)), true
-	case uint16:
-		val, ok = uint64(in.(uint16)), true
-	case uint32:
-		val, ok = uint64(in.(uint32)), true
-	case uint64:
-		val, ok = in.(uint64), true
-	default:
-		val, ok = 0, false
-	}
-	return
-}
-
-func deserializeFloat(in interface{}) (val float64, ok bool) {
-	switch in.(type) {
-	case float32:
-		val, ok = float64(in.(float32)), true
-	case float64:
-		val, ok = float64(in.(float64)), true
-	default:
-		val, ok = 0, false
-	}
-	return
-}
-
-func deserializeComplex(in interface{}) (val complex128, ok bool) {
-	switch in.(type) {
-	case complex64:
-		val, ok = complex128(in.(complex64)), true
-	case complex128:
-		val, ok = complex128(in.(complex128)), true
-	default:
-		val, ok = 0, false
-	}
-	return
+func serializeTriggerToBytes(f Feature) ([]byte, error) {
+	return []byte{}, fmt.Errorf("trying to serialize feature trigger %s to bytes", f.DefPtr().Type)
 }

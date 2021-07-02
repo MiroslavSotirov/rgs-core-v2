@@ -1348,14 +1348,14 @@ func TriggerConfiguredFeatures(engine EngineDef, gamestate Gamestate) Gamestate 
 			return Gamestate{}
 		}
 		feature.Init(featuredef)
-		triggered := feature.Trigger(featurestate)
+		triggered := feature.Trigger(featurestate, features.FeatureParams{})
 		featurestate.Features = append(featurestate.Features, triggered...)
 	}
 	gamestate.Features = append(gamestate.Features, featurestate.Features...)
 	return gamestate
 }
 
-func (engine EngineDef) FatTileReelRound(parameters GameParams) Gamestate {
+func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 	logger.Debugf("FatTileReel function, engine features: %v\n", engine.Features)
 	return TriggerConfiguredFeatures(engine, engine.BaseRound(parameters))
 }

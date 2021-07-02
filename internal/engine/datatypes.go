@@ -340,8 +340,8 @@ func convertFeaturesFromPB(unconverted []*FeaturePB) []features.Feature {
 	for i, featurepb := range unconverted {
 		feature := features.MakeFeature(featurepb.Type)
 		if feature != nil {
-			feature.SetId(featurepb.Id)
-			feature.SetType(featurepb.Type)
+			feature.DefPtr().Id = featurepb.Id
+			feature.DefPtr().Type = featurepb.Type
 			err := feature.Deserialize(featurepb.Data)
 			if err != nil {
 				logger.Errorf(err.Error())
@@ -363,12 +363,12 @@ func convertFeaturesToPB(unconverted []features.Feature) []*FeaturePB {
 	for i, feature := range unconverted {
 		var featurepb FeaturePB
 		var err error
-		featurepb.Id = feature.GetId()
-		featurepb.Type = feature.GetType()
+		featurepb.Id = feature.DefPtr().Id
+		featurepb.Type = feature.DefPtr().Type
 		featurepb.Data, err = feature.Serialize()
 		if err != nil {
 			logger.Errorf("could not serialize feature %s"+
-				", error: %s", feature.GetType(), err.Error())
+				", error: %s", feature.DefPtr().Type, err.Error())
 			return []*FeaturePB{}
 		}
 		converted[i] = &featurepb
