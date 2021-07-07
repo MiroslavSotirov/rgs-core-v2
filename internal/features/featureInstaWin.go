@@ -1,16 +1,18 @@
 package features
 
 type InstaWinData struct {
-	Coin int `json:"coin"`
+	Type     string `json:"type"`
+	SourceId int32  `json:"sourceid"`
+	Amount   int64  `json:"amount"`
 }
 
 type InstaWin struct {
-	Def  FeatureDef   `json:"def"`
+	FeatureDef
 	Data InstaWinData `json:"data"`
 }
 
 func (f *InstaWin) DefPtr() *FeatureDef {
-	return &f.Def
+	return &f.FeatureDef
 }
 
 func (f *InstaWin) DataPtr() interface{} {
@@ -24,9 +26,11 @@ func (f *InstaWin) Init(def FeatureDef) error {
 func (f InstaWin) Trigger(featurestate FeatureState, params FeatureParams) []Feature {
 	return []Feature{
 		&InstaWin{
-			Def: *f.DefPtr(),
+			FeatureDef: *f.DefPtr(),
 			Data: InstaWinData{
-				Coin: 100,
+				Type:     paramString(params, "InstaWinType"),
+				SourceId: paramInt32(params, "InstaWinSourceId"),
+				Amount:   paramInt64(params, "InstaWinAmount"),
 			},
 		},
 	}

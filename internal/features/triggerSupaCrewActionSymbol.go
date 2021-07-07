@@ -1,11 +1,11 @@
 package features
 
 type TriggerSupaCrewActionSymbol struct {
-	Def FeatureDef `json:"def"`
+	FeatureDef
 }
 
 func (f *TriggerSupaCrewActionSymbol) DefPtr() *FeatureDef {
-	return &f.Def
+	return &f.FeatureDef
 }
 
 func (f *TriggerSupaCrewActionSymbol) DataPtr() interface{} {
@@ -17,8 +17,8 @@ func (f *TriggerSupaCrewActionSymbol) Init(def FeatureDef) error {
 }
 
 func (f TriggerSupaCrewActionSymbol) Trigger(state FeatureState, params FeatureParams) []Feature {
-	random := params["Random"].(int)
-	tileid := params["TileId"].(int)
+	random := paramInt(params, "Random")
+	tileid := paramInt(params, "TileId")
 	replaceid := random % 9
 	params["ReplaceWithId"] = replaceid
 	gridw, gridh := len(state.SymbolGrid), len(state.SymbolGrid[0])
@@ -26,7 +26,7 @@ func (f TriggerSupaCrewActionSymbol) Trigger(state FeatureState, params FeatureP
 	for x := 0; x < gridw; x++ {
 		for y := 0; y < gridh; y++ {
 			if state.SymbolGrid[x][y] == tileid {
-				return activateFeatures(f.Def, state, params)
+				return activateFeatures(f.FeatureDef, state, params)
 			}
 		}
 	}

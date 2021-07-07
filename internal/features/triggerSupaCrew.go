@@ -5,11 +5,11 @@ import (
 )
 
 type TriggerSupaCrew struct {
-	Def FeatureDef `json:"def"`
+	FeatureDef
 }
 
 func (f *TriggerSupaCrew) DefPtr() *FeatureDef {
-	return &f.Def
+	return &f.FeatureDef
 }
 
 func (f *TriggerSupaCrew) DataPtr() interface{} {
@@ -21,8 +21,8 @@ func (f *TriggerSupaCrew) Init(def FeatureDef) error {
 }
 
 func (f TriggerSupaCrew) Trigger(state FeatureState, params FeatureParams) []Feature {
-	params["Random"] = rng.RandFromRange(f.Def.Params["RandomRange"].(int))
-	return activateFeatures(f.Def, state, params)
+	params["Random"] = rng.RandFromRange(f.FeatureDef.Params["RandomRange"].(int))
+	return activateFeatures(f.FeatureDef, state, params)
 }
 
 func (f *TriggerSupaCrew) Serialize() ([]byte, error) {

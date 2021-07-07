@@ -1,11 +1,11 @@
 package features
 
 type TriggerSupaCrewFatTileChance struct {
-	Def FeatureDef `json:"def"`
+	FeatureDef
 }
 
 func (f *TriggerSupaCrewFatTileChance) DefPtr() *FeatureDef {
-	return &f.Def
+	return &f.FeatureDef
 }
 
 func (f *TriggerSupaCrewFatTileChance) DataPtr() interface{} {
@@ -18,7 +18,7 @@ func (f *TriggerSupaCrewFatTileChance) Init(def FeatureDef) error {
 
 func (f TriggerSupaCrewFatTileChance) Trigger(state FeatureState, params FeatureParams) []Feature {
 	gridh := len(state.SymbolGrid[0])
-	random := params["Random"].(int)
+	random := paramInt(params, "Random")
 	if random/9 < 10 {
 		ran15 := random % 15
 		h := (ran15 % 3) + 1
@@ -33,7 +33,7 @@ func (f TriggerSupaCrewFatTileChance) Trigger(state FeatureState, params Feature
 		params["X"] = x
 		params["Y"] = y
 
-		return activateFeatures(f.Def, state, params)
+		return activateFeatures(f.FeatureDef, state, params)
 	}
 	return []Feature{}
 }

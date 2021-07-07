@@ -9,12 +9,12 @@ type FatTileData struct {
 }
 
 type FatTile struct {
-	Def  FeatureDef  `json:"def"`
+	FeatureDef
 	Data FatTileData `json:"data"`
 }
 
 func (f *FatTile) DefPtr() *FeatureDef {
-	return &f.Def
+	return &f.FeatureDef
 }
 
 func (f *FatTile) DataPtr() interface{} {
@@ -38,7 +38,7 @@ func (f FatTile) forceActivateFeature(featurestate *FeatureState, x int, y int, 
 func (f FatTile) Trigger(featurestate FeatureState, params FeatureParams) []Feature {
 	return []Feature{
 		&FatTile{
-			Def: *f.DefPtr(),
+			FeatureDef: *f.DefPtr(),
 			Data: FatTileData{
 				X:      params["X"].(int),
 				Y:      params["Y"].(int),

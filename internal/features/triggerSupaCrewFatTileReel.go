@@ -1,11 +1,11 @@
 package features
 
 type TriggerSupaCrewFatTileReel struct {
-	Def FeatureDef `json:"def"`
+	FeatureDef
 }
 
 func (f *TriggerSupaCrewFatTileReel) DefPtr() *FeatureDef {
-	return &f.Def
+	return &f.FeatureDef
 }
 
 func (f *TriggerSupaCrewFatTileReel) DataPtr() interface{} {
@@ -19,8 +19,8 @@ func (f *TriggerSupaCrewFatTileReel) Init(def FeatureDef) error {
 func (f TriggerSupaCrewFatTileReel) Trigger(state FeatureState, params FeatureParams) []Feature {
 	features := []Feature{}
 	gridw, gridh := len(state.SymbolGrid), len(state.SymbolGrid[0])
-	tilew, tileh := params["W"].(int), params["H"].(int)
-	tileid := params["TileId"].(int)
+	tilew, tileh := paramInt(params, "W"), paramInt(params, "H")
+	tileid := paramInt(params, "TileId")
 
 	for x := 0; x < gridw-tilew+1; x++ {
 		for y := 0; y < gridh-tileh+1; y++ {
@@ -37,7 +37,12 @@ func (f TriggerSupaCrewFatTileReel) Trigger(state FeatureState, params FeaturePa
 			if found {
 				params["X"] = x
 				params["Y"] = y
-				features = append(features, activateFeatures(f.Def, state, params)...)
+
+				params["InstaWinType"] = "spinningcoin"
+				params["InstaWinSourceId"] = f.FeatureDef.Id
+				params["InstaWinAmount"] = 100
+
+				features = append(features, activateFeatures(f.FeatureDef, state, params)...)
 			}
 		}
 	}

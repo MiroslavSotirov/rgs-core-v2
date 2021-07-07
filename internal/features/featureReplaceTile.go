@@ -8,12 +8,12 @@ type ReplaceTileData struct {
 }
 
 type ReplaceTile struct {
-	Def  FeatureDef      `json:"def"`
+	FeatureDef
 	Data ReplaceTileData `json:"data"`
 }
 
 func (f *ReplaceTile) DefPtr() *FeatureDef {
-	return &f.Def
+	return &f.FeatureDef
 }
 
 func (f *ReplaceTile) DataPtr() interface{} {
@@ -25,14 +25,14 @@ func (f *ReplaceTile) Init(def FeatureDef) error {
 }
 
 func (f ReplaceTile) forceActivateFeature(featurestate *FeatureState) {
-	featurestate.SymbolGrid[0][0] = f.Def.Params["TileId"].(int)
+	featurestate.SymbolGrid[0][0] = f.FeatureDef.Params["TileId"].(int)
 }
 
 func (f ReplaceTile) Trigger(featurestate FeatureState, params FeatureParams) []Feature {
 	logger.Debugf("ReplaceTime params %v\n", params)
 	return []Feature{
 		&ReplaceTile{
-			Def: *f.DefPtr(),
+			FeatureDef: *f.DefPtr(),
 			Data: ReplaceTileData{
 				TileId:        params["TileId"].(int),
 				ReplaceWithId: params["ReplaceWithId"].(int),
