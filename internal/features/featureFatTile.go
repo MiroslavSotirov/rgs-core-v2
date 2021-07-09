@@ -40,11 +40,11 @@ func (f FatTile) Trigger(featurestate FeatureState, params FeatureParams) []Feat
 		&FatTile{
 			FeatureDef: *f.DefPtr(),
 			Data: FatTileData{
-				X:      params["X"].(int),
-				Y:      params["Y"].(int),
-				W:      params["W"].(int),
-				H:      params["H"].(int),
-				TileId: params["TileId"].(int),
+				X:      params.GetInt("X"),
+				Y:      params.GetInt("Y"),
+				W:      params.GetInt("W"),
+				H:      params.GetInt("H"),
+				TileId: params.GetInt("TileId"),
 			},
 		},
 	}

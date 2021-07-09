@@ -34,8 +34,8 @@ func (f ReplaceTile) Trigger(featurestate FeatureState, params FeatureParams) []
 		&ReplaceTile{
 			FeatureDef: *f.DefPtr(),
 			Data: ReplaceTileData{
-				TileId:        params["TileId"].(int),
-				ReplaceWithId: params["ReplaceWithId"].(int),
+				TileId:        params.GetInt("TileId"),
+				ReplaceWithId: params.GetInt("ReplaceWithId"),
 			},
 		},
 	}

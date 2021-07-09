@@ -19,8 +19,8 @@ func (f *TriggerSupaCrewFatTileReel) Init(def FeatureDef) error {
 func (f TriggerSupaCrewFatTileReel) Trigger(state FeatureState, params FeatureParams) []Feature {
 	features := []Feature{}
 	gridw, gridh := len(state.SymbolGrid), len(state.SymbolGrid[0])
-	tilew, tileh := paramInt(params, "W"), paramInt(params, "H")
-	tileid := paramInt(params, "TileId")
+	tilew, tileh := params.GetInt("W"), params.GetInt("H")
+	tileid := params.GetInt("TileId")
 
 	for x := 0; x < gridw-tilew+1; x++ {
 		for y := 0; y < gridh-tileh+1; y++ {

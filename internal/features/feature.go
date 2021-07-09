@@ -6,8 +6,6 @@ import (
 	"reflect"
 )
 
-type FeatureParams map[string]interface{}
-
 type FeatureDef struct {
 	Id       int32         `yaml:"Id" json:"id"`
 	Type     string        `yaml:"Type" json:"type"`

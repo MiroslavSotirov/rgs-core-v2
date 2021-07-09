@@ -28,9 +28,9 @@ func (f InstaWin) Trigger(featurestate FeatureState, params FeatureParams) []Fea
 		&InstaWin{
 			FeatureDef: *f.DefPtr(),
 			Data: InstaWinData{
-				Type:     paramString(params, "InstaWinType"),
-				SourceId: paramInt32(params, "InstaWinSourceId"),
-				Amount:   paramInt64(params, "InstaWinAmount"),
+				Type:     params.GetString("InstaWinType"),
+				SourceId: params.GetInt32("InstaWinSourceId"),
+				Amount:   params.GetInt64("InstaWinAmount"),
 			},
 		},
 	}

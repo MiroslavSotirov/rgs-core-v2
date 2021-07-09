@@ -2,6 +2,8 @@ package features
 
 import "fmt"
 
+type FeatureParams map[string]interface{}
+
 // help functions to read parameters with type safety checks
 
 func deserializeInt(in interface{}) (val int64, ok bool) {
@@ -161,96 +163,96 @@ func convertComplex128(in interface{}) complex128 {
 	return complex128(convertComplex128(in))
 }
 
-func paramconvertpanic(paramname string) {
+func paramconvertpanic(name string) {
 	if x := recover(); x != nil {
-		panic(fmt.Errorf("param %s is %s", paramname, x))
+		panic(fmt.Errorf("param %s is %s", name, x))
 	}
 }
 
-func param(params FeatureParams, paramname string) interface{} {
-	val, ok := params[paramname]
+func (p FeatureParams) Get(name string) interface{} {
+	val, ok := p[name]
 	if !ok {
 		panic("not set")
 	}
 	return val
 }
 
-func paramInt64(params FeatureParams, paramname string) int64 {
-	defer paramconvertpanic(paramname)
-	return convertInt64(param(params, paramname))
+func (p FeatureParams) GetInt64(name string) int64 {
+	defer paramconvertpanic(name)
+	return convertInt64(p.Get(name))
 }
 
-func paramUint64(params FeatureParams, paramname string) uint64 {
-	defer paramconvertpanic(paramname)
-	return convertUint64(param(params, paramname))
+func (p FeatureParams) GetUint64(name string) uint64 {
+	defer paramconvertpanic(name)
+	return convertUint64(p.Get(name))
 }
 
-func paramInt32(params FeatureParams, paramname string) int32 {
-	defer paramconvertpanic(paramname)
-	return convertInt32(param(params, paramname))
+func (p FeatureParams) GetInt32(name string) int32 {
+	defer paramconvertpanic(name)
+	return convertInt32(p.Get(name))
 }
 
-func paramUint32(params FeatureParams, paramname string) uint32 {
-	defer paramconvertpanic(paramname)
-	return convertUint32(param(params, paramname))
+func (p FeatureParams) GetUint32(name string) uint32 {
+	defer paramconvertpanic(name)
+	return convertUint32(p.Get(name))
 }
 
-func paramInt16(params FeatureParams, paramname string) int16 {
-	defer paramconvertpanic(paramname)
-	return convertInt16(param(params, paramname))
+func (p FeatureParams) GetInt16(name string) int16 {
+	defer paramconvertpanic(name)
+	return convertInt16(p.Get(name))
 }
 
-func paramUint16(params FeatureParams, paramname string) uint16 {
-	defer paramconvertpanic(paramname)
-	return convertUint16(param(params, paramname))
+func (p FeatureParams) GetUint16(name string) uint16 {
+	defer paramconvertpanic(name)
+	return convertUint16(p.Get(name))
 }
 
-func paramInt8(params FeatureParams, paramname string) int8 {
-	defer paramconvertpanic(paramname)
-	return convertInt8(param(params, paramname))
+func (p FeatureParams) GetInt8(name string) int8 {
+	defer paramconvertpanic(name)
+	return convertInt8(p.Get(name))
 }
 
-func paramUint8(params FeatureParams, paramname string) uint8 {
-	defer paramconvertpanic(paramname)
-	return convertUint8(param(params, paramname))
+func (p FeatureParams) GetUint8(name string) uint8 {
+	defer paramconvertpanic(name)
+	return convertUint8(p.Get(name))
 }
 
-func paramInt(params FeatureParams, paramname string) int {
-	defer paramconvertpanic(paramname)
-	return convertInt(param(params, paramname))
+func (p FeatureParams) GetInt(name string) int {
+	defer paramconvertpanic(name)
+	return convertInt(p.Get(name))
 }
 
-func paramUint(params FeatureParams, paramname string) uint {
-	defer paramconvertpanic(paramname)
-	return convertUint(param(params, paramname))
+func (p FeatureParams) GetUint(name string) uint {
+	defer paramconvertpanic(name)
+	return convertUint(p.Get(name))
 }
 
-func paramFloat32(params FeatureParams, paramname string) float32 {
-	defer paramconvertpanic(paramname)
-	return convertFloat32(param(params, paramname))
+func (p FeatureParams) GetFloat32(name string) float32 {
+	defer paramconvertpanic(name)
+	return convertFloat32(p.Get(name))
 }
 
-func paramFloat64(params FeatureParams, paramname string) float64 {
-	defer paramconvertpanic(paramname)
-	return convertFloat64(param(params, paramname))
+func (p FeatureParams) GetFloat64(name string) float64 {
+	defer paramconvertpanic(name)
+	return convertFloat64(p.Get(name))
 }
 
-func paramComplex64(params FeatureParams, paramname string) complex64 {
-	defer paramconvertpanic(paramname)
-	return convertComplex64(param(params, paramname))
+func (p FeatureParams) GetComplex64(name string) complex64 {
+	defer paramconvertpanic(name)
+	return convertComplex64(p.Get(name))
 }
 
-func paramComplex128(params FeatureParams, paramname string) complex128 {
-	defer paramconvertpanic(paramname)
-	return convertComplex128(param(params, paramname))
+func (p FeatureParams) GetComplex128(name string) complex128 {
+	defer paramconvertpanic(name)
+	return convertComplex128(p.Get(name))
 }
 
-func paramString(params FeatureParams, paramname string) string {
-	defer paramconvertpanic(paramname)
-	return convertString(param(params, paramname))
+func (p FeatureParams) GetString(name string) string {
+	defer paramconvertpanic(name)
+	return convertString(p.Get(name))
 }
 
-func paramBool(params FeatureParams, paramname string) bool {
-	defer paramconvertpanic(paramname)
-	return convertBool(param(params, paramname))
+func (p FeatureParams) GetBool(name string) bool {
+	defer paramconvertpanic(name)
+	return convertBool(p.Get(name))
 }

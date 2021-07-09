@@ -17,8 +17,8 @@ func (f *TriggerSupaCrewActionSymbol) Init(def FeatureDef) error {
 }
 
 func (f TriggerSupaCrewActionSymbol) Trigger(state FeatureState, params FeatureParams) []Feature {
-	random := paramInt(params, "Random")
-	tileid := paramInt(params, "TileId")
+	random := params.GetInt("Random")
+	tileid := params.GetInt("TileId")
 	replaceid := random % 9
 	params["ReplaceWithId"] = replaceid
 	gridw, gridh := len(state.SymbolGrid), len(state.SymbolGrid[0])
