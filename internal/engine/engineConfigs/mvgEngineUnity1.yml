@@ -5,10 +5,10 @@ volatility: 74.10328
 
 EngineDefs:
   - name: base
-    WinType: lines
+    WinType: elysiumLines
     StakeDivisor: 10
     function: FeatureRound
-    compoundingWilds: true
+    compoundingWilds: false
     Reels:
       - [2,2,2,2,1,1,1,1,9,3,3,3,2,2,2,2,1,1,1,1,9,9,9,4,4,4,0,0,0,0,6,6,6,8,8,8,5,5,5,0,0,0,0,7,7,7]
       - [3,3,3,3,5,5,5,0,0,0,0,7,7,7,4,4,4,4,9,9,9,3,3,3,3,8,8,8,2,2,2,2,6,6,6,1,1,1,1,9,4,4,4,4]
@@ -26,22 +26,6 @@ EngineDefs:
       - [2,2,1,0,0]
       - [1,0,0,0,1]
       - [0,1,0,1,0]
-    wilds:
-      - symbol: 9
-        multiplier: {multipliers: [1], probabilities: [1]}
-        sticky: true
-      - symbol: 10
-        multiplier: {multipliers: [2], probabilities: [1]}
-        sticky: true
-      - symbol: 11
-        multiplier: {multipliers: [3], probabilities: [1]}
-        sticky: true
-      - symbol: 12
-        multiplier: {multipliers: [4], probabilities: [1]}
-        sticky: true
-      - symbol: 13
-        multiplier: {multipliers: [5], probabilities: [1]}
-        sticky: true
     Payouts:
       - {Symbol: 0, Count: 3, Multiplier: 5}
       - {Symbol: 0, Count: 4, Multiplier: 20}
@@ -75,20 +59,14 @@ EngineDefs:
         Params:
           RandomRange: 8874
         Features:
-          - Type: "TriggerSupaCrewActionSymbol"
-            Params:
-              TileId: 9
-            Features:
-              - Id: 2
-                Type: "ReplaceTile"
-          - Type: "TriggerSupaCrewFatTileChance"
+          - Type: "TriggerSupaCrewSuperSymbol"
             Params:
               TileId: 11
               PostActivate: "stop"
             Features:
               - Id: 0
                 Type: "FatTile"
-          - Type: "TriggerSupaCrewFatTileReel"
+          - Type: "TriggerSupaCrewMultiSymbol"
             Params:
               W: 2
               H: 2
@@ -98,6 +76,12 @@ EngineDefs:
               Type: "FatTile"
             - Id: 1
               Type: "InstaWin"
+          - Type: "TriggerSupaCrewActionSymbol"
+            Params:
+              TileId: 9
+            Features:
+              - Id: 2
+                Type: "ReplaceTile"
 
 
 

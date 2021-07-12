@@ -35,19 +35,28 @@ func (f FatTile) forceActivateFeature(featurestate *FeatureState, x int, y int, 
 	}
 }
 
-func (f FatTile) Trigger(featurestate FeatureState, params FeatureParams) []Feature {
-	return []Feature{
+func (f FatTile) Trigger(featurestate *FeatureState, params FeatureParams) {
+	x := params.GetInt("X")
+	y := params.GetInt("Y")
+	w := params.GetInt("W")
+	h := params.GetInt("H")
+	tileid := params.GetInt("TileId")
+	for r := x; r < x+w; r++ {
+		for s := y; s < y+h; s++ {
+			featurestate.SymbolGrid[r][s] = tileid
+		}
+	}
+	featurestate.Features = append(featurestate.Features,
 		&FatTile{
 			FeatureDef: *f.DefPtr(),
 			Data: FatTileData{
-				X:      params.GetInt("X"),
-				Y:      params.GetInt("Y"),
-				W:      params.GetInt("W"),
-				H:      params.GetInt("H"),
-				TileId: params.GetInt("TileId"),
+				X:      x,
+				Y:      y,
+				W:      w,
+				H:      h,
+				TileId: tileid,
 			},
-		},
-	}
+		})
 }
 
 func (f *FatTile) Serialize() ([]byte, error) {

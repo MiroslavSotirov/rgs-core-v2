@@ -20,9 +20,10 @@ func (f *TriggerSupaCrew) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
-func (f TriggerSupaCrew) Trigger(state FeatureState, params FeatureParams) []Feature {
+func (f TriggerSupaCrew) Trigger(state *FeatureState, params FeatureParams) {
 	params["Random"] = rng.RandFromRange(f.FeatureDef.Params["RandomRange"].(int))
-	return activateFeatures(f.FeatureDef, state, params)
+	activateFeatures(f.FeatureDef, state, params)
+	return
 }
 
 func (f *TriggerSupaCrew) Serialize() ([]byte, error) {

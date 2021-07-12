@@ -1,8 +1,8 @@
 package features
 
-import "gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
-
 type ReplaceTileData struct {
+	X             int `json:"x"`
+	Y             int `json:"y"`
 	TileId        int `json:"titleid"`
 	ReplaceWithId int `json:"replacewithid"`
 }
@@ -25,20 +25,24 @@ func (f *ReplaceTile) Init(def FeatureDef) error {
 }
 
 func (f ReplaceTile) forceActivateFeature(featurestate *FeatureState) {
-	featurestate.SymbolGrid[0][0] = f.FeatureDef.Params["TileId"].(int)
+	featurestate.SymbolGrid[0][0] = f.FeatureDef.Params.GetInt("TileId")
 }
 
-func (f ReplaceTile) Trigger(featurestate FeatureState, params FeatureParams) []Feature {
-	logger.Debugf("ReplaceTime params %v\n", params)
-	return []Feature{
+func (f ReplaceTile) Trigger(featurestate *FeatureState, params FeatureParams) {
+	x := params.GetInt("X")
+	y := params.GetInt("Y")
+	replaceid := params.GetInt("ReplaceWithId")
+	featurestate.SymbolGrid[x][y] = replaceid
+	featurestate.Features = append(featurestate.Features,
 		&ReplaceTile{
 			FeatureDef: *f.DefPtr(),
 			Data: ReplaceTileData{
+				X:             x,
+				Y:             y,
 				TileId:        params.GetInt("TileId"),
-				ReplaceWithId: params.GetInt("ReplaceWithId"),
+				ReplaceWithId: replaceid,
 			},
-		},
-	}
+		})
 }
 
 func (f *ReplaceTile) Serialize() ([]byte, error) {

@@ -265,4 +265,5 @@ message GamestatePB {
   int64 spin_win = 21;
   repeated Reel recovery_grid = 22;
   repeated FeaturePB features = 23;
+  repeated Reel feature_view = 24;
 }

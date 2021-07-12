@@ -477,6 +477,52 @@ func determinePrimeAndFlopWins(symbolGrid [][]int, payouts []Payout, wilds []wil
 	return []Prize{}
 }
 
+func DetermineElysiumLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payout) []Prize {
+	wins := []Prize{}
+	for winLineIndex, winLine := range WinLines {
+		symbols := make([]int, len(symbolGrid))
+		positions := make([]int, len(symbolGrid))
+
+		base := 0
+		for reel, index := range winLine {
+			symbols[reel] = symbolGrid[reel][index]
+			positions[reel] = base + index
+			base += len(symbolGrid[reel])
+		}
+
+		for len(symbols) > 0 {
+			var consec []int
+			consec, symbols = func(sym []int) ([]int, []int) {
+				s, i := sym[0], 1
+				for ; i < len(sym); i++ {
+					if sym[i] != s {
+						break
+					}
+				}
+				return sym[:i], sym[i:]
+			}(symbols)
+
+			numconsec := len(consec)
+			var consecpos []int
+			consecpos, positions = positions[:numconsec], positions[numconsec:]
+
+			for _, payout := range linePayouts {
+				if consec[0] == payout.Symbol && numconsec == payout.Count {
+					prize := Prize{
+						Payout:          payout,
+						Index:           fmt.Sprintf("%v:%v", consec[0], numconsec),
+						Multiplier:      1,
+						SymbolPositions: consecpos,
+						Winline:         winLineIndex,
+					}
+					wins = append(wins, prize)
+				}
+			}
+		}
+	}
+	return wins
+}
+
 // Play ...
 func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parameters GameParams) (Gamestate, EngineConfig) {
 	logger.Debugf("Playing round with parameters: %#v", parameters)
@@ -725,6 +771,8 @@ func (engine EngineDef) DetermineWins(symbolGrid [][]int) ([]Prize, int) {
 		wins = append(wins, vWins...)
 	case "pAndF":
 		wins = determinePrimeAndFlopWins(symbolGrid, engine.Payouts, engine.Wilds)
+	case "elysiumLines":
+		wins = DetermineElysiumLineWins(symbolGrid, engine.WinLines, engine.Payouts)
 	}
 	relativePayout := calculatePayoutWins(wins)
 	return wins, relativePayout
@@ -1338,24 +1386,115 @@ func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
 	return gamestate
 }
 
-func TriggerConfiguredFeatures(engine EngineDef, gamestate Gamestate) Gamestate {
+// func TriggerConfiguredFeatures(engine EngineDef, gamestate Gamestate) Gamestate {
+// 	var featurestate features.FeatureState
+// 	featurestate.SymbolGrid = gamestate.SymbolGrid
+// 	for _, featuredef := range engine.Features {
+// 		feature := features.MakeFeature(featuredef.Type)
+// 		if feature == nil {
+// 			logger.Errorf("misconfigured engine: %v, unknown feature %s", engine.ID, featuredef.Type)
+// 			return Gamestate{}
+// 		}
+// 		feature.Init(featuredef)
+// 		triggered := feature.Trigger(featurestate, features.FeatureParams{})
+// 		featurestate.Features = append(featurestate.Features, triggered...)
+// 	}
+//	gamestate.Features = append(gamestate.Features, featurestate.Features...)
+//	return gamestate
+//}
+
+//func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
+//	logger.Debugf("FatTileReel function, engine features: %v\n", engine.Features)
+//	return TriggerConfiguredFeatures(engine, engine.BaseRound(parameters))
+//}
+
+func (engine EngineDef) TriggerConfiguredFeatures(symbolgrid [][]int) features.FeatureState {
 	var featurestate features.FeatureState
-	featurestate.SymbolGrid = gamestate.SymbolGrid
+	gridw, gridh := len(symbolgrid), len(symbolgrid[0])
+	featurestate.SymbolGrid = make([][]int, gridw)
+	grid := make([]int, gridw*gridh)
+	for i := range featurestate.SymbolGrid {
+		featurestate.SymbolGrid[i], grid = grid[:gridh], grid[gridh:]
+		for j := range featurestate.SymbolGrid[i] {
+			featurestate.SymbolGrid[i][j] = symbolgrid[i][j]
+		}
+	}
 	for _, featuredef := range engine.Features {
 		feature := features.MakeFeature(featuredef.Type)
 		if feature == nil {
 			logger.Errorf("misconfigured engine: %v, unknown feature %s", engine.ID, featuredef.Type)
-			return Gamestate{}
+			return features.FeatureState{}
 		}
 		feature.Init(featuredef)
-		triggered := feature.Trigger(featurestate, features.FeatureParams{})
-		featurestate.Features = append(featurestate.Features, triggered...)
+		feature.Trigger(&featurestate, features.FeatureParams{})
 	}
-	gamestate.Features = append(gamestate.Features, featurestate.Features...)
-	return gamestate
+	return featurestate
 }
 
 func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
-	logger.Debugf("FatTileReel function, engine features: %v\n", engine.Features)
-	return TriggerConfiguredFeatures(engine, engine.BaseRound(parameters))
+	// the base gameplay round
+	// uses round multiplier if included
+	// no dynamic reel calculation
+
+	wl := engine.ProcessWinLines(parameters.SelectedWinLines)
+
+	// spin
+	symbolGrid, stopList := engine.Spin()
+
+	// replace any symbols with sticky wilds
+	symbolGrid = engine.addStickyWilds(parameters.previousGamestate, symbolGrid)
+
+	featurestate := engine.TriggerConfiguredFeatures(symbolGrid)
+	logger.Debugf("symbolGrid= %v\nfeatureGrid= %v\n", symbolGrid, featurestate.SymbolGrid)
+
+	wins, relativePayout := engine.DetermineWins(featurestate.SymbolGrid)
+
+	for _, w := range featurestate.Wins {
+		prize := Prize{
+			Payout: Payout{
+				Symbol:     w.Symbols[0],
+				Count:      len(w.Symbols),
+				Multiplier: 1,
+			},
+			Index:           "",
+			Multiplier:      w.Multiplier,
+			SymbolPositions: w.SymbolPositions,
+		}
+		wins = append(wins, prize)
+	}
+
+	// calculate specialWin
+	var nextActions []string
+	specialWin := DetermineSpecialWins(featurestate.SymbolGrid, engine.SpecialPayouts)
+	if specialWin.Index != "" {
+		var specialPayout int
+		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+		relativePayout += specialPayout
+		wins = append(wins, specialWin)
+	}
+	logger.Debugf("got %v wins: %v", len(wins), wins)
+	// get Multiplier
+	multiplier := 1
+	if len(engine.Multiplier.Multipliers) > 0 {
+		multiplier = SelectFromWeightedOptions(engine.Multiplier.Multipliers, engine.Multiplier.Probabilities)
+	}
+	// if no features were generated then no need to store a featureview
+	if len(featurestate.Features) == 0 {
+		featurestate.SymbolGrid = nil
+	}
+
+	// Build gamestate
+	gamestate := Gamestate{
+		DefID:            engine.Index,
+		Prizes:           wins,
+		SymbolGrid:       symbolGrid,
+		RelativePayout:   relativePayout,
+		Multiplier:       multiplier,
+		StopList:         stopList,
+		NextActions:      nextActions,
+		SelectedWinLines: wl,
+		Features:         featurestate.Features,
+		FeatureView:      featurestate.SymbolGrid}
+
+	return gamestate
 }

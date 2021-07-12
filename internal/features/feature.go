@@ -16,13 +16,20 @@ type FeatureDef struct {
 type FeatureState struct {
 	SymbolGrid [][]int
 	Features   []Feature
+	Wins       []FeatureWin
+}
+
+type FeatureWin struct {
+	Multiplier      int
+	Symbols         []int
+	SymbolPositions []int
 }
 
 type Feature interface {
 	DefPtr() *FeatureDef
 	DataPtr() interface{}
 	Init(FeatureDef) error
-	Trigger(FeatureState, FeatureParams) []Feature
+	Trigger(*FeatureState, FeatureParams)
 	Serialize() ([]byte, error)
 	Deserialize([]byte) error
 }
@@ -34,8 +41,8 @@ type EnabledFeatureSet struct {
 	_ ReplaceTile
 	_ TriggerSupaCrew
 	_ TriggerSupaCrewActionSymbol
-	_ TriggerSupaCrewFatTileChance
-	_ TriggerSupaCrewFatTileReel
+	_ TriggerSupaCrewSuperSymbol
+	_ TriggerSupaCrewMultiSymbol
 }
 
 func MakeFeature(typename string) Feature {
@@ -85,20 +92,13 @@ func mergeParams(p1 FeatureParams, p2 FeatureParams) (p FeatureParams) {
 	return
 }
 
-func activateFeatures(def FeatureDef, state FeatureState, params FeatureParams) []Feature {
-	activated := []Feature{}
+func activateFeatures(def FeatureDef, state *FeatureState, params FeatureParams) {
 	for _, featuredef := range def.Features {
 		feature := MakeFeature(featuredef.Type)
 		feature.Init(featuredef)
-		activated = append(activated, feature.Trigger(state, mergeParams(featuredef.Params, params))...)
-		// if mode, ok := params["mode"]; ok == true && mode.(string) == "replace" {
-		//   state.Features = activated
-		// } else {
-		//   state.Features = append(state.Features, [...]activated)
-		// }
-
+		feature.Trigger(state, mergeParams(featuredef.Params, params))
+		// TODO: a mode could control how features should be collated
 	}
-	return activated
 }
 
 func deserializeFeatureDef(f Feature, def FeatureDef) error {

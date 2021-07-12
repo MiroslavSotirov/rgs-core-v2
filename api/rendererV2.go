@@ -67,6 +67,7 @@ type GameplayResponseV2 struct {
 	RespinPrices     []engine.Fixed      `json:"respinPrices,omitempty"`
 	Choices          []string            `json:"choices,omitempty"`
 	Features         []features.Feature  `json:"features,omitempty"`
+	FeatureView      [][]int             `json:"featureview,omitempty"`
 }
 
 type GamificationRespV2 struct {
@@ -211,6 +212,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		RespinPrices:     respinPrices,
 		Choices:          gamestate.GetChoices(),
 		Features:         gamestate.Features,
+		FeatureView:      gamestate.FeatureView,
 	}
 }
 

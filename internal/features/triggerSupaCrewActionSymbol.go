@@ -16,7 +16,7 @@ func (f *TriggerSupaCrewActionSymbol) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
-func (f TriggerSupaCrewActionSymbol) Trigger(state FeatureState, params FeatureParams) []Feature {
+func (f TriggerSupaCrewActionSymbol) Trigger(state *FeatureState, params FeatureParams) {
 	random := params.GetInt("Random")
 	tileid := params.GetInt("TileId")
 	replaceid := random % 9
@@ -26,11 +26,13 @@ func (f TriggerSupaCrewActionSymbol) Trigger(state FeatureState, params FeatureP
 	for x := 0; x < gridw; x++ {
 		for y := 0; y < gridh; y++ {
 			if state.SymbolGrid[x][y] == tileid {
-				return activateFeatures(f.FeatureDef, state, params)
+				params["X"] = x
+				params["Y"] = y
+				activateFeatures(f.FeatureDef, state, params)
 			}
 		}
 	}
-	return []Feature{}
+	return
 }
 
 func (f *TriggerSupaCrewActionSymbol) Serialize() ([]byte, error) {

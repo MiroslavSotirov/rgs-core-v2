@@ -165,7 +165,8 @@ type Gamestate struct {
 	PlaySequence      int                       `json:"play_sequence,omitempty"`
 	Closed            bool                      `json:"closed"`
 	RoundID           string                    `json:"round_id"`
-	Features          []features.Feature        `json:"features"`
+	Features          []features.Feature        `json:"features,omitempty"`
+	FeatureView       [][]int                   `json:"feature_view,omitempty"`
 }
 
 func (gamestate Gamestate) Engine() (engine EngineConfig, err rgserror.RGSErr) {
@@ -411,6 +412,7 @@ func (gamestatePB GamestatePB) Convert() Gamestate {
 		RoundID:           gamestatePB.RoundId,
 		RecoveryGrid:      convertSymbolGridFromPB(gamestatePB.RecoveryGrid),
 		Features:          convertFeaturesFromPB(gamestatePB.Features),
+		FeatureView:       convertSymbolGridFromPB(gamestatePB.FeatureView),
 	}
 }
 
@@ -483,6 +485,7 @@ func (gamestate Gamestate) Convert() GamestatePB {
 		Closed:            gamestate.Closed,
 		RoundId:           gamestate.RoundID,
 		Features:          convertFeaturesToPB(gamestate.Features),
+		FeatureView:       convertSymbolGridToPB(gamestate.FeatureView),
 	}
 }
 
