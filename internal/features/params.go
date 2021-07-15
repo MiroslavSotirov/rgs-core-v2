@@ -107,7 +107,6 @@ func convertBool(in interface{}) bool {
 }
 
 func convertString(in interface{}) string {
-	fmt.Printf("convertString in=%v\n", in)
 	val, ok := in.(string)
 	if !ok {
 		panic("not a string type")
@@ -161,6 +160,14 @@ func convertComplex64(in interface{}) complex64 {
 
 func convertComplex128(in interface{}) complex128 {
 	return complex128(convertComplex128(in))
+}
+
+func convertIntSlice(in interface{}) []int {
+	val, ok := in.([]int)
+	if !ok {
+		panic("not an int slize")
+	}
+	return val
 }
 
 func paramconvertpanic(name string) {
@@ -255,4 +262,9 @@ func (p FeatureParams) GetString(name string) string {
 func (p FeatureParams) GetBool(name string) bool {
 	defer paramconvertpanic(name)
 	return convertBool(p.Get(name))
+}
+
+func (p FeatureParams) GetIntSlice(name string) []int {
+	defer paramconvertpanic(name)
+	return convertIntSlice(p.Get(name))
 }

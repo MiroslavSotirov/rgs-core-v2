@@ -1,10 +1,9 @@
 package features
 
 type ReplaceTileData struct {
-	X             int `json:"x"`
-	Y             int `json:"y"`
-	TileId        int `json:"titleid"`
-	ReplaceWithId int `json:"replacewithid"`
+	Positions     []int `json:"positions"`
+	TileId        int   `json:"titleid"`
+	ReplaceWithId int   `json:"replacewithid"`
 }
 
 type ReplaceTile struct {
@@ -28,19 +27,23 @@ func (f ReplaceTile) forceActivateFeature(featurestate *FeatureState) {
 	featurestate.SymbolGrid[0][0] = f.FeatureDef.Params.GetInt("TileId")
 }
 
-func (f ReplaceTile) Trigger(featurestate *FeatureState, params FeatureParams) {
-	x := params.GetInt("X")
-	y := params.GetInt("Y")
+func (f ReplaceTile) Trigger(state *FeatureState, params FeatureParams) {
 	replaceid := params.GetInt("ReplaceWithId")
-	featurestate.SymbolGrid[x][y] = replaceid
-	featurestate.Features = append(featurestate.Features,
+	//	featurestate.SymbolGrid[x][y] = replaceid
+	positions := params.GetIntSlice("Positions")
+	gridh := len(state.SymbolGrid[0])
+	for _, p := range positions {
+		x := p / gridh
+		y := p - (x * gridh)
+		state.SymbolGrid[x][y] = replaceid
+	}
+	state.Features = append(state.Features,
 		&ReplaceTile{
 			FeatureDef: *f.DefPtr(),
 			Data: ReplaceTileData{
-				X:             x,
-				Y:             y,
+				Positions:     positions,
 				TileId:        params.GetInt("TileId"),
-				ReplaceWithId: replaceid,
+				ReplaceWithId: params.GetInt("ReplaceWithId"),
 			},
 		})
 }

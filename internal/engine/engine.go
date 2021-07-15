@@ -1386,28 +1386,6 @@ func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
 	return gamestate
 }
 
-// func TriggerConfiguredFeatures(engine EngineDef, gamestate Gamestate) Gamestate {
-// 	var featurestate features.FeatureState
-// 	featurestate.SymbolGrid = gamestate.SymbolGrid
-// 	for _, featuredef := range engine.Features {
-// 		feature := features.MakeFeature(featuredef.Type)
-// 		if feature == nil {
-// 			logger.Errorf("misconfigured engine: %v, unknown feature %s", engine.ID, featuredef.Type)
-// 			return Gamestate{}
-// 		}
-// 		feature.Init(featuredef)
-// 		triggered := feature.Trigger(featurestate, features.FeatureParams{})
-// 		featurestate.Features = append(featurestate.Features, triggered...)
-// 	}
-//	gamestate.Features = append(gamestate.Features, featurestate.Features...)
-//	return gamestate
-//}
-
-//func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
-//	logger.Debugf("FatTileReel function, engine features: %v\n", engine.Features)
-//	return TriggerConfiguredFeatures(engine, engine.BaseRound(parameters))
-//}
-
 func (engine EngineDef) TriggerConfiguredFeatures(symbolgrid [][]int) features.FeatureState {
 	var featurestate features.FeatureState
 	gridw, gridh := len(symbolgrid), len(symbolgrid[0])

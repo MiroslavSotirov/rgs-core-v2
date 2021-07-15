@@ -23,14 +23,21 @@ func (f TriggerSupaCrewActionSymbol) Trigger(state *FeatureState, params Feature
 	params["ReplaceWithId"] = replaceid
 	gridw, gridh := len(state.SymbolGrid), len(state.SymbolGrid[0])
 
+	positions := []int{}
+
 	for x := 0; x < gridw; x++ {
 		for y := 0; y < gridh; y++ {
 			if state.SymbolGrid[x][y] == tileid {
-				params["X"] = x
-				params["Y"] = y
-				activateFeatures(f.FeatureDef, state, params)
+				//				params["X"] = x
+				//				params["Y"] = y
+				//				activateFeatures(f.FeatureDef, state, params)
+				positions = append(positions, x*gridh+y)
 			}
 		}
+	}
+	if len(positions) > 0 {
+		params["Positions"] = positions
+		activateFeatures(f.FeatureDef, state, params)
 	}
 	return
 }

@@ -2,15 +2,16 @@ package config
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+
 	"github.com/crgimenes/goconfig"
 	_ "github.com/crgimenes/goconfig/yaml"
 	"github.com/golang/glog"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 )
 
 const configFile = "config/config.yml"
@@ -47,6 +48,7 @@ type Config struct {
 	LogAccount      string      `yaml:"logaccount" cfg:"logaccount" cfgDefault:"145472021_144443389"`
 	SentryDsn       string      `yaml:"sentryDsn" cfg:"sentryDsn" cfgDefault:""`
 	Environment     string      `yaml:"environment" cfg:"environment" cfgDefault:"local"`
+	DataLimit       int         `yaml:"datalimit" cfg:"datalimit" cfgDefault:"800"`
 }
 
 // Game config structure
