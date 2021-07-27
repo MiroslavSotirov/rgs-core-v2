@@ -6,7 +6,7 @@ volatility: 74.10328
 EngineDefs:
   - name: base
     WinType: elysiumLines
-    StakeDivisor: 10
+    StakeDivisor: 9
     function: FeatureRound
     compoundingWilds: false
     Reels:

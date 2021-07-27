@@ -1432,7 +1432,7 @@ func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 			Payout: Payout{
 				Symbol:     w.Symbols[0],
 				Count:      len(w.Symbols),
-				Multiplier: 1,
+				Multiplier: engine.StakeDivisor,
 			},
 			Index:           "",
 			Multiplier:      w.Multiplier,

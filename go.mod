@@ -14,7 +14,7 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/travelaudience/go-promhttp v1.0.1
 	go.uber.org/zap v1.12.0
-	golang.org/x/tools v0.0.0-20191120001058-ad01d5993d97 // indirect
+	golang.org/x/tools v0.1.5 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20190709130402-674ba3eaed22
 )
