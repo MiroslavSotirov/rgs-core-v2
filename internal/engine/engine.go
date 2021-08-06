@@ -1434,9 +1434,10 @@ func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 				Count:      len(w.Symbols),
 				Multiplier: engine.StakeDivisor,
 			},
-			Index:           "",
+			Index:           fmt.Sprintf("%d:%d", w.Symbols[0], len(w.Symbols)),
 			Multiplier:      w.Multiplier,
 			SymbolPositions: w.SymbolPositions,
+			Winline:         -1, // until features have prizes associated with lines
 		}
 		wins = append(wins, prize)
 	}
