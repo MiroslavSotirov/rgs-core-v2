@@ -8,7 +8,6 @@ EngineDefs:
     WinType: elysiumLines
     StakeDivisor: 9
     function: FeatureRound
-    RTP: .940382
     compoundingWilds: false
     Reels:
       - [2,2,2,2,1,1,1,1,9,3,3,3,2,2,2,2,1,1,1,1,9,9,9,4,4,4,0,0,0,0,6,6,6,8,8,8,5,5,5,0,0,0,0,7,7,7]

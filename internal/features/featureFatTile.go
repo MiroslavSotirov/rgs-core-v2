@@ -5,7 +5,7 @@ type FatTileData struct {
 	Y      int `json:"y"`
 	W      int `json:"w"`
 	H      int `json:"h"`
-	TileId int `json:"titleid"`
+	TileId int `json:"tileid"`
 }
 
 type FatTile struct {
