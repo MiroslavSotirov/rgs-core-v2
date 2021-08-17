@@ -5,7 +5,7 @@ local: true
 
 # Log levels
 # debug, info, warn, error, fatal
-logging: info
+logging: debug # info
 
 # mcrouter address
 mcrouter: "127.0.0.1:11211"
@@ -32,3 +32,4 @@ defaultplatform: html5
 
 democurrency: USD
 logaccount: 145472021_144443389
+datalimit: 3200

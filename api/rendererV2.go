@@ -2,12 +2,14 @@ package api
 
 import (
 	"fmt"
-	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"net/http"
 	"strings"
+
+	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 // GameInitResponse reponse
@@ -38,13 +40,13 @@ type GameLinkResponse struct {
 type OperatorResponse struct {
 	StopAutoPlay bool `json:"stopAutoPlay,omitempty"'`
 }
-type MetaResponse struct{
+type MetaResponse struct {
 	OperatorRequests OperatorResponse `json:"operatorRequests"`
 }
 
 type GameplayResponseV2 struct {
-	MetaData		 MetaResponse `json:"meta"'`
-	Action           string     `json:"action,omitempty"`
+	MetaData         MetaResponse `json:"meta"'`
+	Action           string       `json:"action,omitempty"`
 	SessionID        store.Token  `json:"host/verified-token"`
 	StateID          string       `json:"stateID"`
 	RoundID          string       `json:"roundID"`
@@ -63,7 +65,9 @@ type GameplayResponseV2 struct {
 	Gamification     *GamificationRespV2 `json:"gamification,omitempty"`
 	CascadePositions []int               `json:"cascadePositions,omitempty"`
 	RespinPrices     []engine.Fixed      `json:"respinPrices,omitempty"`
-	Choices			 []string			 `json:"choices,omitempty"`
+	Choices          []string            `json:"choices,omitempty"`
+	Features         []features.Feature  `json:"features,omitempty"`
+	FeatureView      [][]int             `json:"featureview,omitempty"`
 }
 
 type GamificationRespV2 struct {
@@ -75,15 +79,16 @@ type GamificationRespV2 struct {
 }
 
 type BalanceResponseV2 struct {
-	Amount    engine.Money `json:"amount"`
-	FreeGames int          `json:"freeGames"` // todo: deprecate once all games switched over
+	Amount       engine.Money      `json:"amount"`
+	FreeGames    int               `json:"freeGames"` // todo: deprecate once all games switched over
 	FreeSpinInfo *FreespinResponse `json:"free_spins"`
 }
 
 type FreespinResponse struct {
-	CtRemaining int	`json:"num_remaining"`
-	WagerAmt	engine.Fixed `json:"wager_amount"`
+	CtRemaining int          `json:"num_remaining"`
+	WagerAmt    engine.Fixed `json:"wager_amount"`
 }
+
 // todo: incorporate this into gameplay response
 
 //type PickGameResp struct {
@@ -175,7 +180,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		nextAction = "freespin"
 	}
 	return GameplayResponseV2{
-		MetaData:	MetaResponse{OperatorRequests: OperatorResponse{StopAutoPlay: balance.Message=="stopAuto"}},
+		MetaData:    MetaResponse{OperatorRequests: OperatorResponse{StopAutoPlay: balance.Message == "stopAuto"}},
 		SessionID:   balance.Token,
 		Action:      gamestate.Action,
 		StateID:     gamestate.Id,
@@ -188,8 +193,8 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		NextAction:  nextAction,
 		FSRemaining: fsRemaining,
 		Balance: BalanceResponseV2{
-			Amount:    balance.Balance,
-			FreeGames: balance.FreeGames.NoOfFreeSpins, // todo: deprecate once moved over to new fw completely
+			Amount:       balance.Balance,
+			FreeGames:    balance.FreeGames.NoOfFreeSpins, // todo: deprecate once moved over to new fw completely
 			FreeSpinInfo: &fsresp,
 		},
 		View:            gamestate.SymbolGrid,
@@ -205,7 +210,9 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		},
 		CascadePositions: cascadePositions,
 		RespinPrices:     respinPrices,
-		Choices: 		  gamestate.GetChoices(),
+		Choices:          gamestate.GetChoices(),
+		Features:         gamestate.Features,
+		FeatureView:      gamestate.FeatureView,
 	}
 }
 

@@ -1,17 +1,18 @@
 package parameterSelector
 
 import (
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
 )
 
 // Module for selecting stakeValue and defaultBet parameters given currency, operator-specific settings, and player history and classification
@@ -48,7 +49,6 @@ func parseBetConfig() (betConfig, rgse.RGSErr) {
 	return conf, nil
 }
 
-
 func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode string, playerID string) (walletInitBal engine.Money, ctFS int, waFS engine.Fixed, err rgse.RGSErr) {
 	logger.Debugf("getting demo wallet defaults for player %v, ccy %v", playerID, currency)
 
@@ -64,7 +64,7 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 		err = confErr
 		return
 	}
-	walletInitBal = engine.Money{stakeValues[len(stakeValues)-1].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).Mul(engine.NewFixedFromInt(100)), currency}
+	walletInitBal = engine.Money{stakeValues[len(stakeValues)-1].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).Mul(engine.NewFixedFromInt(1000)), currency}
 	// solution for testing low balance
 	if playerID == "lowbalance" {
 		walletInitBal = engine.Money{0, currency}
@@ -83,7 +83,6 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 	logger.Debugf("set balance: %v ; freespins: %v; fs value: %v", walletInitBal, ctFS, waFS)
 	return
 }
-
 
 func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string) ([]engine.Fixed, engine.Fixed, rgse.RGSErr) {
 	// returns stakeValues and defaultBet based on host and player configuration

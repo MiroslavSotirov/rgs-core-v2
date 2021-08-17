@@ -4,6 +4,15 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/getsentry/sentry-go"
 	"github.com/prometheus/client_golang/prometheus"
 	uuid "github.com/satori/go.uuid"
 	"github.com/travelaudience/go-promhttp"
@@ -12,12 +21,6 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"strings"
-	"sync"
-	"time"
 )
 
 const (
@@ -100,7 +103,7 @@ type (
 		GameState           []byte
 		FreeGames           FreeGamesStore
 		WalletStatus        int
-		Ttl 				int64
+		Ttl                 int64
 	}
 
 	FreeGamesStore struct {
@@ -119,7 +122,7 @@ type (
 		Player                  map[string]PlayerStore
 		Transaction             map[string]TransactionStore
 		TransactionByPlayerGame map[string]TransactionStore
-		Message					map[string]string
+		Message                 map[string]string
 		Lock                    sync.RWMutex
 	}
 
@@ -152,6 +155,7 @@ type (
 		demoTokenPrefix string
 		demoCurrency    string
 		logAccount      string
+		dataLimit       int
 	}
 
 	// local service eq implemenation of service. so that unit test of services can be easily mocked.
@@ -163,7 +167,7 @@ type (
 		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgse.RGSErr)
 		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, rgse.RGSErr)
 		GamestateById(gamestateId string) (GameStateStore, rgse.RGSErr)
-		SetMessage(playerId string, message string) (rgse.RGSErr)
+		SetMessage(playerId string, message string) rgse.RGSErr
 	}
 
 	LocalServiceImpl struct{}
@@ -857,6 +861,9 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 	}
 
 	if transaction.GameState != nil {
+		if len(transaction.GameState) > i.dataLimit {
+			sentry.CaptureMessage(fmt.Sprintf("gamestate size exceeds store data limit of %d bytes", i.dataLimit))
+		}
 		gameState = base64.StdEncoding.EncodeToString(transaction.GameState)
 	}
 
@@ -877,8 +884,8 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 		Round:       transaction.RoundId,
 		TxRef:       transaction.TransactionId,
 		CampaignRef: transaction.FreeGames.CampaignRef,
-		Ttl:		 transaction.Ttl,
-		TtlStamp:	 transaction.TxTime.Unix() + transaction.Ttl,
+		Ttl:         transaction.Ttl,
+		TtlStamp:    transaction.TxTime.Unix() + transaction.Ttl,
 	}
 
 	return i.txSend(txRq)
@@ -976,7 +983,7 @@ func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId st
 		BetLimitSettingCode: player.BetLimitSettingCode,
 		FreeGames:           player.FreeGames,
 		WalletStatus:        1,
-		Ttl:				 transaction.Ttl,
+		Ttl:                 transaction.Ttl,
 	}, nil
 }
 
@@ -1072,7 +1079,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		BetLimitSettingCode: queryResp.BetLimit,
 		FreeGames:           balance.FreeGames,
 		WalletStatus:        lastTx.InternalStatus,
-		Ttl:				 lastTx.Ttl,
+		Ttl:                 lastTx.Ttl,
 	}, nil
 }
 
@@ -1131,6 +1138,10 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 	closeRound := true
 
 	ttl := DeserializeGamestateFromBytes(gamestate).GetTtl()
+	if len(gamestate) > i.dataLimit {
+		sentry.CaptureMessage(fmt.Sprintf("gamestate size exceeds store data limit of %d bytes", i.dataLimit))
+	}
+
 	txRq := restTransactionRequest{
 		ReqId:       uuid.NewV4().String(),
 		Token:       string(token),
@@ -1256,7 +1267,7 @@ func (i *LocalServiceImpl) getPlayer(playerId string) (PlayerStore, bool) {
 	return player, ok
 }
 
-func (i *LocalServiceImpl) SetMessage(playerId string, message string) (rgse.RGSErr) {
+func (i *LocalServiceImpl) SetMessage(playerId string, message string) rgse.RGSErr {
 	// this is used
 	err := internalCheck()
 	if err != nil {
@@ -1385,6 +1396,7 @@ func New(c *config.Config) Service {
 		demoTokenPrefix: c.DemoTokenPrefix,
 		demoCurrency:    c.DemoCurrency,
 		logAccount:      c.LogAccount,
+		dataLimit:       c.DataLimit,
 	}
 }
 

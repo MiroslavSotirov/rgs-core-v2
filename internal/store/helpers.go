@@ -2,6 +2,7 @@ package store
 
 import (
 	"bytes"
+
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/golang/protobuf/proto"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"

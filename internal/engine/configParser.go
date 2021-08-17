@@ -2,15 +2,16 @@ package engine
 
 import (
 	"fmt"
-	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"math"
 	"os"
 	"path/filepath"
 	"reflect"
+
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
+	"gopkg.in/yaml.v3"
 )
 
 // game slug is attached to engine config in memcached
@@ -93,6 +94,9 @@ func BuildEngineDefs(engineID string) EngineConfig {
 		if len(c.EngineDefs[i].Multiplier.Multipliers) != 0 {
 			completeDef.Multiplier = c.EngineDefs[i].Multiplier
 		} // must set a sham non-zero payout if override is desired in a  non-base engine
+		if len(c.EngineDefs[i].Features) != 0 {
+			completeDef.Features = c.EngineDefs[i].Features
+		}
 		// respin must be explicitly set to true if it is intended to be true, no inheritance from base
 		completeDef.RespinAllowed = c.EngineDefs[i].RespinAllowed
 		// same for variable winlines because it is a boolean and no way to tell if false or omitted
