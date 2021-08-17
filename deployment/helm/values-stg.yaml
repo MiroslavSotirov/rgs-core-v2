@@ -182,6 +182,9 @@ gameConfig:
   - engineID: mvgEngineXVI
     games:
       - sparta
+  - engineID: mvgEngineUnity1
+    games:
+      - supa-crew
 
 gamification:
   a-fairy-tale:

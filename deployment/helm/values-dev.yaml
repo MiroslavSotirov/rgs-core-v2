@@ -185,6 +185,9 @@ gameConfig:
   - engineID: mvgEngineXVIII
     games:
       - zodiac-elements
+  - engineID: mvgEngineUnity1
+    games:
+      - supa-crew
 
 gamification:
   a-fairy-tale:
