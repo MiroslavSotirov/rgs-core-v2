@@ -1578,7 +1578,7 @@ data:
     EngineDefs:
       - name: base
         WinType: elysiumLines
-        StakeDivisor: 9
+        StakeDivisor: 10
         function: FeatureRound
         compoundingWilds: false
         Reels:
@@ -1630,7 +1630,7 @@ data:
         Features:
           - Type: "TriggerSupaCrew"
             Params:
-              RandomRange: 8874
+              RandomRange: 8824
             Features:
               - Type: "TriggerSupaCrewSuperSymbol"
                 Params:

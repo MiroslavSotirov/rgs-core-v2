@@ -490,7 +490,10 @@ func DetermineElysiumLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts 
 			base += len(symbolGrid[reel])
 		}
 
+		startreel := 0
+		endreel := 0
 		for len(symbols) > 0 {
+			startreel = endreel
 			var consec []int
 			consec, symbols = func(sym []int) ([]int, []int) {
 				s, i := sym[0], 1
@@ -503,8 +506,12 @@ func DetermineElysiumLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts 
 			}(symbols)
 
 			numconsec := len(consec)
+			endreel = startreel + numconsec
 			var consecpos []int
 			consecpos, positions = positions[:numconsec], positions[numconsec:]
+			if startreel != 0 && endreel != len(symbolGrid) {
+				continue
+			}
 
 			for _, payout := range linePayouts {
 				if consec[0] == payout.Symbol && numconsec == payout.Count {

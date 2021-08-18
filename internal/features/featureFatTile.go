@@ -1,5 +1,7 @@
 package features
 
+import "gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
+
 type FatTileData struct {
 	X      int `json:"x"`
 	Y      int `json:"y"`
@@ -35,14 +37,29 @@ func (f FatTile) forceActivateFeature(featurestate *FeatureState, x int, y int, 
 	}
 }
 
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func (f FatTile) Trigger(featurestate *FeatureState, params FeatureParams) {
 	x := params.GetInt("X")
 	y := params.GetInt("Y")
 	w := params.GetInt("W")
 	h := params.GetInt("H")
 	tileid := params.GetInt("TileId")
-	for r := x; r < x+w; r++ {
-		for s := y; s < y+h; s++ {
+	logger.Debugf("FatTile x= %d y= %d w= %d h= %d max(x,0)= %d may(y,0)= %d", x, y, w, h, max(x, 0), max(y, 0))
+	for r := max(x, 0); r < min(x+w, len(featurestate.SymbolGrid)); r++ {
+		for s := max(y, 0); s < min(y+h, len(featurestate.SymbolGrid[r])); s++ {
 			featurestate.SymbolGrid[r][s] = tileid
 		}
 	}

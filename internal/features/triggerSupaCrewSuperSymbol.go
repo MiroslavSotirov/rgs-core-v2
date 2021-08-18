@@ -19,19 +19,13 @@ func (f *TriggerSupaCrewSuperSymbol) Init(def FeatureDef) error {
 }
 
 func (f TriggerSupaCrewSuperSymbol) Trigger(state *FeatureState, params FeatureParams) {
-	gridh := len(state.SymbolGrid[0])
 	random := params.GetInt("Random")
 	ran15 := rng.RandFromRange(15)
 	if random/9 < 20 {
-		h := []int{1, 2, 3, -2, -1}[ran15%5]
 		x := ran15 / 5
-		y := 0
-		if h < 0 {
-			h = -h
-			y = gridh - h
-		}
+		y := []int{-2, -1, 0, 1, 2}[ran15%5]
 		params["W"] = 3
-		params["H"] = h
+		params["H"] = 3
 		params["X"] = x
 		params["Y"] = y
 		params["TileId"] = random % 9
