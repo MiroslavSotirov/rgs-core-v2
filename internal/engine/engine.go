@@ -509,9 +509,12 @@ func DetermineElysiumLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts 
 			endreel = startreel + numconsec
 			var consecpos []int
 			consecpos, positions = positions[:numconsec], positions[numconsec:]
-			if startreel != 0 && endreel != len(symbolGrid) {
-				continue
-			}
+			/*
+				// only allow lines starting on the leftmost reel or ending on the rightmost
+				if startreel != 0 && endreel != len(symbolGrid) {
+					continue
+				}
+			*/
 
 			for _, payout := range linePayouts {
 				if consec[0] == payout.Symbol && numconsec == payout.Count {

@@ -55,8 +55,10 @@ func (f FatTile) Trigger(state *FeatureState, params FeatureParams) {
 	w := params.GetInt("W")
 	h := params.GetInt("H")
 	tileid := params.GetInt("TileId")
-	for r := max(x, 0); r < min(x+w, 0); r++ {
-		for s := max(y, 0); s < min(y+h, 0); s++ {
+	gridw := len(state.SymbolGrid)
+	for r := max(x, 0); r < min(x+w, gridw); r++ {
+		gridh := len(state.SymbolGrid[r])
+		for s := max(y, 0); s < min(y+h, gridh); s++ {
 			state.SymbolGrid[r][s] = tileid
 		}
 	}
