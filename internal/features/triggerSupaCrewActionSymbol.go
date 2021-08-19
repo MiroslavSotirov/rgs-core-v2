@@ -1,5 +1,11 @@
 package features
 
+import (
+	"strings"
+
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
+)
+
 type TriggerSupaCrewActionSymbol struct {
 	FeatureDef
 }
@@ -17,6 +23,11 @@ func (f *TriggerSupaCrewActionSymbol) Init(def FeatureDef) error {
 }
 
 func (f TriggerSupaCrewActionSymbol) Trigger(state *FeatureState, params FeatureParams) {
+	if params.HasKey("force") && strings.Contains(params.GetString("force"), "actionsymbol") {
+		f.ForceTrigger(state, params)
+		return
+	}
+
 	random := params.GetInt("Random")
 	tileid := params.GetInt("TileId")
 	replaceid := random % 9
@@ -28,9 +39,6 @@ func (f TriggerSupaCrewActionSymbol) Trigger(state *FeatureState, params Feature
 	for x := 0; x < gridw; x++ {
 		for y := 0; y < gridh; y++ {
 			if state.SymbolGrid[x][y] == tileid {
-				//				params["X"] = x
-				//				params["Y"] = y
-				//				activateFeatures(f.FeatureDef, state, params)
 				positions = append(positions, x*gridh+y)
 			}
 		}
@@ -40,6 +48,23 @@ func (f TriggerSupaCrewActionSymbol) Trigger(state *FeatureState, params Feature
 		activateFeatures(f.FeatureDef, state, params)
 	}
 	return
+}
+
+func (f TriggerSupaCrewActionSymbol) ForceTrigger(state *FeatureState, params FeatureParams) {
+	num := rng.RandFromRange(15) + 1
+	tileid := params.GetInt("TileId")
+	replaceid := rng.RandFromRange(9)
+	params["ReplaceWithId"] = replaceid
+	gridh := len(state.SymbolGrid[0])
+	positions := make([]int, num)
+	for i := 0; i < num; i++ {
+		x := rng.RandFromRange(5)
+		y := rng.RandFromRange(3)
+		positions[i] = x*gridh + y
+		state.SymbolGrid[x][y] = tileid
+	}
+	params["Positions"] = positions
+	activateFeatures(f.FeatureDef, state, params)
 }
 
 func (f *TriggerSupaCrewActionSymbol) Serialize() ([]byte, error) {

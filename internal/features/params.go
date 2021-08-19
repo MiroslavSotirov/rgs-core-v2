@@ -176,6 +176,11 @@ func paramconvertpanic(name string) {
 	}
 }
 
+func (p FeatureParams) HasKey(name string) bool {
+	_, ok := p[name]
+	return ok
+}
+
 func (p FeatureParams) Get(name string) interface{} {
 	val, ok := p[name]
 	if !ok {

@@ -1,6 +1,10 @@
 package features
 
-import "gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
+import (
+	"strings"
+
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
+)
 
 type TriggerSupaCrewSuperSymbol struct {
 	FeatureDef
@@ -19,6 +23,11 @@ func (f *TriggerSupaCrewSuperSymbol) Init(def FeatureDef) error {
 }
 
 func (f TriggerSupaCrewSuperSymbol) Trigger(state *FeatureState, params FeatureParams) {
+	if params.HasKey("force") && strings.Contains(params.GetString("force"), "supersymbol") {
+		f.ForceTrigger(state, params)
+		return
+	}
+
 	random := params.GetInt("Random")
 	ran15 := rng.RandFromRange(15)
 	if random/9 < 20 {
@@ -33,6 +42,16 @@ func (f TriggerSupaCrewSuperSymbol) Trigger(state *FeatureState, params FeatureP
 		activateFeatures(f.FeatureDef, state, params)
 	}
 	return
+}
+
+func (f TriggerSupaCrewSuperSymbol) ForceTrigger(state *FeatureState, params FeatureParams) {
+	params["X"] = rng.RandFromRange(5)
+	params["Y"] = rng.RandFromRange(5) - 2
+	params["W"] = 3
+	params["H"] = 3
+	params["TileId"] = rng.RandFromRange(9)
+
+	activateFeatures(f.FeatureDef, state, params)
 }
 
 func (f *TriggerSupaCrewSuperSymbol) Serialize() ([]byte, error) {

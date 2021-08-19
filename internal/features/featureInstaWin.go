@@ -23,9 +23,9 @@ func (f *InstaWin) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
-func (f InstaWin) Trigger(featurestate *FeatureState, params FeatureParams) {
+func (f InstaWin) Trigger(state *FeatureState, params FeatureParams) {
 	multiplier := params.GetInt("InstaWinAmount")
-	featurestate.Features = append(featurestate.Features,
+	state.Features = append(state.Features,
 		&InstaWin{
 			FeatureDef: *f.DefPtr(),
 			Data: InstaWinData{
@@ -34,12 +34,12 @@ func (f InstaWin) Trigger(featurestate *FeatureState, params FeatureParams) {
 				Amount:   multiplier,
 			},
 		})
-	gridh := len(featurestate.SymbolGrid[0])
+	gridh := len(state.SymbolGrid[0])
 	x := params.GetInt("X")
 	y := params.GetInt("Y")
 	tileid := params.GetInt("TileId")
 	symbolpositions := []int{x*gridh + y, (x+1)*gridh + y, x*gridh + y + 1, (x+1)*gridh + y + 1}
-	featurestate.Wins = append(featurestate.Wins,
+	state.Wins = append(state.Wins,
 		FeatureWin{
 			Multiplier:      multiplier,
 			Symbols:         []int{tileid},

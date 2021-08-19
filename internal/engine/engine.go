@@ -1393,7 +1393,7 @@ func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
 	return gamestate
 }
 
-func (engine EngineDef) TriggerConfiguredFeatures(symbolgrid [][]int) features.FeatureState {
+func (engine EngineDef) TriggerConfiguredFeatures(symbolgrid [][]int, parameters GameParams) features.FeatureState {
 	var featurestate features.FeatureState
 	gridw, gridh := len(symbolgrid), len(symbolgrid[0])
 	featurestate.SymbolGrid = make([][]int, gridw)
@@ -1411,7 +1411,12 @@ func (engine EngineDef) TriggerConfiguredFeatures(symbolgrid [][]int) features.F
 			return features.FeatureState{}
 		}
 		feature.Init(featuredef)
-		feature.Trigger(&featurestate, features.FeatureParams{})
+		featureparams := features.FeatureParams{}
+		if config.GlobalConfig.DevMode == true && parameters.Force != "" {
+			logger.Debugf("trigger configured features using force %s", parameters.Force)
+			featureparams["force"] = parameters.Force
+		}
+		feature.Trigger(&featurestate, featureparams)
 	}
 	return featurestate
 }
@@ -1429,7 +1434,7 @@ func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 	// replace any symbols with sticky wilds
 	symbolGrid = engine.addStickyWilds(parameters.previousGamestate, symbolGrid)
 
-	featurestate := engine.TriggerConfiguredFeatures(symbolGrid)
+	featurestate := engine.TriggerConfiguredFeatures(symbolGrid, parameters)
 	logger.Debugf("symbolGrid= %v\nfeatureGrid= %v\n", symbolGrid, featurestate.SymbolGrid)
 
 	wins, relativePayout := engine.DetermineWins(featurestate.SymbolGrid)

@@ -6,9 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -17,6 +14,10 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 func SelectFromWeightedOptions(options []int, weights []int) int {
@@ -171,9 +172,11 @@ type GameParams struct {
 	Game              string    `json:"game"`
 	Wallet            string    `json:"wallet"`
 	PreviousID        string    `json:"previousID"`
+	Force             string    `json:"force"`
 	previousGamestate Gamestate // this cannot be passed in
 	//stopPostitions    []int     // this can also not be passed in from outside the package (only for testing)
 }
+
 //
 //func (params *GameParams) SetPG(pg Gamestate) {
 //// used for VT
@@ -267,7 +270,7 @@ func GetHash(filePath string) (string, string, error) {
 
 	//Copy the file in the hash interface and check for any error
 	// if _, err := io.Copy(hash1, file); err != nil {
-		// return "", "", err
+	// return "", "", err
 	// }
 	if _, err := io.Copy(hash2, file); err != nil {
 		return "", "", err
@@ -464,17 +467,18 @@ func RoundUpToNearestCCYUnit(in Money) (out Money) {
 	return
 }
 
-
 func (gamestate Gamestate) GetChoices() (choices []string) {
 	// returns allowed selections for a pickspins round
 	if len(gamestate.NextActions) < 1 || gamestate.NextActions[0] != "pickSpins" {
 		return
 	}
 	EC, err := gamestate.Engine()
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 	ED := EC.EngineDefs[EC.DefIdByName("pickSpins")]
 
-	for i:=0;i<len(ED.SpecialPayouts);i++{
+	for i := 0; i < len(ED.SpecialPayouts); i++ {
 		choices = append(choices, ED.SpecialPayouts[i].Index)
 	}
 	return
@@ -488,7 +492,7 @@ func (gamestate Gamestate) GetTtl() int64 {
 		}
 		_, ok := GamestatePB_Action_value[action]
 		if ok {
-			return 3600*24*2
+			return 3600 * 24 * 2
 		}
 	}
 	return 3600
