@@ -97,6 +97,9 @@ func BuildEngineDefs(engineID string) EngineConfig {
 		if len(c.EngineDefs[i].Features) != 0 {
 			completeDef.Features = c.EngineDefs[i].Features
 		}
+		if c.EngineDefs[i].WinConfig.Flags != "" {
+			completeDef.WinConfig = c.EngineDefs[i].WinConfig
+		}
 		// respin must be explicitly set to true if it is intended to be true, no inheritance from base
 		completeDef.RespinAllowed = c.EngineDefs[i].RespinAllowed
 		// same for variable winlines because it is a boolean and no way to tell if false or omitted

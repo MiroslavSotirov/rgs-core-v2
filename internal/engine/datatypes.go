@@ -33,6 +33,17 @@ type bar struct {
 	Symbols  []int `yaml:"symbols"`
 }
 
+const (
+	winconf_none                 = "none"
+	winconf_anchor_left          = "anchor_left"
+	winconf_anchor_right         = "anchor_right"
+	winconf_anchor_left_or_right = "anchor_left_or_right"
+)
+
+type WinConfiguration struct {
+	Flags string `yaml:"Flags"` // concatenation of winconf_ flag strings, if empty string then configuration is ignored(set to none then)
+}
+
 // EngineDef ...
 type EngineDef struct {
 	ID       string `yaml:"name"`
@@ -45,6 +56,7 @@ type EngineDef struct {
 	// The string represents the method to be run. should be ordered by precedence
 	SpecialPayouts []Prize               `yaml:"SpecialPayouts"`
 	WinLines       [][]int               `yaml:"WinLines,flow"`
+	WinConfig      WinConfiguration      `yaml:"WinConfig"`
 	Wilds          []wild                `yaml:"wilds"`
 	Bars           []bar                 `yaml:"bars"`
 	Multiplier     weightedMultiplier    `yaml:"multiplier"`

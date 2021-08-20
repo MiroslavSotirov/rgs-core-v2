@@ -477,7 +477,7 @@ func determinePrimeAndFlopWins(symbolGrid [][]int, payouts []Payout, wilds []wil
 	return []Prize{}
 }
 
-func DetermineElysiumLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payout) []Prize {
+func DetermineElysiumLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payout, winConfig WinConfiguration) []Prize {
 	wins := []Prize{}
 	for winLineIndex, winLine := range WinLines {
 		symbols := make([]int, len(symbolGrid))
@@ -509,12 +509,15 @@ func DetermineElysiumLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts 
 			endreel = startreel + numconsec
 			var consecpos []int
 			consecpos, positions = positions[:numconsec], positions[numconsec:]
-			/*
-				// only allow lines starting on the leftmost reel or ending on the rightmost
-				if startreel != 0 && endreel != len(symbolGrid) {
-					continue
-				}
-			*/
+			if startreel != 0 && strings.Contains(winConfig.Flags, winconf_anchor_left) {
+				continue
+			}
+			if endreel != len(symbolGrid) && strings.Contains(winConfig.Flags, winconf_anchor_right) {
+				continue
+			}
+			if startreel != 0 && endreel != len(symbolGrid) && strings.Contains(winConfig.Flags, winconf_anchor_left_or_right) {
+				continue
+			}
 
 			for _, payout := range linePayouts {
 				if consec[0] == payout.Symbol && numconsec == payout.Count {
@@ -782,7 +785,7 @@ func (engine EngineDef) DetermineWins(symbolGrid [][]int) ([]Prize, int) {
 	case "pAndF":
 		wins = determinePrimeAndFlopWins(symbolGrid, engine.Payouts, engine.Wilds)
 	case "elysiumLines":
-		wins = DetermineElysiumLineWins(symbolGrid, engine.WinLines, engine.Payouts)
+		wins = DetermineElysiumLineWins(symbolGrid, engine.WinLines, engine.Payouts, engine.WinConfig)
 	}
 	relativePayout := calculatePayoutWins(wins)
 	return wins, relativePayout
@@ -1441,7 +1444,7 @@ func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 	logger.Debugf("symbolGrid= %v\nfeatureGrid= %v\n", symbolGrid, featurestate.SymbolGrid)
 
 	wins, relativePayout := engine.DetermineWins(featurestate.SymbolGrid)
-
+	featurewins := []Prize{}
 	for _, w := range featurestate.Wins {
 		prize := Prize{
 			Payout: Payout{
@@ -1454,8 +1457,10 @@ func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 			SymbolPositions: w.SymbolPositions,
 			Winline:         -1, // until features have prizes associated with lines
 		}
-		wins = append(wins, prize)
+		featurewins = append(featurewins, prize)
 	}
+	relativePayout += calculatePayoutWins(featurewins)
+	wins = append(wins, featurewins...)
 
 	// calculate specialWin
 	var nextActions []string

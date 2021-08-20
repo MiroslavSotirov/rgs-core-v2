@@ -23,6 +23,14 @@ type betConfig struct {
 	CcyMultipliers map[string]float32        `yaml:"ccyMultipliers"`
 	Profiles       map[string]map[string]int `yaml:"profiles"`
 	HostProfiles   map[string]string         `yaml:"hostProfiles"`
+	Override       map[string]stakeConfigs   `yaml:"override`
+}
+
+type stakeConfigs map[string]stakeConfig
+
+type stakeConfig struct {
+	StakeValues []float32 `yaml:"stakeValues"`
+	DefaultBet  float32   `yaml:"defaultBet"`
 }
 
 func parseBetConfig() (betConfig, rgse.RGSErr) {
@@ -64,7 +72,7 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 		err = confErr
 		return
 	}
-	walletInitBal = engine.Money{stakeValues[len(stakeValues)-1].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).Mul(engine.NewFixedFromInt(100)), currency}
+	walletInitBal = engine.Money{stakeValues[len(stakeValues)-1].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).Mul(engine.NewFixedFromInt(50)), currency}
 	// solution for testing low balance
 	if playerID == "lowbalance" {
 		walletInitBal = engine.Money{0, currency}
@@ -169,6 +177,20 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 		logger.Warnf("defaultStake too high, setting to max stakeValue")
 		defaultStake = fixedStakeValues[len(fixedStakeValues)-1]
 	}
+
+	override, ok := betConf.Override[gameID]
+	if ok {
+		stakeconf, ok := override[lastBet.Currency]
+		if ok {
+			fixedStakeValues = make([]engine.Fixed, len(stakeconf.StakeValues))
+			for i, s := range stakeconf.StakeValues {
+				fixedStakeValues[i] = engine.NewFixedFromFloat(s)
+			}
+			defaultStake = engine.NewFixedFromFloat(stakeconf.DefaultBet)
+			logger.Infof("overriding stake values: stakes= %v, defaultbet= %v", fixedStakeValues, defaultStake)
+		}
+	}
+
 	logger.Debugf("stake values: %v; default stake: %v", fixedStakeValues, defaultStake)
 	return fixedStakeValues, defaultStake, nil
 

@@ -27,6 +27,8 @@ EngineDefs:
       - [1,0,0,0,1]
       - [1,2,2,2,1]
       - [0,1,0,1,0]
+    WinConfig:
+      Flags: "none"
     Payouts:
       - {Symbol: 0, Count: 3, Multiplier: 5}
       - {Symbol: 0, Count: 4, Multiplier: 20}
