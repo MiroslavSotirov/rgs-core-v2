@@ -103,6 +103,7 @@ config:
   demotokenprefix: "demo-token-ezVVKaEv2nY7kP2gMCX7vfCH"
   democurrency: "USD"
   logaccount: "145472021_144443389"
+  datalimit: 3200
 
 gameConfig:
   - engineID: mvgEngineI

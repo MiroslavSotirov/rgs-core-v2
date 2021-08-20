@@ -60,7 +60,11 @@ func parseBetConfig() (betConfig, rgse.RGSErr) {
 func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode string, playerID string) (walletInitBal engine.Money, ctFS int, waFS engine.Fixed, err rgse.RGSErr) {
 	logger.Debugf("getting demo wallet defaults for player %v, ccy %v", playerID, currency)
 
-	// default wallet amt is 100x the max bet amount for the game
+	// default wallet amt is 100x the max bet amount for the game (except in local mode to enable long automated playtesting)
+	walletamtmult := 100
+	if config.GlobalConfig.DevMode && config.GlobalConfig.Local {
+		walletamtmult = 1000000
+	}
 	stakeValues, _, paramErr := GetGameplayParameters(engine.Money{0, currency}, betSettingsCode, gameID)
 	if paramErr != nil {
 		err = paramErr
@@ -72,7 +76,7 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 		err = confErr
 		return
 	}
-	walletInitBal = engine.Money{stakeValues[len(stakeValues)-1].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).Mul(engine.NewFixedFromInt(50)), currency}
+	walletInitBal = engine.Money{stakeValues[len(stakeValues)-1].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).Mul(engine.NewFixedFromInt(walletamtmult)), currency}
 	// solution for testing low balance
 	if playerID == "lowbalance" {
 		walletInitBal = engine.Money{0, currency}
