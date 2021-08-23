@@ -32,7 +32,8 @@ func (f TriggerSupaCrewSuperSymbol) Trigger(state *FeatureState, params FeatureP
 	ran15 := rng.RandFromRange(15)
 	//	if random/9 < 20 {
 	// test version
-	if random >= 20 && random <= 29 {
+	ran9 := random / 9
+	if ran9 >= 20 && ran9 <= 29 {
 		x := ran15 / 5
 		y := []int{-2, -1, 0, 1, 2}[ran15%5]
 		params["W"] = 3
