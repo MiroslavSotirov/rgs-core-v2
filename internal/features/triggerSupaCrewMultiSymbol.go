@@ -30,7 +30,9 @@ func (f TriggerSupaCrewMultiSymbol) Trigger(state *FeatureState, params FeatureP
 
 	random := params.GetInt("Random")
 	randiv := random / 9
-	if randiv >= 20 && randiv <= 24 {
+	//	if randiv >= 20 && randiv <= 24 {
+	// test version
+	if randiv < 20 {
 		ran8 := rng.RandFromRange(8)
 		y := ran8 / 4
 		x := ran8 % 4
