@@ -33,7 +33,7 @@ func (f TriggerSupaCrewSuperSymbol) Trigger(state *FeatureState, params FeatureP
 	//	if random/9 < 20 {
 	// test version
 	ran9 := random / 9
-	if ran9 >= 20 && ran9 <= 29 {
+	if ran9 >= 30 && ran9 <= 39 {
 		x := ran15 / 5
 		y := []int{-2, -1, 0, 1, 2}[ran15%5]
 		params["W"] = 3

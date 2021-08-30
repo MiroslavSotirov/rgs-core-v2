@@ -60,7 +60,7 @@ EngineDefs:
     Features:
       - Type: "TriggerSupaCrew"
         Params:
-          RandomRange: 8824
+          RandomRange: 14877
         Features:
           - Type: "TriggerSupaCrewSuperSymbol"
             Params:
