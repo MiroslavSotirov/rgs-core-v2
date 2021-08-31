@@ -184,13 +184,20 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 
 	override, ok := betConf.Override[gameID]
 	if ok {
+		var mult engine.Fixed
 		stakeconf, ok := override[lastBet.Currency]
+		if ok {
+			mult = engine.NewFixedFromInt(1)
+		} else {
+			stakeconf, ok = override["credits"]
+			mult = engine.NewFixedFromFloat(ccyMult)
+		}
 		if ok {
 			fixedStakeValues = make([]engine.Fixed, len(stakeconf.StakeValues))
 			for i, s := range stakeconf.StakeValues {
-				fixedStakeValues[i] = engine.NewFixedFromFloat(s)
+				fixedStakeValues[i] = engine.NewFixedFromFloat(s).Mul(mult)
 			}
-			defaultStake = engine.NewFixedFromFloat(stakeconf.DefaultBet)
+			defaultStake = engine.NewFixedFromFloat(stakeconf.DefaultBet).Mul(mult)
 			logger.Infof("overriding stake values: stakes= %v, defaultbet= %v", fixedStakeValues, defaultStake)
 		}
 	}

@@ -144,9 +144,22 @@ hostProfiles:
   maverick: low
   THB: highdefault
 
-# example of the stake override
-#override:
-#  supa-crew:
+override:
+  supa-crew:
+    credits:
+      defaultBet: 10
+      stakeValues:
+        - 3
+        - 5
+        - 10
+        - 20
+        - 30
+        - 50
+        - 100
+        - 200
+        - 300
+        - 500
+# example: if currency is specified then its config will be used instead of the stakeValues
 #    USD:
 #      defaultBet: 18.24
 #      stakeValues:
