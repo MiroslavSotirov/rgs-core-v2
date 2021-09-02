@@ -63,7 +63,7 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 	// default wallet amt is 100x the max bet amount for the game (except in local mode to enable long automated playtesting)
 	walletamtmult := 100
 	if config.GlobalConfig.DevMode {
-		walletamtmult = 1000000
+		walletamtmult = 10000
 	}
 	stakeValues, _, paramErr := GetGameplayParameters(engine.Money{0, currency}, betSettingsCode, gameID)
 	if paramErr != nil {
@@ -77,6 +77,7 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 		return
 	}
 	walletInitBal = engine.Money{stakeValues[len(stakeValues)-1].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).Mul(engine.NewFixedFromInt(walletamtmult)), currency}
+	logger.Debugf("wallet initial balance= %v", walletInitBal)
 	// solution for testing low balance
 	if playerID == "lowbalance" {
 		walletInitBal = engine.Money{0, currency}
@@ -184,14 +185,21 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 
 	override, ok := betConf.Override[gameID]
 	if ok {
+		var mult engine.Fixed
 		stakeconf, ok := override[lastBet.Currency]
+		if ok {
+			mult = engine.NewFixedFromInt(1)
+		} else {
+			stakeconf, ok = override["credits"]
+			mult = engine.NewFixedFromFloat(ccyMult)
+		}
 		if ok {
 			fixedStakeValues = make([]engine.Fixed, len(stakeconf.StakeValues))
 			for i, s := range stakeconf.StakeValues {
-				fixedStakeValues[i] = engine.NewFixedFromFloat(s)
+				fixedStakeValues[i] = engine.NewFixedFromFloat(s).Mul(mult)
 			}
-			defaultStake = engine.NewFixedFromFloat(stakeconf.DefaultBet)
-			logger.Infof("overriding stake values: stakes= %v, defaultbet= %v", fixedStakeValues, defaultStake)
+			defaultStake = engine.NewFixedFromFloat(stakeconf.DefaultBet).Mul(mult)
+			logger.Debugf("overriding stake values: stakes= %v, defaultbet= %v", fixedStakeValues, defaultStake)
 		}
 	}
 
