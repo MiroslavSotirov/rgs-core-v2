@@ -3,6 +3,7 @@ package features
 import (
 	"strings"
 
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 )
 
@@ -23,7 +24,7 @@ func (f *TriggerSupaCrewActionSymbol) Init(def FeatureDef) error {
 }
 
 func (f TriggerSupaCrewActionSymbol) Trigger(state *FeatureState, params FeatureParams) {
-	if params.HasKey("force") && strings.Contains(params.GetString("force"), "actionsymbol") {
+	if config.GlobalConfig.DevMode && params.HasKey("force") && strings.Contains(params.GetString("force"), "actionsymbol") {
 		f.ForceTrigger(state, params)
 		return
 	}
