@@ -1,6 +1,12 @@
 package features
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+	"strings"
+
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+)
 
 type FeatureParams map[string]interface{}
 
@@ -272,4 +278,38 @@ func (p FeatureParams) GetBool(name string) bool {
 func (p FeatureParams) GetIntSlice(name string) []int {
 	defer paramconvertpanic(name)
 	return convertIntSlice(p.Get(name))
+}
+
+// get a specific force from a list of space separated forces [force:value] or [forceflag]
+func (p FeatureParams) GetForce(force string) string {
+	if config.GlobalConfig.DevMode && p.HasKey("force") {
+		forces := strings.Split(p.GetString("force"), " ")
+		for _, f := range forces {
+			if strings.Contains(f, force) {
+				var val string
+				if strings.Contains(f, ":") {
+					parts := strings.Split(f, ":")
+					val = parts[1]
+				} else {
+					val = f
+				}
+				return val
+			}
+		}
+	}
+	return ""
+}
+
+func (p FeatureParams) GetForceFloat64(force string) (v float64, ok bool) {
+	ok = false
+	f := p.GetForce(force)
+	if f != "" {
+		val, err := strconv.ParseFloat(f, 64)
+		if err != nil {
+			return
+		}
+		ok = true
+		v = val
+	}
+	return
 }

@@ -14,9 +14,11 @@ type FeatureDef struct {
 }
 
 type FeatureState struct {
+	SourceGrid [][]int
 	SymbolGrid [][]int
 	Features   []Feature
 	Wins       []FeatureWin
+	TotalStake float64
 }
 
 type FeatureWin struct {

@@ -1401,7 +1401,9 @@ func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
 
 func (engine EngineDef) TriggerConfiguredFeatures(symbolgrid [][]int, parameters GameParams) features.FeatureState {
 	var featurestate features.FeatureState
+	featurestate.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
 	gridw, gridh := len(symbolgrid), len(symbolgrid[0])
+	featurestate.SourceGrid = symbolgrid
 	featurestate.SymbolGrid = make([][]int, gridw)
 	grid := make([]int, gridw*gridh)
 	for i := range featurestate.SymbolGrid {
@@ -1446,13 +1448,18 @@ func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 	wins, relativePayout := engine.DetermineWins(featurestate.SymbolGrid)
 	featurewins := []Prize{}
 	for _, w := range featurestate.Wins {
+		symbol := 0
+		index := "0:0"
+		if len(w.Symbols) > 0 {
+			index = fmt.Sprintf("%d:%d", w.Symbols[0], len(w.Symbols))
+		}
 		prize := Prize{
 			Payout: Payout{
-				Symbol:     w.Symbols[0],
+				Symbol:     symbol,
 				Count:      len(w.Symbols),
 				Multiplier: engine.StakeDivisor,
 			},
-			Index:           fmt.Sprintf("%d:%d", w.Symbols[0], len(w.Symbols)),
+			Index:           index,
 			Multiplier:      w.Multiplier,
 			SymbolPositions: w.SymbolPositions,
 			Winline:         -1, // until features have prizes associated with lines
