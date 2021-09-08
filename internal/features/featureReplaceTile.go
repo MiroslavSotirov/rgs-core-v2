@@ -54,6 +54,7 @@ func (f ReplaceTile) Trigger(state *FeatureState, params FeatureParams) {
 		})
 }
 
+// remove this as soon as the duplicates problem has been tracked down
 func (f ReplaceTile) Validate() {
 	duplicates := make(map[int]bool)
 	for _, p := range f.Data.Positions {
@@ -68,12 +69,12 @@ func (f ReplaceTile) Validate() {
 }
 
 func (f *ReplaceTile) Serialize() ([]byte, error) {
-	f.Validate()
+	//	f.Validate()
 	return serializeFeatureToBytes(f)
 }
 
 func (f *ReplaceTile) Deserialize(data []byte) (err error) {
 	err = deserializeFeatureFromBytes(f, data)
-	f.Validate()
+	//	f.Validate()
 	return
 }
