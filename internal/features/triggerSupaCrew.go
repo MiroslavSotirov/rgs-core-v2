@@ -124,9 +124,6 @@ func (f TriggerSupaCrew) ForceTrigger(state *FeatureState, params FeatureParams)
 		},
 	}
 
-	if change, ok := params.GetForceFloat64("addbalance"); ok == true {
-		f.ForceTriggerAddBalance(state, change)
-	}
 	forceConfigs := []string{
 		"addbalance", "bigwin", "superwin", "megawin", "linesymbol0", "linesymbol1", "linesymbol2",
 		"linesymbol3", "linesymbol4", "linesymbol5", "linesymbol6", "linesymbol7", "linesymbol8"}
@@ -145,16 +142,6 @@ func (f TriggerSupaCrew) ForceTrigger(state *FeatureState, params FeatureParams)
 		}
 	}
 	return false
-}
-
-func (f TriggerSupaCrew) ForceTriggerAddBalance(state *FeatureState, change float64) {
-	multiplier := int(change / state.TotalStake)
-	state.Wins = append(state.Wins,
-		FeatureWin{
-			Multiplier:      multiplier,
-			Symbols:         []int{0, 0, 0},
-			SymbolPositions: []int{0, 3, 6},
-		})
 }
 
 func (f *TriggerSupaCrew) Serialize() ([]byte, error) {
