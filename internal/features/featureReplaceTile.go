@@ -8,7 +8,7 @@ import (
 
 type ReplaceTileData struct {
 	Positions     []int `json:"positions"`
-	TileId        int   `json:"titleid"`
+	TileId        int   `json:"tileid"`
 	ReplaceWithId int   `json:"replacewithid"`
 }
 
