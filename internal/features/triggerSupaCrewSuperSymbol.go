@@ -48,7 +48,7 @@ func (f TriggerSupaCrewSuperSymbol) Trigger(state *FeatureState, params FeatureP
 }
 
 func (f TriggerSupaCrewSuperSymbol) ForceTrigger(state *FeatureState, params FeatureParams) {
-	params["X"] = rng.RandFromRange(5)
+	params["X"] = rng.RandFromRange(3)
 	params["Y"] = rng.RandFromRange(5) - 2
 	params["W"] = 3
 	params["H"] = 3
