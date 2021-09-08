@@ -26,7 +26,6 @@ func (f *TriggerSupaCrewActionSymbol) Init(def FeatureDef) error {
 func (f TriggerSupaCrewActionSymbol) Trigger(state *FeatureState, params FeatureParams) {
 	if config.GlobalConfig.DevMode && params.HasKey("force") && strings.Contains(params.GetString("force"), "actionsymbol") {
 		f.ForceTrigger(state, params)
-		return
 	}
 
 	random := params.GetInt("Random")
@@ -52,20 +51,21 @@ func (f TriggerSupaCrewActionSymbol) Trigger(state *FeatureState, params Feature
 }
 
 func (f TriggerSupaCrewActionSymbol) ForceTrigger(state *FeatureState, params FeatureParams) {
+	gridw, gridh := len(state.SymbolGrid), len(state.SymbolGrid[0])
+	for x := 0; x < gridw; x++ {
+		for y := 0; y < gridh; y++ {
+			state.SymbolGrid[x][y] = state.SourceGrid[x][y]
+		}
+	}
+	state.Features = []Feature{}
 	num := rng.RandFromRange(15) + 1
 	tileid := params.GetInt("TileId")
-	replaceid := rng.RandFromRange(9)
-	params["ReplaceWithId"] = replaceid
-	gridh := len(state.SymbolGrid[0])
-	positions := make([]int, num)
 	for i := 0; i < num; i++ {
 		x := rng.RandFromRange(5)
 		y := rng.RandFromRange(3)
-		positions[i] = x*gridh + y
+		state.SourceGrid[x][y] = tileid
 		state.SymbolGrid[x][y] = tileid
 	}
-	params["Positions"] = positions
-	activateFeatures(f.FeatureDef, state, params)
 }
 
 func (f *TriggerSupaCrewActionSymbol) Serialize() ([]byte, error) {
