@@ -1,13 +1,19 @@
 package api
 
 import (
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"net/http"
+
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 )
 
 type BalanceCheckResponse struct {
 	Token store.Token `json:"host/verified-token,omitempty"`
 	BalanceResponseV2
+}
+
+type SetBalanceParams struct {
+	Balance engine.Money `json:"balance"`
 }
 
 // TODO: move all common render codes here

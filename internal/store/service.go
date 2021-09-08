@@ -168,6 +168,7 @@ type (
 		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, rgse.RGSErr)
 		GamestateById(gamestateId string) (GameStateStore, rgse.RGSErr)
 		SetMessage(playerId string, message string) rgse.RGSErr
+		SetBalance(token Token, amount engine.Money) rgse.RGSErr
 	}
 
 	LocalServiceImpl struct{}
@@ -1344,6 +1345,20 @@ func (i *LocalServiceImpl) getTransactionByPlayerGame(key string) (TransactionSt
 	tx, ok := ld.TransactionByPlayerGame[key]
 
 	return tx, ok
+}
+
+func (i *LocalServiceImpl) SetBalance(token Token, balance engine.Money) rgse.RGSErr {
+	err := internalCheck()
+	if err != nil {
+		return rgse.Create(rgse.InternalServerError)
+	}
+
+	playerId, _ := i.getToken(token)
+	player, _ := i.getPlayer(playerId)
+	player.Balance = balance
+	logger.Debugf("Setting playerId %s balance to %s in currency %s", playerId, player.Balance.Amount.ValueAsString(), player.Balance.Currency)
+	i.setPlayer(playerId, player)
+	return nil
 }
 
 func internalInit(c *config.Config) {

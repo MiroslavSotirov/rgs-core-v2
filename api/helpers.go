@@ -1,13 +1,14 @@
 package api
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/go-chi/chi"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
-	"net/http"
-	"strings"
 )
 
 // GetURLScheme returns https if TLS is present else returns http
@@ -38,6 +39,14 @@ func processAuthorization(request *http.Request) (string, rgse.RGSErr) {
 	return tokenInfo[1], nil
 }
 
+func parseMemID(token string) string {
+	parts := strings.Split(token, "=")
+	if len(parts) < 2 {
+		return token
+	}
+	return strings.Trim(parts[1], "'")
+}
+
 func PlayerBalance(r *http.Request) (BalanceCheckResponse, rgse.RGSErr) {
 	authToken, err := processAuthorization(r)
 	if err != nil {
@@ -45,8 +54,7 @@ func PlayerBalance(r *http.Request) (BalanceCheckResponse, rgse.RGSErr) {
 	}
 
 	logger.Debugf("AuthToken: [%v]", authToken)
-	memID := strings.Split(authToken, "=")[1]
-	memID = strings.Trim(memID, "'")
+	memID := parseMemID(authToken)
 	logger.Debugf("MemID: %s", memID)
 
 	wallet := chi.URLParam(r, "wallet")
@@ -55,5 +63,5 @@ func PlayerBalance(r *http.Request) (BalanceCheckResponse, rgse.RGSErr) {
 	if err != nil {
 		return BalanceCheckResponse{}, err
 	}
-	return BalanceCheckResponse{Token: balance.Token, BalanceResponseV2: BalanceResponseV2{Amount: balance.Balance, FreeGames: balance.FreeGames.NoOfFreeSpins, FreeSpinInfo: &FreespinResponse{CtRemaining:balance.FreeGames.NoOfFreeSpins, WagerAmt:balance.FreeGames.TotalWagerAmt}}}, nil
+	return BalanceCheckResponse{Token: balance.Token, BalanceResponseV2: BalanceResponseV2{Amount: balance.Balance, FreeGames: balance.FreeGames.NoOfFreeSpins, FreeSpinInfo: &FreespinResponse{CtRemaining: balance.FreeGames.NoOfFreeSpins, WagerAmt: balance.FreeGames.TotalWagerAmt}}}, nil
 }

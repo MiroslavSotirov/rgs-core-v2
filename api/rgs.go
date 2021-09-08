@@ -5,21 +5,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+
+	//	"gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/metrics"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // APIVersion ...
@@ -328,6 +331,7 @@ func Routes() *chi.Mux {
 			err := CloseGS(r)
 			logger.Debugf("error on round close: %v", err)
 			if err != nil {
+				render.Render(w, r, ErrRender(err))
 				w.WriteHeader(400)
 				return
 			}
@@ -471,7 +475,7 @@ func Routes() *chi.Mux {
 					GameState:           gsbytes,
 					FreeGames:           store.FreeGamesStore{},
 					WalletStatus:        0,
-					Ttl:				 gamestate.GetTtl(),
+					Ttl:                 gamestate.GetTtl(),
 				})
 			case "dashur":
 				_, err = store.Serv.Transaction(player.Token, store.ModeReal, store.TransactionStore{
@@ -490,7 +494,7 @@ func Routes() *chi.Mux {
 					GameState:           gsbytes,
 					FreeGames:           store.FreeGamesStore{},
 					WalletStatus:        0,
-					Ttl:				 gamestate.GetTtl(),
+					Ttl:                 gamestate.GetTtl(),
 				})
 			}
 
@@ -563,6 +567,25 @@ func Routes() *chi.Mux {
 				_ = render.Render(w, r, ErrRender(err))
 			}
 			return
+		})
+		r.Post("/setbalance/demo", func(w http.ResponseWriter, r *http.Request) {
+			var param SetBalanceParams
+			err := json.NewDecoder(r.Body).Decode(&param)
+			if err != nil {
+				_ = render.Render(w, r, ErrRender(err))
+				return
+			}
+			token, err := processAuthorization(r)
+			if err != nil {
+				_ = render.Render(w, r, ErrRender(err))
+				return
+			}
+			memID := parseMemID(token)
+			err = store.SetPlayerBalance(memID, "demo", param.Balance)
+			if err != nil {
+				_ = render.Render(w, r, ErrRender(err))
+				return
+			}
 		})
 		r.Get("/stakes", func(w http.ResponseWriter, r *http.Request) {
 			stakeInfo(r, w)

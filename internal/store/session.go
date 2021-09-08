@@ -1,12 +1,13 @@
 package store
 
 import (
+	"strings"
+
 	uuid "github.com/satori/go.uuid"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
-	"strings"
 )
 
 func InitPlayerGS(refreshToken string, playerID string, gameName string, currency string, wallet string) (engine.Gamestate, PlayerStore, rgse.RGSErr) {
@@ -88,4 +89,18 @@ func PlayerBalance(token, wallet string) (BalanceStore, rgse.RGSErr) {
 		logger.Debugf("PlayerBalance Error: %v", "No wallet specified")
 		return BalanceStore{}, err
 	}
+}
+
+func SetPlayerBalance(token string, wallet string, balance engine.Money) rgse.RGSErr {
+	switch wallet {
+	case "demo":
+		err := ServLocal.SetBalance(Token(token), balance)
+		if err != nil {
+			return err
+		}
+	default:
+		logger.Errorf("SetPlayerBalance is only available in demo mode")
+		return rgse.Create(rgse.InvalidWallet)
+	}
+	return nil
 }

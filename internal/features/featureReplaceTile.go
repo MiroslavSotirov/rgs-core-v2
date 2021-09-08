@@ -1,5 +1,11 @@
 package features
 
+import (
+	"encoding/json"
+
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
+)
+
 type ReplaceTileData struct {
 	Positions     []int `json:"positions"`
 	TileId        int   `json:"titleid"`
@@ -48,10 +54,26 @@ func (f ReplaceTile) Trigger(state *FeatureState, params FeatureParams) {
 		})
 }
 
+func (f ReplaceTile) Validate() {
+	duplicates := make(map[int]bool)
+	for _, p := range f.Data.Positions {
+		_, ok := duplicates[p]
+		if ok {
+			b, _ := json.Marshal(f)
+			logger.Debugf("broken ReplaceTile: %s", string(b))
+			panic("ReplaceTile feature validation failed")
+		}
+		duplicates[p] = true
+	}
+}
+
 func (f *ReplaceTile) Serialize() ([]byte, error) {
+	f.Validate()
 	return serializeFeatureToBytes(f)
 }
 
 func (f *ReplaceTile) Deserialize(data []byte) (err error) {
-	return deserializeFeatureFromBytes(f, data)
+	err = deserializeFeatureFromBytes(f, data)
+	f.Validate()
+	return
 }
