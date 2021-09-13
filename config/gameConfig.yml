@@ -85,3 +85,6 @@
 - engineID: mvgEngineUnity1
   games:
     - supa-crew
+- engineID: mvgEngineUnity2
+  games:
+    - fox-tail

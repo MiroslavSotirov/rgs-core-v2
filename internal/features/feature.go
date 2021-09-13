@@ -41,10 +41,13 @@ type EnabledFeatureSet struct {
 	_ FatTile
 	_ InstaWin
 	_ ReplaceTile
+	_ ExpandingWild
 	_ TriggerSupaCrew
 	_ TriggerSupaCrewActionSymbol
 	_ TriggerSupaCrewSuperSymbol
 	_ TriggerSupaCrewMultiSymbol
+	_ TriggerFoxTail
+	_ TriggerFoxTailWild
 }
 
 func MakeFeature(typename string) Feature {
