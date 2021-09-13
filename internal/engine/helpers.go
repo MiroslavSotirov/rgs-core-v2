@@ -69,23 +69,41 @@ func (num Fixed) ValueAsFloat() float32 {
 func (num Fixed) ValueAsString() string {
 	// prints number with max 3 decimal places
 	// this value is chosen due to the minimum currency value we support (3 decimal places)
-
-	s := fmt.Sprintf("%d", num/fixedExp)
-	d := fmt.Sprintf(".%06d", num%fixedExp)
-
-	return s + d[:4]
-
+	n := num.Abs()
+	s := fmt.Sprintf("%d", n/fixedExp)
+	d := fmt.Sprintf(".%06d", n%fixedExp)
+	o := s + d[:4]
+	if num.IsNeg() {
+		return "-" + o
+	}
+	return o
 }
+
 func (num Fixed) StringFmt(p int) string {
 	if p > 6 {
 		p = 6
 	}
 	// prints as a string with p decimal places
-	s := fmt.Sprintf("%d", num/fixedExp)
-	d := fmt.Sprintf(".%06d", num%fixedExp)
+	n := num.Abs()
+	s := fmt.Sprintf("%d", n/fixedExp)
+	d := fmt.Sprintf(".%06d", n%fixedExp)
+	o := s + d[:p+1]
+	if num.IsNeg() {
+		return "-" + o
+	}
+	return o
 
-	return s + d[:p+1]
+}
 
+func (num Fixed) IsNeg() bool {
+	return int64(num) < 0
+}
+
+func (num Fixed) Abs() Fixed {
+	if int64(num) < 0 {
+		return Fixed(-int64(num))
+	}
+	return num
 }
 
 func (num Fixed) ValueAsInt() int32 {
