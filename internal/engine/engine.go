@@ -1429,7 +1429,9 @@ func (engine EngineDef) TriggerConfiguredFeatures(symbolgrid [][]int, parameters
 			return features.FeatureState{}
 		}
 		feature.Init(featuredef)
-		featureparams := features.FeatureParams{}
+		featureparams := features.FeatureParams{
+			"Engine": engine.ID,
+		}
 		if config.GlobalConfig.DevMode == true && parameters.Force != "" {
 			logger.Debugf("trigger configured features using force %s", parameters.Force)
 			featureparams["force"] = parameters.Force

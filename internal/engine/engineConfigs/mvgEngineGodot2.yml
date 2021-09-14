@@ -36,6 +36,9 @@ EngineDefs:
       - [0,1,1,1,0]
       - [2,1,1,1,2]
       - [0,2,2,2,0]   # 20
+    wilds:
+      - symbol: 9
+        multiplier: {multipliers: [1], probabilities: [1]}
     Payouts:
       - {Symbol: 0, Count: 3, Multiplier: 5}
       - {Symbol: 0, Count: 4, Multiplier: 20}
@@ -48,7 +51,7 @@ EngineDefs:
       - {Symbol: 2, Count: 5, Multiplier: 100}
       - {Symbol: 3, Count: 3, Multiplier: 10}
       - {Symbol: 3, Count: 4, Multiplier: 50}
-      - {Symbol: 3, Count: 5, Multiplier: 2000}
+      - {Symbol: 3, Count: 5, Multiplier: 200}
       - {Symbol: 4, Count: 3, Multiplier: 10}
       - {Symbol: 4, Count: 4, Multiplier: 50}
       - {Symbol: 4, Count: 5, Multiplier: 200}
@@ -67,6 +70,8 @@ EngineDefs:
       - {Symbol: 9, Count: 3, Multiplier: 100}
       - {Symbol: 9, Count: 4, Multiplier: 300}
       - {Symbol: 9, Count: 5, Multiplier: 1000}
+    SpecialPayouts:
+      - {Payout: {Symbol: 11, Count: 3, Multiplier: 0}, Index: "freespin:12", Multiplier: 0}
     Features:
       - Type: "TriggerFoxTail"
         Params:
@@ -76,8 +81,12 @@ EngineDefs:
             Params:
               TileId: 9
             Features:
-              - Id: 2
-                Type: "ExpandingWild"
+              - Type: "ExpandingWild"
+          - Type: "TriggerFoxTailBonus"
+            Params:
+              TileId: 10
+            Features:
+              - Type: "InstaWin"
   - name: freespin
     Reels:
       - [3,2,1,9,2,1,6,0,4,11,2,3,7,0,1,11,2,0,5,4,1,11,3,2,1,9,2,1,6,0,3,8,2,4,7,1,0,11]

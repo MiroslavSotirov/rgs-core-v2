@@ -28,12 +28,29 @@ func (f TriggerFoxTailWild) Trigger(state *FeatureState, params FeatureParams) {
 	}
 
 	random := params.GetInt("Random")
-	//	tileid := params.GetInt("TileId")
+	tileid := params.GetInt("TileId")
+	engine := params.GetString("Engine")
+	expand := random < 2716 || engine == "freespin"
 
-	if random < 2716 {
-		// expanding wild
-	} else {
-		// normal wild
+	if expand {
+		index := 0
+		gridw := len(state.SymbolGrid)
+		for x := 0; x < gridw; x++ {
+			gridh := len(state.SymbolGrid[x])
+			for y := 0; y < gridh; y++ {
+				if state.SymbolGrid[x][y] == tileid {
+					positions := []int{}
+					for i := 0; i < gridh; i++ {
+						positions = append(positions, index+i)
+					}
+					params["Positions"] = positions
+					activateFeatures(f.FeatureDef, state, params)
+					break
+				}
+			}
+			index += gridh
+		}
+
 	}
 	return
 }
