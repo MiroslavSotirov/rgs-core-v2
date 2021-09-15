@@ -413,6 +413,10 @@ type (
 var ld *LocalData
 var remoteServiceImplHttpClient *promhttp.Client
 
+func CleanUp() {
+	ld = new(LocalData)
+}
+
 func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) (player PlayerStore, gs GameStateStore, err rgse.RGSErr) {
 	logger.Debugf("LocalServiceImpl.PlayerByToken([%v], [%v])", token, mode)
 
