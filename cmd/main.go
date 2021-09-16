@@ -18,13 +18,14 @@ import (
 )
 
 var (
-	runVT     bool
-	engineID  string
-	spins     int
-	chunks    int
-	perSpin   bool
-	maxes     bool
-	getHashes bool
+	runVT      bool
+	engineID   string
+	spins      int
+	chunks     int
+	perSpin    bool
+	maxes      bool
+	getHashes  bool
+	memProfile string
 )
 
 func main() {

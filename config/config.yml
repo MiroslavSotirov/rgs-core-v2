@@ -1,11 +1,11 @@
 # this is overwritten in deployment by configmap, use only for local development
 # development mode
-devmode: true
+devmode: false
 local: true
 
 # Log levels
 # debug, info, warn, error, fatal
-logging: debug # info
+logging: debug # debug # info
 
 # mcrouter address
 mcrouter: "127.0.0.1:11211"
@@ -16,7 +16,8 @@ server:
   port: 3000
 
 dashurconf:
-  storeurl: https://gnrc-api.dashur.io/v1/gnrc/maverick
+  storeurl: http://gnrc-api.stginservix.com
+#  storeurl: https://gnrc-api.dashur.io/v1/gnrc/maverick
   storeappid: VrCLq4UqYBf39rJt
   storeapppass: V6Kg9muzJxsz3nWFvJeyccU7
 demotokenprefix: demo-token-ezVVKaEv2nY7kP2gMCX7vfCH

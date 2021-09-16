@@ -118,11 +118,11 @@ type (
 	//}
 
 	LocalData struct {
-		Token                   map[Token]string
-		Player                  map[string]PlayerStore
-		Transaction             map[string]TransactionStore
-		TransactionByPlayerGame map[string]TransactionStore
-		Message                 map[string]string
+		Token                   map[Token]gcstring
+		Player                  map[string]gcPlayerStore
+		Transaction             map[string]gcTransactionStore
+		TransactionByPlayerGame map[string]gcTransactionStore
+		Message                 map[string]gcstring
 		Lock                    sync.RWMutex
 	}
 
@@ -523,6 +523,7 @@ func (i *RemoteServiceImpl) errorHttpStatusCode(httpStatusCode int) rgse.RGSErr 
 		} else if httpStatusCode == 402 {
 			return rgse.Create(rgse.InsufficientFundError)
 		}
+		panic("the fuu")
 		return rgse.Create(rgse.GenericWalletError)
 	}
 	return nil
@@ -537,6 +538,7 @@ func (i *RemoteServiceImpl) errorResponseCode(responseCode string) rgse.RGSErr {
 		} else if responseCode == string(ResponseCodeSessionExpired) {
 			return rgse.Create(rgse.TokenExpired)
 		}
+		panic("the fuu 2")
 		return rgse.Create(rgse.GenericWalletError)
 	}
 	return nil
@@ -1214,7 +1216,7 @@ func (i *LocalServiceImpl) setToken(token Token, playerId string) {
 	ld.Lock.Lock()
 	defer ld.Lock.Unlock()
 
-	ld.Token[token] = playerId
+	ld.Token[token] = NewGcString(playerId, 3600)
 }
 
 func (i *LocalServiceImpl) deleteToken(token Token) {
@@ -1227,7 +1229,7 @@ func (i *LocalServiceImpl) deleteToken(token Token) {
 	defer ld.Lock.Unlock()
 	_, ok := ld.Token[token]
 	// don't delete the token if it matches the player id
-	if ok && string(token) != ld.Token[token] {
+	if ok && string(token) != ld.Token[token].str {
 		delete(ld.Token, token)
 	}
 }
@@ -1242,8 +1244,10 @@ func (i *LocalServiceImpl) getToken(token Token) (string, bool) {
 	defer ld.Lock.RUnlock()
 
 	playerId, ok := ld.Token[token]
-
-	return playerId, ok
+	if ok {
+		return playerId.str, true
+	}
+	return "", false
 }
 
 func (i *LocalServiceImpl) setPlayer(playerId string, player PlayerStore) {
@@ -1255,10 +1259,10 @@ func (i *LocalServiceImpl) setPlayer(playerId string, player PlayerStore) {
 	ld.Lock.Lock()
 	defer ld.Lock.Unlock()
 
-	ld.Player[playerId] = player
+	ld.Player[playerId] = NewGcPlayerStore(player, 3600)
 }
 
-func (i *LocalServiceImpl) getPlayer(playerId string) (PlayerStore, bool) {
+func (i *LocalServiceImpl) getPlayer(playerId string) (ps PlayerStore, ok bool) {
 	err := internalCheck()
 	if err != nil {
 		panic(err)
@@ -1267,9 +1271,13 @@ func (i *LocalServiceImpl) getPlayer(playerId string) (PlayerStore, bool) {
 	ld.Lock.RLock()
 	defer ld.Lock.RUnlock()
 
-	player, ok := ld.Player[playerId]
+	var player gcPlayerStore
+	player, ok = ld.Player[playerId]
+	if ok {
+		ps = player.ps
+	}
 
-	return player, ok
+	return
 }
 
 func (i *LocalServiceImpl) SetMessage(playerId string, message string) rgse.RGSErr {
@@ -1282,11 +1290,11 @@ func (i *LocalServiceImpl) SetMessage(playerId string, message string) rgse.RGSE
 	ld.Lock.Lock()
 	defer ld.Lock.Unlock()
 
-	ld.Message[playerId] = message
+	ld.Message[playerId] = NewGcString(message, 3600)
 	return nil
 }
 
-func (i *LocalServiceImpl) getMessage(playerId string) (string, bool) {
+func (i *LocalServiceImpl) getMessage(playerId string) (msg string, ok bool) {
 	err := internalCheck()
 	if err != nil {
 		panic(err)
@@ -1295,9 +1303,13 @@ func (i *LocalServiceImpl) getMessage(playerId string) (string, bool) {
 	ld.Lock.RLock()
 	defer ld.Lock.RUnlock()
 
-	message, ok := ld.Message[playerId]
+	var message gcstring
+	message, ok = ld.Message[playerId]
+	if ok {
+		msg = message.str
+	}
 
-	return message, ok
+	return
 }
 
 func (i *LocalServiceImpl) setTransaction(transactionId string, transaction TransactionStore) {
@@ -1309,10 +1321,10 @@ func (i *LocalServiceImpl) setTransaction(transactionId string, transaction Tran
 	ld.Lock.Lock()
 	defer ld.Lock.Unlock()
 
-	ld.Transaction[transactionId] = transaction
+	ld.Transaction[transactionId] = NewGcTransactionStore(transaction, transaction.Ttl)
 }
 
-func (i *LocalServiceImpl) getTransaction(transactionId string) (TransactionStore, bool) {
+func (i *LocalServiceImpl) getTransaction(transactionId string) (tx TransactionStore, ok bool) {
 	err := internalCheck()
 	if err != nil {
 		panic(err)
@@ -1321,9 +1333,13 @@ func (i *LocalServiceImpl) getTransaction(transactionId string) (TransactionStor
 	ld.Lock.RLock()
 	defer ld.Lock.RUnlock()
 
-	tx, ok := ld.Transaction[transactionId]
+	var transaction gcTransactionStore
+	transaction, ok = ld.Transaction[transactionId]
+	if ok {
+		tx = transaction.ts
+	}
 
-	return tx, ok
+	return
 }
 
 func (i *LocalServiceImpl) setTransactionByPlayerGame(key string, transaction TransactionStore) {
@@ -1335,10 +1351,10 @@ func (i *LocalServiceImpl) setTransactionByPlayerGame(key string, transaction Tr
 	ld.Lock.Lock()
 	defer ld.Lock.Unlock()
 
-	ld.TransactionByPlayerGame[key] = transaction
+	ld.TransactionByPlayerGame[key] = NewGcTransactionStore(transaction, transaction.Ttl)
 }
 
-func (i *LocalServiceImpl) getTransactionByPlayerGame(key string) (TransactionStore, bool) {
+func (i *LocalServiceImpl) getTransactionByPlayerGame(key string) (tx TransactionStore, ok bool) {
 	err := internalCheck()
 	if err != nil {
 		panic(err)
@@ -1346,9 +1362,13 @@ func (i *LocalServiceImpl) getTransactionByPlayerGame(key string) (TransactionSt
 
 	ld.Lock.RLock()
 	defer ld.Lock.RUnlock()
-	tx, ok := ld.TransactionByPlayerGame[key]
 
-	return tx, ok
+	var transaction gcTransactionStore
+	transaction, ok = ld.TransactionByPlayerGame[key]
+	if ok {
+		tx = transaction.ts
+	}
+	return
 }
 
 func (i *LocalServiceImpl) SetBalance(token Token, balance engine.Money) rgse.RGSErr {
@@ -1371,11 +1391,13 @@ func internalInit(c *config.Config) {
 	if c.DevMode {
 		if ld == nil {
 			ld = new(LocalData)
-			ld.Token = make(map[Token]string)
-			ld.Player = make(map[string]PlayerStore)
-			ld.Message = make(map[string]string)
-			ld.Transaction = make(map[string]TransactionStore)
-			ld.TransactionByPlayerGame = make(map[string]TransactionStore)
+			ld.Token = make(map[Token]gcstring)
+			ld.Player = make(map[string]gcPlayerStore)
+			ld.Message = make(map[string]gcstring)
+			ld.Transaction = make(map[string]gcTransactionStore)
+			ld.TransactionByPlayerGame = make(map[string]gcTransactionStore)
+
+			go garbageCollector()
 		}
 	} else {
 		remoteServiceImplHttpClient = &promhttp.Client{

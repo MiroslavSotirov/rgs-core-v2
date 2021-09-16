@@ -604,7 +604,6 @@ func Routes() *chi.Mux {
 			r.Mount("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
 			r.Mount("/debug/pprof/goroutine", pprof.Handler("goroutine"))
 		}
-
 	})
 
 	return router
