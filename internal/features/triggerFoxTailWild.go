@@ -30,7 +30,7 @@ func (f TriggerFoxTailWild) Trigger(state *FeatureState, params FeatureParams) {
 	random := params.GetInt("Random")
 	tileid := params.GetInt("TileId")
 	engine := params.GetString("Engine")
-	expand := random < 2716 || engine == "freespin"
+	expand := random < params.GetInt("Limit") || engine == "freespin"
 
 	if expand {
 		index := 0
