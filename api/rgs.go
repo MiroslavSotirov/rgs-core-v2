@@ -331,7 +331,9 @@ func Routes() *chi.Mux {
 		})
 		r.Put("/close", func(w http.ResponseWriter, r *http.Request) {
 			err := CloseGS(r)
-			logger.Debugf("error on round close: %v", err)
+			if err != nil {
+				logger.Debugf("error on round close: %v", err)
+			}
 			if err != nil {
 				render.Render(w, r, ErrRender(err))
 				w.WriteHeader(400)

@@ -7,6 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	sync "sync"
+	"sync/atomic"
+	"time"
 
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
@@ -31,8 +34,70 @@ type EngineConfig struct {
 	EngineDefs []EngineDef `yaml:"EngineDefs,flow"`
 }
 
-// BuildEngineDefs reads engine definition from yml
+type cachedEngineConfig struct {
+	engineConfig atomic.Value
+	loaded       bool
+	cacheTime    time.Time
+	semaphore    int32
+}
+
+var configCache map[string]*cachedEngineConfig = nil
+
+const cacheRefresh time.Duration = time.Duration(1000000000000) // 10 seconds
+var cacheLock sync.Mutex
+
+// BuildEngineDefs wrapper to reuse cached versions of the configs
 func BuildEngineDefs(engineID string) EngineConfig {
+	//	return ReadEngineDefs(engineID)
+
+	var config *cachedEngineConfig = nil
+	var ok bool = false
+
+	if configCache != nil {
+		config, ok = configCache[engineID]
+	}
+
+	now := time.Now()
+	if !ok {
+		cacheLock.Lock()
+		if configCache == nil {
+			configCache = make(map[string]*cachedEngineConfig)
+		}
+		config, ok = configCache[engineID]
+		if !ok {
+			config = &cachedEngineConfig{
+				engineConfig: atomic.Value{},
+				loaded:       false,
+				cacheTime:    now,
+				semaphore:    0,
+			}
+			cfg := EngineConfig{}
+			config.engineConfig.Store(&cfg)
+			configCache[engineID] = config
+		}
+		cacheLock.Unlock()
+	}
+
+	if !config.loaded || now.Sub(config.cacheTime) > cacheRefresh {
+		if atomic.CompareAndSwapInt32(&config.semaphore, 0, 1) {
+			cfg := ReadEngineDefs(engineID)
+			config.engineConfig.Store(&cfg)
+			config.cacheTime = now
+			config.loaded = true
+			atomic.StoreInt32(&config.semaphore, 0)
+			logger.Infof("read and cached config for engine %s", engineID)
+		} else {
+			for atomic.LoadInt32(&config.semaphore) != 0 {
+				time.Sleep(1000000) // 1ms
+			}
+		}
+	}
+
+	return *config.engineConfig.Load().(*EngineConfig)
+}
+
+// BuildEngineDefs reads engine definition from yml
+func ReadEngineDefs(engineID string) EngineConfig {
 	// takes an engineId string and parses the corresponding yaml file into an EngineConfig
 	currentDir, err := os.Getwd()
 	if err != nil {

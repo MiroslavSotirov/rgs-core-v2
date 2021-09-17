@@ -4,6 +4,7 @@ import (
 	"time"
 	"unsafe"
 
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
@@ -29,6 +30,13 @@ type gcTransactionStore struct {
 func (gc *gcdata) stamp(ttl int64) {
 	if ttl == 0 {
 		panic("gcdata with a ttl of zero")
+	}
+	if config.GlobalConfig.DevMode == true {
+		if config.GlobalConfig.Local == true {
+			ttl = 60
+		} else {
+			ttl = 3600
+		}
 	}
 	gc.expireTs = gcTs + ttl
 }

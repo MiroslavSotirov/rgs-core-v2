@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync/atomic"
+	"time"
 
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
@@ -33,7 +35,48 @@ type stakeConfig struct {
 	DefaultBet  float32   `yaml:"defaultBet"`
 }
 
+var cachedConfig atomic.Value = atomic.Value{}
+var cachedTime time.Time = time.Now()
+var semaphore int32 = 0
+
+const cacheRefresh time.Duration = time.Duration(10000000000) // 10 seconds
+
 func parseBetConfig() (betConfig, rgse.RGSErr) {
+	now := time.Now()
+
+	if cachedConfig.Load() == nil {
+		if atomic.CompareAndSwapInt32(&semaphore, 0, 1) {
+			cfg, err := readBetConfig()
+			if err != nil {
+				return betConfig{}, err
+			}
+			logger.Infof("Loaded and cached betConfig")
+			cachedTime = now
+			cachedConfig.Store(&cfg)
+			atomic.StoreInt32(&semaphore, 0)
+		} else {
+			for cachedConfig.Load() == nil {
+				time.Sleep(1000000) // 1ms
+			}
+		}
+	}
+
+	if now.Sub(cachedTime) > cacheRefresh {
+		if atomic.CompareAndSwapInt32(&semaphore, 0, 1) {
+			cfg, err := readBetConfig()
+			if err != nil {
+				return betConfig{}, err
+			}
+			logger.Infof("Reloaded and cached betConfig")
+			cachedTime = now
+			cachedConfig.Store(&cfg)
+			atomic.StoreInt32(&semaphore, 0)
+		}
+	}
+	return *cachedConfig.Load().(*betConfig), nil
+}
+
+func readBetConfig() (betConfig, rgse.RGSErr) {
 	var conf betConfig
 
 	currentDir, err := os.Getwd()
@@ -72,6 +115,11 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 	}
 
 	EC, confErr := engine.GetEngineDefFromGame(gameID)
+	logger.Debugf("GetDemoWalletDefaults EC=%v", EC)
+	if len(EC.EngineDefs) == 0 {
+		logger.Debugf("  EC.EngineDefs has zero length")
+	}
+	logger.Debugf("stakeValues has %d length", len(stakeValues))
 	if confErr != nil {
 		err = confErr
 		return

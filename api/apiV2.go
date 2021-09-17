@@ -53,7 +53,7 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 		return GameInitResponseV2{}, err
 	}
 
-	logger.Debugf("Game: %v; operator: %v; mode: %v; request: %#v", data.Game, data.Operator, data.Mode, request)
+	//	logger.Debugf("Game: %v; operator: %v; mode: %v; request: %#v", data.Game, data.Operator, data.Mode, request)
 
 	engineID, err := config.GetEngineFromGame(data.Game)
 	if err != nil {
