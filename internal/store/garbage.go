@@ -1,8 +1,8 @@
 package store
 
 import (
+	"runtime"
 	"time"
-	"unsafe"
 
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
@@ -31,12 +31,8 @@ func (gc *gcdata) stamp(ttl int64) {
 	if ttl == 0 {
 		panic("gcdata with a ttl of zero")
 	}
-	if config.GlobalConfig.DevMode == true {
-		if config.GlobalConfig.Local == true {
-			ttl = 60
-		} else {
-			ttl = 3600
-		}
+	if config.GlobalConfig.LocalDataTtl > 0 {
+		ttl = config.GlobalConfig.LocalDataTtl
 	}
 	gc.expireTs = gcTs + ttl
 }
@@ -62,23 +58,31 @@ func NewGcTransactionStore(ts TransactionStore, ttl int64) gcTransactionStore {
 	return gc
 }
 
+const gcKeepAmount int = 10000
+const gcReadAmount int = 10000
+const gcDeleteAmount int = 1000
+const gcSleepTime time.Duration = time.Duration(50000000)
+
 var gcStartTime time.Time
 var gcNowTime time.Time
 var gcExecTime time.Duration
 var gcPassTime time.Duration
+var gcDeleteTime time.Duration
 var gcWorkIndex int
 var gcTs int64 = time.Now().Unix()
+var gcExpired []string = make([]string, gcDeleteAmount)
+var gcNumExpired int = 0
 
 func gcStart() {
-	time.Sleep(100000000)
+	time.Sleep(gcSleepTime)
 	gcStartTime = time.Now()
 	gcNowTime = gcStartTime
 	gcWorkIndex = 0
-	ld.Lock.Lock()
+	ld.Lock.RLock()
 }
 
 func gcStop() {
-	ld.Lock.Unlock()
+	ld.Lock.RUnlock()
 	gcNowTime := time.Now()
 	duration := gcNowTime.Sub(gcStartTime)
 	gcExecTime += duration
@@ -89,9 +93,40 @@ func gcStop() {
 
 func gcRest() {
 	gcWorkIndex++
-	if gcWorkIndex > 1000 {
+	if gcWorkIndex > gcReadAmount {
 		gcStop()
 		gcStart()
+	}
+}
+
+type deletefunc func(k string)
+
+func gcMark(k string, del deletefunc) {
+	gcExpired[gcNumExpired] = k
+	gcNumExpired++
+	if gcNumExpired == gcDeleteAmount {
+		gcDelete(del)
+	}
+}
+
+func gcDelete(del deletefunc) {
+	if gcNumExpired > 0 {
+		gcStop()
+		time.Sleep(gcSleepTime)
+		gcStartTime := time.Now()
+		ld.Lock.Lock()
+		for i := 0; i < gcNumExpired; i++ {
+			del(gcExpired[i])
+		}
+		ld.Lock.Unlock()
+		gcNowTime := time.Now()
+		duration := gcNowTime.Sub(gcStartTime)
+		gcExecTime += duration
+		if duration > gcDeleteTime {
+			gcDeleteTime = duration
+		}
+		gcStart()
+		gcNumExpired = 0
 	}
 }
 
@@ -100,60 +135,82 @@ func garbageCollector() {
 		gcTs = time.Now().Unix()
 		gcExecTime = 0
 		gcPassTime = 0
+		gcDeleteTime = 0
 
-		var numBytes uintptr = 0
+		//		var numBytes uintptr = 0
 		numTokens := 0
 		numPlayers := 0
 		numMessages := 0
 		numTransactions := 0
 		numTransactionsByPlayerGame := 0
 
+		deltokenfn := func(key string) { delete(ld.Token, Token(key)) }
+		delplayerfn := func(key string) { delete(ld.Player, key) }
+		delmessagefn := func(key string) { delete(ld.Message, key) }
+		deltransactionfn := func(key string) { delete(ld.Transaction, key) }
+		deltransactionbpgfn := func(key string) { delete(ld.TransactionByPlayerGame, key) }
+
 		gcStart()
-		for k, gc := range ld.Token {
-			gcRest()
-			if gc.expireTs <= gcTs {
-				numBytes += unsafe.Sizeof(ld.Token[k])
-				numTokens++
-				delete(ld.Token, k)
+		if len(ld.Token) > gcKeepAmount {
+			for k, gc := range ld.Token {
+				gcRest()
+				if gc.expireTs <= gcTs {
+					gcMark(string(k), deltokenfn)
+					numTokens++
+				}
+			}
+			gcDelete(deltokenfn)
+		}
+		if len(ld.Player) > gcKeepAmount {
+			for k, gc := range ld.Player {
+				gcRest()
+				if gc.expireTs <= gcTs {
+					gcMark(k, delplayerfn)
+					numPlayers++
+				}
+			}
+			gcDelete(delplayerfn)
+		}
+		if len(ld.Message) > gcKeepAmount {
+			for k, gc := range ld.Message {
+				gcRest()
+				if gc.expireTs <= gcTs {
+					gcMark(k, delmessagefn)
+					numMessages++
+				}
+			}
+			gcDelete(delmessagefn)
+		}
+		if len(ld.Transaction) > gcKeepAmount {
+			for k, gc := range ld.Transaction {
+				gcRest()
+				if gc.expireTs <= gcTs {
+					gcMark(k, deltransactionfn)
+					numTransactions++
+				}
+			}
+			gcDelete(deltransactionfn)
+		}
+		if len(ld.TransactionByPlayerGame) > gcKeepAmount {
+			for k, gc := range ld.TransactionByPlayerGame {
+				gcRest()
+				if gc.expireTs <= gcTs {
+					gcMark(k, deltransactionbpgfn)
+					numTransactionsByPlayerGame++
+				}
 			}
 		}
-		for k, gc := range ld.Player {
-			gcRest()
-			if gc.expireTs <= gcTs {
-				numBytes += unsafe.Sizeof(ld.Player[k])
-				numPlayers++
-				delete(ld.Player, k)
-			}
-		}
-		for k, gc := range ld.Message {
-			gcRest()
-			if gc.expireTs <= gcTs {
-				numBytes += unsafe.Sizeof(ld.Message[k])
-				numMessages++
-				delete(ld.Message, k)
-			}
-		}
-		for k, gc := range ld.Transaction {
-			gcRest()
-			if gc.expireTs <= gcTs {
-				numBytes += unsafe.Sizeof(ld.Transaction[k])
-				numTransactions++
-				delete(ld.Transaction, k)
-			}
-		}
-		for k, gc := range ld.TransactionByPlayerGame {
-			gcRest()
-			if gc.expireTs <= gcTs {
-				numBytes += unsafe.Sizeof(ld.TransactionByPlayerGame[k])
-				numTransactionsByPlayerGame++
-				delete(ld.TransactionByPlayerGame, k)
-			}
-		}
+		gcDelete(deltransactionbpgfn)
 		gcStop()
 
-		if numBytes > 0 {
-			logger.Infof("store.garbageCollector freed %d bytes, %d tokens, %d players, %d messages, %d tx, %d txbygame in %.4fms(longest lock %.4fms)",
-				numBytes, numTokens, numPlayers, numMessages, numTransactions, numTransactionsByPlayerGame, float64(gcExecTime)/1000000.0, float64(gcPassTime)/1000000.0)
+		if numTokens > 0 || numMessages > 0 || numTransactions > 0 || numTransactionsByPlayerGame > 0 {
+			logger.Infof("Collected %d tokens, %d players, %d messages, %d tx, %d txbygame in %.4fms(max rlock, lock: %.4fms, %.4fms)",
+				numTokens, numPlayers, numMessages, numTransactions, numTransactionsByPlayerGame,
+				float64(gcExecTime)/1000000.0, float64(gcPassTime)/1000000.0, float64(gcDeleteTime)/1000000.0)
+			time.Sleep(1000000000)
+		} else {
+			time.Sleep(5000000000)
 		}
+		runtime.GC()
 	}
 }

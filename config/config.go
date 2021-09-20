@@ -49,6 +49,7 @@ type Config struct {
 	SentryDsn       string      `yaml:"sentryDsn" cfg:"sentryDsn" cfgDefault:""`
 	Environment     string      `yaml:"environment" cfg:"environment" cfgDefault:"local"`
 	DataLimit       int         `yaml:"datalimit" cfg:"datalimit" cfgDefault:"800"`
+	LocalDataTtl    int64       `yaml:"localdatattl" cfg:"localdatattl" cfgDefault:"0"`
 }
 
 // Game config structure

@@ -104,6 +104,7 @@ config:
   democurrency: "USD"
   logaccount: "145472021_144443389"
   datalimit: 3200
+  localdatattl: 60
 
 gameConfig:
   - engineID: mvgEngineI
