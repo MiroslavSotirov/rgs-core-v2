@@ -5,6 +5,7 @@ import (
 
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 type TriggerSupaCrewActionSymbol struct {
@@ -28,10 +29,7 @@ func (f TriggerSupaCrewActionSymbol) Trigger(state *FeatureState, params Feature
 		f.ForceTrigger(state, params)
 	}
 
-	random := params.GetInt("Random")
 	tileid := params.GetInt("TileId")
-	replaceid := random % 9
-	params["ReplaceWithId"] = replaceid
 	gridw, gridh := len(state.SymbolGrid), len(state.SymbolGrid[0])
 
 	positions := []int{}
@@ -44,10 +42,26 @@ func (f TriggerSupaCrewActionSymbol) Trigger(state *FeatureState, params Feature
 		}
 	}
 	if len(positions) > 0 {
+		random := params.GetInt("Random")
+		replaceid := random % 9
+		//		f.Validate(*state, replaceid)
+		params["ReplaceWithId"] = replaceid
 		params["Positions"] = positions
 		activateFeatures(f.FeatureDef, state, params)
 	}
 	return
+}
+
+func (f TriggerSupaCrewActionSymbol) Validate(state FeatureState, replaceid int) {
+	for _, f := range state.Features {
+		if f.DefPtr().Type == "FatTile" {
+			fattileid := f.DataPtr().(*FatTileData).TileId
+			if fattileid != 10 && fattileid != replaceid {
+				logger.Errorf("TriggerSupaCrewActionSymbol failed validation. replaceid %d is not equal to fattile tileid %d", replaceid, fattileid)
+
+			}
+		}
+	}
 }
 
 func (f TriggerSupaCrewActionSymbol) ForceTrigger(state *FeatureState, params FeatureParams) {
