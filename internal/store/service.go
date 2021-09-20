@@ -523,7 +523,6 @@ func (i *RemoteServiceImpl) errorHttpStatusCode(httpStatusCode int) rgse.RGSErr 
 		} else if httpStatusCode == 402 {
 			return rgse.Create(rgse.InsufficientFundError)
 		}
-		panic("the fuu")
 		return rgse.Create(rgse.GenericWalletError)
 	}
 	return nil
@@ -538,7 +537,6 @@ func (i *RemoteServiceImpl) errorResponseCode(responseCode string) rgse.RGSErr {
 		} else if responseCode == string(ResponseCodeSessionExpired) {
 			return rgse.Create(rgse.TokenExpired)
 		}
-		panic("the fuu 2")
 		return rgse.Create(rgse.GenericWalletError)
 	}
 	return nil
