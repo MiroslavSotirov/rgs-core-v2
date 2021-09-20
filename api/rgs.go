@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/pprof"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -595,10 +594,7 @@ func Routes() *chi.Mux {
 			stakeInfo(r, w)
 		})
 		if config.GlobalConfig.DevMode {
-			r.Get("/debug/cleanup", func(w http.ResponseWriter, r *http.Request) {
-				store.CleanUp()
-				runtime.GC()
-			})
+			r.Get("/debug/pprof/profile", pprof.Profile)
 			r.Mount("/debug/pprof/heap", pprof.Handler("heap"))
 			r.Mount("/debug/pprof/block", pprof.Handler("block"))
 			r.Mount("/debug/pprof/mutex", pprof.Handler("mutex"))
