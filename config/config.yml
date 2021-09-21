@@ -1,11 +1,11 @@
 # this is overwritten in deployment by configmap, use only for local development
 # development mode
-devmode: false
+devmode: true
 local: true
 
 # Log levels
 # debug, info, warn, error, fatal
-logging: debug # debug # info
+logging: info # debug # debug # info
 
 # mcrouter address
 mcrouter: "127.0.0.1:11211"
