@@ -19,7 +19,6 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
@@ -723,7 +722,7 @@ func (i *LocalServiceImpl) PlayerSave(token Token, mode Mode, player PlayerStore
 
 func (i *LocalServiceImpl) renewToken(token Token) Token {
 	playerId, _ := i.getToken(token)
-	newToken := Token(rng.RandStringRunes(36))
+	newToken := GenerateToken()
 	i.setToken(newToken, playerId)
 	i.deleteToken(token)
 

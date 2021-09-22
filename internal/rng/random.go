@@ -27,7 +27,7 @@ func RandFromRange(n int) int {
 }
 
 func (rng *MT19937) randStringRunes(n int) string {
-	b := make([]byte, m-m/4)
+	b := make([]byte, n-n/4)
 	rng.Read(b)
 	return base64.StdEncoding.EncodeToString(b)
 }
