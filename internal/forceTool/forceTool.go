@@ -2,6 +2,12 @@ package forceTool
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
+
 	"github.com/bradfitz/gomemcache/memcache"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
@@ -9,11 +15,6 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"reflect"
-	"strings"
 )
 
 func SetForce(gameID string, forceID string, playerID string) error {
@@ -142,7 +143,7 @@ func smartForceFromID(params engine.GameParams, previousGamestate engine.Gamesta
 				return gamestate, rgse.Create(rgse.ForceProhibited)
 			}
 			engineDef := engineConf.EngineDefs[force.ReelsetId]
-			err = engineDef.SetForce(force.StopList)
+			engineDef, err = engineDef.SetForce(force.StopList)
 			if err != nil {
 				return gamestate, err
 			}
