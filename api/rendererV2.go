@@ -32,6 +32,10 @@ func (gi GameplayResponseV2) Render(w http.ResponseWriter, r *http.Request) erro
 	return nil
 }
 
+func (gi FeedResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
 // GameLinkResponse ...
 type GameLinkResponse struct {
 	Results []LinkResponse `json:"results"`
@@ -113,6 +117,10 @@ type ReelResponse struct {
 	Count      [][]int `json:"count"`
 	Type       string  `json:"type"`
 	BetMult    int     `json:"betMultiplier"`
+}
+
+type FeedResponse struct {
+	Rounds []store.FeedRound `json:"rounds"`
 }
 
 func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceStore) GameplayResponseV2 {

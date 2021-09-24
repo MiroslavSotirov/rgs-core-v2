@@ -35,6 +35,7 @@ const (
 	ApiTypeTransaction ApiType = "transaction"
 	ApiTypeGameState   ApiType = "gamestate"
 	ApiTypeQuery       ApiType = "query"
+	ApiTypeFeed        ApiType = "feed"
 
 	ModeDemo Mode = "DEMO"
 	ModeReal Mode = "REAL"
@@ -112,6 +113,8 @@ type (
 		TotalWagerAmt engine.Fixed `json:"wager_amount"`
 	}
 
+	FeedRound restRounddata
+
 	//Error struct {
 	//	Code    ErrorCode
 	//	Message string
@@ -144,6 +147,9 @@ type (
 
 		//// gamestate by id
 		//GamestateById(gamestateId string) (GameStateStore, *Error)
+
+		// retrieve transaction feed
+		Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) ([]FeedRound, rgse.RGSErr)
 	}
 
 	RemoteServiceImpl struct {
@@ -169,6 +175,7 @@ type (
 		GamestateById(gamestateId string) (GameStateStore, rgse.RGSErr)
 		SetMessage(playerId string, message string) rgse.RGSErr
 		SetBalance(token Token, amount engine.Money) rgse.RGSErr
+		Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) ([]FeedRound, rgse.RGSErr)
 	}
 
 	LocalServiceImpl struct{}
@@ -367,6 +374,54 @@ type (
 		FreeGames restFreeGame `json:"free_games"`
 		//InternalStatus int          `json:"internal_status"`
 		LastTx restTransactionRequest `json:"last_tx"`
+	}
+
+	restFeedRequest struct {
+		ReqId     string `json:"req_id"`
+		Token     string `json:"token"`
+		Game      string `json:"game"`
+		Platform  string `json:"platform"`
+		StartTime string `json:"start_time"`
+		EndTime   string `json:"end_time"`
+		PageSize  int    `json:"page_size"`
+		Page      int    `json:"page"`
+	}
+
+	restFeedResponse struct {
+		Metadata restMetadata    `json:"metadata"`
+		Token    string          `json:"token"`
+		Code     string          `json:"code"`
+		Rounds   []restRounddata `json:"rounds"`
+		NextPage int             `json:"next_page"`
+	}
+
+	restRoundVendordata struct {
+		State string `json:"state"`
+	}
+
+	restRoundMetadata struct {
+		RoundId   string              `json:"round_id"`
+		ExtItemId string              `json:"ext_item_id"`
+		ItemId    string              `json:"item_id"`
+		Vendor    restRoundVendordata `json:"vendor"`
+	}
+
+	restRounddata struct {
+		Id              string            `json:"id"`
+		CurrencyUnit    string            `json:"currency_unit"`
+		ExternalRef     string            `json:"external_ref"`
+		Status          string            `json:"status"`
+		TransactionIds  []string          `json:"transaction_ids"`
+		NumWager        int               `json:"num_of_wager"`
+		SumWager        float64           `json:"sum_of_wager"`
+		NumPayout       int               `json:"num_of_payout"`
+		SumPayout       float64           `json:"sum_of_payout"`
+		NumRefund       int               `json:"num_of_refund"`
+		SumRefundCredit float64           `json:"sum_of_refund_credit"`
+		SumRefundDebit  float64           `json:"sum_of_refund_debit"`
+		StartTime       string            `json:"start_time"`
+		CloseTime       string            `json:"close_time"`
+		Metadata        restRoundMetadata `json:"meta_data"`
 	}
 )
 
@@ -1100,6 +1155,14 @@ func (i *RemoteServiceImpl) restGameStateResponse(response *http.Response) restG
 	return data
 }
 
+func (i *RemoteServiceImpl) restFeedResponse(response *http.Response) restFeedResponse {
+	defer response.Body.Close()
+	body, _ := ioutil.ReadAll(response.Body)
+	var data restFeedResponse
+	json.Unmarshal(body, &data)
+	return data
+}
+
 func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, rgse.RGSErr) {
 	// Used in clientstate call
 	playerId, _ := i.getToken(token)
@@ -1359,6 +1422,116 @@ func (i *LocalServiceImpl) SetBalance(token Token, balance engine.Money) rgse.RG
 	logger.Debugf("Setting playerId %s balance to %s in currency %s", playerId, player.Balance.Amount.ValueAsString(), player.Balance.Currency)
 	i.setPlayer(playerId, player)
 	return nil
+}
+
+func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) ([]FeedRound, rgse.RGSErr) {
+	//	logger.Errorf("TODO implement LocalServiceImpl.Feed for testing purpose")
+	//	return []FeedRound{}, rgse.Create(rgse.InternalServerError)
+	rounds := []FeedRound{
+		{
+			Id:              "166942158",
+			CurrencyUnit:    "USD",
+			ExternalRef:     "1047-10a5e033-5657-4332-ac68-0f13e48a432a",
+			Status:          "CLOSED",
+			TransactionIds:  []string{"166942158", "166942288"},
+			NumWager:        1,
+			SumWager:        1.00,
+			NumPayout:       0,
+			SumPayout:       0.00,
+			NumRefund:       0,
+			SumRefundCredit: 0.00,
+			SumRefundDebit:  0.00,
+			StartTime:       "2021-09-23 04:08:53.148",
+			CloseTime:       "2021-09-23 04:09:53.253",
+			Metadata: restRoundMetadata{
+				RoundId:   "1047-10a5e033-5657-4332-ac68-0f13e48a432a",
+				ExtItemId: "pearl-fisher",
+				ItemId:    "12375",
+				Vendor: restRoundVendordata{
+					State: "testing-game-state-as-string-only",
+				},
+			},
+		},
+		{
+			Id:              "166942155",
+			CurrencyUnit:    "USD",
+			ExternalRef:     "1047-58b46577-4e9a-498e-a9a5-f48afe266952",
+			Status:          "CLOSED",
+			TransactionIds:  []string{"166942155", "166942286"},
+			NumWager:        1,
+			SumWager:        1.00,
+			NumPayout:       0,
+			SumPayout:       0.00,
+			NumRefund:       0,
+			SumRefundCredit: 0.00,
+			SumRefundDebit:  0.00,
+			StartTime:       "2021-09-23 04:08:52.488",
+			CloseTime:       "2021-09-23 04:09:52.602",
+			Metadata: restRoundMetadata{
+				RoundId:   "1047-58b46577-4e9a-498e-a9a5-f48afe266952",
+				ExtItemId: "pearl-fisher",
+				ItemId:    "12375",
+				Vendor: restRoundVendordata{
+					State: "testing-game-state-as-string-only",
+				},
+			},
+		},
+	}
+	startPage := 0
+	endPage := 2
+	if pageSize < 2 {
+		if page > 2 {
+			page = 2
+		}
+		startPage = page - 1
+		endPage = startPage + pageSize
+	}
+	return rounds[startPage:endPage], nil
+}
+
+func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) ([]FeedRound, rgse.RGSErr) {
+	feedRq := restFeedRequest{
+		ReqId:     uuid.NewV4().String(),
+		Token:     string(token),
+		Game:      gameId,
+		Platform:  i.defaultPlatform,
+		StartTime: startTime,
+		EndTime:   endTime,
+		PageSize:  pageSize,
+		Page:      page,
+	}
+
+	b := new(bytes.Buffer)
+	err := json.NewEncoder(b).Encode(feedRq)
+
+	finalErr := i.errorJson(err)
+	if finalErr != nil {
+		return []FeedRound{}, finalErr
+	}
+	//start := time.Now()
+	resp, err := i.request(ApiTypeFeed, b)
+
+	finalErr = i.errorRest(err)
+	if finalErr != nil {
+		return []FeedRound{}, finalErr
+	}
+
+	finalErr = i.errorHttpStatusCode(resp.StatusCode)
+	if finalErr != nil {
+		return []FeedRound{}, finalErr
+	}
+
+	feedResp := i.restFeedResponse(resp)
+
+	finalErr = i.errorResponseCode(feedResp.Code)
+	if finalErr != nil {
+		return []FeedRound{}, finalErr
+	}
+	rounds := make([]FeedRound, len(feedResp.Rounds))
+	for i, v := range feedResp.Rounds {
+		rounds[i] = FeedRound(v)
+	}
+	return rounds, nil
 }
 
 func internalInit(c *config.Config) {

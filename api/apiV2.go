@@ -18,6 +18,28 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
+type initParams struct {
+	Game     string `json:"game"`
+	Operator string `json:"operator"`
+	Mode     string `json:"mode"`
+	Ccy      string `json:"currency"`
+}
+
+type CloseRoundParams struct {
+	Game    string `json:"game"`
+	Wallet  string `json:"wallet"`
+	RoundID string `json:"round"`
+}
+
+type FeedParams struct {
+	Game      string `json:"game"`
+	Wallet    string `json:"wallet"`
+	StartTime string `json:"start_time"`
+	EndTime   string `json:"end_time"`
+	PageSize  int    `json:"page_size"`
+	Page      int    `json:"page"`
+}
+
 func getGameLink(request *http.Request) GameLinkResponse {
 	params := request.URL.Query()
 	game := params.Get("game")
@@ -28,13 +50,6 @@ func getGameLink(request *http.Request) GameLinkResponse {
 	response := GameLinkResponse{Results: resultJSON}
 
 	return response
-}
-
-type initParams struct {
-	Game     string `json:"game"`
-	Operator string `json:"operator"`
-	Mode     string `json:"mode"`
-	Ccy      string `json:"currency"`
 }
 
 func (i *initParams) decode(request *http.Request) rgse.RGSErr {
@@ -295,12 +310,6 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 	return fillGamestateResponseV2(gamestate, balance), nil
 }
 
-type CloseRoundParams struct {
-	Game    string `json:"game"`
-	Wallet  string `json:"wallet"`
-	RoundID string `json:"round"`
-}
-
 func (i *CloseRoundParams) decode(request *http.Request) rgse.RGSErr {
 	decoder := json.NewDecoder(request.Body)
 	decoderror := decoder.Decode(i)
@@ -363,4 +372,45 @@ func CloseGS(r *http.Request) (err rgse.RGSErr) {
 		_, err = store.Serv.CloseRound(token, store.ModeReal, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
 	}
 	return
+}
+
+func (i *FeedParams) decode(request *http.Request) rgse.RGSErr {
+	decoder := json.NewDecoder(request.Body)
+	decoderror := decoder.Decode(i)
+
+	if decoderror != nil {
+		return rgse.Create(rgse.JsonError)
+	}
+	return nil
+}
+
+func Feed(r *http.Request) (FeedResponse, rgse.RGSErr) {
+	token, autherr := handleAuth(r)
+	if autherr != nil {
+		return FeedResponse{}, autherr
+	}
+
+	var err rgse.RGSErr
+	var data FeedParams
+	if err := data.decode(r); err != nil {
+		return FeedResponse{}, err
+	}
+
+	var rounds []store.FeedRound
+	switch data.Wallet {
+	case "demo":
+		rounds, err = store.ServLocal.Feed(token, store.ModeDemo, data.Game, data.StartTime, data.EndTime, data.PageSize, data.Page)
+	case "dashur":
+		rounds, err = store.Serv.Feed(token, store.ModeReal, data.Game, data.StartTime, data.EndTime, data.PageSize, data.Page)
+	default:
+		return FeedResponse{}, rgse.Create(rgse.InvalidWallet)
+	}
+
+	if err != nil {
+		return FeedResponse{}, err
+	}
+
+	return FeedResponse{
+		Rounds: rounds,
+	}, nil
 }
