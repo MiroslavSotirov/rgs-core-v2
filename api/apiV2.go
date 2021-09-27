@@ -396,6 +396,16 @@ func Feed(r *http.Request) (FeedResponse, rgse.RGSErr) {
 		return FeedResponse{}, err
 	}
 
+	if data.StartTime == "" {
+		data.StartTime = "2021-09-24 00:00:00.000"
+	}
+	if data.EndTime == "" {
+		data.EndTime = time.Now().UTC().Format("2006-01-02 15:04:05.000")
+	}
+	if data.PageSize == 0 {
+		data.PageSize = 1
+	}
+
 	var rounds []store.FeedRound
 	switch data.Wallet {
 	case "demo":
