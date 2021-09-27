@@ -114,11 +114,11 @@ type (
 	}
 
 	FeedRound struct {
-		Id              string            `json:"id"`
+		Id              int64             `json:"id"`
 		CurrencyUnit    string            `json:"currency_unit"`
 		ExternalRef     string            `json:"external_ref"`
 		Status          string            `json:"status"`
-		TransactionIds  []string          `json:"transaction_ids"`
+		TransactionIds  []int64           `json:"transaction_ids"`
 		NumWager        int               `json:"num_of_wager"`
 		SumWager        float64           `json:"sum_of_wager"`
 		NumPayout       int               `json:"num_of_payout"`
@@ -134,7 +134,7 @@ type (
 	FeedRoundMetadata struct {
 		RoundId   string              `json:"round_id"`
 		ExtItemId string              `json:"ext_item_id"`
-		ItemId    string              `json:"item_id"`
+		ItemId    int64               `json:"item_id"`
 		Vendor    FeedRoundVendordata `json:"vendor"`
 	}
 
@@ -429,16 +429,16 @@ type (
 	restRoundMetadata struct {
 		RoundId   string              `json:"round_id"`
 		ExtItemId string              `json:"ext_item_id"`
-		ItemId    string              `json:"item_id"`
+		ItemId    int64               `json:"item_id"`
 		Vendor    restRoundVendordata `json:"vendor"`
 	}
 
 	restRounddata struct {
-		Id              string            `json:"id"`
+		Id              int64             `json:"id"`
 		CurrencyUnit    string            `json:"currency_unit"`
 		ExternalRef     string            `json:"external_ref"`
 		Status          string            `json:"status"`
-		TransactionIds  []string          `json:"transaction_ids"`
+		TransactionIds  []int64           `json:"transaction_ids"`
 		NumWager        int               `json:"num_of_wager"`
 		SumWager        float64           `json:"sum_of_wager"`
 		NumPayout       int               `json:"num_of_payout"`
@@ -1456,11 +1456,11 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 	//	return []FeedRound{}, rgse.Create(rgse.InternalServerError)
 	rounds = []FeedRound{
 		{
-			Id:              "166942158",
+			Id:              166942158,
 			CurrencyUnit:    "USD",
 			ExternalRef:     "1047-10a5e033-5657-4332-ac68-0f13e48a432a",
 			Status:          "CLOSED",
-			TransactionIds:  []string{"166942158", "166942288"},
+			TransactionIds:  []int64{166942158, 166942288},
 			NumWager:        1,
 			SumWager:        1.00,
 			NumPayout:       0,
@@ -1473,18 +1473,18 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 			Metadata: FeedRoundMetadata{
 				RoundId:   "1047-10a5e033-5657-4332-ac68-0f13e48a432a",
 				ExtItemId: "pearl-fisher",
-				ItemId:    "12375",
+				ItemId:    12375,
 				Vendor: FeedRoundVendordata{
 					State: engine.Gamestate{},
 				},
 			},
 		},
 		{
-			Id:              "166942155",
+			Id:              166942155,
 			CurrencyUnit:    "USD",
 			ExternalRef:     "1047-58b46577-4e9a-498e-a9a5-f48afe266952",
 			Status:          "CLOSED",
-			TransactionIds:  []string{"166942155", "166942286"},
+			TransactionIds:  []int64{166942155, 166942286},
 			NumWager:        1,
 			SumWager:        1.00,
 			NumPayout:       0,
@@ -1497,7 +1497,7 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 			Metadata: FeedRoundMetadata{
 				RoundId:   "1047-58b46577-4e9a-498e-a9a5-f48afe266952",
 				ExtItemId: "pearl-fisher",
-				ItemId:    "12375",
+				ItemId:    12375,
 				Vendor: FeedRoundVendordata{
 					State: engine.Gamestate{},
 				},
