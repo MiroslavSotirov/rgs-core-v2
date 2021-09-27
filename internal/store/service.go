@@ -149,7 +149,7 @@ type (
 		//GamestateById(gamestateId string) (GameStateStore, *Error)
 
 		// retrieve transaction feed
-		Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) ([]FeedRound, rgse.RGSErr)
+		Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) ([]FeedRound, int, rgse.RGSErr)
 	}
 
 	RemoteServiceImpl struct {
@@ -175,7 +175,7 @@ type (
 		GamestateById(gamestateId string) (GameStateStore, rgse.RGSErr)
 		SetMessage(playerId string, message string) rgse.RGSErr
 		SetBalance(token Token, amount engine.Money) rgse.RGSErr
-		Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) ([]FeedRound, rgse.RGSErr)
+		Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) ([]FeedRound, int, rgse.RGSErr)
 	}
 
 	LocalServiceImpl struct{}
@@ -1424,10 +1424,10 @@ func (i *LocalServiceImpl) SetBalance(token Token, balance engine.Money) rgse.RG
 	return nil
 }
 
-func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) ([]FeedRound, rgse.RGSErr) {
+func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) (rounds []FeedRound, nextPage int, finalErr rgse.RGSErr) {
 	//	logger.Errorf("TODO implement LocalServiceImpl.Feed for testing purpose")
 	//	return []FeedRound{}, rgse.Create(rgse.InternalServerError)
-	rounds := []FeedRound{
+	rounds = []FeedRound{
 		{
 			Id:              "166942158",
 			CurrencyUnit:    "USD",
@@ -1486,10 +1486,15 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 		startPage = page - 1
 		endPage = startPage + pageSize
 	}
-	return rounds[startPage:endPage], nil
+	nextPage = startPage + 1
+	if nextPage >= endPage {
+		nextPage = -1
+	}
+	finalErr = nil
+	return
 }
 
-func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) ([]FeedRound, rgse.RGSErr) {
+func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) (rounds []FeedRound, nextPage int, finalErr rgse.RGSErr) {
 	feedRq := restFeedRequest{
 		ReqId:     uuid.NewV4().String(),
 		Token:     string(token),
@@ -1504,34 +1509,37 @@ func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime strin
 	b := new(bytes.Buffer)
 	err := json.NewEncoder(b).Encode(feedRq)
 
-	finalErr := i.errorJson(err)
+	finalErr = i.errorJson(err)
 	if finalErr != nil {
-		return []FeedRound{}, finalErr
+		return
 	}
 	//start := time.Now()
 	resp, err := i.request(ApiTypeFeed, b)
 
 	finalErr = i.errorRest(err)
 	if finalErr != nil {
-		return []FeedRound{}, finalErr
+		return
 	}
 
 	finalErr = i.errorHttpStatusCode(resp.StatusCode)
 	if finalErr != nil {
-		return []FeedRound{}, finalErr
+		return
 	}
 
 	feedResp := i.restFeedResponse(resp)
 
 	finalErr = i.errorResponseCode(feedResp.Code)
 	if finalErr != nil {
-		return []FeedRound{}, finalErr
+		return
 	}
-	rounds := make([]FeedRound, len(feedResp.Rounds))
+	nextPage = feedResp.NextPage
+	rounds = make([]FeedRound, len(feedResp.Rounds))
 	for i, v := range feedResp.Rounds {
 		rounds[i] = FeedRound(v)
 	}
-	return rounds, nil
+
+	finalErr = nil
+	return
 }
 
 func internalInit(c *config.Config) {

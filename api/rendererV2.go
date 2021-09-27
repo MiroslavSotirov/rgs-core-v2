@@ -120,7 +120,8 @@ type ReelResponse struct {
 }
 
 type FeedResponse struct {
-	Rounds []store.FeedRound `json:"rounds"`
+	Rounds   []store.FeedRound `json:"rounds"`
+	NextPage int               `json:"next_page"`
 }
 
 func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceStore) GameplayResponseV2 {
