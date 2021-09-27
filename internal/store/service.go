@@ -113,7 +113,34 @@ type (
 		TotalWagerAmt engine.Fixed `json:"wager_amount"`
 	}
 
-	FeedRound restRounddata
+	FeedRound struct {
+		Id              string            `json:"id"`
+		CurrencyUnit    string            `json:"currency_unit"`
+		ExternalRef     string            `json:"external_ref"`
+		Status          string            `json:"status"`
+		TransactionIds  []string          `json:"transaction_ids"`
+		NumWager        int               `json:"num_of_wager"`
+		SumWager        float64           `json:"sum_of_wager"`
+		NumPayout       int               `json:"num_of_payout"`
+		SumPayout       float64           `json:"sum_of_payout"`
+		NumRefund       int               `json:"num_of_refund"`
+		SumRefundCredit float64           `json:"sum_of_refund_credit"`
+		SumRefundDebit  float64           `json:"sum_of_refund_debit"`
+		StartTime       string            `json:"start_time"`
+		CloseTime       string            `json:"close_time"`
+		Metadata        FeedRoundMetadata `json:"meta_data"`
+	}
+
+	FeedRoundMetadata struct {
+		RoundId   string              `json:"round_id"`
+		ExtItemId string              `json:"ext_item_id"`
+		ItemId    string              `json:"item_id"`
+		Vendor    FeedRoundVendordata `json:"vendor"`
+	}
+
+	FeedRoundVendordata struct {
+		State engine.Gamestate `json:"state"`
+	}
 
 	//Error struct {
 	//	Code    ErrorCode
@@ -1443,12 +1470,12 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 			SumRefundDebit:  0.00,
 			StartTime:       "2021-09-23 04:08:53.148",
 			CloseTime:       "2021-09-23 04:09:53.253",
-			Metadata: restRoundMetadata{
+			Metadata: FeedRoundMetadata{
 				RoundId:   "1047-10a5e033-5657-4332-ac68-0f13e48a432a",
 				ExtItemId: "pearl-fisher",
 				ItemId:    "12375",
-				Vendor: restRoundVendordata{
-					State: "testing-game-state-as-string-only",
+				Vendor: FeedRoundVendordata{
+					State: engine.Gamestate{},
 				},
 			},
 		},
@@ -1467,12 +1494,12 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 			SumRefundDebit:  0.00,
 			StartTime:       "2021-09-23 04:08:52.488",
 			CloseTime:       "2021-09-23 04:09:52.602",
-			Metadata: restRoundMetadata{
+			Metadata: FeedRoundMetadata{
 				RoundId:   "1047-58b46577-4e9a-498e-a9a5-f48afe266952",
 				ExtItemId: "pearl-fisher",
 				ItemId:    "12375",
-				Vendor: restRoundVendordata{
-					State: "testing-game-state-as-string-only",
+				Vendor: FeedRoundVendordata{
+					State: engine.Gamestate{},
 				},
 			},
 		},
@@ -1535,7 +1562,10 @@ func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime strin
 	nextPage = feedResp.NextPage
 	rounds = make([]FeedRound, len(feedResp.Rounds))
 	for i, v := range feedResp.Rounds {
-		rounds[i] = FeedRound(v)
+		rounds[i], finalErr = NewFeedRound(v)
+		if finalErr != nil {
+			return
+		}
 	}
 
 	finalErr = nil

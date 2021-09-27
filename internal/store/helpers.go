@@ -2,6 +2,7 @@ package store
 
 import (
 	"bytes"
+	"encoding/base64"
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/golang/protobuf/proto"
@@ -107,4 +108,38 @@ func DeserializeGamestateFromBytesLegacy(serialized []byte) engine.Gamestate {
 		return engine.Gamestate{}
 	}
 	return deserializedGS.ConvertLegacy(deserializedTX)
+}
+
+func NewFeedRound(v restRounddata) (FeedRound, rgse.RGSErr) {
+	gameState, errDecode := base64.StdEncoding.DecodeString(v.Metadata.Vendor.State)
+	if errDecode != nil {
+		return FeedRound{}, rgse.Create(rgse.B64Error)
+	}
+	gsDeserialized := DeserializeGamestateFromBytes(gameState)
+
+	return FeedRound{
+		Id:              v.Id,
+		CurrencyUnit:    v.CurrencyUnit,
+		ExternalRef:     v.ExternalRef,
+		Status:          v.Status,
+		TransactionIds:  v.TransactionIds,
+		NumWager:        v.NumWager,
+		SumWager:        v.SumWager,
+		NumPayout:       v.NumPayout,
+		SumPayout:       v.SumPayout,
+		NumRefund:       v.NumRefund,
+		SumRefundCredit: v.SumRefundCredit,
+		SumRefundDebit:  v.SumRefundDebit,
+		StartTime:       v.StartTime,
+		CloseTime:       v.CloseTime,
+		Metadata: FeedRoundMetadata{
+			RoundId:   v.Metadata.RoundId,
+			ExtItemId: v.Metadata.ExtItemId,
+			ItemId:    v.Metadata.ItemId,
+			Vendor: FeedRoundVendordata{
+				State: gsDeserialized,
+			},
+		},
+	}, nil
+
 }
