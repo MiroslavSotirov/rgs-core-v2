@@ -406,12 +406,13 @@ func Feed(r *http.Request) (FeedResponse, rgse.RGSErr) {
 		data.PageSize = 1
 	}
 
+	var nextPage int
 	var rounds []store.FeedRound
 	switch data.Wallet {
 	case "demo":
-		rounds, err = store.ServLocal.Feed(token, store.ModeDemo, data.Game, data.StartTime, data.EndTime, data.PageSize, data.Page)
+		rounds, nextPage, err = store.ServLocal.Feed(token, store.ModeDemo, data.Game, data.StartTime, data.EndTime, data.PageSize, data.Page)
 	case "dashur":
-		rounds, err = store.Serv.Feed(token, store.ModeReal, data.Game, data.StartTime, data.EndTime, data.PageSize, data.Page)
+		rounds, nextPage, err = store.Serv.Feed(token, store.ModeReal, data.Game, data.StartTime, data.EndTime, data.PageSize, data.Page)
 	default:
 		return FeedResponse{}, rgse.Create(rgse.InvalidWallet)
 	}
@@ -421,6 +422,7 @@ func Feed(r *http.Request) (FeedResponse, rgse.RGSErr) {
 	}
 
 	return FeedResponse{
-		Rounds: rounds,
+		Rounds:   rounds,
+		NextPage: nextPage,
 	}, nil
 }
