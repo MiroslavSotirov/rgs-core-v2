@@ -111,7 +111,7 @@ ccyMultipliers:
   UBC: 1
   UGX: 50
   XAF: 5
-  VES: 1000
+  VES: 0.001
   ARX: 1.25
   VEX: 2000
   UST: 0.01
@@ -119,7 +119,7 @@ ccyMultipliers:
   BCH: 0.001
   LTC: 0.001
   BYN: 0.02
-  UZS: 1000
+  UZS: 50
   MDL: 0.15
   LKR: 1.5
   MGA: 30
@@ -145,6 +145,272 @@ hostProfiles:
   THB: highdefault
 
 override:
+  mah-jong:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  a-candy-girls-christmans:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  a-fairy-tale:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  a-hidden-forest:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  museum:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  asuka-x-samurai:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  bangkok-fighter:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  battlemech-mars:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  cloud9:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  cookoff-champion:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  crazy-easter-eggs:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  daytona:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  dragon-myst:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  drift:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  fruity-verse:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  goal:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  pearl-fisher:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  sky-jewels:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
+  sparta:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
   supa-crew:
     credits:
       defaultBet: 10
@@ -159,12 +425,30 @@ override:
         - 200
         - 300
         - 500
-# example: if currency is specified then its config will be used instead of the stakeValues
-#    USD:
-#      defaultBet: 18.24
-#      stakeValues:
-#        - 10.2
-#        - 13.7
-#        - 18.24
-#        - 111.11
-#        - 239.99
+    UZS:
+      defaultBet: 5000
+      stakeValues:
+        - 1500  
+        - 2500  
+        - 5000  
+        - 10000 
+        - 15000 
+        - 25000 
+        - 50000 
+        - 100000  
+        - 150000  
+        - 250000
+  valley-of-kings:
+    UZS:
+      defaultBet: 3000
+      stakeValues:
+        - 1000
+        - 2000
+        - 3000
+        - 5000
+        - 10000
+        - 20000
+        - 30000
+        - 50000
+        - 100000
+        - 200000
