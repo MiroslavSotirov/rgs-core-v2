@@ -16,8 +16,6 @@
 
 package rng
 
-import "time"
-
 const (
 	n         = 312
 	m         = 156
@@ -189,31 +187,4 @@ func (mt *MT19937) Read(p []byte) (n int, err error) {
 		}
 	}
 	return n, nil
-}
-
-var RNG = NewRNG()
-
-func Init() {
-
-	RNG.Seed(time.Now().UnixNano())
-
-}
-
-var runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
-
-// RandStringRunes ...
-func RandStringRunes(n int) string {
-	b := make([]rune, n)
-
-	for i := range b {
-		randomIndex := int(RNG.Uint64() % uint64(float32(len(runes))))
-		b[i] = runes[randomIndex]
-	}
-	return string(b)
-}
-
-// RandFromRange
-func RandFromRange(n int) int {
-	// returns a random integer from 0 to n-1
-	return int(RNG.Uint64() % uint64(n))
 }

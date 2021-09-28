@@ -2,12 +2,14 @@ package engine
 
 import (
 	"fmt"
+
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 
 	// "fmt"
-	_ "gitlab.maverick-ops.com/maverick/rgs-core-v2/testing"
 	"math/rand"
 	"testing"
+
+	_ "gitlab.maverick-ops.com/maverick/rgs-core-v2/testing"
 )
 
 var testReels = [][]int{{0, 1, 0, 1, 0, 1, 0, 1}, {1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1}, {1, 2, 2, 2, 2, 2, 2, 2, 2}, {3, 3, 3, 3, 3, 3, 3, 3, 3}, {1, 4, 1, 4, 1, 4, 1, 4}}
@@ -313,10 +315,10 @@ func TestDetermineLineWins(t *testing.T) {
 	// test variable wild, maintaining chosen value
 	wilds := []wild{{
 		Symbol:     0,
-		Multiplier: weightedMultiplier{[]int{1,2,3,4,5,6},[]int{1,1,1,1,1,1}},
+		Multiplier: weightedMultiplier{[]int{1, 2, 3, 4, 5, 6}, []int{1, 1, 1, 1, 1, 1}},
 	}}
-	testGrid = [][]int{{1,0,5},{0,1,5},{0,1,5},{1,0,5},{1,1,5}}
-	wins = DetermineLineWins(testGrid, [][]int{{0,0,0,0,0},{1,1,1,1,1}}, testPayouts, wilds, false)
+	testGrid = [][]int{{1, 0, 5}, {0, 1, 5}, {0, 1, 5}, {1, 0, 5}, {1, 1, 5}}
+	wins = DetermineLineWins(testGrid, [][]int{{0, 0, 0, 0, 0}, {1, 1, 1, 1, 1}}, testPayouts, wilds, false)
 	if len(wins) != 2 || wins[0].Multiplier != wins[1].Multiplier {
 		t.Errorf("the wild multipliers were not properly stored between instances; %v, %v", wins[0], wins[1])
 		t.Fail()
@@ -364,7 +366,7 @@ func TestDeterminsWaysWinsDifferentSymbolWins(t *testing.T) {
 	wins := DetermineWaysWins(testGrid, testWaysPayouts, []wild{})
 	// fmt.Println("wins = ", wins)
 	// wins should be ordered by symbol on first reel
-	want := []Prize{Prize{Payout: testWaysPayouts[0], Index: "1:3", Multiplier: 1}, Prize{Payout: testWaysPayouts[1], Index: "2:5", Multiplier: 1}}
+	want := []Prize{{Payout: testWaysPayouts[0], Index: "1:3", Multiplier: 1}, {Payout: testWaysPayouts[1], Index: "2:5", Multiplier: 1}}
 	if len(wins) != 2 || wins[0].Index != want[0].Index || wins[1].Index != want[1].Index {
 		t.Errorf("wins = %v; want %v", wins, want)
 	}
@@ -659,9 +661,9 @@ func TestDetermineBarLineWins(t *testing.T) {
 	//determineBarLineWins(symbolGrid [][]int, winLines [][]int, payouts []Payout, bars []bar, wilds []wild) []Prize {
 	winLines := [][]int{{1, 1, 1}} // one win line
 	payouts := []Payout{
-		Payout{1, 3, 10},
-		Payout{2, 3, 100}, // bar payout greater than line
-		Payout{3, 3, 1},   // bar payout less than line
+		{1, 3, 10},
+		{2, 3, 100}, // bar payout greater than line
+		{3, 3, 1},   // bar payout less than line
 	}
 	bars := []bar{{2, []int{1, 4, 5}}} // greater than line
 	symbolGrid := [][]int{{1, 1, 1}, {1, 1, 1}, {1, 1, 1}}
@@ -720,7 +722,7 @@ func TestEngineDef_ProcessWinLines(t *testing.T) {
 		WinLines:     [][]int{{0, 0, 0}, {1, 1, 1}, {2, 2, 2}},
 		StakeDivisor: 0,
 	}
-	wl := testDef.ProcessWinLines([]int{})
+	wl, testDef := testDef.ProcessWinLines([]int{})
 	if len(wl) != 3 || wl[0] != 0 || wl[1] != 1 || wl[2] != 2 {
 		t.Errorf("expected win lines 0,1,2, got %v", wl)
 	}
@@ -728,7 +730,7 @@ func TestEngineDef_ProcessWinLines(t *testing.T) {
 		t.Errorf("expected stake divisor 3, got %v", testDef.StakeDivisor)
 	}
 
-	wl = testDef.ProcessWinLines([]int{0, 1, 2})
+	wl, testDef = testDef.ProcessWinLines([]int{0, 1, 2})
 	if len(wl) != 3 || wl[0] != 0 || wl[1] != 1 || wl[2] != 2 {
 		t.Errorf("expected winlines returned [0,1,2], got %v", wl)
 	}
@@ -736,7 +738,7 @@ func TestEngineDef_ProcessWinLines(t *testing.T) {
 		t.Errorf("expected stake divisor 3, got %v", testDef.StakeDivisor)
 	}
 
-	wl = testDef.ProcessWinLines([]int{0, 2, 3})
+	wl, testDef = testDef.ProcessWinLines([]int{0, 2, 3})
 	if len(wl) != 2 || wl[0] != 0 || wl[1] != 2 {
 		t.Errorf("expected win lines 0,2, got %v", wl)
 	}

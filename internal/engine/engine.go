@@ -821,7 +821,8 @@ func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 	// uses round multiplier if included
 	// no dynamic reel calculation
 
-	wl := engine.ProcessWinLines(parameters.SelectedWinLines)
+	var wl []int
+	wl, engine = engine.ProcessWinLines(parameters.SelectedWinLines)
 
 	// spin
 	symbolGrid, stopList := engine.Spin()
@@ -1185,7 +1186,7 @@ func (engine EngineDef) MaxWildRound(parameters GameParams) Gamestate {
 	// this function takes the highest-level wild of the engine present on the view for that spin and replaces all other in-view wilds with that value
 
 	// process parameters
-	engine.ProcessWinLines(parameters.SelectedWinLines)
+	_, engine = engine.ProcessWinLines(parameters.SelectedWinLines)
 
 	// spin
 	symbolGrid, stopList := engine.Spin()
@@ -1297,7 +1298,7 @@ func min(a, b int) int {
 	return b
 }
 
-func (engine *EngineDef) ProcessWinLines(selectedWinLines []int) (wl []int) {
+func (engine EngineDef) ProcessWinLines(selectedWinLines []int) (wl []int, modifiedengine EngineDef) {
 	logger.Debugf("processing %v winlines: %v", selectedWinLines, engine.WinLines)
 	if len(selectedWinLines) == 0 || len(engine.WinLines) == 0 {
 		for i := 0; i < len(engine.WinLines); i++ {
@@ -1306,6 +1307,7 @@ func (engine *EngineDef) ProcessWinLines(selectedWinLines []int) (wl []int) {
 		if engine.StakeDivisor == 0 {
 			engine.StakeDivisor = len(wl)
 		}
+		modifiedengine = engine
 		return
 	}
 	winLines := make([][]int, min(len(selectedWinLines), len(engine.WinLines)))
@@ -1318,6 +1320,7 @@ func (engine *EngineDef) ProcessWinLines(selectedWinLines []int) (wl []int) {
 	}
 	engine.WinLines = winLines
 	engine.StakeDivisor = len(wl)
+	modifiedengine = engine
 	return
 }
 
@@ -1434,7 +1437,8 @@ func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 	// uses round multiplier if included
 	// no dynamic reel calculation
 
-	wl := engine.ProcessWinLines(parameters.SelectedWinLines)
+	var wl []int
+	wl, engine = engine.ProcessWinLines(parameters.SelectedWinLines)
 
 	// spin
 	symbolGrid, stopList := engine.Spin()

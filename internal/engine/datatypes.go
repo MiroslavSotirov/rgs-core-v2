@@ -71,12 +71,14 @@ type EngineDef struct {
 	Features       []features.FeatureDef `yaml:"Features"`
 }
 
-func (engine *EngineDef) SetForce(force []int) (err rgserror.RGSErr) {
+func (engine EngineDef) SetForce(force []int) (forcedengine EngineDef, err rgserror.RGSErr) {
+	forcedengine = engine
 	if config.GlobalConfig.DevMode == true {
-		engine.force = force
+		forcedengine.force = force
 		return
 	}
-	return rgserror.Create(rgserror.ForceProhibited)
+	err = rgserror.Create(rgserror.ForceProhibited)
+	return
 }
 
 type Fixed int64

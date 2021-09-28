@@ -397,7 +397,7 @@ func GetMaxWin(e EngineConfig) {
 							var lastGS Gamestate
 							//var triggeringGS Gamestate
 							var relativePayout int
-							ed.SetForce(stopList)
+							ed, _ = ed.SetForce(stopList)
 							parameters.Action = ""
 							call := reflect.ValueOf(ed).MethodByName(ed.Function)
 							gamestateAndNextActions := call.Call([]reflect.Value{reflect.ValueOf(parameters)})

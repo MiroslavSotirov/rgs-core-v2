@@ -3,12 +3,14 @@ package store
 import (
 	"bytes"
 	"encoding/base64"
+	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/golang/protobuf/proto"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
@@ -141,5 +143,9 @@ func NewFeedRound(v restRounddata) (FeedRound, rgse.RGSErr) {
 			},
 		},
 	}, nil
+}
 
+func GenerateToken() Token {
+	bt, _ := time.Now().MarshalBinary()
+	return Token(rng.RandStringRunes(16) + base64.StdEncoding.EncodeToString(bt))
 }

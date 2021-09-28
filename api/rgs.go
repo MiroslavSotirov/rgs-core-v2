@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/pprof"
 	"strconv"
 	"strings"
 	"time"
@@ -329,7 +330,9 @@ func Routes() *chi.Mux {
 		})
 		r.Put("/close", func(w http.ResponseWriter, r *http.Request) {
 			err := CloseGS(r)
-			logger.Debugf("error on round close: %v", err)
+			if err != nil {
+				logger.Debugf("error on round close: %v", err)
+			}
 			if err != nil {
 				render.Render(w, r, ErrRender(err))
 				w.WriteHeader(400)
@@ -610,6 +613,15 @@ func Routes() *chi.Mux {
 			return
 		})
 
+		if config.GlobalConfig.DevMode {
+			r.Get("/debug/pprof/profile", pprof.Profile)
+			r.Mount("/debug/pprof/heap", pprof.Handler("heap"))
+			r.Mount("/debug/pprof/block", pprof.Handler("block"))
+			r.Mount("/debug/pprof/mutex", pprof.Handler("mutex"))
+			r.Mount("/debug/pprof/allocs", pprof.Handler("allocs"))
+			r.Mount("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
+			r.Mount("/debug/pprof/goroutine", pprof.Handler("goroutine"))
+		}
 	})
 
 	return router

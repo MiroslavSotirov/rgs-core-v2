@@ -16,6 +16,7 @@ server:
   port: 3000
 
 dashurconf:
+#  storeurl: http://gnrc-api.stginservix.com
   storeurl: https://gnrc-api.dashur.io/v1/gnrc/maverick
   storeappid: VrCLq4UqYBf39rJt
   storeapppass: V6Kg9muzJxsz3nWFvJeyccU7
@@ -33,3 +34,4 @@ defaultplatform: html5
 democurrency: USD
 logaccount: 145472021_144443389
 datalimit: 3200
+localdatattl: 60
