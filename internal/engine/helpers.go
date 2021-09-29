@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -174,7 +175,7 @@ func (num Fixed) Pow(exp int) Fixed {
 }
 
 func NewFixedFromFloat(num float32) Fixed {
-	return Fixed(num * float32(fixedExp))
+	return Fixed(math.Round(float64(num) * float64(fixedExp)))
 }
 
 func NewFixedFromInt(num int) Fixed {

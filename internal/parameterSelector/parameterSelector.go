@@ -198,6 +198,27 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 		logger.Errorf("No such game found: %v", gameID)
 		return []engine.Fixed{}, engine.Fixed(0), rgse.Create(rgse.EngineNotFoundError)
 	}
+
+	override, ok := betConf.Override[gameID]
+	if ok {
+		var mult engine.Fixed
+		stakeconf, ok := override[lastBet.Currency]
+		if ok {
+			mult = engine.NewFixedFromInt(1)
+		} else {
+			stakeconf, ok = override["credits"]
+			mult = engine.NewFixedFromFloat(ccyMult)
+		}
+		if ok {
+			fixedStakeValues = make([]engine.Fixed, len(stakeconf.StakeValues))
+			for i, s := range stakeconf.StakeValues {
+				fixedStakeValues[i] = engine.NewFixedFromFloat(s).Mul(mult)
+			}
+			defaultStake = engine.NewFixedFromFloat(stakeconf.DefaultBet).Mul(mult)
+			logger.Debugf("overriding stake values: stakes= %v, defaultbet= %v", fixedStakeValues, defaultStake)
+		}
+	}
+
 	switch engineID {
 	case "mvgEngineX":
 		// select minimum parameter for this game
@@ -229,26 +250,6 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 	} else if defaultStake > fixedStakeValues[len(fixedStakeValues)-1] {
 		logger.Warnf("defaultStake too high, setting to max stakeValue")
 		defaultStake = fixedStakeValues[len(fixedStakeValues)-1]
-	}
-
-	override, ok := betConf.Override[gameID]
-	if ok {
-		var mult engine.Fixed
-		stakeconf, ok := override[lastBet.Currency]
-		if ok {
-			mult = engine.NewFixedFromInt(1)
-		} else {
-			stakeconf, ok = override["credits"]
-			mult = engine.NewFixedFromFloat(ccyMult)
-		}
-		if ok {
-			fixedStakeValues = make([]engine.Fixed, len(stakeconf.StakeValues))
-			for i, s := range stakeconf.StakeValues {
-				fixedStakeValues[i] = engine.NewFixedFromFloat(s).Mul(mult)
-			}
-			defaultStake = engine.NewFixedFromFloat(stakeconf.DefaultBet).Mul(mult)
-			logger.Debugf("overriding stake values: stakes= %v, defaultbet= %v", fixedStakeValues, defaultStake)
-		}
 	}
 
 	logger.Debugf("stake values: %v; default stake: %v", fixedStakeValues, defaultStake)
