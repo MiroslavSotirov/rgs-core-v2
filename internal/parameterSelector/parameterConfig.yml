@@ -21,53 +21,38 @@ stakeValues:
 defaultBet: 5 # index of stakeValues
 
 ccyMultipliers:
-  USD: 0.01
-  CNY: 0.04
-  EUR: 0.01
-  GBP: 0.01
-  VND: 100
-  KRW: 10
-  ZAR: 0.1
-  JPY: 1
-  THB: 0.2
-  MYR: 0.02
-  IDR: 100
-  XBT: 0.001
-  BTC: 0.001
-  TRY: 0.05
-  BRL: 0.04
-  SEK: 0.01
-  RUB: 0.5
-  KZT: 3.5
-  NOK: 0.01
-  AMD: 5
-  MMK: 10
-  MXN: 0.2
-  BOB: 0.05
-  PYG: 50
-  PEN: 0.02
-  CLP: 5
-  UYU: 0.4
-  CAD: 0.01
   AED: 0.03
   ALL: 1
+  AMD: 5
   AOA: 3
   ARS: 0.5
+  ARX: 1.25
   AZN: 0.01
   BAM: 0.01
+  BCH: 0.001
   BDT: 0.5
   BGN: 0.01
   BHD: 0.005
   BND: 0.01
+  BOB: 0.05
+  BRL: 0.04
+  BTC: 0.001
   BWP: 0.05
+  BYN: 0.02
+  CAD: 0.01
   CDF: 10
   CHF: 0.01
-  CRC: 5
+  CLP: 5
+  CNY: 0.04
   COP: 50
+  CRC: 5
   CZK: 0.2
   DKK: 0.5
   DOP: 0.5
   EGP: 0.25
+  ETH: 0.001
+  EUR: 0.01
+  GBP: 0.01
   GEL: 0.02
   GHS: 0.05
   GIP: 0.01
@@ -77,54 +62,69 @@ ccyMultipliers:
   HRK: 0.05
   HTG: 0.5
   HUF: 5
+  IDR: 100
   ILS: 0.03
   INR: 1
   IQD: 25
   IRR: 250
   ISK: 1
   JOD: 0.01
+  JPY: 1
   KES: 1
+  KGS: .8
+  KRW: 10
   KWD: 0.005
+  KZT: 3.5
   LBP: 25
+  LKR: 1.5
   LSL: 0.1
+  LTC: 0.001
   MAD: 0.1
   MBC: 0.01
+  MDL: 0.15
+  MGA: 30
   MKD: 0.5
+  MMK: 10
   MWK: 1
+  MXN: 0.2
+  MYR: 0.02
   NAD: 0.05
   NGN: 1
+  NOK: 0.01
   NZD: 0.1
   OMR: 0.005
-  ZMW: 0.1
-  ZMK: 0.1
+  PEN: 0.02
   PLN: 0.3
-  XOF: 5
+  PYG: 50
   QAR: 0.03
   RON: 0.04
   RSD: 1
+  RUB: 0.5
   RWF: 5
   SAR: 0.03
+  SEK: 0.01
+  THB: 0.2
+  TJS: .1
   TMT: 0.03
   TND: 0.02
+  TRY: 0.05
   TZS: 50
   UAH: 0.25
   UBC: 1
   UGX: 50
-  XAF: 5
-  VES: 0.001
-  ARX: 1.25
-  VEX: 2000
+  USD: 0.01
   UST: 0.01
-  ETH: 0.001
-  BCH: 0.001
-  LTC: 0.001
-  BYN: 0.02
+  UYU: 0.4
   UZS: 50
-  MDL: 0.15
-  LKR: 1.5
-  MGA: 30
-  TJS: .1
-  KGS: .8
+  VES: 0.001
+  VEX: 2000
+  VND: 100
+  XAF: 5
+  XBT: 0.001
+  XOF: 5
+  ZAR: 0.1
+  ZMK: 0.1
+  ZMW: 0.1
 
 profiles:
   low:
@@ -145,63 +145,35 @@ hostProfiles:
   THB: highdefault
 
 override:
-  mah-jong:
-    UZS:
-      defaultBet: 3000
-      stakeValues:
-        - 1000
-        - 2000
-        - 3000
-        - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
   a-candy-girls-christmans:
     UZS:
-      defaultBet: 3000
+      defaultBet: 120
       stakeValues:
-        - 1000
-        - 2000
-        - 3000
-        - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
+        - 40  
+        - 80  
+        - 120 
+        - 200 
+        - 400 
+        - 800 
+        - 1200  
+        - 2000  
+        - 4000  
+        - 8000
   a-fairy-tale:
     UZS:
-      defaultBet: 3000
+      defaultBet: 120
       stakeValues:
-        - 1000
-        - 2000
-        - 3000
-        - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
+        - 40  
+        - 80  
+        - 120 
+        - 200 
+        - 400 
+        - 800 
+        - 1200  
+        - 2000  
+        - 4000  
+        - 8000
   a-hidden-forest:
-    UZS:
-      defaultBet: 3000
-      stakeValues:
-        - 1000
-        - 2000
-        - 3000
-        - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
-  museum:
     UZS:
       defaultBet: 3000
       stakeValues:
@@ -217,74 +189,74 @@ override:
         - 200000
   asuka-x-samurai:
     UZS:
-      defaultBet: 3000
+      defaultBet: 60
       stakeValues:
-        - 1000
-        - 2000
-        - 3000
-        - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
+        - 20  
+        - 40  
+        - 60  
+        - 100 
+        - 200 
+        - 400 
+        - 600 
+        - 1000  
+        - 2000  
+        - 4000
   bangkok-fighter:
     UZS:
-      defaultBet: 3000
+      defaultBet: 60
       stakeValues:
-        - 1000
-        - 2000
-        - 3000
-        - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
+        - 20  
+        - 40  
+        - 60  
+        - 100 
+        - 200 
+        - 400 
+        - 600 
+        - 1000  
+        - 2000  
+        - 4000
   battlemech-mars:
     UZS:
-      defaultBet: 3000
+      defaultBet: 60
       stakeValues:
-        - 1000
-        - 2000
-        - 3000
-        - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
+        - 20  
+        - 40  
+        - 60  
+        - 100 
+        - 200 
+        - 400 
+        - 600 
+        - 1000  
+        - 2000  
+        - 4000
   cloud9:
     UZS:
-      defaultBet: 3000
+      defaultBet: 75
       stakeValues:
-        - 1000
-        - 2000
-        - 3000
+        - 25  
+        - 50  
+        - 75  
+        - 125 
+        - 250 
+        - 500 
+        - 750 
+        - 1250  
+        - 2500  
         - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
   cookoff-champion:
     UZS:
-      defaultBet: 3000
+      defaultBet: 60
       stakeValues:
-        - 1000
-        - 2000
-        - 3000
-        - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
+        - 20  
+        - 40  
+        - 60  
+        - 100 
+        - 200 
+        - 400 
+        - 600 
+        - 1000  
+        - 2000  
+        - 4000
   crazy-easter-eggs:
     UZS:
       defaultBet: 3000
@@ -315,32 +287,32 @@ override:
         - 200000
   dragon-myst:
     UZS:
-      defaultBet: 3000
+      defaultBet: 75
       stakeValues:
-        - 1000
-        - 2000
-        - 3000
+        - 25  
+        - 50  
+        - 75  
+        - 125 
+        - 250 
+        - 500 
+        - 750 
+        - 1250  
+        - 2500  
         - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
   drift:
     UZS:
-      defaultBet: 3000
+      defaultBet: 60
       stakeValues:
-        - 1000
-        - 2000
-        - 3000
-        - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
+        - 20  
+        - 40  
+        - 60  
+        - 100 
+        - 200 
+        - 400 
+        - 600 
+        - 1000  
+        - 2000  
+        - 4000
   fruity-verse:
     UZS:
       defaultBet: 3000
@@ -357,6 +329,20 @@ override:
         - 200000
   goal:
     UZS:
+      defaultBet: 60
+      stakeValues:
+        - 20  
+        - 40  
+        - 60  
+        - 100 
+        - 200 
+        - 400 
+        - 600 
+        - 1000  
+        - 2000  
+        - 4000
+  mah-jong:
+    UZS:
       defaultBet: 3000
       stakeValues:
         - 1000
@@ -369,48 +355,132 @@ override:
         - 50000
         - 100000
         - 200000
+  museum:
+    UZS:
+      defaultBet: 120
+      stakeValues:
+        - 40  
+        - 80  
+        - 120 
+        - 200 
+        - 400 
+        - 800 
+        - 1200  
+        - 2000  
+        - 4000  
+        - 8000        
   pearl-fisher:
     UZS:
-      defaultBet: 3000
+      defaultBet: 75
       stakeValues:
+        - 25  
+        - 50  
+        - 75  
+        - 125 
+        - 250 
+        - 500 
+        - 750 
+        - 1250  
+        - 2500  
+        - 5000
+  seasons:
+    credits:
+      defaultBet: 30
+      stakeValues:
+        - 10
+        - 20
+        - 30
+        - 50
+        - 100
+        - 200
+        - 300
+        - 500
         - 1000
         - 2000
-        - 3000
-        - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
+  seasons-autumn:
+    credits:
+      defaultBet: 30
+      stakeValues:
+        - 10
+        - 20
+        - 30
+        - 50
+        - 100
+        - 200
+        - 300
+        - 500
+        - 1000
+        - 2000
+  seasons-spring:
+    credits:
+      defaultBet: 30
+      stakeValues:
+        - 10
+        - 20
+        - 30
+        - 50
+        - 100
+        - 200
+        - 300
+        - 500
+        - 1000
+        - 2000
+  seasons-summer:
+    credits:
+      defaultBet: 30
+      stakeValues:
+        - 10
+        - 20
+        - 30
+        - 50
+        - 100
+        - 200
+        - 300
+        - 500
+        - 1000
+        - 2000
+  seasons-winter:
+    credits:
+      defaultBet: 30
+      stakeValues:
+        - 10
+        - 20
+        - 30
+        - 50
+        - 100
+        - 200
+        - 300
+        - 500
+        - 1000
+        - 2000
   sky-jewels:
     UZS:
-      defaultBet: 3000
+      defaultBet: 60
       stakeValues:
-        - 1000
-        - 2000
-        - 3000
-        - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
+        - 20  
+        - 40  
+        - 60  
+        - 100 
+        - 200 
+        - 400 
+        - 600 
+        - 1000  
+        - 2000  
+        - 4000
   sparta:
     UZS:
-      defaultBet: 3000
+      defaultBet: 75
       stakeValues:
-        - 1000
-        - 2000
-        - 3000
+        - 25  
+        - 50  
+        - 75  
+        - 125 
+        - 250 
+        - 500 
+        - 750 
+        - 1250  
+        - 2500  
         - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
   supa-crew:
     credits:
       defaultBet: 10
@@ -425,30 +495,17 @@ override:
         - 200
         - 300
         - 500
-    UZS:
-      defaultBet: 5000
-      stakeValues:
-        - 1500  
-        - 2500  
-        - 5000  
-        - 10000 
-        - 15000 
-        - 25000 
-        - 50000 
-        - 100000  
-        - 150000  
-        - 250000
   valley-of-kings:
     UZS:
-      defaultBet: 3000
+      defaultBet: 60
       stakeValues:
-        - 1000
-        - 2000
-        - 3000
-        - 5000
-        - 10000
-        - 20000
-        - 30000
-        - 50000
-        - 100000
-        - 200000
+        - 20  
+        - 40  
+        - 60  
+        - 100 
+        - 200 
+        - 400 
+        - 600 
+        - 1000  
+        - 2000  
+        - 4000
