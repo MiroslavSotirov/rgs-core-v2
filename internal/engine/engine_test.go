@@ -853,6 +853,7 @@ func TestShuffleFlop(t *testing.T) {
 	}
 }
 
+// TestShufflePrime passes locally yet failed on github merge.. keep this comment and see if it happens again
 func TestShufflePrime(t *testing.T) {
 	rng.Init()
 	shuffleDef := EngineDef{
