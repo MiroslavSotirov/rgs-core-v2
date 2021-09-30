@@ -42,11 +42,11 @@ data:
       BCH: 0.001
       BDT: 0.5
       BGN: 0.01
-      BHD: 0.005
+      BHD: 0.01 # 0.005 before test
       BND: 0.01
       BOB: 0.05
       BRL: 0.04
-      BTC: 0.001
+      BTC: 0.01 # 0.001 before test
       BWP: 0.05
       BYN: 0.02
       CAD: 0.01
@@ -83,7 +83,7 @@ data:
       KES: 1
       KGS: .8
       KRW: 10
-      KWD: 0.005
+      KWD: 0.01 # 0.005 before test
       KZT: 3.5
       LBP: 25
       LKR: 1.5
@@ -102,7 +102,7 @@ data:
       NGN: 1
       NOK: 0.01
       NZD: 0.1
-      OMR: 0.005
+      OMR: 0.01 # 0.005 before test
       PEN: 0.02
       PLN: 0.3
       PYG: 50
@@ -126,7 +126,7 @@ data:
       UST: 0.01
       UYU: 0.4
       UZS: 50
-      VES: 0.004
+      VES: 0.01 # 0.001 before test
       VEX: 2000
       VND: 100
       XAF: 5
