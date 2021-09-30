@@ -155,7 +155,7 @@ data:
       THB: highdefault
 
     override:
-      a-candy-girls-christmans:
+      mvgEngineV:
         UZS:
           defaultBet: 120
           stakeValues:
@@ -169,7 +169,91 @@ data:
             - 2000  
             - 4000  
             - 8000
-      a-fairy-tale:
+      mvgEngineIX:
+        UZS:
+          defaultBet: 3000
+          stakeValues:
+            - 1000
+            - 2000
+            - 3000
+            - 5000
+            - 10000
+            - 20000
+            - 30000
+            - 50000
+            - 100000
+            - 200000
+      mvgEngineX:
+        UZS:
+          defaultBet: 1500
+          stakeValues:
+            - 1
+            - 1
+            - 1
+            - 1
+            - 1
+            - 1
+            - 1500
+            - 1
+            - 1
+            - 1
+      mvgEngineXI:
+        UZS:
+          defaultBet: 3000
+          stakeValues:
+            - 1000
+            - 2000
+            - 3000
+            - 5000
+            - 10000
+            - 20000
+            - 30000
+            - 50000
+            - 100000
+            - 200000
+      mvgEngineXII:
+        UZS:
+          defaultBet: 75
+          stakeValues:
+            - 25  
+            - 50  
+            - 75  
+            - 125 
+            - 250 
+            - 500 
+            - 750 
+            - 1250  
+            - 2500  
+            - 5000
+      mvgEngineXIII:
+        UZS:
+          defaultBet: 60
+          stakeValues:
+            - 20  
+            - 40  
+            - 60  
+            - 100 
+            - 200 
+            - 400 
+            - 600 
+            - 1000  
+            - 2000  
+            - 4000
+      mvgEngineXIV:
+        UZS:
+          defaultBet: 60
+          stakeValues:
+            - 20  
+            - 40  
+            - 60  
+            - 100 
+            - 200 
+            - 400 
+            - 600 
+            - 1000  
+            - 2000  
+            - 4000
+      mvgEngineXV:
         UZS:
           defaultBet: 120
           stakeValues:
@@ -183,63 +267,7 @@ data:
             - 2000  
             - 4000  
             - 8000
-      a-hidden-forest:
-        UZS:
-          defaultBet: 3000
-          stakeValues:
-            - 1000
-            - 2000
-            - 3000
-            - 5000
-            - 10000
-            - 20000
-            - 30000
-            - 50000
-            - 100000
-            - 200000
-      asuka-x-samurai:
-        UZS:
-          defaultBet: 60
-          stakeValues:
-            - 20  
-            - 40  
-            - 60  
-            - 100 
-            - 200 
-            - 400 
-            - 600 
-            - 1000  
-            - 2000  
-            - 4000
-      bangkok-fighter:
-        UZS:
-          defaultBet: 60
-          stakeValues:
-            - 20  
-            - 40  
-            - 60  
-            - 100 
-            - 200 
-            - 400 
-            - 600 
-            - 1000  
-            - 2000  
-            - 4000
-      battlemech-mars:
-        UZS:
-          defaultBet: 60
-          stakeValues:
-            - 20  
-            - 40  
-            - 60  
-            - 100 
-            - 200 
-            - 400 
-            - 600 
-            - 1000  
-            - 2000  
-            - 4000
-      cloud9:
+      mvgEngineXVI:
         UZS:
           defaultBet: 75
           stakeValues:
@@ -253,245 +281,7 @@ data:
             - 1250  
             - 2500  
             - 5000
-      cookoff-champion:
-        UZS:
-          defaultBet: 60
-          stakeValues:
-            - 20  
-            - 40  
-            - 60  
-            - 100 
-            - 200 
-            - 400 
-            - 600 
-            - 1000  
-            - 2000  
-            - 4000
-      crazy-easter-eggs:
-        UZS:
-          defaultBet: 3000
-          stakeValues:
-            - 1000
-            - 2000
-            - 3000
-            - 5000
-            - 10000
-            - 20000
-            - 30000
-            - 50000
-            - 100000
-            - 200000
-      daytona:
-        UZS:
-          defaultBet: 3000
-          stakeValues:
-            - 1000
-            - 2000
-            - 3000
-            - 5000
-            - 10000
-            - 20000
-            - 30000
-            - 50000
-            - 100000
-            - 200000
-      dragon-myst:
-        UZS:
-          defaultBet: 75
-          stakeValues:
-            - 25  
-            - 50  
-            - 75  
-            - 125 
-            - 250 
-            - 500 
-            - 750 
-            - 1250  
-            - 2500  
-            - 5000
-      drift:
-        UZS:
-          defaultBet: 60
-          stakeValues:
-            - 20  
-            - 40  
-            - 60  
-            - 100 
-            - 200 
-            - 400 
-            - 600 
-            - 1000  
-            - 2000  
-            - 4000
-      fruity-verse:
-        UZS:
-          defaultBet: 3000
-          stakeValues:
-            - 1000
-            - 2000
-            - 3000
-            - 5000
-            - 10000
-            - 20000
-            - 30000
-            - 50000
-            - 100000
-            - 200000
-      goal:
-        UZS:
-          defaultBet: 60
-          stakeValues:
-            - 20  
-            - 40  
-            - 60  
-            - 100 
-            - 200 
-            - 400 
-            - 600 
-            - 1000  
-            - 2000  
-            - 4000
-      mah-jong:
-        UZS:
-          defaultBet: 3000
-          stakeValues:
-            - 1000
-            - 2000
-            - 3000
-            - 5000
-            - 10000
-            - 20000
-            - 30000
-            - 50000
-            - 100000
-            - 200000
-      museum:
-        UZS:
-          defaultBet: 120
-          stakeValues:
-            - 40  
-            - 80  
-            - 120 
-            - 200 
-            - 400 
-            - 800 
-            - 1200  
-            - 2000  
-            - 4000  
-            - 8000        
-      pearl-fisher:
-        UZS:
-          defaultBet: 75
-          stakeValues:
-            - 25  
-            - 50  
-            - 75  
-            - 125 
-            - 250 
-            - 500 
-            - 750 
-            - 1250  
-            - 2500  
-            - 5000
-      seasons:
-        credits:
-          defaultBet: 30
-          stakeValues:
-            - 10
-            - 20
-            - 30
-            - 50
-            - 100
-            - 200
-            - 300
-            - 500
-            - 1000
-            - 2000
-      seasons-autumn:
-        credits:
-          defaultBet: 30
-          stakeValues:
-            - 10
-            - 20
-            - 30
-            - 50
-            - 100
-            - 200
-            - 300
-            - 500
-            - 1000
-            - 2000
-      seasons-spring:
-        credits:
-          defaultBet: 30
-          stakeValues:
-            - 10
-            - 20
-            - 30
-            - 50
-            - 100
-            - 200
-            - 300
-            - 500
-            - 1000
-            - 2000
-      seasons-summer:
-        credits:
-          defaultBet: 30
-          stakeValues:
-            - 10
-            - 20
-            - 30
-            - 50
-            - 100
-            - 200
-            - 300
-            - 500
-            - 1000
-            - 2000
-      seasons-winter:
-        credits:
-          defaultBet: 30
-          stakeValues:
-            - 10
-            - 20
-            - 30
-            - 50
-            - 100
-            - 200
-            - 300
-            - 500
-            - 1000
-            - 2000
-      sky-jewels:
-        UZS:
-          defaultBet: 60
-          stakeValues:
-            - 20  
-            - 40  
-            - 60  
-            - 100 
-            - 200 
-            - 400 
-            - 600 
-            - 1000  
-            - 2000  
-            - 4000
-      sparta:
-        UZS:
-          defaultBet: 75
-          stakeValues:
-            - 25  
-            - 50  
-            - 75  
-            - 125 
-            - 250 
-            - 500 
-            - 750 
-            - 1250  
-            - 2500  
-            - 5000
-      supa-crew:
+      mvgEngineUnity1:
         credits:
           defaultBet: 10
           stakeValues:
@@ -505,17 +295,3 @@ data:
             - 200
             - 300
             - 500
-      valley-of-kings:
-        UZS:
-          defaultBet: 60
-          stakeValues:
-            - 20  
-            - 40  
-            - 60  
-            - 100 
-            - 200 
-            - 400 
-            - 600 
-            - 1000  
-            - 2000  
-            - 4000

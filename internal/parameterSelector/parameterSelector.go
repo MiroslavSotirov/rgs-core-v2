@@ -199,7 +199,10 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 		return []engine.Fixed{}, engine.Fixed(0), rgse.Create(rgse.EngineNotFoundError)
 	}
 
-	override, ok := betConf.Override[gameID]
+	override, ok := betConf.Override[engineID]
+	if !ok {
+		override, ok = betConf.Override[gameID]
+	}
 	if ok {
 		var mult engine.Fixed
 		stakeconf, ok := override[lastBet.Currency]
