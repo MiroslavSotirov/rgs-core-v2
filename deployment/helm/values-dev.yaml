@@ -190,6 +190,9 @@ gameConfig:
   - engineID: mvgEngineUnity1
     games:
       - supa-crew
+  - engineID: mvgEngineGodot2
+    games:
+      - fox-tail      
 
 gamification:
   a-fairy-tale:

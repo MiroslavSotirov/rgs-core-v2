@@ -38,9 +38,13 @@ type Feature interface {
 
 // features must be included here to make them deserializable by the engine
 type EnabledFeatureSet struct {
+	_ ExpandingWild
 	_ FatTile
 	_ InstaWin
 	_ ReplaceTile
+	_ TriggerFoxTail
+	_ TriggerFoxTailBonus
+	_ TriggerFoxTailWild
 	_ TriggerSupaCrew
 	_ TriggerSupaCrewActionSymbol
 	_ TriggerSupaCrewSuperSymbol

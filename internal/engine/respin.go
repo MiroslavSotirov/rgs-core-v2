@@ -1,10 +1,11 @@
 package engine
 
 import (
-	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"strconv"
 	"strings"
+
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 // Calculate price of reel respin
@@ -57,7 +58,7 @@ func (gamestate Gamestate) ExpectedReelValue(reelIndex int) Fixed {
 		case "ways":
 			wins = DetermineWaysWins(view, def.Payouts, def.Wilds)
 		case "lines":
-			wins = DetermineLineWins(view, def.WinLines, def.Payouts, def.Wilds, def.Compounding)
+			wins = DetermineLineWins(view, def.WinLines, def.Payouts, def.Wilds, def.Compounding, false)
 		}
 		for _, win := range wins {
 			// add win amount (multipliers are relative to betPerLine)

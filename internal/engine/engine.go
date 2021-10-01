@@ -180,24 +180,77 @@ func GetWinInLine(lineContent []int, wilds []wild, linePayouts []Payout, compoun
 	return prize
 }
 
-func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payout, wilds []wild, compounding bool) (lineWins []Prize) {
+func GetWinInLineKeepWilds(lineContent []int, wilds []wild, linePayouts []Payout) (prize Prize) {
+	numMatch := 1
+	lineSymbol := lineContent[0]
+	multiplier := 1
+
+	// Determine how many consecutive symbols are in the line
+	for _, symbol := range lineContent[1:] {
+		if symbol == lineSymbol {
+			numMatch++
+		} else {
+			break
+		}
+	}
+
+	// Compare best run to Payouts, not duplicating any symbols
+	for _, payout := range linePayouts {
+		if lineSymbol == payout.Symbol && numMatch == payout.Count {
+			//copy payout object, NB can only do because no reference fields in Payout
+			linePayout := payout
+			prize = Prize{Payout: linePayout, Index: fmt.Sprintf("%v:%v", lineSymbol, numMatch), Multiplier: multiplier}
+			// Only one win possible per line, earliest payout in payout dict takes precedence
+			break
+		}
+	}
+	return prize
+}
+
+/*
+   The defauly way to handle wilds should be what this does: if there are defined payouts for wilds
+   then wilds should not be converted to regular symbols when it will generate a smaller win. To avoid changing the legacy
+   way to count, this function can be used with game requiering this.
+*/
+func GetHighestWinInLine(lineContent []int, wilds []wild, linePayouts []Payout, compounding bool, wildMultipliers map[int]int) (prize Prize) {
+	prize = GetWinInLine(lineContent, wilds, linePayouts, compounding, wildMultipliers)
+	prizeWilds := GetWinInLineKeepWilds(lineContent, wilds, linePayouts)
+	if prizeWilds.Payout.Multiplier > prize.Payout.Multiplier {
+		prize = prizeWilds
+	}
+	return
+}
+
+func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payout, wilds []wild, compounding bool, keepWilds bool) (lineWins []Prize) {
 	// determines prizes from line wins including wilds with multipliers
 	// highest wild multiplier takes precedence for multiple wilds on the same line (i.e. wild multipliers do not compound)
 
 	// store wild multiplier selections if they are to be reused for future wilds
 	wildMultipliers := make(map[int]int)
 
+	gridw, gridh := len(symbolGrid), 0
+	if gridw > 0 {
+		gridh = len(symbolGrid[0])
+	}
+	logger.Debugf("Symbol grid: %d x %d\n", gridw, gridh)
 	for winLineIndex, winLine := range WinLines {
+		logger.Debugf("Checking winline %d / %d\n", winLineIndex, len(WinLines))
 		lineContent := make([]int, len(symbolGrid))
 		symbolPositions := make([]int, len(symbolGrid))
 		for reel, index := range winLine {
+			logger.Debugf("Checking winline symbol %d / %d\n", reel, len(winLine))
 			lineContent[reel] = symbolGrid[reel][index]
 			// to determine a unique symbol position per location in the view, this only works if view is regularly sized (i.e. all reels show same number of symbols. todo: make this dynamic for all reel configurations
 			symbolPositions[reel] = len(symbolGrid[reel])*reel + index
 		}
 
 		// wildMultipliers is passed in and modulated, we get to keep the results of the modulation in the next rounds of the for loop
-		win := GetWinInLine(lineContent, wilds, linePayouts, compounding, wildMultipliers)
+		var win Prize
+		if keepWilds {
+			win = GetHighestWinInLine(lineContent, wilds, linePayouts, compounding, wildMultipliers)
+		} else {
+			win = GetWinInLine(lineContent, wilds, linePayouts, compounding, wildMultipliers)
+		}
 		if win.Index == "" {
 			continue
 		}
@@ -228,8 +281,8 @@ func determineBarLineWins(symbolGrid [][]int, winLines [][]int, payouts []Payout
 			adjustedSymbolGrid[i] = adjustedRow
 		}
 	}
-	lineWinsWithBar := DetermineLineWins(adjustedSymbolGrid, winLines, payouts, wilds, compoundingMultipliers)
-	lineWinsWithoutBar := DetermineLineWins(symbolGrid, winLines, payouts, wilds, compoundingMultipliers)
+	lineWinsWithBar := DetermineLineWins(adjustedSymbolGrid, winLines, payouts, wilds, compoundingMultipliers, false)
+	lineWinsWithoutBar := DetermineLineWins(symbolGrid, winLines, payouts, wilds, compoundingMultipliers, false)
 	var highestWinsPerLine []Prize
 
 	for _, barWin := range lineWinsWithBar {
@@ -754,7 +807,8 @@ func (engine EngineDef) DetermineWins(symbolGrid [][]int) ([]Prize, int) {
 	case "ways":
 		wins = DetermineWaysWins(symbolGrid, engine.Payouts, engine.Wilds)
 	case "lines":
-		wins = DetermineLineWins(symbolGrid, engine.WinLines, engine.Payouts, engine.Wilds, engine.Compounding)
+		keepWilds := strings.Contains(engine.WinConfig.Flags, "keep_wilds")
+		wins = DetermineLineWins(symbolGrid, engine.WinLines, engine.Payouts, engine.Wilds, engine.Compounding, keepWilds)
 	case "barLines":
 		wins = determineBarLineWins(symbolGrid, engine.WinLines, engine.Payouts, engine.Bars, engine.Wilds, engine.Compounding)
 	case "blazeLines":
@@ -1422,7 +1476,9 @@ func (engine EngineDef) TriggerConfiguredFeatures(symbolgrid [][]int, parameters
 			return features.FeatureState{}
 		}
 		feature.Init(featuredef)
-		featureparams := features.FeatureParams{}
+		featureparams := features.FeatureParams{
+			"Engine": engine.ID,
+		}
 		if config.GlobalConfig.DevMode == true && parameters.Force != "" {
 			logger.Debugf("trigger configured features using force %s", parameters.Force)
 			featureparams["force"] = parameters.Force

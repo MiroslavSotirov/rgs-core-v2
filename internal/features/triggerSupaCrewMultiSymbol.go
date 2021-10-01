@@ -46,6 +46,8 @@ func (f TriggerSupaCrewMultiSymbol) Trigger(state *FeatureState, params FeatureP
 		params["InstaWinAmount"] = []int{
 			7, 8, 10, 12, 14, 16, 18, 20, 22, 25, 28, 30,
 		}[ran12]
+		gridh := len(state.SymbolGrid[0])
+		params["Positions"] = []int{x*gridh + y, (x+1)*gridh + y, x*gridh + y + 1, (x+1)*gridh + y + 1}
 
 		activateFeatures(f.FeatureDef, state, params)
 	}

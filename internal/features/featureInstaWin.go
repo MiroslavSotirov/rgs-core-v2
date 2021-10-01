@@ -34,16 +34,11 @@ func (f InstaWin) Trigger(state *FeatureState, params FeatureParams) {
 				Amount:   multiplier,
 			},
 		})
-	gridh := len(state.SymbolGrid[0])
-	x := params.GetInt("X")
-	y := params.GetInt("Y")
-	tileid := params.GetInt("TileId")
-	symbolpositions := []int{x*gridh + y, (x+1)*gridh + y, x*gridh + y + 1, (x+1)*gridh + y + 1}
 	state.Wins = append(state.Wins,
 		FeatureWin{
 			Multiplier:      multiplier,
-			Symbols:         []int{tileid},
-			SymbolPositions: symbolpositions,
+			Symbols:         []int{params.GetInt("TileId")},
+			SymbolPositions: params.GetIntSlice("Positions"),
 		})
 }
 
