@@ -140,6 +140,10 @@ func (num1 Fixed) Mul(num2 Fixed) Fixed {
 	return num1 * num2 / fixedExp
 }
 
+func (num1 Fixed) MulFloat(num2 Fixed) Fixed {
+	return Fixed(float64(num1) / float64(fixedExp) * float64(num2))
+}
+
 func (num1 Fixed) Div(num2 Fixed) Fixed {
 	// divide two fixed point numbers with e6 representation
 	// num1 = realnum1 * 10^6

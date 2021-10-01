@@ -124,7 +124,7 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 		err = confErr
 		return
 	}
-	walletInitBal = engine.Money{stakeValues[len(stakeValues)-1].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).Mul(engine.NewFixedFromInt(walletamtmult)), currency}
+	walletInitBal = engine.Money{stakeValues[len(stakeValues)-1].MulFloat(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).MulFloat(engine.NewFixedFromInt(walletamtmult)), currency}
 	logger.Debugf("wallet initial balance= %v", walletInitBal)
 	// solution for testing low balance
 	if playerID == "lowbalance" {
