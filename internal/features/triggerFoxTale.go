@@ -4,23 +4,23 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 )
 
-type TriggerFoxTail struct {
+type TriggerFoxTale struct {
 	FeatureDef
 }
 
-func (f *TriggerFoxTail) DefPtr() *FeatureDef {
+func (f *TriggerFoxTale) DefPtr() *FeatureDef {
 	return &f.FeatureDef
 }
 
-func (f *TriggerFoxTail) DataPtr() interface{} {
+func (f *TriggerFoxTale) DataPtr() interface{} {
 	return nil
 }
 
-func (f *TriggerFoxTail) Init(def FeatureDef) error {
+func (f *TriggerFoxTale) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
-func (f TriggerFoxTail) Trigger(state *FeatureState, params FeatureParams) {
+func (f TriggerFoxTale) Trigger(state *FeatureState, params FeatureParams) {
 	if f.ForceTrigger(state, params) {
 		return
 	}
@@ -29,14 +29,14 @@ func (f TriggerFoxTail) Trigger(state *FeatureState, params FeatureParams) {
 	return
 }
 
-func (f TriggerFoxTail) ForceTrigger(state *FeatureState, params FeatureParams) bool {
+func (f TriggerFoxTale) ForceTrigger(state *FeatureState, params FeatureParams) bool {
 	return false
 }
 
-func (f *TriggerFoxTail) Serialize() ([]byte, error) {
+func (f *TriggerFoxTale) Serialize() ([]byte, error) {
 	return serializeTriggerToBytes(f)
 }
 
-func (f *TriggerFoxTail) Deserialize(data []byte) (err error) {
+func (f *TriggerFoxTale) Deserialize(data []byte) (err error) {
 	return deserializeTriggerFromBytes(f, data)
 }

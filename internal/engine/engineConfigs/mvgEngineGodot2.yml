@@ -75,17 +75,17 @@ EngineDefs:
     SpecialPayouts:
       - {Payout: {Symbol: 11, Count: 3, Multiplier: 0}, Index: "freespin:12", Multiplier: 0}
     Features:
-      - Type: "TriggerFoxTail"
+      - Type: "TriggerFoxTale"
         Params:
           RandomRange: 10000
         Features:
-          - Type: "TriggerFoxTailWild"
+          - Type: "TriggerFoxTaleWild"
             Params:
               TileId: 9
               Limit: 3760
             Features:
               - Type: "ExpandingWild"
-          - Type: "TriggerFoxTailBonus"
+          - Type: "TriggerFoxTaleBonus"
             Params:
               TileId: 10
             Features:

@@ -42,9 +42,9 @@ type EnabledFeatureSet struct {
 	_ FatTile
 	_ InstaWin
 	_ ReplaceTile
-	_ TriggerFoxTail
-	_ TriggerFoxTailBonus
-	_ TriggerFoxTailWild
+	_ TriggerFoxTale
+	_ TriggerFoxTaleBonus
+	_ TriggerFoxTaleWild
 	_ TriggerSupaCrew
 	_ TriggerSupaCrewActionSymbol
 	_ TriggerSupaCrewSuperSymbol

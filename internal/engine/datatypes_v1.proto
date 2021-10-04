@@ -197,7 +197,7 @@ message GamestatePB {
   BOOK_OF_LIVING=49;
   PRINCESS=50;
   SUPA_CREW=51;
-  FOX_TAIL=52;
+  FOX_TALE=52;
   }
   GameID game_id = 1;
   int32 engine_def = 2;

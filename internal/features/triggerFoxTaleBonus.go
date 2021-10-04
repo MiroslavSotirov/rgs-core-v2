@@ -7,23 +7,23 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 )
 
-type TriggerFoxTailBonus struct {
+type TriggerFoxTaleBonus struct {
 	FeatureDef
 }
 
-func (f *TriggerFoxTailBonus) DefPtr() *FeatureDef {
+func (f *TriggerFoxTaleBonus) DefPtr() *FeatureDef {
 	return &f.FeatureDef
 }
 
-func (f *TriggerFoxTailBonus) DataPtr() interface{} {
+func (f *TriggerFoxTaleBonus) DataPtr() interface{} {
 	return nil
 }
 
-func (f *TriggerFoxTailBonus) Init(def FeatureDef) error {
+func (f *TriggerFoxTaleBonus) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
-func (f TriggerFoxTailBonus) Trigger(state *FeatureState, params FeatureParams) {
+func (f TriggerFoxTaleBonus) Trigger(state *FeatureState, params FeatureParams) {
 	if config.GlobalConfig.DevMode && params.HasKey("force") && strings.Contains(params.GetString("force"), "actionsymbol") {
 		f.ForceTrigger(state, params)
 	}
@@ -54,13 +54,13 @@ func (f TriggerFoxTailBonus) Trigger(state *FeatureState, params FeatureParams) 
 	return
 }
 
-func (f TriggerFoxTailBonus) ForceTrigger(state *FeatureState, params FeatureParams) {
+func (f TriggerFoxTaleBonus) ForceTrigger(state *FeatureState, params FeatureParams) {
 }
 
-func (f *TriggerFoxTailBonus) Serialize() ([]byte, error) {
+func (f *TriggerFoxTaleBonus) Serialize() ([]byte, error) {
 	return serializeTriggerToBytes(f)
 }
 
-func (f *TriggerFoxTailBonus) Deserialize(data []byte) (err error) {
+func (f *TriggerFoxTaleBonus) Deserialize(data []byte) (err error) {
 	return deserializeTriggerFromBytes(f, data)
 }

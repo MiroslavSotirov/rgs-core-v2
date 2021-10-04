@@ -6,23 +6,23 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 )
 
-type TriggerFoxTailWild struct {
+type TriggerFoxTaleWild struct {
 	FeatureDef
 }
 
-func (f *TriggerFoxTailWild) DefPtr() *FeatureDef {
+func (f *TriggerFoxTaleWild) DefPtr() *FeatureDef {
 	return &f.FeatureDef
 }
 
-func (f *TriggerFoxTailWild) DataPtr() interface{} {
+func (f *TriggerFoxTaleWild) DataPtr() interface{} {
 	return nil
 }
 
-func (f *TriggerFoxTailWild) Init(def FeatureDef) error {
+func (f *TriggerFoxTaleWild) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
-func (f TriggerFoxTailWild) Trigger(state *FeatureState, params FeatureParams) {
+func (f TriggerFoxTaleWild) Trigger(state *FeatureState, params FeatureParams) {
 	if config.GlobalConfig.DevMode && params.HasKey("force") && strings.Contains(params.GetString("force"), "actionsymbol") {
 		f.ForceTrigger(state, params)
 	}
@@ -55,13 +55,13 @@ func (f TriggerFoxTailWild) Trigger(state *FeatureState, params FeatureParams) {
 	return
 }
 
-func (f TriggerFoxTailWild) ForceTrigger(state *FeatureState, params FeatureParams) {
+func (f TriggerFoxTaleWild) ForceTrigger(state *FeatureState, params FeatureParams) {
 }
 
-func (f *TriggerFoxTailWild) Serialize() ([]byte, error) {
+func (f *TriggerFoxTaleWild) Serialize() ([]byte, error) {
 	return serializeTriggerToBytes(f)
 }
 
-func (f *TriggerFoxTailWild) Deserialize(data []byte) (err error) {
+func (f *TriggerFoxTaleWild) Deserialize(data []byte) (err error) {
 	return deserializeTriggerFromBytes(f, data)
 }

@@ -189,7 +189,7 @@ gameConfig:
       - supa-crew
   - engineID: mvgEngineGodot2
     games:
-      - fox-tail      
+      - fox-tale     
 gamification:
   a-fairy-tale:
     function: Increment
