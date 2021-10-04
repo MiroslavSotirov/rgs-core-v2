@@ -39,7 +39,7 @@ type GamestatePB struct {
 #### Generate protobuf
 ```
 cd internal/engine
-protoc --go_out=. *.proto
+protoc --go_out=paths=source_relative:. *.proto
 ```
 
 
