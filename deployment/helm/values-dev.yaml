@@ -87,7 +87,7 @@ readinessProbe:
   periodSeconds: 30
 
 config:
-  devmode: false
+  devmode: true
   local: false
   logging: debug
   environment: dev
