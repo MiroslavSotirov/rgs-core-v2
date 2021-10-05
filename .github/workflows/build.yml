@@ -23,7 +23,7 @@ jobs:
         uses: anothrNick/github-tag-action@master
         id: tag
         env:
-          GITHUB_TOKEN: ${{ secrets.BUILDER_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
           DEFAULT_BUMP: patch
       - run: |
