@@ -28,7 +28,7 @@ jobs:
           DEFAULT_BUMP: patch
       - run: |
           echo building rgs version ${{ steps.tag.outputs.new_tag }}
-          echo ${{ steps.tag.outputs.new_tag }} > version.txt
+          echo -n ${{ steps.tag.outputs.new_tag }} > version.txt
           docker login harbor.inf01.activeops.io -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build . -t harbor.inf01.activeops.io/maverick/mvg_rgs:${{ steps.tag.outputs.new_tag }}
           docker push harbor.inf01.activeops.io/maverick/mvg_rgs:${{ steps.tag.outputs.new_tag }}
