@@ -10,6 +10,7 @@ FROM alpine:3.10
 RUN apk --no-cache add ca-certificates
 # copy rgs binary
 COPY --from=builder /rgs ./
+COPY --from=builder /go/src/rgs-core-v2/version.json .
 #copy playcheck template
 COPY --from=builder /go/src/rgs-core-v2/templates ./templates
 RUN chmod +x ./rgs

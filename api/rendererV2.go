@@ -36,6 +36,10 @@ func (gi FeedResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+func (gi VersionResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
 // GameLinkResponse ...
 type GameLinkResponse struct {
 	Results []LinkResponse `json:"results"`
@@ -122,6 +126,10 @@ type ReelResponse struct {
 type FeedResponse struct {
 	Rounds   []store.FeedRound `json:"rounds"`
 	NextPage int               `json:"next_page"`
+}
+
+type VersionResponse struct {
+	Version string `json:"version"`
 }
 
 func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceStore) GameplayResponseV2 {
