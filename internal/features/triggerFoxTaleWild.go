@@ -43,6 +43,7 @@ func (f TriggerFoxTaleWild) Trigger(state *FeatureState, params FeatureParams) {
 					for i := 0; i < gridh; i++ {
 						positions = append(positions, index+i)
 					}
+					params["Position"] = index + y
 					params["Positions"] = positions
 					activateFeatures(f.FeatureDef, state, params)
 					break

@@ -3,6 +3,7 @@ package features
 type ExpandingWildData struct {
 	Positions []int `json:"positions"`
 	TileId    int   `json:"tileid"`
+	From      int   `json:"from"`
 }
 
 type ExpandingWild struct {
@@ -28,6 +29,7 @@ func (f ExpandingWild) forceActivateFeature(featurestate *FeatureState) {
 
 func (f ExpandingWild) Trigger(state *FeatureState, params FeatureParams) {
 	tileid := params.GetInt("TileId")
+	position := params.GetInt("Position")
 	positions := params.GetIntSlice("Positions")
 	gridh := len(state.SymbolGrid[0])
 	for _, p := range positions {
@@ -41,6 +43,7 @@ func (f ExpandingWild) Trigger(state *FeatureState, params FeatureParams) {
 			Data: ExpandingWildData{
 				Positions: positions,
 				TileId:    tileid,
+				From:      position,
 			},
 		})
 }
