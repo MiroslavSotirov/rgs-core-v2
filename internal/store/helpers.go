@@ -3,6 +3,7 @@ package store
 import (
 	"bytes"
 	"encoding/base64"
+	"strings"
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
@@ -147,5 +148,6 @@ func NewFeedRound(v restRounddata) (FeedRound, rgse.RGSErr) {
 
 func GenerateToken() Token {
 	bt, _ := time.Now().MarshalBinary()
-	return Token(rng.RandStringRunes(16) + base64.StdEncoding.EncodeToString(bt))
+	b64token := rng.RandStringRunes(16) + base64.StdEncoding.EncodeToString(bt)
+	return Token(strings.ReplaceAll(b64token, "/", "-"))
 }

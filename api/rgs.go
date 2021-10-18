@@ -238,7 +238,7 @@ func Routes() *chi.Mux {
 			}
 		})
 
-		r.Post("/play/{gameSlug:[A-Za-z0-9-]+}/{gamestateID:[A-Za-z0-9-_+=/.,:;]+}/{wallet:[A-Za-z0-9-]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Post("/play/{gameSlug:[A-Za-z0-9-]+}/{gamestateID:[A-Za-z0-9-_+=.,:;]+}/{wallet:[A-Za-z0-9-]+}", func(w http.ResponseWriter, r *http.Request) {
 			gameplay, err := renderNextGamestate(r)
 
 			if err != nil {
