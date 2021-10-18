@@ -49,7 +49,7 @@ func Routes() *chi.Mux {
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
-	router.Use(middleware.Timeout(1 * time.Second))
+	router.Use(middleware.Timeout(8 * time.Second))
 
 	m := metrics.NewHTTPMiddleware("RGS")
 	router.Use(m)
