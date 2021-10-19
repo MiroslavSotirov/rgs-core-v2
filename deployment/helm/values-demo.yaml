@@ -63,6 +63,9 @@ ingress:
     - hosts:
         - maverick-ops.com
       secretName: maverick-ops.com.cf
+    - hosts:
+        - rgs-demo.maverick-demo.com
+      secretName: maverick-demo.com.cf
 
 resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
