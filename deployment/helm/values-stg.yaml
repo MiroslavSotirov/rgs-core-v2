@@ -49,11 +49,13 @@ ingress:
     - host:
       paths:
         - "/v2"
-  tls: []
+  tls:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
-
+    - secretName: maverick-demo.com.cf
+      hosts:
+        - rgs-demo.maverick-demo.com
 resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
