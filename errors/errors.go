@@ -2,6 +2,7 @@ package rgserror
 
 import (
 	"fmt"
+
 	"github.com/getsentry/sentry-go"
 )
 
@@ -55,10 +56,11 @@ const (
 	UnexpectedTx           = 461
 	UnexpectedWalletStatus = 462
 	YamlError              = 463
+	RequestTimeout         = 464
 
 	// Wallet & Operator
 	BadOperatorConfig = 600
-	BadFSWagerAmt = 601
+	BadFSWagerAmt     = 601
 	// System Error
 	InternalServerError = 500
 	// Session Error
@@ -75,16 +77,16 @@ const (
 	ForceProhibited = 801
 	Forcing         = 802
 )
+
 var sentryIgnoreList = []int{
 	NoForceError,
 	ForceProhibited,
 	Forcing,
-	EntityNotFound, // this error happens a lot
+	EntityNotFound,     // this error happens a lot
 	GenericWalletError, // this error happens a lot
 	SpinSequenceError,
 	InvalidStakeError,
 	TokenExpired,
-
 }
 
 // ErrMsg Error message key value map
@@ -139,8 +141,8 @@ var ErrMsg = map[int]string{
 	UnexpectedTx:                     "Got unexpected WAGER tx",
 	UnexpectedWalletStatus:           "Unexpected Wallet status",
 	YamlError:                        "Error encoding/decoding yaml",
-	BadFSWagerAmt:					  "Bad freespin wager amount",
-
+	BadFSWagerAmt:                    "Bad freespin wager amount",
+	RequestTimeout:                   "Request took too long",
 }
 
 type RGSErr interface {
@@ -157,10 +159,9 @@ type RGSError struct {
 	ErrorText        string `json:"err_msg,omitempty"` // application-level error message
 }
 
-
 func Create(code int) *RGSError {
 	e := &RGSError{ErrCode: code, DefaultErrorText: ErrMsg[code]}
-	for i:=0; i<len(sentryIgnoreList); i++ {
+	for i := 0; i < len(sentryIgnoreList); i++ {
 		if e.ErrCode == sentryIgnoreList[i] {
 			return e
 		}
