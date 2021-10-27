@@ -610,7 +610,7 @@ func (i *RemoteServiceImpl) errorHttpStatusCode(httpStatusCode int) rgse.RGSErr 
 
 func (i *RemoteServiceImpl) errorResponseCode(responseCode string) rgse.RGSErr {
 	if responseCode != string(ResponseCodeOk) {
-		logger.Debugf("handling response code %d", responseCode)
+		logger.Debugf("handling response code %s", responseCode)
 		if responseCode == string(ResponseCodeDataError) {
 			return rgse.Create(rgse.BadRequest)
 		} else if responseCode == string(ResponseCodeInsufficentBalance) {
