@@ -1,5 +1,5 @@
 # multi stage docker build
-FROM golang:1.13 AS builder
+FROM golang:1.16 AS builder
 COPY . /go/src/rgs-core-v2
 WORKDIR /go/src/rgs-core-v2
 RUN go mod download

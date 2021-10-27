@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/getsentry/sentry-go"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/api"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
