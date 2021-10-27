@@ -593,12 +593,15 @@ func (i *RemoteServiceImpl) errorBase64(err error) rgse.RGSErr {
 
 func (i *RemoteServiceImpl) errorHttpStatusCode(httpStatusCode int) rgse.RGSErr {
 	if httpStatusCode != 200 {
+		logger.Debugf("handling http status code %d", httpStatusCode)
 		if httpStatusCode == 403 || httpStatusCode == 401 {
 			return rgse.Create(rgse.TokenExpired)
 		} else if httpStatusCode == 404 {
 			return rgse.Create(rgse.EntityNotFound)
 		} else if httpStatusCode == 402 {
 			return rgse.Create(rgse.InsufficientFundError)
+		} else if httpStatusCode == 408 || httpStatusCode == 504 {
+			return rgse.Create(rgse.RequestTimeout)
 		}
 		return rgse.Create(rgse.GenericWalletError)
 	}
