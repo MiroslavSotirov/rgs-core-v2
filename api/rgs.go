@@ -1,6 +1,7 @@
 package api
 
 import (
+	"compress/flate"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -12,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
@@ -32,6 +33,9 @@ var APIVersion = "v2"
 
 func Routes() *chi.Mux {
 	router := chi.NewRouter()
+
+	compressor := middleware.NewCompressor(flate.DefaultCompression)
+
 	// See github.com/go-chi/chi/middleware for full
 	// Explanation on each piece of middleware
 	router.Use(
@@ -40,8 +44,8 @@ func Routes() *chi.Mux {
 		middleware.RedirectSlashes, // Redirect any path ending with / to same path without / (ex: /v1/rgs/ to /v1/rgs)
 		middleware.RealIP,          // Make the request IP the IP of the original client ip if X-Forwarded etc is sent
 		//middleware.NoCache,         // Never cache RGS responses
-		middleware.Logger,          // Log requests
-		middleware.DefaultCompress, // Compress requests
+		middleware.Logger, // Log requests
+		compressor.Handler,
 		//middleware.Recoverer,       // Make panics into 500 error
 		Recovery, // Custom recovery middleware, Make panics into 500 error
 	)
