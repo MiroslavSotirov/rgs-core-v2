@@ -3,10 +3,11 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-chi/chi/middleware"
 	"net/http"
 	"os"
 	"runtime/debug"
+
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 // Recovery extends chi Recoverer middleware with custom response
