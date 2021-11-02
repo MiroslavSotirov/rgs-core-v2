@@ -2,8 +2,13 @@ package api
 
 import (
 	"encoding/json"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/getsentry/sentry-go"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
@@ -12,10 +17,6 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 )
 
 func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, engine.Gamestate, rgse.RGSErr) {
@@ -283,7 +284,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 			GameState:           gs,
 			BetLimitSettingCode: txStore.BetLimitSettingCode,
 			FreeGames:           store.FreeGamesStore{NoOfFreeSpins: 0, CampaignRef: freeGameRef},
-			Ttl:				 gamestate.GetTtl(),
+			Ttl:                 gamestate.GetTtl(),
 		}
 		switch wallet {
 		case "demo":

@@ -2,16 +2,17 @@ package api
 
 import (
 	"fmt"
-	"github.com/go-chi/chi"
+	"net/http"
+	"strconv"
+	"strings"
+
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 const DefaultSchema = "http://json-schemas.maverick.com/general/maverick-v1.json"

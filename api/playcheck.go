@@ -3,12 +3,13 @@ package api
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/go-chi/chi"
+	"html/template"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
-	"html/template"
-	"net/http"
 )
 
 type PlaycheckFields struct {
