@@ -610,7 +610,7 @@ func (i *RemoteServiceImpl) errorHttpStatusCode(httpStatusCode int) rgse.RGSErr 
 
 func (i *RemoteServiceImpl) errorResponseCode(responseCode string) rgse.RGSErr {
 	if responseCode != string(ResponseCodeOk) {
-		logger.Debugf("handling response code %d", responseCode)
+		logger.Debugf("handling response code %s", responseCode)
 		if responseCode == string(ResponseCodeDataError) {
 			return rgse.Create(rgse.BadRequest)
 		} else if responseCode == string(ResponseCodeInsufficentBalance) {
@@ -1557,6 +1557,8 @@ func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime strin
 	b := new(bytes.Buffer)
 	err := json.NewEncoder(b).Encode(feedRq)
 
+	logger.Debugf("Feed request: %s", b.String())
+
 	finalErr = i.errorJson(err)
 	if finalErr != nil {
 		return
@@ -1578,6 +1580,8 @@ func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime strin
 
 	finalErr = i.errorResponseCode(feedResp.Code)
 	if finalErr != nil {
+		bfeedresp, _ := json.Marshal(feedResp)
+		logger.Errorf("feed response error code. feedResp: %s", bfeedresp)
 		return
 	}
 	nextPage = feedResp.NextPage
