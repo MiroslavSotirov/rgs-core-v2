@@ -82,7 +82,7 @@ EngineDefs:
           - Type: "TriggerFoxTaleWild"
             Params:
               TileId: 9
-              Limit: 3760
+              Limit: 4101
             Features:
               - Type: "ExpandingWild"
           - Type: "TriggerFoxTaleBonus"
