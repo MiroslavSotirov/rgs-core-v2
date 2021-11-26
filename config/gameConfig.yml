@@ -88,3 +88,6 @@
 - engineID: mvgEngineGodot2
   games:
     - fox-tale
+- engineID: mvgEngineRoulette
+  games:
+    - dragon-roulette

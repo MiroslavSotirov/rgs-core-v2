@@ -1,0 +1,10 @@
+version: 2.0
+# rtp: .940047
+# volatility: 74.10328
+# UNCONFIRMED
+
+EngineDefs:
+  - name: base
+    function: RouletteRound
+    Reels:
+      - [0, 32, 16, 13, 21, 6, 19, 2, 27, 17, 36, 4, 25, 15, 34, 11, 28, 8, 23, 12, 5, 22, 18, 31, 00, 20, 14, 33, 7, 24, 16, 29, 9, 30, 10, 35, 1, 26]
