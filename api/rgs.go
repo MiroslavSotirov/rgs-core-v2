@@ -350,6 +350,28 @@ func Routes() *chi.Mux {
 				return
 			}
 		})
+		r.Post("/play3", func(w http.ResponseWriter, r *http.Request) {
+			gamestate, err := playV3(r)
+			if err != nil {
+				logger.Errorf("Error initializing game %s", err.Error())
+
+				switch t := err.(type) {
+				default:
+					_ = render.Render(w, r, ErrRender(err))
+				case *rgserror.RGSError:
+					logger.Debugf("%v", t)
+					_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
+
+				}
+				return
+			}
+			if gamestate != nil {
+				if err := render.Render(w, r, gamestate); err != nil {
+					_ = render.Render(w, r, ErrRender(err))
+					return
+				}
+			}
+		})
 
 		r.Put("/close", func(w http.ResponseWriter, r *http.Request) {
 			err := CloseGS(r)

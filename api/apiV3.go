@@ -2,10 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"time"
 
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
@@ -38,11 +38,6 @@ type playParamsV3 struct {
 type closeParamsV3 struct {
 }
 
-type betRoulette struct {
-	Stake   engine.Fixed
-	Symbols []int32
-}
-
 type IGameInitResponseV3 interface {
 	Base() GameInitResponseV3
 	Render(http.ResponseWriter, *http.Request) error
@@ -65,20 +60,6 @@ func (resp GameInitResponseV3) Render(w http.ResponseWriter, r *http.Request) er
 	return nil
 }
 */
-
-type GameInitResponseRoulette struct {
-	GameInitResponseV3
-	LastRound IGamePlayResponseV3 `json:"lastRound"`
-	Reel      []int               `json:"reel"`
-}
-
-func (resp GameInitResponseRoulette) base() GameInitResponseV3 {
-	return resp.GameInitResponseV3
-}
-
-func (resp GameInitResponseRoulette) Render(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
 
 type IGamePlayResponseV3 interface {
 	Base() GamePlayResponseV3
@@ -106,22 +87,7 @@ func (resp GamePlayResponseV3) Render(w http.ResponseWriter, r *http.Request) er
 }
 */
 
-type GamePlayResponseRoulette struct {
-	GamePlayResponseV3
-
-	Number int32           `json:"number"`
-	Prizes []PrizeRoulette `json:"wins"`
-}
-
-func (resp GamePlayResponseRoulette) Base() GamePlayResponseV3 {
-	return resp.GamePlayResponseV3
-}
-
-func (resp GamePlayResponseRoulette) Render(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
-type GameState interface {
+type IGameState interface {
 	Serialize() []byte
 	GetTtl() int64
 }
@@ -144,36 +110,8 @@ func (s GameStateV3) Serialize() []byte {
 	return b
 }
 
-type playParamsRoulette struct {
-	playParamsV3
-
-	Bets []betRoulette `json:"bets"`
-}
-
-type GameStateRoulette struct {
-	GameStateV3
-
-	Position int
-	Symbol   int
-	Prizes   []*PrizeRoulette
-}
-
-func (s GameStateRoulette) GetTtl() int64 {
-	return 3600
-}
-
-type PrizeRoulette struct {
-	Amount  engine.Fixed `json:"amount"`
-	Symbols []int32      `json:"symbols"`
-}
-
 type BalanceResponseV3 struct {
 	Amount engine.Money `json:"amount"`
-}
-
-type initParamsRoulette struct {
-	initParamsV3
-	Bets string `json:"bets"`
 }
 
 func initV3(request *http.Request) (response IGameInitResponseV3, rgserr rgse.RGSErr) {
@@ -214,41 +152,13 @@ func initV3(request *http.Request) (response IGameInitResponseV3, rgserr rgse.RG
 func initGameV3(engineId string, wallet string, body []byte, engineConf engine.EngineConfig, token store.Token) (response IGameInitResponseV3, rgserr rgse.RGSErr) {
 	// use engine config to call dynamic init method?
 	switch engineId {
-	case "roulette":
+	case "mvgEngineRoulette1":
 		return initRoulette(engineId, wallet, body, engineConf, token)
 	default:
 		logger.Errorf("v3 api has no support for engineId %s", engineId)
 		break
 	}
 	return nil, rgse.Create(rgse.EngineNotFoundError)
-}
-
-func initRoulette(engineId string, wallet string, body []byte, engineConf engine.EngineConfig, token store.Token) (response IGameInitResponseV3, rgserr rgse.RGSErr) {
-
-	var data initParamsRoulette
-	if rgserr = data.deserialize(body); rgserr != nil {
-		return nil, rgse.Create(rgse.JsonError)
-	}
-
-	gameState := initRouletteGS(data)
-	playerID := ""
-	gameState.Id = playerID + data.Game + "GSinit"
-
-	balance := store.BalanceStore{
-		Token: token,
-	}
-
-	playResponse := fillRoulettePlayResponse(gameState, balance)
-
-	response = GameInitResponseRoulette{
-		GameInitResponseV3: GameInitResponseV3{
-			Name:   gameState.Game,
-			Wallet: wallet,
-		},
-		LastRound: playResponse,
-		Reel:      []int{0},
-	}
-	return
 }
 
 func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RGSErr) {
@@ -258,9 +168,11 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 		return nil, rgse.Create(rgse.JsonError)
 	}
 	var data playParamsV3
-	if rgserr = data.decode(request); rgserr != nil {
+	if rgserr = data.deserialize(body); rgserr != nil {
 		return
 	}
+	b, _ := json.Marshal(data)
+	fmt.Printf("playV3 data: %s\n", string(b))
 
 	var token store.Token
 	token, rgserr = handleAuth(request)
@@ -279,36 +191,52 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 
 	var player store.PlayerStore
 	var txStore store.TransactionStore
-	var latestStateStore store.GameStateStore
+	//	var latestStateStore store.GameStateStore
 	var latestState GameStateRoulette
+
+	fmt.Printf("playV3 begin get store info\n")
 
 	switch data.Wallet {
 	case "dashur":
 		if bfirst {
-			player, latestStateStore, err = store.Serv.PlayerByToken(token, store.ModeReal, data.Game)
+			//			player, latestStateStore, err = store.Serv.PlayerByToken(token, store.ModeReal, data.Game)
+			player, _, rgserr = store.Serv.PlayerByToken(token, store.ModeReal, data.Game)
 		} else {
-			txStore, err = store.Serv.TransactionByGameId(token, store.ModeReal, data.Game)
+			txStore, rgserr = store.Serv.TransactionByGameId(token, store.ModeReal, data.Game)
 		}
 		break
 	case "demo":
 		if bfirst {
-			player, latestStateStore, err = store.ServLocal.PlayerByToken(token, store.ModeDemo, data.Game)
+			//			player, latestStateStore, err = store.ServLocal.PlayerByToken(token, store.ModeDemo, data.Game)
+			player, _, rgserr = store.ServLocal.PlayerByToken(token, store.ModeDemo, data.Game)
 		} else {
-			txStore, err = store.ServLocal.TransactionByGameId(token, store.ModeDemo, data.Game)
+			txStore, rgserr = store.ServLocal.TransactionByGameId(token, store.ModeDemo, data.Game)
 		}
 		break
 	default:
-		err = rgse.Create(rgse.InvalidWallet)
+		fmt.Printf("unknown wallet\n")
+		rgserr = rgse.Create(rgse.InvalidWallet)
 		return
 	}
 
-	latestStateStore = latestStateStore
+	fmt.Printf("playV3 done get store info\n")
 
-	if err != nil {
-		return
+	//	fmt.Printf("latestStateStore = %v\n", latestStateStore)
+
+	if rgserr != nil {
+		if bfirst && rgserr.(*rgse.RGSError).ErrCode == rgse.NoSuchPlayer {
+			rgserr = nil
+		} else {
+			fmt.Printf("rgserr = %s\n", rgserr.Error())
+			return
+		}
 	}
+
+	fmt.Printf("playV3 playParamsV3 middle\n")
 
 	if bfirst {
+		fmt.Printf("bfirst = true\n")
+
 		txStore = store.TransactionStore{
 			RoundStatus:         store.RoundStatusClose,
 			BetLimitSettingCode: player.BetLimitSettingCode,
@@ -324,10 +252,14 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 				Game: data.Game,
 			},
 		}
+		fmt.Printf("playV3 call initRouletteGS\n")
+
 		latestState = initRouletteGS(initParams)
 
 		//		fmt.Print("%v %v", latestStateStore, txStore)
 	} else {
+		fmt.Printf("playV3 bfirst = false\n")
+
 		// GameStateRoulette
 		//		latestState := store.DeserializeGamestateFromBytes(txStore.GameState)
 		err = json.Unmarshal(txStore.GameState, &latestState)
@@ -363,29 +295,24 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 		return
 	}
 
-	playGameV3(engineId, data.Wallet, body, &txStore)
+	fmt.Printf("playV3 playParamsV3 call play\n")
 
-	// look up engine and use config to call dynamic play method
-
-	response, err = getRouletteResults(data, latestState, txStore)
-
-	return
+	return playGameV3(engineId, data.Wallet, body, txStore)
 }
 
-func playGameV3(engineId string, wallet string, body []byte, txStore *store.TransactionStore) (response IGamePlayResponseV3, rgserr rgse.RGSErr) {
+func validateState(state IGameState) rgse.RGSErr {
+	return nil
+}
+
+func playGameV3(engineId string, wallet string, body []byte, txStore store.TransactionStore) (response IGamePlayResponseV3, rgserr rgse.RGSErr) {
 
 	switch engineId {
-	case "roulette":
+	case "mvgEngineRoulette1":
 		return playRoulette(engineId, wallet, body, txStore)
 	default:
 		break
 	}
 	return nil, rgse.Create(rgse.EngineNotFoundError)
-}
-
-func playRoulette(engineId string, wallet string, body []byte, txStore *store.TransactionStore) (response IGamePlayResponseV3, rgserr rgse.RGSErr) {
-	//	fmt.Printf("%v\n", txStore)
-	return
 }
 
 func decodeParams(p paramsV3, request *http.Request) rgse.RGSErr {
@@ -418,18 +345,6 @@ func (i *initParamsV3) deserialize(b []byte) rgse.RGSErr {
 	return deserializeParams(i, b)
 }
 
-func (i *initParamsRoulette) decode(request *http.Request) rgse.RGSErr {
-	return decodeParams(i, request)
-}
-
-func (i initParamsRoulette) validate() rgse.RGSErr {
-	return nil
-}
-
-func (i *initParamsRoulette) deserialize(b []byte) rgse.RGSErr {
-	return deserializeParams(i, b)
-}
-
 func (i *playParamsV3) decode(request *http.Request) rgse.RGSErr {
 	return decodeParams(i, request)
 }
@@ -438,75 +353,8 @@ func (i playParamsV3) validate() rgse.RGSErr {
 	return nil
 }
 
-func (i playParamsV3) deserialize(b []byte) rgse.RGSErr {
-	return deserializeParams(&i, b)
-}
-
-func initRouletteGS(data initParamsRoulette) GameStateRoulette {
-	gameState := GameStateRoulette{
-		GameStateV3: GameStateV3{
-			Game: data.Game,
-		},
-		Position: 0,
-		Symbol:   0,
-		Prizes:   []*PrizeRoulette{},
-	}
-	return gameState
-}
-
-func getRouletteResults(data playParamsV3, latestState GameStateRoulette, txStore store.TransactionStore) (response GamePlayResponseRoulette, err rgse.RGSErr) {
-
-	reel := []int{0, 32, 16, 13, 21, 6, 19, 2, 27, 17, 36, 4, 25, 15, 34, 11, 28, 8, 23, 12, 5, 22, 18, 31, 00, 20, 14, 33, 7, 24, 16, 29, 9, 30, 10, 35, 1, 26}
-
-	position := rng.RandFromRange(len(reel))
-	symbol := reel[position]
-
-	gameState := GameStateRoulette{
-		GameStateV3: GameStateV3{
-			PreviousGamestate: data.PreviousID,
-			//			NextGamestate:     string(token),
-		},
-		Position: position,
-		Symbol:   symbol,
-	}
-
-	var balance store.BalanceStore
-	var freeGameRef string = "" // check apiV2 for how to determine if this is a free game, and set
-	/*
-		= store.BalanceStore{
-			PlayerId: txStore.PlayerId,
-			Token:    txStore.Token,
-		}
-	*/
-	stateBytes := gameState.Serialize()
-	token := txStore.Token
-	for _, t := range gameState.Transactions {
-		tx := store.TransactionStore{
-			TransactionId:       t.Id,
-			Token:               token,
-			Category:            store.Category(t.Type),
-			RoundStatus:         store.RoundStatusOpen,
-			PlayerId:            txStore.PlayerId,
-			GameId:              data.Game,
-			RoundId:             gameState.RoundId,
-			Amount:              t.Amount,
-			ParentTransactionId: "",
-			TxTime:              time.Now(),
-			GameState:           stateBytes,
-			BetLimitSettingCode: txStore.BetLimitSettingCode,
-			FreeGames:           store.FreeGamesStore{NoOfFreeSpins: 0, CampaignRef: freeGameRef},
-			Ttl:                 gameState.GetTtl(),
-		}
-		balance, err = TransactionByWallet(token, data.Wallet, tx)
-		if err != nil {
-			return
-		}
-		token = balance.Token
-	}
-
-	response = fillRoulettePlayResponse(gameState, balance)
-
-	return
+func (i *playParamsV3) deserialize(b []byte) rgse.RGSErr {
+	return deserializeParams(i, b)
 }
 
 func TransactionByWallet(token store.Token, wallet string, tx store.TransactionStore) (balance store.BalanceStore, err rgse.RGSErr) {
@@ -521,31 +369,4 @@ func TransactionByWallet(token store.Token, wallet string, tx store.TransactionS
 		err = rgse.Create(rgse.InvalidWallet)
 	}
 	return
-}
-
-func fillRoulettePlayResponse(gameState GameStateRoulette, balance store.BalanceStore) GamePlayResponseRoulette {
-
-	prizes := []PrizeRoulette{}
-	for _, p := range gameState.Prizes {
-		prizes = append(prizes, *p)
-	}
-	/*
-
-		rouletteResponse := GamePlayResponseRoulette{
-			GamePlayResponseV3: GamePlayResponseV3{
-				SessionID: balance.Token,
-				StateID:   gameState.Id,
-			},
-			Prizes: prizes,
-		}
-		return &playResponse
-	*/
-
-	return GamePlayResponseRoulette{
-		GamePlayResponseV3: GamePlayResponseV3{
-			SessionID: balance.Token,
-			StateID:   gameState.Id,
-		},
-		Prizes: prizes,
-	}
 }
