@@ -167,12 +167,11 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 		logger.Errorf("request read error")
 		return nil, rgse.Create(rgse.JsonError)
 	}
+	fmt.Printf("playV3 data: %s\n", string(body))
 	var data playParamsV3
 	if rgserr = data.deserialize(body); rgserr != nil {
 		return
 	}
-	b, _ := json.Marshal(data)
-	fmt.Printf("playV3 data: %s\n", string(b))
 
 	var token store.Token
 	token, rgserr = handleAuth(request)
