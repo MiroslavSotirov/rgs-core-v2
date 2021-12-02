@@ -1483,6 +1483,19 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 		nextPage = 1
 		return
 	}
+	const timeLayout string = "2006-01-02 15:04:05.000"
+	tstart, terr1 := time.Parse(timeLayout, startTime)
+	tend, terr2 := time.Parse(timeLayout, endTime)
+	if terr1 != nil || terr2 != nil {
+		if terr1 != nil {
+			logger.Debugf("could not parse startTime %s", startTime)
+		}
+		if terr2 != nil {
+			logger.Debugf("could not parse endTime %s", startTime)
+		}
+		finalErr = rgse.Create(rgse.JsonError)
+		return
+	}
 	hashString := func(s string) int64 {
 		crcTable := crc32.MakeTable(crc32.IEEE) // ISO)
 		buf := bytes.NewBufferString(s)
@@ -1537,18 +1550,20 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 				},
 			},
 		}
-		idx++
-		for idx > pageidx*pageSize {
-			pageidx++
-		}
-		if pageidx == page {
-			tids := make([]int64, len(gameState.Transactions))
-			for i, t := range gameState.Transactions {
-				tids[i] = hashString(t.Id)
+		if ts.TxTime.After(tstart) && ts.TxTime.Before(tend) {
+			idx++
+			for idx > pageidx*pageSize {
+				pageidx++
 			}
-			round.TransactionIds = tids
+			if pageidx == page {
+				tids := make([]int64, len(gameState.Transactions))
+				for i, t := range gameState.Transactions {
+					tids[i] = hashString(t.Id)
+				}
+				round.TransactionIds = tids
 
-			rounds = append(rounds, round)
+				rounds = append(rounds, round)
+			}
 		}
 
 		var ok bool
