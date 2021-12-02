@@ -5,9 +5,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"hash/crc32"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -1473,72 +1475,107 @@ func (i *LocalServiceImpl) SetBalance(token Token, balance engine.Money) rgse.RG
 }
 
 func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) (rounds []FeedRound, nextPage int, finalErr rgse.RGSErr) {
-	//	logger.Errorf("TODO implement LocalServiceImpl.Feed for testing purpose")
-	//	return []FeedRound{}, rgse.Create(rgse.InternalServerError)
-	rounds = []FeedRound{
-		{
-			Id:              166942158,
-			CurrencyUnit:    "USD",
-			ExternalRef:     "1047-10a5e033-5657-4332-ac68-0f13e48a432a",
-			Status:          "CLOSED",
-			TransactionIds:  []int64{166942158, 166942288},
-			NumWager:        1,
-			SumWager:        1.00,
-			NumPayout:       0,
-			SumPayout:       0.00,
-			NumRefund:       0,
-			SumRefundCredit: 0.00,
-			SumRefundDebit:  0.00,
-			StartTime:       "2021-09-23 04:08:53.148",
-			CloseTime:       "2021-09-23 04:09:53.253",
-			Metadata: FeedRoundMetadata{
-				RoundId:   "1047-10a5e033-5657-4332-ac68-0f13e48a432a",
-				ExtItemId: "pearl-fisher",
-				ItemId:    12375,
-				Vendor: FeedRoundVendordata{
-					State: engine.Gamestate{},
-				},
-			},
-		},
-		{
-			Id:              166942155,
-			CurrencyUnit:    "USD",
-			ExternalRef:     "1047-58b46577-4e9a-498e-a9a5-f48afe266952",
-			Status:          "CLOSED",
-			TransactionIds:  []int64{166942155, 166942286},
-			NumWager:        1,
-			SumWager:        1.00,
-			NumPayout:       0,
-			SumPayout:       0.00,
-			NumRefund:       0,
-			SumRefundCredit: 0.00,
-			SumRefundDebit:  0.00,
-			StartTime:       "2021-09-23 04:08:52.488",
-			CloseTime:       "2021-09-23 04:09:52.602",
-			Metadata: FeedRoundMetadata{
-				RoundId:   "1047-58b46577-4e9a-498e-a9a5-f48afe266952",
-				ExtItemId: "pearl-fisher",
-				ItemId:    12375,
-				Vendor: FeedRoundVendordata{
-					State: engine.Gamestate{},
-				},
-			},
-		},
+	rounds = []FeedRound{}
+	var ts TransactionStore
+	var err rgse.RGSErr
+	ts, err = i.TransactionByGameId(token, mode, gameId)
+	if err != nil {
+		nextPage = 1
+		return
 	}
-	startPage := 0
-	endPage := 2
-	if pageSize < 2 {
-		if page > 2 {
-			page = 2
+	const timeLayout string = "2006-01-02 15:04:05.000"
+	tstart, terr1 := time.Parse(timeLayout, startTime)
+	tend, terr2 := time.Parse(timeLayout, endTime)
+	if terr1 != nil || terr2 != nil {
+		if terr1 != nil {
+			logger.Debugf("could not parse startTime %s", startTime)
 		}
-		startPage = page - 1
-		endPage = startPage + pageSize
+		if terr2 != nil {
+			logger.Debugf("could not parse endTime %s", startTime)
+		}
+		finalErr = rgse.Create(rgse.JsonError)
+		return
 	}
-	nextPage = startPage + 1
-	if nextPage >= endPage {
-		nextPage = -1
+	hashString := func(s string) int64 {
+		crcTable := crc32.MakeTable(crc32.IEEE) // ISO)
+		buf := bytes.NewBufferString(s)
+		return int64(crc32.Checksum(buf.Bytes(), crcTable))
 	}
-	finalErr = nil
+	idx := 0
+	pageidx := 0
+	for true {
+		numWager, numPayout, numRefund := 0, 0, 0
+		sumWager, sumPayout, sumRefundCredit, sumRefundDebit := 0.0, 0.0, 0.0, 0.0
+		amount, _ := strconv.ParseFloat(ts.Amount.Amount.ValueAsString(), 64)
+		switch ts.Category {
+		case CategoryWager:
+			numWager++
+			sumWager += amount
+			break
+		case CategoryPayout:
+			numPayout++
+			sumPayout += amount
+			break
+		case CategoryRefund:
+			numRefund++
+			sumRefundCredit += amount
+			break
+		default: // case CategoryClose:
+			break
+		}
+
+		gameState := DeserializeGamestateFromBytes(ts.GameState)
+		round := FeedRound{
+			Id:             hashString(ts.TransactionId),
+			CurrencyUnit:   ts.Amount.Currency,
+			ExternalRef:    ts.TransactionId,
+			Status:         string(ts.RoundStatus),
+			TransactionIds: []int64{
+				//				int64(tid),
+			},
+			NumWager:        numWager,
+			SumWager:        sumWager,
+			NumPayout:       numPayout,
+			SumPayout:       sumPayout,
+			NumRefund:       numRefund,
+			SumRefundCredit: sumRefundCredit,
+			SumRefundDebit:  sumRefundDebit,
+			StartTime:       ts.TxTime.UTC().Format("2006-01-02 15:04:05.000"),
+			Metadata: FeedRoundMetadata{
+				RoundId:   gameState.RoundID,
+				ExtItemId: gameId,
+				ItemId:    0,
+				Vendor: FeedRoundVendordata{
+					gameState,
+				},
+			},
+		}
+		if ts.TxTime.After(tstart) && ts.TxTime.Before(tend) {
+			idx++
+			for idx > pageidx*pageSize {
+				pageidx++
+			}
+			if pageidx == page {
+				tids := make([]int64, len(gameState.Transactions))
+				for i, t := range gameState.Transactions {
+					tids[i] = hashString(t.Id)
+				}
+				round.TransactionIds = tids
+
+				rounds = append(rounds, round)
+			}
+		}
+
+		var ok bool
+		ts, ok = i.getTransaction(gameState.PreviousGamestate)
+		if !ok {
+			break
+		}
+	}
+	nextPage = page
+	if pageidx > page {
+		nextPage++
+	}
 	return
 }
 
