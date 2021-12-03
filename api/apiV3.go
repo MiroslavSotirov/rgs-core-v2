@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
@@ -67,14 +67,14 @@ type IGamePlayResponseV3 interface {
 }
 
 type GamePlayResponseV3 struct {
-	SessionID store.Token        `json:"host/verified-token"`
-	StateID   string             `json:"stateID"`
-	RoundID   string             `json:"roundID"`
-	Stake     engine.Fixed       `json:"totalStake"`
-	Win       engine.Fixed       `json:"win"`
-	Balance   BalanceResponseV3  `json:"balance"`
-	Closed    bool               `json:"closed"`
-	Features  []features.Feature `json:"features,omitempty"`
+	Token    store.Token        `json:"token`
+	StateId  string             `json:"stateId"`
+	RoundId  string             `json:"roundId"`
+	Bet      engine.Fixed       `json:"bet"`
+	Win      engine.Fixed       `json:"win"`
+	Balance  BalanceResponseV3  `json:"balance"`
+	Closed   bool               `json:"closed"`
+	Features []features.Feature `json:"features,omitempty"`
 }
 
 func (resp GamePlayResponseV3) Base() GamePlayResponseV3 {
@@ -126,11 +126,14 @@ func initV3(request *http.Request) (response IGameInitResponseV3, rgserr rgse.RG
 		return
 	}
 
+	logger.Debugf("initV3 data = %s\n", string(body))
+
 	var authToken string
 	authToken, rgserr = getAuth(request)
 	if rgserr != nil {
 		return
 	}
+	token := store.Token(authToken)
 
 	var engineId string
 	engineId, rgserr = config.GetEngineFromGame(data.Game)
@@ -146,14 +149,63 @@ func initV3(request *http.Request) (response IGameInitResponseV3, rgserr rgse.RG
 		return
 	}
 
-	return initGameV3(engineId, wallet, body, engineConfig, store.Token(authToken))
+	player, state, paserr := getPlayerAndState(token, wallet, data.Game)
+	if paserr != nil && paserr.(*rgse.RGSError).ErrCode != rgse.NoSuchPlayer {
+		rgserr = paserr
+		logger.Debugf("error in getPlayerAndState %s\n", rgserr.Error())
+		return
+	}
+	if len(state.GameState) == 0 {
+		logger.Debugf("initV3 gamestate is length 0\n")
+		if wallet == "demo" {
+			var balance engine.Money
+			var ctFS int
+			var waFS engine.Fixed
+			balance, ctFS, waFS, rgserr = parameterSelector.GetDemoWalletDefaults(data.Ccy, data.Game, "", authToken)
+			if rgserr != nil {
+				return
+			}
+
+			player = store.PlayerStore{
+				PlayerId:            authToken,
+				Token:               token,
+				Mode:                store.ModeDemo,
+				Username:            "",
+				Balance:             balance,
+				BetLimitSettingCode: "",
+				FreeGames: store.FreeGamesStore{
+					NoOfFreeSpins: ctFS,
+					CampaignRef:   authToken,
+					TotalWagerAmt: waFS,
+				},
+			}
+			player, rgserr = store.ServLocal.PlayerSave(token, store.ModeDemo, player)
+			//			state, err = json.Marshal()
+		}
+	}
+	return initGameV3(player, engineId, wallet, body, engineConfig, token, state.GameState)
 }
 
-func initGameV3(engineId string, wallet string, body []byte, engineConf engine.EngineConfig, token store.Token) (response IGameInitResponseV3, rgserr rgse.RGSErr) {
+func getPlayerAndState(token store.Token, wallet string, game string) (player store.PlayerStore, state store.GameStateStore, rgserr rgse.RGSErr) {
+	switch wallet {
+	case "dashur":
+		player, state, rgserr = store.Serv.PlayerByToken(token, store.ModeReal, game)
+	case "demo":
+		player, state, rgserr = store.ServLocal.PlayerByToken(token, store.ModeDemo, game)
+	default:
+		rgserr = rgse.Create(rgse.GenericWalletError)
+	}
+	return
+}
+
+// build initial gamestate
+
+func initGameV3(player store.PlayerStore, engineId string, wallet string, body []byte, engineConf engine.EngineConfig, token store.Token, state []byte) (
+	response IGameInitResponseV3, rgserr rgse.RGSErr) {
 	// use engine config to call dynamic init method?
 	switch engineId {
 	case "mvgEngineRoulette1":
-		return initRoulette(engineId, wallet, body, engineConf, token)
+		return initRoulette(player, engineId, wallet, body, engineConf, token, state)
 	default:
 		logger.Errorf("v3 api has no support for engineId %s", engineId)
 		break
@@ -167,7 +219,7 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 		logger.Errorf("request read error")
 		return nil, rgse.Create(rgse.JsonError)
 	}
-	fmt.Printf("playV3 data: %s\n", string(body))
+	logger.Debugf("playV3 data = %s\n", string(body))
 	var data playParamsV3
 	if rgserr = data.deserialize(body); rgserr != nil {
 		return
@@ -193,8 +245,6 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 	//	var latestStateStore store.GameStateStore
 	var latestState GameStateRoulette
 
-	fmt.Printf("playV3 begin get store info\n")
-
 	switch data.Wallet {
 	case "dashur":
 		if bfirst {
@@ -208,34 +258,52 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 		if bfirst {
 			//			player, latestStateStore, err = store.ServLocal.PlayerByToken(token, store.ModeDemo, data.Game)
 			player, _, rgserr = store.ServLocal.PlayerByToken(token, store.ModeDemo, data.Game)
+			/*
+				var balance store.BalanceStore
+				var ctFS int
+				var waFS engine.Fixed
+
+				balance, ctFS, waFS, rgserr = parameterSelector.GetDemoWalletDefaults(currency, gameName, "", playerID)
+				if rgserr != nil {
+					return
+				}
+
+				player = store.PlayerStore{
+					PlayerId: string(token),
+					Token: token,
+					Mode: store.ModeDemo,
+					Username: "",
+					Balance: engine.Money{},
+					BetLimitSettingCode: "",
+					FreeGames: store.FreeGamesStore{
+						NoOfFreeSpins: ctFS,
+						CampaignRef: string(token),
+						TotalWagerAmt: waFS,
+					},
+				}
+			*/
+
 		} else {
 			txStore, rgserr = store.ServLocal.TransactionByGameId(token, store.ModeDemo, data.Game)
 		}
 		break
 	default:
-		fmt.Printf("unknown wallet\n")
+		logger.Errorf("unknown wallet\n")
 		rgserr = rgse.Create(rgse.InvalidWallet)
 		return
 	}
-
-	fmt.Printf("playV3 done get store info\n")
-
-	//	fmt.Printf("latestStateStore = %v\n", latestStateStore)
 
 	if rgserr != nil {
 		if bfirst && rgserr.(*rgse.RGSError).ErrCode == rgse.NoSuchPlayer {
 			rgserr = nil
 		} else {
-			fmt.Printf("rgserr = %s\n", rgserr.Error())
+			logger.Debugf("rgserr = %s\n", rgserr.Error())
 			return
 		}
 	}
 
-	fmt.Printf("playV3 playParamsV3 middle\n")
-
 	if bfirst {
-		fmt.Printf("bfirst = true\n")
-
+		logger.Debugf("first gameplay")
 		txStore = store.TransactionStore{
 			RoundStatus:         store.RoundStatusClose,
 			BetLimitSettingCode: player.BetLimitSettingCode,
@@ -251,13 +319,11 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 				Game: data.Game,
 			},
 		}
-		fmt.Printf("playV3 call initRouletteGS\n")
-
 		latestState = initRouletteGS(initParams)
 
 		//		fmt.Print("%v %v", latestStateStore, txStore)
 	} else {
-		fmt.Printf("playV3 bfirst = false\n")
+		logger.Debugf("not first gameplay")
 
 		// GameStateRoulette
 		//		latestState := store.DeserializeGamestateFromBytes(txStore.GameState)
@@ -293,8 +359,6 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 	if rgserr != nil {
 		return
 	}
-
-	fmt.Printf("playV3 playParamsV3 call play\n")
 
 	return playGameV3(engineId, data.Wallet, body, txStore)
 }
