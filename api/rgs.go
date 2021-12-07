@@ -617,6 +617,25 @@ func Routes() *chi.Mux {
 			}
 			return
 		})
+		r.Post("/feedround", func(w http.ResponseWriter, r *http.Request) {
+			feedResp, err := FeedRound(r)
+			if err != nil {
+				logger.Errorf("Error getting feed %s", err.Error())
+
+				switch t := err.(type) {
+				default:
+					_ = render.Render(w, r, ErrRender(err))
+				case *rgserror.RGSError:
+					logger.Debugf("%v", t)
+					_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
+				}
+				return
+			}
+			if err := render.Render(w, r, feedResp); err != nil {
+				_ = render.Render(w, r, ErrRender(err))
+			}
+			return
+		})
 
 		if config.GlobalConfig.DevMode {
 			r.Get("/debug/pprof/profile", pprof.Profile)

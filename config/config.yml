@@ -16,7 +16,7 @@ server:
   port: 3000
 
 dashurconf:
-#  storeurl: http://gnrc-api.stginservix.com
+#  storeurl: http://gnrc-api.stginservix.com/v1/gnrc/maverick
   storeurl: https://gnrc-api.dashur.io/v1/gnrc/maverick
   storeappid: VrCLq4UqYBf39rJt
   storeapppass: V6Kg9muzJxsz3nWFvJeyccU7
