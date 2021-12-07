@@ -40,6 +40,12 @@ type FeedParams struct {
 	Page      int    `json:"page"`
 }
 
+type FeedRoundParams struct {
+	Game    string `json:"game"`
+	Wallet  string `json:"wallet"`
+	RoundId string `json:"roundId"`
+}
+
 func getGameLink(request *http.Request) GameLinkResponse {
 	params := request.URL.Query()
 	game := params.Get("game")
@@ -384,6 +390,16 @@ func (i *FeedParams) decode(request *http.Request) rgse.RGSErr {
 	return nil
 }
 
+func (i *FeedRoundParams) decode(request *http.Request) rgse.RGSErr {
+	decoder := json.NewDecoder(request.Body)
+	decoderror := decoder.Decode(i)
+
+	if decoderror != nil {
+		return rgse.Create(rgse.JsonError)
+	}
+	return nil
+}
+
 func Feed(r *http.Request) (FeedResponse, rgse.RGSErr) {
 	token, autherr := handleAuth(r)
 	if autherr != nil {
@@ -425,5 +441,36 @@ func Feed(r *http.Request) (FeedResponse, rgse.RGSErr) {
 	return FeedResponse{
 		Rounds:   rounds,
 		NextPage: nextPage,
+	}, nil
+}
+
+func FeedRound(r *http.Request) (FeedRoundResponse, rgse.RGSErr) {
+	token, autherr := handleAuth(r)
+	if autherr != nil {
+		return FeedRoundResponse{}, autherr
+	}
+
+	var err rgse.RGSErr
+	var data FeedRoundParams
+	if err := data.decode(r); err != nil {
+		return FeedRoundResponse{}, err
+	}
+
+	var transactions []store.FeedTransaction
+	switch data.Wallet {
+	case "demo":
+		transactions, err = store.ServLocal.FeedRound(token, store.ModeDemo, data.Game, data.RoundId)
+	case "dashur":
+		transactions, err = store.Serv.FeedRound(token, store.ModeReal, data.Game, data.RoundId)
+	default:
+		return FeedRoundResponse{}, rgse.Create(rgse.InvalidWallet)
+	}
+
+	if err != nil {
+		return FeedRoundResponse{}, err
+	}
+
+	return FeedRoundResponse{
+		Feeds: transactions,
 	}, nil
 }

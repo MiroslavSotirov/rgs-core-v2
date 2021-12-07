@@ -146,6 +146,31 @@ func NewFeedRound(v restRounddata) (FeedRound, rgse.RGSErr) {
 	}, nil
 }
 
+func NewFeedTransaction(v restTransactiondata) (FeedTransaction, rgse.RGSErr) {
+	gameState, errDecode := base64.StdEncoding.DecodeString(v.Metadata.Vendor.State)
+	if errDecode != nil {
+		return FeedTransaction{}, rgse.Create(rgse.B64Error)
+	}
+	gsDeserialized := DeserializeGamestateFromBytes(gameState)
+
+	return FeedTransaction{
+		Id:           v.Id,
+		Category:     v.Category,
+		ExternalRef:  v.ExternalRef,
+		CurrencyUnit: v.CurrencyUnit,
+		Amount:       v.Amount,
+		Metadata: FeedRoundMetadata{
+			RoundId:   v.Metadata.RoundId,
+			ExtItemId: v.Metadata.ExtItemId,
+			ItemId:    v.Metadata.ItemId,
+			Vendor: FeedRoundVendordata{
+				State: gsDeserialized,
+			},
+		},
+		TxTime: v.TxTime,
+	}, nil
+}
+
 func GenerateToken() Token {
 	bt, _ := time.Now().MarshalBinary()
 	b64token := rng.RandStringRunes(16) + base64.StdEncoding.EncodeToString(bt)

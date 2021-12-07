@@ -36,6 +36,10 @@ func (gi FeedResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+func (gi FeedRoundResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
 func (gi VersionResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
@@ -126,6 +130,10 @@ type ReelResponse struct {
 type FeedResponse struct {
 	Rounds   []store.FeedRound `json:"rounds"`
 	NextPage int               `json:"next_page"`
+}
+
+type FeedRoundResponse struct {
+	Feeds []store.FeedTransaction `json:"feeds"`
 }
 
 type VersionResponse struct {

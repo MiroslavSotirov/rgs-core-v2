@@ -143,6 +143,16 @@ type (
 		State engine.Gamestate `json:"state"`
 	}
 
+	FeedTransaction struct {
+		Id           int64             `json:"id"`
+		Category     string            `json:"category"`
+		ExternalRef  string            `json:"external_ref"`
+		CurrencyUnit string            `json:"currency_unit"`
+		Amount       float64           `json:"amount"`
+		Metadata     FeedRoundMetadata `json:"meta_data"`
+		TxTime       string            `json:"transaction_time"`
+	}
+
 	//Error struct {
 	//	Code    ErrorCode
 	//	Message string
@@ -178,6 +188,7 @@ type (
 
 		// retrieve transaction feed
 		Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) ([]FeedRound, int, rgse.RGSErr)
+		FeedRound(token Token, mode Mode, gameId, roundId string) ([]FeedTransaction, rgse.RGSErr)
 	}
 
 	RemoteServiceImpl struct {
@@ -204,6 +215,7 @@ type (
 		SetMessage(playerId string, message string) rgse.RGSErr
 		SetBalance(token Token, amount engine.Money) rgse.RGSErr
 		Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) ([]FeedRound, int, rgse.RGSErr)
+		FeedRound(token Token, mode Mode, gameId, roundId string) ([]FeedTransaction, rgse.RGSErr)
 	}
 
 	LocalServiceImpl struct{}
@@ -415,12 +427,27 @@ type (
 		Page      int    `json:"page"`
 	}
 
+	restFeedRoundRequest struct {
+		ReqId    string `json:"req_id"`
+		Token    string `json:"token"`
+		Game     string `json:"game"`
+		Platform string `json:"platform"`
+		RoundId  string `json:"round_id"`
+	}
+
 	restFeedResponse struct {
 		Metadata restMetadata    `json:"metadata"`
 		Token    string          `json:"token"`
 		Code     string          `json:"code"`
 		Rounds   []restRounddata `json:"rounds"`
 		NextPage int             `json:"next_page"`
+	}
+
+	restFeedRoundResponse struct {
+		Metadata restMetadata          `json:"metadata"`
+		Token    string                `json:"token"`
+		Code     string                `json:"code"`
+		Feeds    []restTransactiondata `json:"feeds"`
 	}
 
 	restRoundVendordata struct {
@@ -450,6 +477,16 @@ type (
 		StartTime       string            `json:"start_time"`
 		CloseTime       string            `json:"close_time"`
 		Metadata        restRoundMetadata `json:"meta_data"`
+	}
+
+	restTransactiondata struct {
+		Id           int64             `json:"id"`
+		Category     string            `json:"category"`
+		ExternalRef  string            `json:"external_ref"`
+		CurrencyUnit string            `json:"currency_unit"`
+		Amount       float64           `json:"amount"`
+		Metadata     restRoundMetadata `json:"meta_data"`
+		TxTime       string            `json:"transaction_time"`
 	}
 )
 
@@ -1195,6 +1232,14 @@ func (i *RemoteServiceImpl) restFeedResponse(response *http.Response) restFeedRe
 	return data
 }
 
+func (i *RemoteServiceImpl) restFeedRoundResponse(response *http.Response) restFeedRoundResponse {
+	defer response.Body.Close()
+	body, _ := ioutil.ReadAll(response.Body)
+	var data restFeedRoundResponse
+	json.Unmarshal(body, &data)
+	return data
+}
+
 func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, rgse.RGSErr) {
 	// Used in clientstate call
 	playerId, _ := i.getToken(token)
@@ -1474,6 +1519,12 @@ func (i *LocalServiceImpl) SetBalance(token Token, balance engine.Money) rgse.RG
 	return nil
 }
 
+func hashString(s string) int64 {
+	crcTable := crc32.MakeTable(crc32.IEEE) // ISO)
+	buf := bytes.NewBufferString(s)
+	return int64(crc32.Checksum(buf.Bytes(), crcTable))
+}
+
 func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) (rounds []FeedRound, nextPage int, finalErr rgse.RGSErr) {
 	rounds = []FeedRound{}
 	var ts TransactionStore
@@ -1496,73 +1547,61 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 		finalErr = rgse.Create(rgse.JsonError)
 		return
 	}
-	hashString := func(s string) int64 {
-		crcTable := crc32.MakeTable(crc32.IEEE) // ISO)
-		buf := bytes.NewBufferString(s)
-		return int64(crc32.Checksum(buf.Bytes(), crcTable))
-	}
 	idx := 0
 	pageidx := 0
+	round := FeedRound{Metadata: FeedRoundMetadata{}}
 	for true {
-		numWager, numPayout, numRefund := 0, 0, 0
-		sumWager, sumPayout, sumRefundCredit, sumRefundDebit := 0.0, 0.0, 0.0, 0.0
-		amount, _ := strconv.ParseFloat(ts.Amount.Amount.ValueAsString(), 64)
-		switch ts.Category {
-		case CategoryWager:
-			numWager++
-			sumWager += amount
-			break
-		case CategoryPayout:
-			numPayout++
-			sumPayout += amount
-			break
-		case CategoryRefund:
-			numRefund++
-			sumRefundCredit += amount
-			break
-		default: // case CategoryClose:
-			break
-		}
-
 		gameState := DeserializeGamestateFromBytes(ts.GameState)
-		round := FeedRound{
-			Id:             hashString(ts.TransactionId),
-			CurrencyUnit:   ts.Amount.Currency,
-			ExternalRef:    ts.TransactionId,
-			Status:         string(ts.RoundStatus),
-			TransactionIds: []int64{
-				//				int64(tid),
-			},
-			NumWager:        numWager,
-			SumWager:        sumWager,
-			NumPayout:       numPayout,
-			SumPayout:       sumPayout,
-			NumRefund:       numRefund,
-			SumRefundCredit: sumRefundCredit,
-			SumRefundDebit:  sumRefundDebit,
-			StartTime:       ts.TxTime.UTC().Format("2006-01-02 15:04:05.000"),
-			Metadata: FeedRoundMetadata{
-				RoundId:   gameState.RoundID,
-				ExtItemId: gameId,
-				ItemId:    0,
-				Vendor: FeedRoundVendordata{
-					gameState,
-				},
-			},
-		}
 		if ts.TxTime.After(tstart) && ts.TxTime.Before(tend) {
-			idx++
-			for idx > pageidx*pageSize {
-				pageidx++
+			tids := make([]int64, len(gameState.Transactions))
+			for i, t := range gameState.Transactions {
+				tids[i] = hashString(t.Id)
 			}
-			if pageidx == page {
-				tids := make([]int64, len(gameState.Transactions))
-				for i, t := range gameState.Transactions {
-					tids[i] = hashString(t.Id)
+			if gameState.RoundID == round.Metadata.RoundId {
+				round.TransactionIds = append(round.TransactionIds, tids...)
+			} else {
+				if round.Metadata.RoundId != "" {
+					idx++
+					for idx > pageidx*pageSize {
+						pageidx++
+					}
+					if pageidx == page {
+						rounds = append(rounds, round)
+					}
 				}
-				round.TransactionIds = tids
-
-				rounds = append(rounds, round)
+				round = FeedRound{
+					Id:             hashString(ts.TransactionId),
+					CurrencyUnit:   ts.Amount.Currency,
+					ExternalRef:    ts.TransactionId,
+					Status:         string(ts.RoundStatus),
+					TransactionIds: tids,
+					StartTime:      ts.TxTime.UTC().Format("2006-01-02 15:04:05.000"),
+					Metadata: FeedRoundMetadata{
+						RoundId:   gameState.RoundID,
+						ExtItemId: gameId,
+						ItemId:    0,
+						Vendor: FeedRoundVendordata{
+							gameState,
+						},
+					},
+				}
+			}
+			amount, _ := strconv.ParseFloat(ts.Amount.Amount.ValueAsString(), 64)
+			switch ts.Category {
+			case CategoryWager:
+				round.NumWager++
+				round.SumWager += amount
+				break
+			case CategoryPayout:
+				round.NumPayout++
+				round.SumPayout += amount
+				break
+			case CategoryRefund:
+				round.NumRefund++
+				round.SumRefundCredit += amount
+				break
+			default: // case CategoryClose:
+				break
 			}
 		}
 
@@ -1576,6 +1615,53 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 	if pageidx > page {
 		nextPage++
 	}
+	return
+}
+
+func (i *LocalServiceImpl) FeedRound(token Token, mode Mode, gameId, roundId string) (feeds []FeedTransaction, finalErr rgse.RGSErr) {
+	feeds = []FeedTransaction{}
+
+	var ts TransactionStore
+	var err rgse.RGSErr
+	ts, err = i.TransactionByGameId(token, mode, gameId)
+	if err != nil {
+		return
+	}
+
+	found := false
+	for true {
+		gameState := DeserializeGamestateFromBytes(ts.GameState)
+
+		if gameState.RoundID == roundId {
+			amount, _ := strconv.ParseFloat(ts.Amount.Amount.ValueAsString(), 64)
+			feed := FeedTransaction{
+				Id:           hashString(ts.TransactionId),
+				Category:     string(ts.Category),
+				ExternalRef:  ts.TransactionId,
+				CurrencyUnit: ts.Amount.Currency,
+				Amount:       amount,
+				Metadata: FeedRoundMetadata{
+					RoundId:   gameState.RoundID,
+					ExtItemId: gameId,
+					ItemId:    0,
+					Vendor: FeedRoundVendordata{
+						gameState,
+					},
+				},
+				TxTime: ts.TxTime.UTC().Format("2006-01-02 15:04:05.000"),
+			}
+			feeds = append(feeds, feed)
+		} else if found {
+			break
+		}
+
+		var ok bool
+		ts, ok = i.getTransaction(gameState.PreviousGamestate)
+		if !ok {
+			break
+		}
+	}
+
 	return
 }
 
@@ -1625,6 +1711,57 @@ func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime strin
 	rounds = make([]FeedRound, len(feedResp.Rounds))
 	for i, v := range feedResp.Rounds {
 		rounds[i], finalErr = NewFeedRound(v)
+		if finalErr != nil {
+			return
+		}
+	}
+
+	finalErr = nil
+	return
+}
+
+func (i *RemoteServiceImpl) FeedRound(token Token, mode Mode, gameId, roundId string) (feeds []FeedTransaction, finalErr rgse.RGSErr) {
+	feedRq := restFeedRoundRequest{
+		ReqId:    uuid.NewV4().String(),
+		Token:    string(token),
+		Game:     gameId,
+		Platform: i.defaultPlatform,
+		RoundId:  roundId,
+	}
+
+	b := new(bytes.Buffer)
+	err := json.NewEncoder(b).Encode(feedRq)
+
+	logger.Debugf("Feed round request: %s", b.String())
+
+	finalErr = i.errorJson(err)
+	if finalErr != nil {
+		return
+	}
+	//start := time.Now()
+	resp, err := i.request(ApiTypeFeed, b)
+
+	finalErr = i.errorRest(err)
+	if finalErr != nil {
+		return
+	}
+
+	finalErr = i.errorHttpStatusCode(resp.StatusCode)
+	if finalErr != nil {
+		return
+	}
+
+	feedResp := i.restFeedRoundResponse(resp)
+
+	finalErr = i.errorResponseCode(feedResp.Code)
+	if finalErr != nil {
+		bfeedresp, _ := json.Marshal(feedResp)
+		logger.Errorf("feed round response error code. feedResp: %s", bfeedresp)
+		return
+	}
+	feeds = make([]FeedTransaction, len(feedResp.Feeds))
+	for i, v := range feedResp.Feeds {
+		feeds[i], finalErr = NewFeedTransaction(v)
 		if finalErr != nil {
 			return
 		}
