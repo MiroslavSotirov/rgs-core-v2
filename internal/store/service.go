@@ -187,8 +187,8 @@ type (
 		//GamestateById(gamestateId string) (GameStateStore, *Error)
 
 		// retrieve transaction feed
-		Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) ([]FeedRound, int, rgse.RGSErr)
-		FeedRound(token Token, mode Mode, gameId, roundId string) ([]FeedTransaction, rgse.RGSErr)
+		Feed(token Token, mode Mode, gameId string, startTime string, endTime string, pageSize int, page int) ([]FeedRound, int, rgse.RGSErr)
+		FeedRound(token Token, mode Mode, gameId string, roundId int64) ([]FeedTransaction, rgse.RGSErr)
 	}
 
 	RemoteServiceImpl struct {
@@ -214,8 +214,8 @@ type (
 		GamestateById(gamestateId string) (GameStateStore, rgse.RGSErr)
 		SetMessage(playerId string, message string) rgse.RGSErr
 		SetBalance(token Token, amount engine.Money) rgse.RGSErr
-		Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) ([]FeedRound, int, rgse.RGSErr)
-		FeedRound(token Token, mode Mode, gameId, roundId string) ([]FeedTransaction, rgse.RGSErr)
+		Feed(token Token, mode Mode, gameId string, startTime string, endTime string, pageSize int, page int) ([]FeedRound, int, rgse.RGSErr)
+		FeedRound(token Token, mode Mode, gameId string, roundId int64) ([]FeedTransaction, rgse.RGSErr)
 	}
 
 	LocalServiceImpl struct{}
@@ -432,7 +432,7 @@ type (
 		Token    string `json:"token"`
 		Game     string `json:"game"`
 		Platform string `json:"platform"`
-		RoundId  string `json:"round_id"`
+		RoundId  int64  `json:"round_id"`
 	}
 
 	restFeedResponse struct {
@@ -1618,8 +1618,39 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 	return
 }
 
-func (i *LocalServiceImpl) FeedRound(token Token, mode Mode, gameId, roundId string) (feeds []FeedTransaction, finalErr rgse.RGSErr) {
+func feedRoundId(i *LocalServiceImpl, token Token, mode Mode, gameId string, transactionId int64) (string, rgse.RGSErr) {
+	var ts TransactionStore
+	var err rgse.RGSErr
+	ts, err = i.TransactionByGameId(token, mode, gameId)
+	if err != nil {
+		return "", nil
+	}
+
+	for true {
+		gameState := DeserializeGamestateFromBytes(ts.GameState)
+		tid := hashString(ts.TransactionId)
+		if tid == transactionId {
+			return gameState.RoundID, nil
+		}
+
+		var ok bool
+		ts, ok = i.getTransaction(gameState.PreviousGamestate)
+		if !ok {
+			break
+		}
+	}
+	return "", nil
+}
+
+func (i *LocalServiceImpl) FeedRound(token Token, mode Mode, gameId string, transactionId int64) (feeds []FeedTransaction, finalErr rgse.RGSErr) {
 	feeds = []FeedTransaction{}
+
+	roundId, _ := feedRoundId(i, token, mode, gameId, transactionId)
+	if roundId == "" {
+		logger.Errorf("could not find any transaction matching id %d", transactionId)
+	} else {
+		logger.Debugf("looking for transactions with roundId %s", roundId)
+	}
 
 	var ts TransactionStore
 	var err rgse.RGSErr
@@ -1700,10 +1731,12 @@ func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime strin
 	}
 
 	feedResp := i.restFeedResponse(resp)
+	bfeedresp, _ := json.Marshal(feedResp)
+	logger.Debugf("feed response: %s", bfeedresp)
 
 	finalErr = i.errorResponseCode(feedResp.Code)
 	if finalErr != nil {
-		bfeedresp, _ := json.Marshal(feedResp)
+		//		bfeedresp, _ := json.Marshal(feedResp)
 		logger.Errorf("feed response error code. feedResp: %s", bfeedresp)
 		return
 	}
@@ -1720,7 +1753,7 @@ func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime strin
 	return
 }
 
-func (i *RemoteServiceImpl) FeedRound(token Token, mode Mode, gameId, roundId string) (feeds []FeedTransaction, finalErr rgse.RGSErr) {
+func (i *RemoteServiceImpl) FeedRound(token Token, mode Mode, gameId string, roundId int64) (feeds []FeedTransaction, finalErr rgse.RGSErr) {
 	feedRq := restFeedRoundRequest{
 		ReqId:    uuid.NewV4().String(),
 		Token:    string(token),
@@ -1752,10 +1785,12 @@ func (i *RemoteServiceImpl) FeedRound(token Token, mode Mode, gameId, roundId st
 	}
 
 	feedResp := i.restFeedRoundResponse(resp)
+	bfeedresp, _ := json.Marshal(feedResp)
+	logger.Debugf("feed round response: %s", bfeedresp)
 
 	finalErr = i.errorResponseCode(feedResp.Code)
 	if finalErr != nil {
-		bfeedresp, _ := json.Marshal(feedResp)
+		//		bfeedresp, _ := json.Marshal(feedResp)
 		logger.Errorf("feed round response error code. feedResp: %s", bfeedresp)
 		return
 	}

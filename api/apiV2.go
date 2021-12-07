@@ -43,7 +43,7 @@ type FeedParams struct {
 type FeedRoundParams struct {
 	Game    string `json:"game"`
 	Wallet  string `json:"wallet"`
-	RoundId string `json:"roundId"`
+	RoundId int64  `json:"round_id"`
 }
 
 func getGameLink(request *http.Request) GameLinkResponse {
