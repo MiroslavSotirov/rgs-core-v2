@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -39,7 +40,7 @@ type closeParamsV3 struct {
 }
 
 type IGameInitResponseV3 interface {
-	Base() GameInitResponseV3
+	Base() *GameInitResponseV3
 	Render(http.ResponseWriter, *http.Request) error
 }
 
@@ -51,7 +52,7 @@ type GameInitResponseV3 struct {
 	DefaultBet  engine.Fixed   `json:"defaultBet"`
 }
 
-func (resp GameInitResponseV3) Base() GameInitResponseV3 {
+func (resp *GameInitResponseV3) Base() *GameInitResponseV3 {
 	return resp
 }
 
@@ -183,7 +184,16 @@ func initV3(request *http.Request) (response IGameInitResponseV3, rgserr rgse.RG
 			//			state, err = json.Marshal()
 		}
 	}
-	return initGameV3(player, engineId, wallet, body, engineConfig, token, state.GameState)
+	response, err = initGameV3(player, engineId, wallet, body, engineConfig, token, state.GameState)
+
+	stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(engine.Money{Currency: data.Ccy}, player.BetLimitSettingCode, data.Game)
+
+	fmt.Printf("initV3 stakeValues = %#v defaultBet = %#v\n", stakeValues, defaultBet)
+
+	response.Base().StakeValues = stakeValues
+	response.Base().DefaultBet = defaultBet
+
+	return
 }
 
 func getPlayerAndState(token store.Token, wallet string, game string) (player store.PlayerStore, state store.GameStateStore, rgserr rgse.RGSErr) {
@@ -214,6 +224,12 @@ func initGameV3(player store.PlayerStore, engineId string, wallet string, body [
 }
 
 func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RGSErr) {
+	var token store.Token
+	token, rgserr = handleAuth(request)
+	if rgserr != nil {
+		return
+	}
+
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		logger.Errorf("request read error")
@@ -222,12 +238,6 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 	logger.Debugf("playV3 data = %s\n", string(body))
 	var data playParamsV3
 	if rgserr = data.deserialize(body); rgserr != nil {
-		return
-	}
-
-	var token store.Token
-	token, rgserr = handleAuth(request)
-	if rgserr != nil {
 		return
 	}
 
@@ -378,6 +388,63 @@ func playGameV3(engineId string, wallet string, body []byte, txStore store.Trans
 	return nil, rgse.Create(rgse.EngineNotFoundError)
 }
 
+func closeV3(request *http.Request) rgse.RGSErr {
+	token, rgserr := handleAuth(request)
+	if rgserr != nil {
+		return rgserr
+	}
+
+	body, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		logger.Errorf("request read error")
+		return rgse.Create(rgse.JsonError)
+	}
+	logger.Debugf("closeV3 data = %s\n", string(body))
+	var data CloseRoundParams
+	if rgserr = data.deserialize(body); rgserr != nil {
+		return rgserr
+	}
+
+	var txStore store.TransactionStore
+	txStore, rgserr = TransactionByWalletAndGame(token, data.Wallet, data.Game)
+	if rgserr != nil {
+		return rgserr
+	}
+	if txStore.WalletStatus != 1 {
+		// if this is zero, the tx is pending and shouldn't be resent, if it is -1, the tx is failed and an error should be sent to reload the client
+		logger.Debugf("INTERNAL STATUS: %v", txStore.WalletStatus)
+		return rgse.Create(rgse.PeviousTXPendingError)
+	}
+	var state GameStateV3
+	err = json.Unmarshal(txStore.GameState, &state)
+	if err != nil {
+		return rgse.Create(rgse.GamestateStringDeserializerError)
+	}
+	logger.Debugf("serialized state: %s", string(txStore.GameState))
+	logger.Debugf("deserialized state: %#v", state)
+	if state.RoundId != data.RoundID {
+		logger.Debugf("state round id %s != data round id %s", state.RoundId, data.RoundID)
+		return rgse.Create(rgse.SpinSequenceError)
+	}
+	/*
+		if len(state.NextActions) > 1 {
+			// we should not be closing a gameround if the last gamestate has more actions to be completed
+			err = rgse.Create(rgse.IncompleteRoundError)
+			return
+		}
+	*/
+	state.Closed = true
+	roundId := state.RoundId
+	if roundId == "" {
+		roundId = state.Id
+	}
+	var serializedState []byte
+	serializedState, err = json.Marshal(state)
+	CloseByWallet(token, data.Wallet, data.Game, roundId, serializedState)
+
+	return nil
+}
+
 func decodeParams(p paramsV3, request *http.Request) rgse.RGSErr {
 	decoder := json.NewDecoder(request.Body)
 	decoderror := decoder.Decode(p)
@@ -420,6 +487,14 @@ func (i *playParamsV3) deserialize(b []byte) rgse.RGSErr {
 	return deserializeParams(i, b)
 }
 
+func (i CloseRoundParams) validate() rgse.RGSErr {
+	return nil
+}
+
+func (i *CloseRoundParams) deserialize(b []byte) rgse.RGSErr {
+	return deserializeParams(i, b)
+}
+
 func TransactionByWallet(token store.Token, wallet string, tx store.TransactionStore) (balance store.BalanceStore, err rgse.RGSErr) {
 	switch wallet {
 	case "demo":
@@ -430,6 +505,28 @@ func TransactionByWallet(token store.Token, wallet string, tx store.TransactionS
 		balance, err = store.Serv.Transaction(token, store.ModeReal, tx)
 	default:
 		err = rgse.Create(rgse.InvalidWallet)
+	}
+	return
+}
+
+func TransactionByWalletAndGame(token store.Token, wallet string, game string) (txStore store.TransactionStore, rgserr rgse.RGSErr) {
+	switch wallet {
+	case "demo":
+		txStore, rgserr = store.ServLocal.TransactionByGameId(token, store.ModeDemo, game)
+	case "dashur":
+		txStore, rgserr = store.Serv.TransactionByGameId(token, store.ModeReal, game)
+	default:
+		rgserr = rgse.Create(rgse.InvalidWallet)
+	}
+	return
+}
+
+func CloseByWallet(token store.Token, wallet string, game string, roundId string, serializedState []byte) (rgserr rgse.RGSErr) {
+	switch wallet {
+	case "demo":
+		_, rgserr = store.ServLocal.CloseRound(token, store.ModeDemo, game, roundId, serializedState, 3600)
+	case "dashur":
+		_, rgserr = store.Serv.CloseRound(token, store.ModeReal, game, roundId, serializedState, 3600)
 	}
 	return
 }

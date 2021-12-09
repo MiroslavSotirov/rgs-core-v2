@@ -44,6 +44,11 @@ type WinConfiguration struct {
 	Flags string `yaml:"Flags"` // concatenation of winconf_ flag strings, if empty string then configuration is ignored(set to none then)
 }
 
+type RoulettePayout struct {
+	Multiplier int   `yaml:"Multiplier"`
+	Symbols    []int `yaml:"Symbols"`
+}
+
 // EngineDef ...
 type EngineDef struct {
 	ID       string `yaml:"name"`
@@ -54,21 +59,22 @@ type EngineDef struct {
 	Payouts  []Payout `yaml:"Payouts"`                 // the payouts for line wins (can be nil for ways games)
 	WinType  string   `yaml:"WinType"`                 // ways, lines, or barLines (specifying lines insteadof barLines saves comp. power)
 	// The string represents the method to be run. should be ordered by precedence
-	SpecialPayouts []Prize               `yaml:"SpecialPayouts"`
-	WinLines       [][]int               `yaml:"WinLines,flow"`
-	WinConfig      WinConfiguration      `yaml:"WinConfig"`
-	Wilds          []wild                `yaml:"wilds"`
-	Bars           []bar                 `yaml:"bars"`
-	Multiplier     weightedMultiplier    `yaml:"multiplier"`
-	StakeDivisor   int                   `yaml:"StakeDivisor"`
-	Probability    int                   `yaml:"Probability"`      // the probability of this engine being selected if it shares id with other engines
-	ExpectedPayout Fixed                 `yaml:"expectedPayout"`   // the expected payout of one round of this engineDef
-	RTP            float32               `yaml:"RTP"`              // the expected payout of one round of this engineDef
-	RespinAllowed  bool                  `yaml:"respin"`           // must be explicitly enabled on each def
-	VariableWL     bool                  `yaml:"variableWinLines"` // will be false by default
-	Compounding    bool                  `yaml:"compoundingWilds"` // will be false by default
-	force          []int                 // may not be set via yaml
-	Features       []features.FeatureDef `yaml:"Features"`
+	SpecialPayouts  []Prize                   `yaml:"SpecialPayouts"`
+	WinLines        [][]int                   `yaml:"WinLines,flow"`
+	WinConfig       WinConfiguration          `yaml:"WinConfig"`
+	Wilds           []wild                    `yaml:"wilds"`
+	Bars            []bar                     `yaml:"bars"`
+	Multiplier      weightedMultiplier        `yaml:"multiplier"`
+	StakeDivisor    int                       `yaml:"StakeDivisor"`
+	Probability     int                       `yaml:"Probability"`      // the probability of this engine being selected if it shares id with other engines
+	ExpectedPayout  Fixed                     `yaml:"expectedPayout"`   // the expected payout of one round of this engineDef
+	RTP             float32                   `yaml:"RTP"`              // the expected payout of one round of this engineDef
+	RespinAllowed   bool                      `yaml:"respin"`           // must be explicitly enabled on each def
+	VariableWL      bool                      `yaml:"variableWinLines"` // will be false by default
+	Compounding     bool                      `yaml:"compoundingWilds"` // will be false by default
+	force           []int                     // may not be set via yaml
+	Features        []features.FeatureDef     `yaml:"Features"`
+	RoulettePayouts map[string]RoulettePayout `yaml:"RoulettePayouts"`
 }
 
 func (engine EngineDef) SetForce(force []int) (forcedengine EngineDef, err rgserror.RGSErr) {

@@ -379,11 +379,13 @@ func CloseGS(r *http.Request) (err rgse.RGSErr) {
 	if roundId == "" {
 		roundId = gamestateUnmarshalled.Id
 	}
+	state := store.SerializeGamestateToBytes(gamestateUnmarshalled)
+	ttl := gamestateUnmarshalled.GetTtl()
 	switch data.Wallet {
 	case "demo":
-		_, err = store.ServLocal.CloseRound(token, store.ModeDemo, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+		_, err = store.ServLocal.CloseRound(token, store.ModeDemo, data.Game, roundId, state, ttl)
 	case "dashur":
-		_, err = store.Serv.CloseRound(token, store.ModeReal, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+		_, err = store.Serv.CloseRound(token, store.ModeReal, data.Game, roundId, state, ttl)
 	}
 	return
 }

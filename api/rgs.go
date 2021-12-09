@@ -386,6 +386,19 @@ func Routes() *chi.Mux {
 			w.WriteHeader(200)
 		})
 
+		r.Put("/close3", func(w http.ResponseWriter, r *http.Request) {
+			err := closeV3(r)
+			if err != nil {
+				logger.Debugf("error on round close: %v", err)
+			}
+			if err != nil {
+				render.Render(w, r, ErrRender(err))
+				w.WriteHeader(400)
+				return
+			}
+			w.WriteHeader(200)
+		})
+
 		r.Put("/clientstate/{token:[A-Za-z0-9-_+.:,]+}/{gameSlug:[A-Za-z0-9-]+}/{wallet:[A-Za-z0-9-_]+}", func(w http.ResponseWriter, r *http.Request) {
 			token := chi.URLParam(r, "token")
 			gameSlug := chi.URLParam(r, "gameSlug")
@@ -415,11 +428,13 @@ func Routes() *chi.Mux {
 			if roundId == "" {
 				roundId = gamestateUnmarshalled.Id
 			}
+			state := store.SerializeGamestateToBytes(gamestateUnmarshalled)
+			ttl := gamestateUnmarshalled.GetTtl()
 			switch wallet {
 			case "demo":
-				_, err = store.ServLocal.CloseRound(store.Token(token), store.ModeDemo, gameSlug, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+				_, err = store.ServLocal.CloseRound(store.Token(token), store.ModeDemo, gameSlug, roundId, state, ttl)
 			case "dashur":
-				_, err = store.Serv.CloseRound(store.Token(token), store.ModeReal, gameSlug, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+				_, err = store.Serv.CloseRound(store.Token(token), store.ModeReal, gameSlug, roundId, state, ttl)
 			}
 			if err != nil {
 				fmt.Fprint(w, []byte("ERROR"))

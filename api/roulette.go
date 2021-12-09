@@ -58,6 +58,17 @@ type PrizeRoulette struct {
 	Index  string       `json:"index"`
 	Amount engine.Fixed `json:"amount"`
 }
+type PayoutRoulette struct {
+	Multiplier int   `json:"multiplier"`
+	Symbols    []int `json:"symbols"`
+}
+
+func MakePayoutRoulette(p engine.RoulettePayout) PayoutRoulette {
+	return PayoutRoulette{
+		Multiplier: p.Multiplier,
+		Symbols:    p.Symbols,
+	}
+}
 
 /*
 type PrizeRoulette struct {
@@ -69,13 +80,13 @@ type PrizeRoulette struct {
 
 type GameInitResponseRoulette struct {
 	GameInitResponseV3
-	LastRound IGamePlayResponseV3    `json:"lastRound"`
-	Reel      []int                  `json:"reel"`
-	Bets      map[string]BetRoulette `json:"bets"`
+	LastRound IGamePlayResponseV3       `json:"lastRound"`
+	Reel      []int                     `json:"reel"`
+	Bets      map[string]PayoutRoulette `json:"bets"`
 }
 
-func (resp GameInitResponseRoulette) base() GameInitResponseV3 {
-	return resp.GameInitResponseV3
+func (resp *GameInitResponseRoulette) Base() *GameInitResponseV3 {
+	return &resp.GameInitResponseV3
 }
 
 func (resp GameInitResponseRoulette) Render(w http.ResponseWriter, r *http.Request) error {
@@ -118,6 +129,8 @@ func initRoulette(player store.PlayerStore, engineId string, wallet string, body
 		return nil, rgse.Create(rgse.JsonError)
 	}
 
+	engineDef := engineConf.EngineDefs[0]
+
 	var gameState GameStateRoulette
 	if len(state) == 0 {
 		gameState = initRouletteGS(data)
@@ -138,14 +151,18 @@ func initRoulette(player store.PlayerStore, engineId string, wallet string, body
 	zero := engine.NewFixedFromInt(0)
 	playResponse := fillRoulettePlayResponse(gameState, balance, zero, zero)
 
-	response = GameInitResponseRoulette{
+	bets := make(map[string]PayoutRoulette, len(engineDef.RoulettePayouts))
+	for k, v := range engineDef.RoulettePayouts {
+		bets[k] = MakePayoutRoulette(v)
+	}
+	response = &GameInitResponseRoulette{
 		GameInitResponseV3: GameInitResponseV3{
 			Name:   gameState.Game,
 			Wallet: wallet,
 		},
 		LastRound: playResponse,
-		Reel:      rouletteReel,
-		Bets:      rouletteBets,
+		Reel:      engineDef.Reels[0],
+		Bets:      bets,
 	}
 	return
 }
@@ -156,7 +173,9 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 
 	fmt.Printf("playRoulette data= %#v\n", data)
 
-	valid, stake := validateRouletteBets(data.Bets)
+	engineConf := engine.BuildEngineDefs(engineId)
+
+	valid, stake := validateRouletteBets(data.Bets, engineConf.EngineDefs[0].RoulettePayouts)
 	if !valid || len(data.Bets) == 0 {
 		fmt.Printf("not valid: valid=%v len bets=%d\n", valid, len(data.Bets))
 		return nil, rgse.Create(rgse.InvalidStakeError)
@@ -180,7 +199,9 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 	}
 	logger.Debugf("prevState= %#v", prevState)
 
-	return getRouletteResults(data, stake, prevState, txStore)
+	var engineDef engine.EngineDef = engineConf.EngineDefs[0]
+
+	return getRouletteResults(data, engineDef, stake, prevState, txStore)
 }
 
 func initRouletteGS(data initParamsRoulette) GameStateRoulette {
@@ -195,11 +216,11 @@ func initRouletteGS(data initParamsRoulette) GameStateRoulette {
 	return gameState
 }
 
-func validateRouletteBets(bets map[string]BetRoulette) (bool, engine.Fixed) {
+func validateRouletteBets(bets map[string]BetRoulette, validBets map[string]engine.RoulettePayout) (bool, engine.Fixed) {
 	sum := engine.NewFixedFromInt(0)
 	for k, v := range bets {
 		logger.Debugf("validating bet %#v", v)
-		if !validateRouletteBet(k, v) {
+		if !validateRouletteBet(k, v, validBets) {
 			return false, engine.NewFixedFromInt(0)
 		}
 		sum += v.Amount
@@ -208,35 +229,54 @@ func validateRouletteBets(bets map[string]BetRoulette) (bool, engine.Fixed) {
 	return true, sum
 }
 
-func validateRouletteBet(index string, bet BetRoulette) bool {
-	for k, v := range rouletteBets {
-		if k == index {
-			if len(v.Symbols) != len(bet.Symbols) {
-				logger.Debugf("roulette bet with index %s has the wrong number of symbols (expected %d got %d)",
-					index, len(v.Symbols), len(bet.Symbols))
+func validateRouletteBet(index string, bet BetRoulette, payouts map[string]engine.RoulettePayout) bool {
+	v, ok := payouts[index]
+	if ok {
+		if len(v.Symbols) != len(bet.Symbols) {
+			logger.Debugf("roulette bet with index %s has the wrong number of symbols (expected %d got %d)",
+				index, len(v.Symbols), len(bet.Symbols))
+			return false
+		}
+		for j, s := range v.Symbols {
+			if bet.Symbols[j] != s {
+				logger.Debugf("roulette bet with index %s and symbols %v does not match symbol index %d in valid bet symbols %v",
+					index, bet.Symbols, j, v.Symbols)
 				return false
 			}
-			for j, s := range v.Symbols {
-				if bet.Symbols[j] != s {
-					logger.Debugf("roulette bet with index %s and symbols %v does not match symbol index %d in valid bet symbols %v",
-						index, bet.Symbols, j, v.Symbols)
+		}
+		return true
+	}
+	/*
+		for k, v := range validBets { // rouletteBets {
+			if k == index {
+				if len(v.Symbols) != len(bet.Symbols) {
+					logger.Debugf("roulette bet with index %s has the wrong number of symbols (expected %d got %d)",
+						index, len(v.Symbols), len(bet.Symbols))
 					return false
 				}
+				for j, s := range v.Symbols {
+					if bet.Symbols[j] != s {
+						logger.Debugf("roulette bet with index %s and symbols %v does not match symbol index %d in valid bet symbols %v",
+							index, bet.Symbols, j, v.Symbols)
+						return false
+					}
+				}
+				return true
 			}
-			return true
 		}
-	}
+	*/
 	logger.Debugf("roulette bet with index %s is unknown", index)
 	return false
 }
 
-func processRouletteBets(symbol int, bets map[string]BetRoulette) (engine.Fixed, []PrizeRoulette) {
+func processRouletteBets(symbol int, bets map[string]BetRoulette, payouts map[string]engine.RoulettePayout) (engine.Fixed, []PrizeRoulette) {
 	sum, prizes := engine.NewFixedFromInt(0), []PrizeRoulette{}
 	for k, v := range bets {
 		for _, s := range v.Symbols {
 			if s == symbol {
-				sum += v.Amount
-				prizes = append(prizes, PrizeRoulette{Index: k, Amount: v.Amount})
+				win := v.Amount.Mul(engine.NewFixedFromInt(payouts[k].Multiplier))
+				sum += win
+				prizes = append(prizes, PrizeRoulette{Index: k, Amount: win})
 				break
 			}
 		}
@@ -246,16 +286,22 @@ func processRouletteBets(symbol int, bets map[string]BetRoulette) (engine.Fixed,
 
 func getRouletteResults(
 	data playParamsRoulette,
+	engineDef engine.EngineDef,
 	bet engine.Fixed,
 	prevState GameStateRoulette,
 	txStore store.TransactionStore) (response GamePlayResponseRoulette, err rgse.RGSErr) {
 
-	position := rng.RandFromRange(len(rouletteReel))
-	symbol := rouletteReel[position]
+	reel := engineDef.Reels[0]
+	position := rng.RandFromRange(len(reel))
+	symbol := reel[position]
 
+	id := uuid.NewV4().String()
+	roundId := id
 	gameState := GameStateRoulette{
 		GameStateV3: GameStateV3{
-			Id:                uuid.NewV4().String(), // prevState.NextGamestate,
+			Id:                id,
+			Game:              data.Game,
+			RoundId:           roundId,
 			PreviousGamestate: data.PreviousID,
 			//			NextGamestate:     string(token),
 			Transactions: []engine.WalletTransaction{
@@ -270,7 +316,7 @@ func getRouletteResults(
 		Symbol:   symbol,
 	}
 
-	win, prizes := processRouletteBets(symbol, data.Bets)
+	win, prizes := processRouletteBets(symbol, data.Bets, engineDef.RoulettePayouts)
 	gameState.Prizes = prizes
 	if len(prizes) > 0 {
 		gameState.Transactions = append(gameState.Transactions, engine.WalletTransaction{
@@ -342,7 +388,7 @@ func fillRoulettePlayResponse(gameState GameStateRoulette, balance store.Balance
 		GamePlayResponseV3: GamePlayResponseV3{
 			Token:   balance.Token,
 			StateId: gameState.Id,
-			RoundId: gameState.Id,
+			RoundId: gameState.RoundId,
 			Balance: BalanceResponseV3{
 				Amount: balance.Balance,
 			},
@@ -353,409 +399,4 @@ func fillRoulettePlayResponse(gameState GameStateRoulette, balance store.Balance
 		Position: gameState.Position,
 		Prizes:   gameState.Prizes,
 	}
-}
-
-var rouletteReel = []int{0, 32, 16, 13, 21, 6, 19, 2, 27, 17, 36, 4, 25, 15, 34, 11, 28, 8, 23, 12, 5, 22, 18, 31, 37, 20, 14, 33, 7, 24, 16, 29, 9, 30, 10, 35, 1, 26}
-
-/*
-var rouletteBets = []BetRoulette{
-	{
-		Index:   "1",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{1},
-	},
-	{
-		Index:   "2",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{2},
-	},
-	{
-		Index:   "3",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{3},
-	},
-	{
-		Index:   "4",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{4},
-	},
-	{
-		Index:   "5",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{5},
-	},
-	{
-		Index:   "6",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{6},
-	},
-	{
-		Index:   "7",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{7},
-	},
-	{
-		Index:   "8",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{8},
-	},
-	{
-		Index:   "9",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{9},
-	},
-	{
-		Index:   "10",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{10},
-	},
-	{
-		Index:   "11",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{11},
-	},
-	{
-		Index:   "12",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{12},
-	},
-	{
-		Index:   "13",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{13},
-	},
-	{
-		Index:   "14",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{14},
-	},
-	{
-		Index:   "15",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{15},
-	},
-	{
-		Index:   "16",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{16},
-	},
-	{
-		Index:   "17",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{17},
-	},
-	{
-		Index:   "18",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{18},
-	},
-	{
-		Index:   "19",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{19},
-	},
-	{
-		Index:   "20",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{20},
-	},
-	{
-		Index:   "21",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{21},
-	},
-	{
-		Index:   "22",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{22},
-	},
-	{
-		Index:   "23",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{23},
-	},
-	{
-		Index:   "24",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{24},
-	},
-	{
-		Index:   "25",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{25},
-	},
-	{
-		Index:   "26",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{26},
-	},
-	{
-		Index:   "27",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{27},
-	},
-	{
-		Index:   "28",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{28},
-	},
-	{
-		Index:   "29",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{29},
-	},
-	{
-		Index:   "30",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{30},
-	},
-	{
-		Index:   "31",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{31},
-	},
-	{
-		Index:   "32",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{32},
-	},
-	{
-		Index:   "33",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{33},
-	},
-	{
-		Index:   "34",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{34},
-	},
-	{
-		Index:   "35",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{35},
-	},
-	{
-		Index:   "36",
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{36},
-	},
-	{
-		Index:   "dragonbet1",
-		Amount:  engine.NewFixedFromInt(3),
-		Symbols: []int{1, 5, 9, 12, 14, 16, 19, 23, 27, 30, 32, 34},
-	},
-	{
-		Index:   "dragonbet2",
-		Amount:  engine.NewFixedFromInt(3),
-		Symbols: []int{3, 6, 8, 10, 13, 17, 20, 22, 25, 29, 33, 36},
-	},
-	{
-		Index:   "dragonbet3",
-		Amount:  engine.NewFixedFromInt(3),
-		Symbols: []int{2, 4, 7, 12, 15, 17, 20, 24, 27, 28, 31, 35},
-	},
-	{
-		Index:   "dragonbet4",
-		Amount:  engine.NewFixedFromInt(3),
-		Symbols: []int{3, 5, 7, 10, 14, 18, 21, 23, 25, 28, 32, 36},
-	},
-	{
-		Index:   "dragonbet5",
-		Amount:  engine.NewFixedFromInt(3),
-		Symbols: []int{2, 4, 9, 11, 13, 18, 21, 22, 26, 30, 31, 35},
-	},
-	{
-		Index:   "dragonbet6",
-		Amount:  engine.NewFixedFromInt(3),
-		Symbols: []int{1, 6, 8, 11, 15, 16, 19, 24, 26, 29, 33, 34},
-	},
-	{
-		Index:   "red",
-		Amount:  engine.NewFixedFromInt(2),
-		Symbols: []int{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35},
-	},
-	{
-		Index:   "black",
-		Amount:  engine.NewFixedFromInt(2),
-		Symbols: []int{2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36},
-	},
-}
-*/
-var rouletteBets = map[string]BetRoulette{
-	"1": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{1},
-	},
-	"2": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{2},
-	},
-	"3": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{3},
-	},
-	"4": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{4},
-	},
-	"5": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{5},
-	},
-	"6": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{6},
-	},
-	"7": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{7},
-	},
-	"8": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{8},
-	},
-	"9": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{9},
-	},
-	"10": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{10},
-	},
-	"11": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{11},
-	},
-	"12": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{12},
-	},
-	"13": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{13},
-	},
-	"14": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{14},
-	},
-	"15": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{15},
-	},
-	"16": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{16},
-	},
-	"17": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{17},
-	},
-	"18": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{18},
-	},
-	"19": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{19},
-	},
-	"20": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{20},
-	},
-	"21": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{21},
-	},
-	"22": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{22},
-	},
-	"23": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{23},
-	},
-	"24": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{24},
-	},
-	"25": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{25},
-	},
-	"26": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{26},
-	},
-	"27": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{27},
-	},
-	"28": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{28},
-	},
-	"29": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{29},
-	},
-	"30": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{30},
-	},
-	"31": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{31},
-	},
-	"32": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{32},
-	},
-	"33": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{33},
-	},
-	"34": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{34},
-	},
-	"35": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{35},
-	},
-	"36": {
-		Amount:  engine.NewFixedFromInt(36),
-		Symbols: []int{36},
-	},
-	"dragonbet1": {
-		Amount:  engine.NewFixedFromInt(3),
-		Symbols: []int{1, 5, 9, 12, 14, 16, 19, 23, 27, 30, 32, 34},
-	},
-	"dragonbet2": {
-		Amount:  engine.NewFixedFromInt(3),
-		Symbols: []int{3, 6, 8, 10, 13, 17, 20, 22, 25, 29, 33, 36},
-	},
-	"dragonbet3": {
-		Amount:  engine.NewFixedFromInt(3),
-		Symbols: []int{2, 4, 7, 12, 15, 17, 20, 24, 27, 28, 31, 35},
-	},
-	"dragonbet4": {
-		Amount:  engine.NewFixedFromInt(3),
-		Symbols: []int{3, 5, 7, 10, 14, 18, 21, 23, 25, 28, 32, 36},
-	},
-	"dragonbet5": {
-		Amount:  engine.NewFixedFromInt(3),
-		Symbols: []int{2, 4, 9, 11, 13, 18, 21, 22, 26, 30, 31, 35},
-	},
-	"dragonbet6": {
-		Amount:  engine.NewFixedFromInt(3),
-		Symbols: []int{1, 6, 8, 11, 15, 16, 19, 24, 26, 29, 33, 34},
-	},
-	"red": {
-		Amount:  engine.NewFixedFromInt(2),
-		Symbols: []int{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35},
-	},
-	"black": {
-		Amount:  engine.NewFixedFromInt(2),
-		Symbols: []int{2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36},
-	},
 }
