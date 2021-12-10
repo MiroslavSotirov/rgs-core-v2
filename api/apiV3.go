@@ -17,6 +17,18 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
+type IGameV3 interface {
+	init(params []byte, player store.PlayerStore)
+	play(params []byte, prevState store.TransactionStore)
+}
+
+type GameRouletteV3 struct {
+	EngineId   string
+	Wallet     string
+	Token      store.Token
+	EngineConf engine.EngineConfig
+}
+
 type paramsV3 interface {
 	validate() rgse.RGSErr
 	decode(*http.Request) rgse.RGSErr
