@@ -3,14 +3,15 @@ package store
 import (
 	"bytes"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	uuid "github.com/satori/go.uuid"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func testRemoteServiceForCloseRound(url string) Service {
@@ -57,7 +58,7 @@ func TestRemoteServiceImpl_CloseRound_1(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	balance, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
+	balance, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600)
 
 	if err != nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -91,7 +92,7 @@ func TestRemoteServiceImpl_CloseRound_2(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600)
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -118,7 +119,7 @@ func TestRemoteServiceImpl_CloseRound_3(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600)
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -145,7 +146,7 @@ func TestRemoteServiceImpl_CloseRound_4(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600)
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -172,7 +173,7 @@ func TestRemoteServiceImpl_CloseRound_5(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600)
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -211,7 +212,7 @@ func TestRemoteServiceImpl_CloseRound_6(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600)
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -250,7 +251,7 @@ func TestRemoteServiceImpl_CloseRound_7(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600)
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -289,7 +290,7 @@ func TestRemoteServiceImpl_CloseRound_8(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600)
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
@@ -328,7 +329,7 @@ func TestRemoteServiceImpl_CloseRound_9(t *testing.T) {
 	gameIdStr := "MVRK-TEST-GAME-1"
 	roundIdStr := uuid.NewV4().String()
 
-	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{})
+	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600)
 
 	if err == nil {
 		t.Errorf("Found error, it shouldn't produce error [%v]", err)
