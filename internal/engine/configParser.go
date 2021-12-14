@@ -162,6 +162,9 @@ func ReadEngineDefs(engineID string) EngineConfig {
 		if len(c.EngineDefs[i].Features) != 0 {
 			completeDef.Features = c.EngineDefs[i].Features
 		}
+		if len(c.EngineDefs[i].RoulettePayouts) != 0 {
+			completeDef.RoulettePayouts = c.EngineDefs[i].RoulettePayouts
+		}
 		if c.EngineDefs[i].WinConfig.Flags != "" {
 			completeDef.WinConfig = c.EngineDefs[i].WinConfig
 		}

@@ -333,8 +333,65 @@ func Routes() *chi.Mux {
 				return
 			}
 		})
+		r.Post("/init3", func(w http.ResponseWriter, r *http.Request) {
+			initResp, err := initV3(r)
+			if err != nil {
+				logger.Errorf("Error initializing game %s", err.Error())
+
+				switch t := err.(type) {
+				default:
+					_ = render.Render(w, r, ErrRender(err))
+				case *rgserror.RGSError:
+					logger.Debugf("%v", t)
+					_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
+
+				}
+				return
+			}
+
+			if err := render.Render(w, r, initResp); err != nil {
+				_ = render.Render(w, r, ErrRender(err))
+				return
+			}
+		})
+		r.Post("/play3", func(w http.ResponseWriter, r *http.Request) {
+			gamestate, err := playV3(r)
+			if err != nil {
+				logger.Errorf("Error initializing game %s", err.Error())
+
+				switch t := err.(type) {
+				default:
+					_ = render.Render(w, r, ErrRender(err))
+				case *rgserror.RGSError:
+					logger.Debugf("%v", t)
+					_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
+
+				}
+				return
+			}
+			if gamestate != nil {
+				if err := render.Render(w, r, gamestate); err != nil {
+					_ = render.Render(w, r, ErrRender(err))
+					return
+				}
+			}
+		})
+
 		r.Put("/close", func(w http.ResponseWriter, r *http.Request) {
 			err := CloseGS(r)
+			if err != nil {
+				logger.Debugf("error on round close: %v", err)
+			}
+			if err != nil {
+				render.Render(w, r, ErrRender(err))
+				w.WriteHeader(400)
+				return
+			}
+			w.WriteHeader(200)
+		})
+
+		r.Put("/close3", func(w http.ResponseWriter, r *http.Request) {
+			err := closeV3(r)
 			if err != nil {
 				logger.Debugf("error on round close: %v", err)
 			}
@@ -375,11 +432,13 @@ func Routes() *chi.Mux {
 			if roundId == "" {
 				roundId = gamestateUnmarshalled.Id
 			}
+			state := store.SerializeGamestateToBytes(gamestateUnmarshalled)
+			ttl := gamestateUnmarshalled.GetTtl()
 			switch wallet {
 			case "demo":
-				_, err = store.ServLocal.CloseRound(store.Token(token), store.ModeDemo, gameSlug, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+				_, err = store.ServLocal.CloseRound(store.Token(token), store.ModeDemo, gameSlug, roundId, state, ttl)
 			case "dashur":
-				_, err = store.Serv.CloseRound(store.Token(token), store.ModeReal, gameSlug, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+				_, err = store.Serv.CloseRound(store.Token(token), store.ModeReal, gameSlug, roundId, state, ttl)
 			}
 			if err != nil {
 				fmt.Fprint(w, []byte("ERROR"))

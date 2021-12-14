@@ -32,6 +32,14 @@ func (gi GameplayResponseV2) Render(w http.ResponseWriter, r *http.Request) erro
 	return nil
 }
 
+func (gi GameInitResponseV3) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+func (gi GamePlayResponseV3) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
 func (gi FeedResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }

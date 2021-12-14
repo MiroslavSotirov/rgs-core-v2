@@ -181,7 +181,7 @@ type (
 		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgse.RGSErr)
 
 		// close round.
-		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, rgse.RGSErr)
+		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64) (BalanceStore, rgse.RGSErr)
 
 		//// gamestate by id
 		//GamestateById(gamestateId string) (GameStateStore, *Error)
@@ -210,7 +210,7 @@ type (
 		BalanceByToken(token Token, mode Mode) (BalanceStore, rgse.RGSErr)
 		Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, rgse.RGSErr)
 		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgse.RGSErr)
-		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, rgse.RGSErr)
+		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64) (BalanceStore, rgse.RGSErr)
 		GamestateById(gamestateId string) (GameStateStore, rgse.RGSErr)
 		SetMessage(playerId string, message string) rgse.RGSErr
 		SetBalance(token Token, amount engine.Money) rgse.RGSErr
@@ -1240,7 +1240,7 @@ func (i *RemoteServiceImpl) restFeedRoundResponse(response *http.Response) restF
 	return data
 }
 
-func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, rgse.RGSErr) {
+func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64) (BalanceStore, rgse.RGSErr) {
 	// Used in clientstate call
 	playerId, _ := i.getToken(token)
 	player, _ := i.getPlayer(playerId)
@@ -1262,7 +1262,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 		TxTime:              time.Now(),
 		GameState:           gamestate,
 		FreeGames:           player.FreeGames,
-		Ttl:                 DeserializeGamestateFromBytes(gamestate).GetTtl(),
+		Ttl:                 ttl,
 	})
 
 	if err != nil {
@@ -1274,11 +1274,10 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 	return balance, nil
 }
 
-func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte) (BalanceStore, rgse.RGSErr) {
+func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64) (BalanceStore, rgse.RGSErr) {
 	// Used in clientstate call
 	closeRound := true
 
-	ttl := DeserializeGamestateFromBytes(gamestate).GetTtl()
 	if len(gamestate) > i.dataLimit {
 		sentry.CaptureMessage(fmt.Sprintf("gamestate size exceeds store data limit of %d bytes", i.dataLimit))
 	}

@@ -234,11 +234,11 @@ func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payou
 	}
 	logger.Debugf("Symbol grid: %d x %d\n", gridw, gridh)
 	for winLineIndex, winLine := range WinLines {
-		logger.Debugf("Checking winline %d / %d\n", winLineIndex, len(WinLines))
+		//		logger.Debugf("Checking winline %d / %d\n", winLineIndex, len(WinLines))
 		lineContent := make([]int, len(symbolGrid))
 		symbolPositions := make([]int, len(symbolGrid))
 		for reel, index := range winLine {
-			logger.Debugf("Checking winline symbol %d / %d\n", reel, len(winLine))
+			//			logger.Debugf("Checking winline symbol %d / %d\n", reel, len(winLine))
 			lineContent[reel] = symbolGrid[reel][index]
 			// to determine a unique symbol position per location in the view, this only works if view is regularly sized (i.e. all reels show same number of symbols. todo: make this dynamic for all reel configurations
 			symbolPositions[reel] = len(symbolGrid[reel])*reel + index

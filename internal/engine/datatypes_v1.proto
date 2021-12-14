@@ -235,8 +235,6 @@ message GamestatePB {
   freespinE8 = 26;
   freespinE0 = 27;
   gamble0 = 28;
-  fattilereel = 29;
-  fattilechance = 30;
   }
   Action action = 7;
 

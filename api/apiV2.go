@@ -81,7 +81,11 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 		return GameInitResponseV2{}, err
 	}
 	engineConfig := engine.BuildEngineDefs(engineID)
-	authToken := strings.Split(request.Header.Get("Authorization"), " ")[1] // assume format MAVERICK-Host-Token aaa-1234-aaa is passed in Auth header
+	var authToken string
+	authToken, err = getAuth(request)
+	if err != nil {
+		return GameInitResponseV2{}, err
+	}
 
 	// get wallet from operator config
 	wallet, err := config.GetWalletFromOperatorAndMode(data.Operator, data.Mode)
@@ -178,16 +182,26 @@ func playV2(request *http.Request) (GameplayResponseV2, rgse.RGSErr) {
 	return getRoundResults(data, previousGamestate, txStore)
 }
 
-func handleAuth(r *http.Request) (token store.Token, err rgse.RGSErr) {
+func getAuth(r *http.Request) (token string, err rgse.RGSErr) {
 	authHeader := r.Header.Get("Authorization")
 	tokenInfo := strings.Split(authHeader, " ")
 	if tokenInfo[0] != "Maverick-Host-Token" || len(tokenInfo) < 2 {
 		err = rgse.Create(rgse.InvalidCredentials)
 		return
 	}
-	token = store.Token(tokenInfo[1])
+	token = tokenInfo[1]
 	return
 }
+
+func handleAuth(r *http.Request) (token store.Token, err rgse.RGSErr) {
+	var t string
+	t, err = getAuth(r)
+	if err == nil {
+		token = store.Token(t)
+	}
+	return
+}
+
 func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV2, rgse.RGSErr) {
 	logger.Debugf("First gameplay for player")
 	token, autherr := handleAuth(request)
@@ -371,11 +385,13 @@ func CloseGS(r *http.Request) (err rgse.RGSErr) {
 	if roundId == "" {
 		roundId = gamestateUnmarshalled.Id
 	}
+	state := store.SerializeGamestateToBytes(gamestateUnmarshalled)
+	ttl := gamestateUnmarshalled.GetTtl()
 	switch data.Wallet {
 	case "demo":
-		_, err = store.ServLocal.CloseRound(token, store.ModeDemo, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+		_, err = store.ServLocal.CloseRound(token, store.ModeDemo, data.Game, roundId, state, ttl)
 	case "dashur":
-		_, err = store.Serv.CloseRound(token, store.ModeReal, data.Game, roundId, store.SerializeGamestateToBytes(gamestateUnmarshalled))
+		_, err = store.Serv.CloseRound(token, store.ModeReal, data.Game, roundId, state, ttl)
 	}
 	return
 }
