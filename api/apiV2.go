@@ -430,7 +430,8 @@ func Feed(r *http.Request) (FeedResponse, rgse.RGSErr) {
 
 	if data.StartTime == "" {
 		// Dashur has a limit of 10 day history
-		data.StartTime = time.Now().AddDate(0, 0, -10).UTC().Format("2021-09-24 00:00:00.000")
+		data.StartTime = time.Now().AddDate(0, 0, -10).UTC().Format("2006-01-02 15:04:05.000")
+		logger.Debugf("feed round start time set to %v", data.StartTime)
 	}
 	if data.EndTime == "" {
 		data.EndTime = time.Now().UTC().Format("2006-01-02 15:04:05.000")
