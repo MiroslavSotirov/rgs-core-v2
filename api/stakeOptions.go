@@ -1,13 +1,14 @@
 package api
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/go-chi/render"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
-	"net/http"
-	"strings"
 )
 
 type GameStakeInfo struct {
@@ -55,15 +56,15 @@ func stakeInfo(request *http.Request, w http.ResponseWriter) {
 		if i == 0 {
 			continue
 		}
-		stakeVals, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, ccy}, "", gameSlug)
+		stakeValues, _, _, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, ccy}, "", gameSlug)
 		if err != nil {
 			logger.Errorf("Error getting stake values with ccy %v: %v", ccy, err)
 			continue
 		}
 
 		// multiply stake per line by num lines or bet multiplier
-		for j := 0; j < len(stakeVals); j++ {
-			ccyInfo.Values = append(ccyInfo.Values, stakeVals[j].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).ValueAsString())
+		for j := 0; j < len(stakeValues); j++ {
+			ccyInfo.Values = append(ccyInfo.Values, stakeValues[j].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).ValueAsString())
 		}
 		stakeInfo.BetLevels = append(stakeInfo.BetLevels, ccyInfo)
 	}

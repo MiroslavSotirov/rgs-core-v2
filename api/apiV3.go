@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -228,13 +227,6 @@ func initV3(request *http.Request) (response IGameInitResponseV3, rgserr rgse.RG
 		}
 	}
 	response, err = initGameV3(player, engineId, wallet, body, engineConfig, token, state.GameState)
-
-	stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(engine.Money{Currency: data.Ccy}, player.BetLimitSettingCode, data.Game)
-
-	fmt.Printf("initV3 stakeValues = %#v defaultBet = %#v\n", stakeValues, defaultBet)
-
-	response.Base().StakeValues = stakeValues
-	response.Base().DefaultBet = defaultBet
 
 	return
 }

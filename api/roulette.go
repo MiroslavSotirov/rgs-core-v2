@@ -83,6 +83,8 @@ type GameInitResponseRoulette struct {
 	GameInitResponseV3
 	LastRound IGamePlayResponseV3       `json:"lastRound"`
 	Reel      []int                     `json:"reel"`
+	MinBet    engine.Fixed              `json:"minBet"`
+	MaxBet    engine.Fixed              `json:"maxBet"`
 	Bets      map[string]PayoutRoulette `json:"bets"`
 }
 
@@ -152,18 +154,28 @@ func initRoulette(player store.PlayerStore, engineId string, wallet string, body
 	zero := engine.NewFixedFromInt(0)
 	playResponse := fillRoulettePlayResponse(gameState, balance, zero, zero)
 
+	stakeValues, defaultBet, minBet, maxBet, prmerr := parameterSelector.GetGameplayParameters(engine.Money{Currency: data.Ccy}, player.BetLimitSettingCode, data.Game)
+	if prmerr != nil {
+		rgserr = prmerr
+		return
+	}
+
 	bets := make(map[string]PayoutRoulette, len(engineDef.RoulettePayouts))
 	for k, v := range engineDef.RoulettePayouts {
 		bets[k] = MakePayoutRoulette(v)
 	}
 	response = &GameInitResponseRoulette{
 		GameInitResponseV3: GameInitResponseV3{
-			Name:   gameState.Game,
-			Wallet: wallet,
+			Name:        gameState.Game,
+			Wallet:      wallet,
+			StakeValues: stakeValues,
+			DefaultBet:  defaultBet,
 		},
 		LastRound: playResponse,
 		Reel:      engineDef.Reels[0],
 		Bets:      bets,
+		MinBet:    minBet,
+		MaxBet:    maxBet,
 	}
 	return
 }
@@ -176,12 +188,20 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 
 	engineConf := engine.BuildEngineDefs(engineId)
 
-	stakeValues, _, prmerr := parameterSelector.GetGameplayParameters(engine.Money{0, txStore.Amount.Currency}, txStore.BetLimitSettingCode, data.Game)
+	stakeValues, _, minBet, maxBet, prmerr := parameterSelector.GetGameplayParameters(engine.Money{0, txStore.Amount.Currency}, txStore.BetLimitSettingCode, data.Game)
 	if prmerr != nil {
 		return nil, prmerr
 	}
 
 	valid, stake := validateRouletteBets(data.Bets, engineConf.EngineDefs[0].RoulettePayouts, stakeValues)
+	if minBet > 0 && stake < minBet {
+		logger.Debugf("Total roulette bet %s is lower than limit %s", stake.ValueAsString(), minBet.ValueAsString())
+		valid = false
+	}
+	if maxBet > 0 && stake > maxBet {
+		logger.Debugf("Total roulette bet %s is higher than limit %s", stake.ValueAsString(), maxBet.ValueAsString())
+		valid = false
+	}
 	if !valid || len(data.Bets) == 0 {
 		return nil, rgse.Create(rgse.InvalidStakeError)
 	}
