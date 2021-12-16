@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -18,15 +17,46 @@ import (
 )
 
 type IGameV3 interface {
-	init(params []byte, player store.PlayerStore)
-	play(params []byte, prevState store.TransactionStore)
+	//	init(params []byte, player store.PlayerStore) IGameState
+	//	play(params []byte, state IGameState) IGameState  // prevStore store.TransactionStore)
+	//	close(params []byte, state IGameState) IGameState // prevStore store.TransactionStore)
+
+	//	initState(data paramsV3) IGameState
+	//	initState(state IGameState, ...)
+	//	processState(state IGameState, ...) IGamePlayResponse
+
+	//	fillInitResponse() IGameInitResponseV3
+	//	fillPlayResponse() IGamePlayResponseV3
+
 }
 
-type GameRouletteV3 struct {
+type GameV3 struct {
 	EngineId   string
 	Wallet     string
 	Token      store.Token
 	EngineConf engine.EngineConfig
+}
+
+func (g *GameV3) Create(token store.Token, wallet string) {
+	g.Token = token
+	g.Wallet = wallet
+	g.EngineConf = engine.BuildEngineDefs(g.EngineId)
+}
+
+type GameRouletteV3 struct {
+	GameV3
+}
+
+func CreateGame(engineId string) IGameV3 {
+	switch engineId {
+	case "mvgEngineRoulette1":
+		return &GameRouletteV3{
+			GameV3: GameV3{
+				EngineId: engineId,
+			},
+		}
+	}
+	return nil
 }
 
 type paramsV3 interface {
@@ -197,13 +227,6 @@ func initV3(request *http.Request) (response IGameInitResponseV3, rgserr rgse.RG
 		}
 	}
 	response, err = initGameV3(player, engineId, wallet, body, engineConfig, token, state.GameState)
-
-	stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(engine.Money{Currency: data.Ccy}, player.BetLimitSettingCode, data.Game)
-
-	fmt.Printf("initV3 stakeValues = %#v defaultBet = %#v\n", stakeValues, defaultBet)
-
-	response.Base().StakeValues = stakeValues
-	response.Base().DefaultBet = defaultBet
 
 	return
 }

@@ -33,6 +33,8 @@ type stakeConfigs map[string]stakeConfig
 type stakeConfig struct {
 	StakeValues []float32 `yaml:"stakeValues"`
 	DefaultBet  float32   `yaml:"defaultBet"`
+	MinBet      float32   `yaml:"minBet"`
+	MaxBet      float32   `yaml:"maxBet"`
 }
 
 var cachedConfig atomic.Value = atomic.Value{}
@@ -108,7 +110,7 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 	if config.GlobalConfig.DevMode {
 		walletamtmult = 10000
 	}
-	stakeValues, _, paramErr := GetGameplayParameters(engine.Money{0, currency}, betSettingsCode, gameID)
+	stakeValues, _, _, _, paramErr := GetGameplayParameters(engine.Money{0, currency}, betSettingsCode, gameID)
 	if paramErr != nil {
 		err = paramErr
 		return
@@ -145,20 +147,25 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 	return
 }
 
-func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string) ([]engine.Fixed, engine.Fixed, rgse.RGSErr) {
+func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string) (
+	stakeValues []engine.Fixed, defaultBet engine.Fixed, minBet engine.Fixed, maxBet engine.Fixed, rgserr rgse.RGSErr) { // ([]engine.Fixed, engine.Fixed, rgse.RGSErr) {
 	// returns stakeValues and defaultBet based on host and player configuration
 	logger.Debugf("getting %v stake params for config %v (lastbet %#v)", gameID, betSettingsCode, lastBet)
 	betConf, err := parseBetConfig()
 	//logger.Debugf("Bet Configuration: %#v", betConf)
 	if err != nil {
-		return []engine.Fixed{}, engine.Fixed(0), err
+		//		return []engine.Fixed{}, engine.Fixed(0), err
+		rgserr = err
+		return
 	}
 	// get stakevalues based on host config
 	baseStakeValues := betConf.StakeValues
 
 	ccyMult, ok := betConf.CcyMultipliers[lastBet.Currency]
 	if !ok {
-		return []engine.Fixed{}, engine.Fixed(0), rgse.Create(rgse.BetConfigError)
+		//		return []engine.Fixed{}, engine.Fixed(0), rgse.Create(rgse.BetConfigError)
+		rgserr = rgse.Create(rgse.BetConfigError)
+		return
 	}
 
 	profile, ok := betConf.HostProfiles[betSettingsCode]
@@ -196,7 +203,9 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 	engineID, err := config.GetEngineFromGame(gameID)
 	if err != nil {
 		logger.Errorf("No such game found: %v", gameID)
-		return []engine.Fixed{}, engine.Fixed(0), rgse.Create(rgse.EngineNotFoundError)
+		//		return []engine.Fixed{}, engine.Fixed(0), rgse.Create(rgse.EngineNotFoundError)
+		rgserr = rgse.Create(rgse.EngineNotFoundError)
+		return
 	}
 
 	override, ok := betConf.Override[engineID]
@@ -218,7 +227,9 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 				fixedStakeValues[i] = engine.NewFixedFromFloat(s).Mul(mult)
 			}
 			defaultStake = engine.NewFixedFromFloat(stakeconf.DefaultBet).Mul(mult)
-			logger.Debugf("overriding stake values: stakes= %v, defaultbet= %v", fixedStakeValues, defaultStake)
+			minBet = engine.NewFixedFromFloat(stakeconf.MinBet).Mul(mult)
+			maxBet = engine.NewFixedFromFloat(stakeconf.MaxBet).Mul(mult)
+			logger.Debugf("overriding stake values: stakes= %v, defaultbet= %v min= %v max= %v", fixedStakeValues, defaultStake, minBet, maxBet)
 		}
 	}
 
@@ -256,6 +267,10 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 	}
 
 	logger.Debugf("stake values: %v; default stake: %v", fixedStakeValues, defaultStake)
-	return fixedStakeValues, defaultStake, nil
+	//	return fixedStakeValues, defaultStake, nil
 
+	stakeValues = fixedStakeValues
+	defaultBet = defaultStake
+
+	return
 }

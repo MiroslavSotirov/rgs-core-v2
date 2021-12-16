@@ -107,20 +107,20 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 	giResp.Wallet = wallet
 	// set stakevalues, links,
 
-	stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine, player.BetLimitSettingCode, data.Game)
+	stakeValues, defaultBet, _, _, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine, player.BetLimitSettingCode, data.Game)
 	if err != nil {
 		return GameInitResponseV2{}, err
 	}
+	giResp.DefaultBet = defaultBet
 	giResp.StakeValues = stakeValues
 	for i := 0; i < len(stakeValues); i++ {
 		if player.FreeGames.NoOfFreeSpins > 0 && stakeValues[i].Mul(engine.NewFixedFromInt(engineConfig.EngineDefs[0].StakeDivisor)) == player.FreeGames.TotalWagerAmt {
-			defaultBet = stakeValues[i]
+			giResp.DefaultBet = stakeValues[i]
 			logger.Debugf("setting defaultbet to %v for freegames", defaultBet)
 			break
 		}
 	}
 
-	giResp.DefaultBet = defaultBet
 	return giResp, nil
 }
 

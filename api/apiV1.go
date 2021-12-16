@@ -133,7 +133,7 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 			return data, rgse.Create(rgse.SpinSequenceError)
 		}
 
-		stakeValues, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, txStore.Amount.Currency}, txStore.BetLimitSettingCode, game)
+		stakeValues, _, _, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, txStore.Amount.Currency}, txStore.BetLimitSettingCode, game)
 		if err != nil {
 			return data, err
 		}

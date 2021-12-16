@@ -98,7 +98,7 @@ func Routes() *chi.Mux {
 			gamestateResponse = renderGamestate(r, previousGamestate, balanceResponse, engineConfig, player)
 
 			engineDefs := engineConfig.EngineDefs
-			stakeValues, defaultBet, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine, player.BetLimitSettingCode, gameSlug)
+			stakeValues, defaultBet, _, _, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine, player.BetLimitSettingCode, gameSlug)
 			if err != nil {
 				render.Render(w, r, ErrRender(err))
 				return
