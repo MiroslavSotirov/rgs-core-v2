@@ -104,19 +104,18 @@ EngineDefs:
       split27-30: { Multiplier: 18, Symbols: [27, 30]}
       split30-33: { Multiplier: 18, Symbols: [30, 33]}
       split33-36: { Multiplier: 18, Symbols: [33, 36]}   # end row of horisontal splits
-      street1-2-3:    { Multiplier:  12, Symbols: [1, 2, 3]}
-      street4-5-6:    { Multiplier:  12, Symbols: [4, 5, 6]}
-      street7-8-9:    { Multiplier:  12, Symbols: [7, 8, 9]}
-      street10-11-12: { Multiplier:  12, Symbols: [10, 11, 12]}
-      street13-14-15: { Multiplier:  12, Symbols: [13, 14, 15]}
-      street16-17-18: { Multiplier:  12, Symbols: [16, 17, 18]}
-      street19-20-21: { Multiplier:  12, Symbols: [19, 20, 21]}
-      street22-23-24: { Multiplier:  12, Symbols: [22, 24, 24]}
-      street25-26-27: { Multiplier:  12, Symbols: [25, 26, 27]}
-      street28-29-30: { Multiplier:  12, Symbols: [28, 29, 30]}
-      street31-32-33: { Multiplier:  12, Symbols: [31, 32, 34]}
-      street34-35-36: { Multiplier:  12, Symbols: [34, 35, 36]}
-      basket: { Multiplier: 12, Symbols: [0, 1, 2, 3]}   # check
+#      street1-2-3:    { Multiplier:  12, Symbols: [1, 2, 3]}
+#      street4-5-6:    { Multiplier:  12, Symbols: [4, 5, 6]}
+#      street7-8-9:    { Multiplier:  12, Symbols: [7, 8, 9]}
+#      street10-11-12: { Multiplier:  12, Symbols: [10, 11, 12]}
+#      street13-14-15: { Multiplier:  12, Symbols: [13, 14, 15]}
+#      street16-17-18: { Multiplier:  12, Symbols: [16, 17, 18]}
+#      street19-20-21: { Multiplier:  12, Symbols: [19, 20, 21]}
+#      street22-23-24: { Multiplier:  12, Symbols: [22, 24, 24]}
+#      street25-26-27: { Multiplier:  12, Symbols: [25, 26, 27]}
+#      street28-29-30: { Multiplier:  12, Symbols: [28, 29, 30]}
+#      street31-32-33: { Multiplier:  12, Symbols: [31, 32, 34]}
+#      street34-35-36: { Multiplier:  12, Symbols: [34, 35, 36]}
       corner1-2-4-5:     { Multiplier: 9, Symbols: [1, 2, 4, 5]}
       corner2-3-5-6:     { Multiplier: 9, Symbols: [2, 3, 5, 6]}
       corner4-5-7-8:     { Multiplier: 9, Symbols: [4, 5, 7, 8]}
@@ -139,17 +138,17 @@ EngineDefs:
       corner29-30-32-33: { Multiplier: 9, Symbols: [29, 30, 32, 33]}
       corner31-32-34-35: { Multiplier: 9, Symbols: [31, 32, 34, 35]}
       corner32-33-35-36: { Multiplier: 9, Symbols: [32, 33, 35, 36]}
-      doublestreet1-2-3-4-5-6:       {Multiplier: 6, Symbols: [1, 2, 3, 4, 5, 6]}
-      doublestreet4-5-6-7-8-9:       {Multiplier: 6, Symbols: [4, 5, 6, 7, 8, 9]}
-      doublestreet7-8-9-10-11-12:    {Multiplier: 6, Symbols: [7, 8, 9, 10, 11, 12]}
-      doublestreet10-11-12-13-14-15: {Multiplier: 6, Symbols: [10, 11, 12, 13, 14, 15]}
-      doublestreet13-14-15-16-17-18: {Multiplier: 6, Symbols: [13, 14, 15, 16, 17, 18]}
-      doublestreet16-17-18-19-20-21: {Multiplier: 6, Symbols: [16, 17, 18, 19, 20, 21]}
-      doublestreet19-20-21-22-23-24: {Multiplier: 6, Symbols: [19, 20, 21, 22, 23, 24]}
-      doublestreet22-23-24-25-26-27: {Multiplier: 6, Symbols: [22, 23, 24, 25, 26, 27]}
-      doublestreet25-26-27-28-29-30: {Multiplier: 6, Symbols: [25, 26, 27, 28, 29, 30]}
-      doublestreet28-29-30-31-32-33: {Multiplier: 6, Symbols: [28, 29, 30, 31, 32, 33]}
-      doublestreet31-32-33-34-35-36: {Multiplier: 6, Symbols: [31, 32, 33, 34, 35, 36]}
+#      doublestreet1-2-3-4-5-6:       {Multiplier: 6, Symbols: [1, 2, 3, 4, 5, 6]}
+#      doublestreet4-5-6-7-8-9:       {Multiplier: 6, Symbols: [4, 5, 6, 7, 8, 9]}
+#      doublestreet7-8-9-10-11-12:    {Multiplier: 6, Symbols: [7, 8, 9, 10, 11, 12]}
+#      doublestreet10-11-12-13-14-15: {Multiplier: 6, Symbols: [10, 11, 12, 13, 14, 15]}
+#      doublestreet13-14-15-16-17-18: {Multiplier: 6, Symbols: [13, 14, 15, 16, 17, 18]}
+#      doublestreet16-17-18-19-20-21: {Multiplier: 6, Symbols: [16, 17, 18, 19, 20, 21]}
+#      doublestreet19-20-21-22-23-24: {Multiplier: 6, Symbols: [19, 20, 21, 22, 23, 24]}
+#      doublestreet22-23-24-25-26-27: {Multiplier: 6, Symbols: [22, 23, 24, 25, 26, 27]}
+#      doublestreet25-26-27-28-29-30: {Multiplier: 6, Symbols: [25, 26, 27, 28, 29, 30]}
+#      doublestreet28-29-30-31-32-33: {Multiplier: 6, Symbols: [28, 29, 30, 31, 32, 33]}
+#      doublestreet31-32-33-34-35-36: {Multiplier: 6, Symbols: [31, 32, 33, 34, 35, 36]}
       dozen1:     {Multiplier: 3, Symbols: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}
       dozen2:     {Multiplier: 3, Symbols: [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]}
       dozen3:     {Multiplier: 3, Symbols: [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]}
