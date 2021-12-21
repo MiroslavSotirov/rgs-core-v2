@@ -231,18 +231,6 @@ func initV3(request *http.Request) (response IGameInitResponseV3, rgserr rgse.RG
 	return
 }
 
-func getPlayerAndState(token store.Token, wallet string, game string) (player store.PlayerStore, state store.GameStateStore, rgserr rgse.RGSErr) {
-	switch wallet {
-	case "dashur":
-		player, state, rgserr = store.Serv.PlayerByToken(token, store.ModeReal, game)
-	case "demo":
-		player, state, rgserr = store.ServLocal.PlayerByToken(token, store.ModeDemo, game)
-	default:
-		rgserr = rgse.Create(rgse.GenericWalletError)
-	}
-	return
-}
-
 // build initial gamestate
 
 func initGameV3(player store.PlayerStore, engineId string, wallet string, body []byte, engineConf engine.EngineConfig, token store.Token, state []byte) (
@@ -270,11 +258,12 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 		logger.Errorf("request read error")
 		return nil, rgse.Create(rgse.JsonError)
 	}
-	logger.Debugf("playV3 data = %s\n", string(body))
+	logger.Debugf("playV3 data: %s\n", string(body))
 	var data playParamsV3
 	if rgserr = data.deserialize(body); rgserr != nil {
 		return
 	}
+	logger.Debugf("playV3 params: %#v\n", data)
 
 	rgserr = data.validate()
 	if rgserr != nil {
@@ -292,17 +281,25 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 
 	switch data.Wallet {
 	case "dashur":
+		logger.Debugf("wallet is dashur")
 		if bfirst {
 			//			player, latestStateStore, err = store.Serv.PlayerByToken(token, store.ModeReal, data.Game)
+			logger.Debugf("store.Serv.PlayerByToken token=%s, mode=%v, game=%s", string(token), store.ModeReal, data.Game)
 			player, _, rgserr = store.Serv.PlayerByToken(token, store.ModeReal, data.Game)
+			logger.Debugf("store.Serv.PlayerByToken done. player=%#v", player)
 		} else {
+			logger.Debugf("store.Serv.TransactionByGameId token=%s, mode=%v, game=%s", string(token), store.ModeReal, data.Game)
 			txStore, rgserr = store.Serv.TransactionByGameId(token, store.ModeReal, data.Game)
+			logger.Debugf("store.Serv.TransactionByGameId done. txStore=%#v", txStore)
 		}
 		break
 	case "demo":
+		logger.Debugf("wallet is demo")
 		if bfirst {
 			//			player, latestStateStore, err = store.ServLocal.PlayerByToken(token, store.ModeDemo, data.Game)
+			logger.Debugf("store.ServLocal.PlayerByToken token=%s, mode=%v, game=%s", string(token), store.ModeReal, data.Game)
 			player, _, rgserr = store.ServLocal.PlayerByToken(token, store.ModeDemo, data.Game)
+			logger.Debugf("store.ServLocal.PlayerByToken done. player=%#v", player)
 			/*
 				var balance store.BalanceStore
 				var ctFS int
@@ -329,7 +326,9 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 			*/
 
 		} else {
+			logger.Debugf("store.ServLocal.TransactionByGameId token=%s, mode=%v, game=%s", string(token), store.ModeReal, data.Game)
 			txStore, rgserr = store.ServLocal.TransactionByGameId(token, store.ModeDemo, data.Game)
+			logger.Debugf("store.ServLocal.TransactionByGameId done. txStore=%#v", txStore)
 		}
 		break
 	default:
@@ -348,7 +347,6 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 	}
 
 	if bfirst {
-		logger.Debugf("first gameplay")
 		txStore = store.TransactionStore{
 			RoundStatus:         store.RoundStatusClose,
 			BetLimitSettingCode: player.BetLimitSettingCode,
@@ -358,6 +356,7 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 			Amount:              engine.Money{0, player.Balance.Currency},
 			Ttl:                 3600,
 		}
+		logger.Debugf("first gameplay. transaction: %#v", txStore)
 
 		initParams := initParamsRoulette{
 			initParamsV3: initParamsV3{
@@ -365,7 +364,6 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 			},
 		}
 		latestState = initRouletteGS(initParams)
-
 		//		fmt.Print("%v %v", latestStateStore, txStore)
 	} else {
 		logger.Debugf("not first gameplay")
@@ -530,7 +528,22 @@ func (i *CloseRoundParams) deserialize(b []byte) rgse.RGSErr {
 	return deserializeParams(i, b)
 }
 
+func getPlayerAndState(token store.Token, wallet string, game string) (player store.PlayerStore, state store.GameStateStore, rgserr rgse.RGSErr) {
+	logger.Debugf("getPlayerAndState token=%s, wallet=%s, game=%s", string(token), wallet, game)
+	switch wallet {
+	case "dashur":
+		player, state, rgserr = store.Serv.PlayerByToken(token, store.ModeReal, game)
+	case "demo":
+		player, state, rgserr = store.ServLocal.PlayerByToken(token, store.ModeDemo, game)
+	default:
+		rgserr = rgse.Create(rgse.GenericWalletError)
+	}
+	logger.Debugf("gepPlayerAndState done. player=%#v, state=%#v", player, state)
+	return
+}
+
 func TransactionByWallet(token store.Token, wallet string, tx store.TransactionStore) (balance store.BalanceStore, err rgse.RGSErr) {
+	logger.Debugf("TransactionByWallet token=%s, wallet=%s, tx=%#v", token, wallet, tx)
 	switch wallet {
 	case "demo":
 		tx.Mode = store.ModeDemo
@@ -541,10 +554,12 @@ func TransactionByWallet(token store.Token, wallet string, tx store.TransactionS
 	default:
 		err = rgse.Create(rgse.InvalidWallet)
 	}
+	logger.Debugf("TransactionByWallet done. balance=%#v", balance)
 	return
 }
 
 func TransactionByWalletAndGame(token store.Token, wallet string, game string) (txStore store.TransactionStore, rgserr rgse.RGSErr) {
+	logger.Debugf("TransactionByWalletAndGame token=%s, wallet=%s, game=%s", string(token), wallet, game)
 	switch wallet {
 	case "demo":
 		txStore, rgserr = store.ServLocal.TransactionByGameId(token, store.ModeDemo, game)
@@ -553,15 +568,18 @@ func TransactionByWalletAndGame(token store.Token, wallet string, game string) (
 	default:
 		rgserr = rgse.Create(rgse.InvalidWallet)
 	}
+	logger.Debugf("TransactionByWalletAndGame done. txStore=%#v", txStore)
 	return
 }
 
 func CloseByWallet(token store.Token, wallet string, game string, roundId string, serializedState []byte) (rgserr rgse.RGSErr) {
+	logger.Debugf("CloseByWallet token=%s, wallet=%s, game=%s, serializedState=%s", string(token), wallet, game, string(serializedState))
 	switch wallet {
 	case "demo":
 		_, rgserr = store.ServLocal.CloseRound(token, store.ModeDemo, game, roundId, serializedState, 3600)
 	case "dashur":
 		_, rgserr = store.Serv.CloseRound(token, store.ModeReal, game, roundId, serializedState, 3600)
 	}
+	logger.Debugf("CloseByWallet done")
 	return
 }

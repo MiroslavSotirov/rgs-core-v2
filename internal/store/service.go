@@ -663,6 +663,7 @@ func (i *RemoteServiceImpl) errorResponseCode(responseCode string) rgse.RGSErr {
 }
 
 func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) (PlayerStore, GameStateStore, rgse.RGSErr) {
+	logger.Debugf("RemoteServiceImpl.PlayerByToken([%v], [%v])", token, mode)
 	if mode == ModeDemo {
 		token = Token(i.demoToken())
 	}
@@ -699,6 +700,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 	authResp := i.restAuthenticateResponse(resp)
 	finalErr = i.errorResponseCode(authResp.ResponseCode)
 	if finalErr != nil {
+		logger.Debugf("response code error. reply: %s", b.String())
 		return PlayerStore{}, GameStateStore{}, finalErr
 	}
 
