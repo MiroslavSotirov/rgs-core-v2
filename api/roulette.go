@@ -230,9 +230,13 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 }
 
 func initRouletteGS(data initParamsRoulette) GameStateRoulette {
+	id := uuid.NewV4().String()
+	nextid := uuid.NewV4().String()
 	gameState := GameStateRoulette{
 		GameStateV3: GameStateV3{
-			Game: data.Game,
+			Id:            id,
+			NextGamestate: nextid,
+			Game:          data.Game,
 		},
 		Position: 0,
 		Symbol:   0,
@@ -340,7 +344,7 @@ func getRouletteResults(
 	prevState GameStateRoulette,
 	txStore store.TransactionStore) (response GamePlayResponseRoulette, err rgse.RGSErr) {
 
-	gameState := rouletteRound(data, engineDef)
+	gameState := rouletteRound(data, engineDef, prevState)
 
 	bets := []engine.WalletTransaction{
 		{
@@ -368,9 +372,11 @@ func getRouletteResults(
 			Token:    txStore.Token,
 		}
 	*/
+	logger.Debugf("processing state: %#v", gameState)
 	stateBytes := gameState.Serialize()
 	token := txStore.Token
 	for _, t := range gameState.Transactions {
+		logger.Debugf("performing transaction %#v", t)
 		tx := store.TransactionStore{
 			TransactionId:       t.Id,
 			Token:               token,
@@ -400,20 +406,21 @@ func getRouletteResults(
 	return
 }
 
-func rouletteRound(data playParamsRoulette, engineDef engine.EngineDef) GameStateRoulette {
+func rouletteRound(data playParamsRoulette, engineDef engine.EngineDef, prevState GameStateRoulette) GameStateRoulette {
 	reel := engineDef.Reels[0]
 	position := rng.RandFromRange(len(reel))
 	symbol := reel[position]
 
-	id := uuid.NewV4().String()
+	id := prevState.NextGamestate
 	roundId := id
+	nextid := uuid.NewV4().String()
 	gameState := GameStateRoulette{
 		GameStateV3: GameStateV3{
-			Id:                id,
+			Id:                prevState.NextGamestate,
 			Game:              data.Game,
 			RoundId:           roundId,
 			PreviousGamestate: data.PreviousID,
-			//			NextGamestate:     string(token),
+			NextGamestate:     nextid,
 		},
 		Position: position,
 		Symbol:   symbol,

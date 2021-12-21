@@ -1015,6 +1015,8 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 		TtlStamp:    transaction.TxTime.Unix() + transaction.Ttl,
 	}
 
+	logger.Debugf("Transaction request: %#v", txRq)
+
 	return i.txSend(txRq)
 }
 
