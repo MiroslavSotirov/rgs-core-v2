@@ -40,6 +40,7 @@ type GameV3 struct {
 	Game       string
 	EngineId   string
 	Wallet     string
+	Currency   string
 	Token      store.Token
 	EngineConf engine.EngineConfig
 }
@@ -60,9 +61,10 @@ func (g GameV3) DeserializeState(_ []byte) (IGameState, rgse.RGSErr) {
 	return nil, nil
 }
 
-func (g *GameV3) Init(token store.Token, wallet string) {
+func (g *GameV3) Init(token store.Token, wallet string, currency string) {
 	g.Token = token
 	g.Wallet = wallet
+	g.Currency = currency
 	g.EngineConf = engine.BuildEngineDefs(g.EngineId)
 }
 
@@ -365,6 +367,7 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 
 	var gameV3 IGameV3
 	gameV3, rgserr = CreateGameV3(data.Game)
+	gameV3.Base().Init(token, data.Wallet, player.Balance.Currency)
 	if rgserr != nil {
 		return
 	}
@@ -396,7 +399,10 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 			return
 		}
 		var prevState *GameStateV3 = prevIState.Base()
-
+		if txStore.Amount.Currency == "" {
+			logger.Debugf("previous transaction has no currency, using prev gamestate setting: %s", prevState.Currency)
+			txStore.Amount.Currency = prevState.Currency
+		}
 		switch txStore.WalletStatus {
 		case 0:
 			// this tx is pending in wallet, quit and force reload

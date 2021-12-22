@@ -24,7 +24,7 @@ func (g *GameRouletteV3) Base() *GameV3 {
 }
 
 func (g GameRouletteV3) InitState() IGameState {
-	rouletteState := initStateRoulette(g.GameV3.Game)
+	rouletteState := initStateRoulette(g.GameV3.Game, g.GameV3.Currency)
 	return &rouletteState
 }
 
@@ -176,7 +176,7 @@ func initRoulette(player store.PlayerStore, engineId string, wallet string, body
 
 	var gameState GameStateRoulette
 	if len(state) == 0 {
-		gameState = initStateRoulette(data.Game)
+		gameState = initStateRoulette(data.Game, data.Ccy)
 		gameState.Id = string(token) + data.Game + "GSinit"
 	} else {
 		err := json.Unmarshal(state, &gameState)
@@ -255,7 +255,7 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 				Game: data.Game,
 			},
 		}
-		prevState = initStateRoulette(initParams.Game)
+		prevState = initStateRoulette(initParams.Game, txStore.Amount.Currency)
 	} else {
 		err := json.Unmarshal(txStore.GameState, &prevState)
 		if err != nil {
@@ -269,7 +269,7 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 	return getRouletteResults(data, engineDef, stake, prevState, txStore)
 }
 
-func initStateRoulette(game string) GameStateRoulette {
+func initStateRoulette(game string, currency string) GameStateRoulette {
 	id := uuid.NewV4().String()
 	nextid := uuid.NewV4().String()
 	gameState := GameStateRoulette{
@@ -277,6 +277,7 @@ func initStateRoulette(game string) GameStateRoulette {
 			Id:            id,
 			NextGamestate: nextid,
 			Game:          game,
+			Currency:      currency,
 		},
 		Position: 0,
 		Symbol:   0,
