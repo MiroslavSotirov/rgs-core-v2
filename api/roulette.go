@@ -15,6 +15,34 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
+type GameRouletteV3 struct {
+	GameV3
+}
+
+func (g *GameRouletteV3) Base() *GameV3 {
+	return &g.GameV3
+}
+
+func (g GameRouletteV3) InitState() IGameState {
+	rouletteState := initStateRoulette(g.GameV3.Game)
+	return &rouletteState
+}
+
+func (g GameRouletteV3) SerializeState(state IGameState) []byte {
+	return state.Serialize()
+}
+
+func (g GameRouletteV3) DeserializeState(serializedState []byte) (state IGameState, rgserr rgse.RGSErr) {
+	var rouletteState GameStateRoulette
+	err := json.Unmarshal(serializedState, &rouletteState)
+	if err != nil {
+		rgserr = rgse.Create(rgse.GamestateByteDeserializerError)
+		return
+	}
+	state = &rouletteState
+	return
+}
+
 type initParamsRoulette struct {
 	initParamsV3
 	//	Bets map[string]BetRoulette `json:"bets"`
@@ -115,9 +143,21 @@ func (resp GamePlayResponseRoulette) Render(w http.ResponseWriter, r *http.Reque
 type GameStateRoulette struct {
 	GameStateV3
 
-	Position int
-	Symbol   int
-	Prizes   []PrizeRoulette
+	Position int             `json:"positions"`
+	Symbol   int             `json:"symbol"`
+	Prizes   []PrizeRoulette `json:"prizes"`
+	Bet      engine.Fixed    `json:"bet"`
+	Win      engine.Fixed    `json:"win"`
+}
+
+func (g *GameStateRoulette) Base() *GameStateV3 {
+	return &g.GameStateV3
+}
+
+func (s GameStateRoulette) Serialize() []byte {
+	b, _ := json.Marshal(s)
+	logger.Debugf("GameStateRoulette.Serialize %s", string(b))
+	return b
 }
 
 func (s GameStateRoulette) GetTtl() int64 {
@@ -136,13 +176,14 @@ func initRoulette(player store.PlayerStore, engineId string, wallet string, body
 
 	var gameState GameStateRoulette
 	if len(state) == 0 {
-		gameState = initRouletteGS(data)
+		gameState = initStateRoulette(data.Game)
 		gameState.Id = string(token) + data.Game + "GSinit"
 	} else {
 		err := json.Unmarshal(state, &gameState)
 		if err != nil {
 			rgserr = rgse.Create(rgse.StoreInitError)
 		}
+		logger.Debugf("initRoulette state:%s\ndeserialized:%#v", string(state), gameState)
 	}
 
 	balance := store.BalanceStore{
@@ -151,8 +192,7 @@ func initRoulette(player store.PlayerStore, engineId string, wallet string, body
 		FreeGames: player.FreeGames,
 	}
 
-	zero := engine.NewFixedFromInt(0)
-	playResponse := fillRoulettePlayResponse(gameState, balance, zero, zero)
+	playResponse := fillRoulettePlayResponse(gameState, balance)
 
 	stakeValues, defaultBet, minBet, maxBet, prmerr := parameterSelector.GetGameplayParameters(engine.Money{Currency: data.Ccy}, player.BetLimitSettingCode, data.Game)
 	if prmerr != nil {
@@ -184,7 +224,7 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 	var data playParamsRoulette
 	rgserr = data.deserialize(body)
 
-	fmt.Printf("playRoulette data= %#v\n", data)
+	fmt.Printf("playRoulette %#v\n", data)
 
 	engineConf := engine.BuildEngineDefs(engineId)
 
@@ -215,28 +255,28 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 				Game: data.Game,
 			},
 		}
-		prevState = initRouletteGS(initParams)
+		prevState = initStateRoulette(initParams.Game)
 	} else {
 		err := json.Unmarshal(txStore.GameState, &prevState)
 		if err != nil {
 			return nil, rgse.Create(rgse.JsonError)
 		}
 	}
-	logger.Debugf("prevState= %#v", prevState)
+	logger.Debugf("playRoulette prevState:%s\nunserialized:%#v", string(txStore.GameState), prevState)
 
 	var engineDef engine.EngineDef = engineConf.EngineDefs[0]
 
 	return getRouletteResults(data, engineDef, stake, prevState, txStore)
 }
 
-func initRouletteGS(data initParamsRoulette) GameStateRoulette {
+func initStateRoulette(game string) GameStateRoulette {
 	id := uuid.NewV4().String()
 	nextid := uuid.NewV4().String()
 	gameState := GameStateRoulette{
 		GameStateV3: GameStateV3{
 			Id:            id,
 			NextGamestate: nextid,
-			Game:          data.Game,
+			Game:          game,
 		},
 		Position: 0,
 		Symbol:   0,
@@ -275,25 +315,6 @@ func validateRouletteBet(index string, bet BetRoulette, payouts map[string]engin
 		}
 		return true
 	}
-	/*
-		for k, v := range validBets { // rouletteBets {
-			if k == index {
-				if len(v.Symbols) != len(bet.Symbols) {
-					logger.Debugf("roulette bet with index %s has the wrong number of symbols (expected %d got %d)",
-						index, len(v.Symbols), len(bet.Symbols))
-					return false
-				}
-				for j, s := range v.Symbols {
-					if bet.Symbols[j] != s {
-						logger.Debugf("roulette bet with index %s and symbols %v does not match symbol index %d in valid bet symbols %v",
-							index, bet.Symbols, j, v.Symbols)
-						return false
-					}
-				}
-				return true
-			}
-		}
-	*/
 	logger.Debugf("roulette bet with index %s is unknown", index)
 	return false
 }
@@ -346,6 +367,9 @@ func getRouletteResults(
 
 	gameState := rouletteRound(data, engineDef, prevState)
 
+	logger.Debugf("getRouletteResults gameState.Id=%s prevState.NextGamestate.Id=%s gameState.RoundId=%s",
+		gameState.Id, prevState.NextGamestate, gameState.RoundId)
+
 	bets := []engine.WalletTransaction{
 		{
 			Id:     prevState.NextGamestate,
@@ -357,12 +381,14 @@ func getRouletteResults(
 	win, prizes := processRouletteBets(gameState.Symbol, data.Bets, engineDef.RoulettePayouts)
 	gameState.Prizes = prizes
 	if len(prizes) > 0 {
-		gameState.Transactions = append(gameState.Transactions, engine.WalletTransaction{
-			Id:     prevState.NextGamestate,
+		gameState.GameStateV3.Transactions = append(gameState.GameStateV3.Transactions, engine.WalletTransaction{
+			Id:     uuid.NewV4().String(), // prevState.NextGamestate,
 			Amount: engine.Money{Amount: win, Currency: "USD"},
 			Type:   "PAYOUT",
 		})
 	}
+	gameState.Bet = bet
+	gameState.Win = win
 
 	var balance store.BalanceStore
 	var freeGameRef string = "" // check apiV2 for how to determine if this is a free game, and set
@@ -401,7 +427,7 @@ func getRouletteResults(
 		//		gameState.Id = string(token)
 	}
 
-	response = fillRoulettePlayResponse(gameState, balance, bet, win)
+	response = fillRoulettePlayResponse(gameState, balance)
 
 	return
 }
@@ -428,24 +454,7 @@ func rouletteRound(data playParamsRoulette, engineDef engine.EngineDef, prevStat
 	return gameState
 }
 
-func fillRoulettePlayResponse(gameState GameStateRoulette, balance store.BalanceStore, bet engine.Fixed, win engine.Fixed) GamePlayResponseRoulette {
-
-	/*
-		prizes := []PrizeRoulette{}
-		for _, p := range gameState.Prizes {
-			prizes = append(prizes, *p)
-		}
-
-			rouletteResponse := GamePlayResponseRoulette{
-				GamePlayResponseV3: GamePlayResponseV3{
-					SessionID: balance.Token,
-					StateID:   gameState.Id,
-				},
-				Prizes: prizes,
-			}
-			return &playResponse
-	*/
-
+func fillRoulettePlayResponse(gameState GameStateRoulette, balance store.BalanceStore) GamePlayResponseRoulette {
 	return GamePlayResponseRoulette{
 		GamePlayResponseV3: GamePlayResponseV3{
 			Token:   balance.Token,
@@ -454,8 +463,8 @@ func fillRoulettePlayResponse(gameState GameStateRoulette, balance store.Balance
 			Balance: BalanceResponseV3{
 				Amount: balance.Balance,
 			},
-			Bet: bet,
-			Win: win,
+			Bet: gameState.Bet,
+			Win: gameState.Win,
 		},
 		Symbol:   gameState.Symbol,
 		Position: gameState.Position,

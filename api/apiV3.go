@@ -28,35 +28,67 @@ type IGameV3 interface {
 	//	fillInitResponse() IGameInitResponseV3
 	//	fillPlayResponse() IGamePlayResponseV3
 
+	//	Close()
+	Base() *GameV3
+
+	InitState() IGameState
+	SerializeState(IGameState) []byte
+	DeserializeState([]byte) (IGameState, rgse.RGSErr)
 }
 
 type GameV3 struct {
+	Game       string
 	EngineId   string
 	Wallet     string
 	Token      store.Token
 	EngineConf engine.EngineConfig
 }
 
-func (g *GameV3) Create(token store.Token, wallet string) {
+func (g *GameV3) Base() *GameV3 {
+	return g
+}
+
+func (g GameV3) InitState() IGameState {
+	return nil
+}
+
+func (g GameV3) SerializeState(_ IGameState) []byte {
+	return []byte{}
+}
+
+func (g GameV3) DeserializeState(_ []byte) (IGameState, rgse.RGSErr) {
+	return nil, nil
+}
+
+func (g *GameV3) Init(token store.Token, wallet string) {
 	g.Token = token
 	g.Wallet = wallet
 	g.EngineConf = engine.BuildEngineDefs(g.EngineId)
 }
 
-type GameRouletteV3 struct {
-	GameV3
-}
-
-func CreateGame(engineId string) IGameV3 {
+func CreateGameV3FromEngine(engineId string) (IGameV3, rgse.RGSErr) {
 	switch engineId {
 	case "mvgEngineRoulette1":
 		return &GameRouletteV3{
 			GameV3: GameV3{
 				EngineId: engineId,
 			},
-		}
+		}, nil
 	}
-	return nil
+	return nil, rgse.Create(rgse.EngineNotFoundError)
+}
+
+func CreateGameV3(game string) (IGameV3, rgse.RGSErr) {
+	engineId, rgserr := config.GetEngineFromGame(game)
+	if rgserr != nil {
+		return nil, rgserr
+	}
+	gameV3, rgserr := CreateGameV3FromEngine(engineId)
+	if rgserr != nil {
+		return nil, rgserr
+	}
+	gameV3.Base().Game = game
+	return gameV3, nil
 }
 
 type paramsV3 interface {
@@ -133,24 +165,34 @@ func (resp GamePlayResponseV3) Render(w http.ResponseWriter, r *http.Request) er
 type IGameState interface {
 	Serialize() []byte
 	GetTtl() int64
+	Base() *GameStateV3
 }
 
 type GameStateV3 struct {
-	Id                string
-	Game              string
-	EngineDef         int32
-	Currency          engine.Ccy
-	Transactions      []engine.WalletTransaction
-	PreviousGamestate string
-	NextGamestate     string
-	Closed            bool
-	RoundId           string
-	Features          []features.Feature
+	Id                string                     `json:"id"`
+	Game              string                     `json:"game"`
+	Currency          string                     `json:"ccy"`
+	Transactions      []engine.WalletTransaction `json:"transactions"`
+	PreviousGamestate string                     `json:"prevGamestate"`
+	NextGamestate     string                     `json:"nextGamestate"`
+	Closed            bool                       `json:"closed"`
+	RoundId           string                     `json:"roundId"`
+	Features          []features.Feature         `json:"features"`
 }
 
+/*
+func (s *GameStateV3) Base() *GameStateV3 {
+	return s
+}
+*/
 func (s GameStateV3) Serialize() []byte {
 	b, _ := json.Marshal(s)
+	logger.Debugf("GameStateV3.Serialize %s", string(b))
 	return b
+}
+
+func (s GameStateV3) GetTtl() int64 {
+	return 3600
 }
 
 type BalanceResponseV3 struct {
@@ -169,7 +211,7 @@ func initV3(request *http.Request) (response IGameInitResponseV3, rgserr rgse.RG
 		return
 	}
 
-	logger.Debugf("initV3 data = %s\n", string(body))
+	logger.Debugf("initV3 %s", string(body))
 
 	var authToken string
 	authToken, rgserr = getAuth(request)
@@ -199,8 +241,9 @@ func initV3(request *http.Request) (response IGameInitResponseV3, rgserr rgse.RG
 		return
 	}
 	if len(state.GameState) == 0 {
-		logger.Debugf("initV3 gamestate is length 0\n")
+		logger.Debugf("initV3 gamestate is length")
 		if wallet == "demo" {
+			logger.Debugf("initV3 wallet is demo, save a player")
 			var balance engine.Money
 			var ctFS int
 			var waFS engine.Fixed
@@ -223,7 +266,6 @@ func initV3(request *http.Request) (response IGameInitResponseV3, rgserr rgse.RG
 				},
 			}
 			player, rgserr = store.ServLocal.PlayerSave(token, store.ModeDemo, player)
-			//			state, err = json.Marshal()
 		}
 	}
 	response, err = initGameV3(player, engineId, wallet, body, engineConfig, token, state.GameState)
@@ -276,14 +318,14 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 
 	var player store.PlayerStore
 	var txStore store.TransactionStore
-	//	var latestStateStore store.GameStateStore
-	var latestState GameStateRoulette
+	//	var prevStateStore store.GameStateStore
+	var prevIState IGameState // GameStateRoulette
 
 	switch data.Wallet {
 	case "dashur":
 		logger.Debugf("wallet is dashur")
 		if bfirst {
-			//			player, latestStateStore, err = store.Serv.PlayerByToken(token, store.ModeReal, data.Game)
+			//			player, prevStateStore, err = store.Serv.PlayerByToken(token, store.ModeReal, data.Game)
 			logger.Debugf("store.Serv.PlayerByToken token=%s, mode=%v, game=%s", string(token), store.ModeReal, data.Game)
 			player, _, rgserr = store.Serv.PlayerByToken(token, store.ModeReal, data.Game)
 			logger.Debugf("store.Serv.PlayerByToken done. player=%#v", player)
@@ -296,35 +338,10 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 	case "demo":
 		logger.Debugf("wallet is demo")
 		if bfirst {
-			//			player, latestStateStore, err = store.ServLocal.PlayerByToken(token, store.ModeDemo, data.Game)
+			//			player, prevStateStore, err = store.ServLocal.PlayerByToken(token, store.ModeDemo, data.Game)
 			logger.Debugf("store.ServLocal.PlayerByToken token=%s, mode=%v, game=%s", string(token), store.ModeReal, data.Game)
 			player, _, rgserr = store.ServLocal.PlayerByToken(token, store.ModeDemo, data.Game)
 			logger.Debugf("store.ServLocal.PlayerByToken done. player=%#v", player)
-			/*
-				var balance store.BalanceStore
-				var ctFS int
-				var waFS engine.Fixed
-
-				balance, ctFS, waFS, rgserr = parameterSelector.GetDemoWalletDefaults(currency, gameName, "", playerID)
-				if rgserr != nil {
-					return
-				}
-
-				player = store.PlayerStore{
-					PlayerId: string(token),
-					Token: token,
-					Mode: store.ModeDemo,
-					Username: "",
-					Balance: engine.Money{},
-					BetLimitSettingCode: "",
-					FreeGames: store.FreeGamesStore{
-						NoOfFreeSpins: ctFS,
-						CampaignRef: string(token),
-						TotalWagerAmt: waFS,
-					},
-				}
-			*/
-
 		} else {
 			logger.Debugf("store.ServLocal.TransactionByGameId token=%s, mode=%v, game=%s", string(token), store.ModeReal, data.Game)
 			txStore, rgserr = store.ServLocal.TransactionByGameId(token, store.ModeDemo, data.Game)
@@ -346,6 +363,12 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 		}
 	}
 
+	var gameV3 IGameV3
+	gameV3, rgserr = CreateGameV3(data.Game)
+	if rgserr != nil {
+		return
+	}
+
 	if bfirst {
 		txStore = store.TransactionStore{
 			RoundStatus:         store.RoundStatusClose,
@@ -358,22 +381,21 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 		}
 		logger.Debugf("first gameplay. transaction: %#v", txStore)
 
-		initParams := initParamsRoulette{
-			initParamsV3: initParamsV3{
-				Game: data.Game,
-			},
-		}
-		latestState = initRouletteGS(initParams)
-		//		fmt.Print("%v %v", latestStateStore, txStore)
+		prevIState = gameV3.InitState()
 	} else {
 		logger.Debugf("not first gameplay")
 
 		// GameStateRoulette
-		//		latestState := store.DeserializeGamestateFromBytes(txStore.GameState)
-		err = json.Unmarshal(txStore.GameState, &latestState)
-		if err != nil {
-			return nil, rgse.Create(rgse.JsonError)
+		//		prevState := store.DeserializeGamestateFromBytes(txStore.GameState)
+		//		err = json.Unmarshal(txStore.GameState, &prevState)
+		//		if err != nil {
+		//			return nil, rgse.Create(rgse.JsonError)
+		//		}
+		prevIState, rgserr = gameV3.DeserializeState(txStore.GameState)
+		if rgserr != nil {
+			return
 		}
+		var prevState *GameStateV3 = prevIState.Base()
 
 		switch txStore.WalletStatus {
 		case 0:
@@ -382,8 +404,8 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 			return
 		case -1:
 			// the next tx failed, retrying it will cause a duplicate tx id error, so add a suffix
-			latestState.NextGamestate = latestState.NextGamestate + rng.RandStringRunes(4)
-			logger.Debugf("adding suffix to next tx to avoid duplication error, resulting id: %v", latestState.NextGamestate)
+			prevState.NextGamestate = prevState.NextGamestate + rng.RandStringRunes(4)
+			logger.Debugf("adding suffix to next tx to avoid duplication error, resulting id: %v", prevState.NextGamestate)
 		case 1:
 			// business as usual
 		default:
@@ -438,6 +460,11 @@ func closeV3(request *http.Request) rgse.RGSErr {
 		return rgserr
 	}
 
+	gameV3, rgserr := CreateGameV3(data.Game)
+	if rgserr != nil {
+		return rgserr
+	}
+
 	var txStore store.TransactionStore
 	txStore, rgserr = TransactionByWalletAndGame(token, data.Wallet, data.Game)
 	if rgserr != nil {
@@ -448,31 +475,25 @@ func closeV3(request *http.Request) rgse.RGSErr {
 		logger.Debugf("INTERNAL STATUS: %v", txStore.WalletStatus)
 		return rgse.Create(rgse.PeviousTXPendingError)
 	}
-	var state GameStateV3
-	err = json.Unmarshal(txStore.GameState, &state)
-	if err != nil {
-		return rgse.Create(rgse.GamestateStringDeserializerError)
+	istate, rgserr := gameV3.DeserializeState(txStore.GameState)
+	if rgserr != nil {
+		return rgserr
 	}
+	var state *GameStateV3 = istate.Base()
+
 	logger.Debugf("serialized state: %s", string(txStore.GameState))
 	logger.Debugf("deserialized state: %#v", state)
 	if state.RoundId != data.RoundID {
 		logger.Debugf("state round id %s != data round id %s", state.RoundId, data.RoundID)
 		return rgse.Create(rgse.SpinSequenceError)
 	}
-	/*
-		if len(state.NextActions) > 1 {
-			// we should not be closing a gameround if the last gamestate has more actions to be completed
-			err = rgse.Create(rgse.IncompleteRoundError)
-			return
-		}
-	*/
 	state.Closed = true
 	roundId := state.RoundId
 	if roundId == "" {
 		roundId = state.Id
 	}
-	var serializedState []byte
-	serializedState, err = json.Marshal(state)
+	serializedState := istate.Serialize()
+
 	CloseByWallet(token, data.Wallet, data.Game, roundId, serializedState)
 
 	return nil
@@ -538,12 +559,12 @@ func getPlayerAndState(token store.Token, wallet string, game string) (player st
 	default:
 		rgserr = rgse.Create(rgse.GenericWalletError)
 	}
-	logger.Debugf("gepPlayerAndState done. player=%#v, state=%#v", player, state)
+	logger.Debugf("getPlayerAndState done. player=%#v", player)
 	return
 }
 
 func TransactionByWallet(token store.Token, wallet string, tx store.TransactionStore) (balance store.BalanceStore, err rgse.RGSErr) {
-	logger.Debugf("TransactionByWallet token=%s, wallet=%s, tx=%#v", token, wallet, tx)
+	logger.Debugf("TransactionByWallet token:%s, wallet:%s transactionId:%s", token, wallet, tx.TransactionId)
 	switch wallet {
 	case "demo":
 		tx.Mode = store.ModeDemo
@@ -568,7 +589,7 @@ func TransactionByWalletAndGame(token store.Token, wallet string, game string) (
 	default:
 		rgserr = rgse.Create(rgse.InvalidWallet)
 	}
-	logger.Debugf("TransactionByWalletAndGame done. txStore=%#v", txStore)
+	logger.Debugf("TransactionByWalletAndGame done.")
 	return
 }
 

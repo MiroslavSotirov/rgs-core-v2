@@ -3,6 +3,7 @@ package engine
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/getsentry/sentry-go"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
@@ -101,13 +102,24 @@ const fixedExp Fixed = 1000000
 // allows us to ingest values of any json type as a string and run our custom conversion
 
 func (f *Fixed) UnmarshalJSON(b []byte) error {
-	if b[0] == '"' {
-		*f = Fixed(0) // hardcode empty string to be zero stake
-		return nil
-	}
 	var s float32
-	if err := json.Unmarshal(b, &s); err != nil {
-		return err
+	var err error
+	if b[0] == '"' {
+		var str string
+		if err = json.Unmarshal(b, &str); err != nil {
+			*f = Fixed(0) // hardcode empty string to be zero stake
+			return nil
+		}
+		var d float64
+		if d, err = strconv.ParseFloat(str, 64); err != nil {
+			*f = Fixed(0) // hardcode empty string to be zero stake
+			return nil
+		}
+		s = float32(d)
+	} else {
+		if err = json.Unmarshal(b, &s); err != nil {
+			return err
+		}
 	}
 	*f = NewFixedFromFloat(s)
 	return nil

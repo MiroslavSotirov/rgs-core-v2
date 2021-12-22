@@ -931,7 +931,7 @@ func (i *RemoteServiceImpl) restBalanceResponse(response *http.Response) restBal
 }
 
 func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, rgse.RGSErr) {
-	logger.Debugf("LocalServiceImpl.Transaction([%v], [%v], [%v])", token, mode, transaction)
+	logger.Debugf("LocalServiceImpl.Transaction([%v], [%v], [%v])", token, mode, transaction.TransactionId)
 
 	playerId, _ := i.getToken(token)
 	player, _ := i.getPlayer(playerId)
