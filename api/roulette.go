@@ -188,7 +188,7 @@ func initRoulette(player store.PlayerStore, engineId string, wallet string, body
 
 	balance := store.BalanceStore{
 		Balance:   player.Balance,
-		Token:     token,
+		Token:     player.Token,
 		FreeGames: player.FreeGames,
 	}
 
