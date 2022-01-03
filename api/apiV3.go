@@ -334,7 +334,7 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 		} else {
 			logger.Debugf("store.Serv.TransactionByGameId token=%s, mode=%v, game=%s", string(token), store.ModeReal, data.Game)
 			txStore, rgserr = store.Serv.TransactionByGameId(token, store.ModeReal, data.Game)
-			logger.Debugf("store.Serv.TransactionByGameId done. txStore=%#v", txStore)
+			logger.Debugf("store.Serv.TransactionByGameId done. txStore.TransactionId=%#v", txStore.TransactionId)
 		}
 		break
 	case "demo":
@@ -388,16 +388,11 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 	} else {
 		logger.Debugf("not first gameplay")
 
-		// GameStateRoulette
-		//		prevState := store.DeserializeGamestateFromBytes(txStore.GameState)
-		//		err = json.Unmarshal(txStore.GameState, &prevState)
-		//		if err != nil {
-		//			return nil, rgse.Create(rgse.JsonError)
-		//		}
 		prevIState, rgserr = gameV3.DeserializeState(txStore.GameState)
 		if rgserr != nil {
 			return
 		}
+		logger.Debugf("prev game state= %#v", prevIState)
 		var prevState *GameStateV3 = prevIState.Base()
 		if txStore.Amount.Currency == "" {
 			logger.Debugf("previous transaction has no currency, using prev gamestate setting: %s", prevState.Currency)

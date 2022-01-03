@@ -283,6 +283,7 @@ func initStateRoulette(game string, currency string) GameStateRoulette {
 		Symbol:   0,
 		Prizes:   []PrizeRoulette{},
 	}
+	logger.Debugf("init state roulette %#v", gameState)
 	return gameState
 }
 
@@ -445,6 +446,7 @@ func rouletteRound(data playParamsRoulette, engineDef engine.EngineDef, prevStat
 		GameStateV3: GameStateV3{
 			Id:                prevState.NextGamestate,
 			Game:              data.Game,
+			Currency:          prevState.Currency,
 			RoundId:           roundId,
 			PreviousGamestate: data.PreviousID,
 			NextGamestate:     nextid,
