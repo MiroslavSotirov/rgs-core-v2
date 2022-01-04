@@ -349,8 +349,7 @@ func CloseGS(r *http.Request) (err rgse.RGSErr) {
 	if err := data.decode(r); err != nil {
 		return err
 	}
-	logger.Debugf("#v", data)
-	logger.Debugf("#v", token)
+	logger.Debugf("data= %#v token= %#v", data, token)
 	var txStore store.TransactionStore
 	switch data.Wallet {
 	case "demo":

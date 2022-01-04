@@ -169,9 +169,29 @@ func convertComplex128(in interface{}) complex128 {
 }
 
 func convertIntSlice(in interface{}) []int {
+	/*
+		val, ok := in.([]int)
+		if !ok {
+			panic("not an int slize")
+		}
+		return val
+	*/
 	val, ok := in.([]int)
 	if !ok {
-		panic("not an int slize")
+		var val2 []interface{}
+		val2, ok = in.([]interface{})
+		if !ok {
+			panic("not an int slize")
+		}
+		val = make([]int, len(val2))
+		for i, av := range val2 {
+			var v int
+			v, ok = av.(int)
+			if !ok {
+				panic("not an int slize")
+			}
+			val[i] = v
+		}
 	}
 	return val
 }

@@ -198,6 +198,8 @@ message GamestatePB {
   PRINCESS=50;
   SUPA_CREW=51;
   FOX_TALE=52;
+  DRAGON_ROULETTE=53;
+  SPIRIT_HUNTERS=54;
   }
   GameID game_id = 1;
   int32 engine_def = 2;

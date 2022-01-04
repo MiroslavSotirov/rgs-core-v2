@@ -45,6 +45,8 @@ type EnabledFeatureSet struct {
 	_ TriggerFoxTale
 	_ TriggerFoxTaleBonus
 	_ TriggerFoxTaleWild
+	_ TriggerSpiritHunters
+	_ TriggerSpiritHuntersBonus
 	_ TriggerSupaCrew
 	_ TriggerSupaCrewActionSymbol
 	_ TriggerSupaCrewSuperSymbol

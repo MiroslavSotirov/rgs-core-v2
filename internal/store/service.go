@@ -1086,7 +1086,7 @@ func (i *LocalServiceImpl) GamestateById(gamestateId string) (GameStateStore, rg
 
 func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgse.RGSErr) {
 	// Used at beginning of play() func to get previous gamestate, betlimit settings code, and free games info
-	logger.Debugf("LocalServiceImpl.TransactionByGameId([%v], [%v], [%v])", token, mode, gameId)
+	logger.Debugf("LocalServiceImpl.TransactionByGameId(token=%v, mode=%v, game=%v)", token, mode, gameId)
 
 	playerId, _ := i.getToken(token)
 	player, _ := i.getPlayer(playerId)
