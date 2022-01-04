@@ -1533,6 +1533,32 @@ func hashString(s string) int64 {
 	return int64(crc32.Checksum(buf.Bytes(), crcTable))
 }
 
+func DeserializeGamestate(gameId string, serialized []byte) (state engine.Gamestate, stateV3 engine.IGameStateV3, rgserr rgse.RGSErr) {
+	var gameV3 IGameV3
+	gameV3, rgserr = CreateGameV3(gameId)
+	if rgserr != nil {
+		state = DeserializeGamestateFromBytes(serialized)
+		rgserr = nil
+		return
+	}
+	stateV3, rgserr = gameV3.DeserializeState(serialized)
+	if rgserr != nil {
+		return
+	}
+	base := stateV3.Base()
+	state = engine.Gamestate{
+		Id:                base.Id,
+		Game:              base.Game,
+		Transactions:      base.Transactions,
+		PreviousGamestate: base.PreviousGamestate,
+		NextGamestate:     base.NextGamestate,
+		Closed:            base.Closed,
+		RoundID:           base.RoundId,
+		Features:          base.Features,
+	}
+	return
+}
+
 func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) (rounds []FeedRound, nextPage int, finalErr rgse.RGSErr) {
 	rounds = []FeedRound{}
 	var ts TransactionStore
@@ -1559,13 +1585,13 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 	pageidx := 0
 	round := FeedRound{Metadata: FeedRoundMetadata{}}
 	for true {
-		gameState := DeserializeGamestateFromBytes(ts.GameState)
+		state, stateV3, _ := DeserializeGamestate(gameId, ts.GameState)
 		if ts.TxTime.After(tstart) && ts.TxTime.Before(tend) {
-			tids := make([]int64, len(gameState.Transactions))
-			for i, t := range gameState.Transactions {
+			tids := make([]int64, len(state.Transactions))
+			for i, t := range state.Transactions {
 				tids[i] = hashString(t.Id)
 			}
-			if gameState.RoundID == round.Metadata.RoundId {
+			if state.RoundID == round.Metadata.RoundId {
 				round.TransactionIds = append(round.TransactionIds, tids...)
 			} else {
 				if round.Metadata.RoundId != "" {
@@ -1585,12 +1611,12 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 					TransactionIds: tids,
 					StartTime:      ts.TxTime.UTC().Format("2006-01-02 15:04:05.000"),
 					Metadata: FeedRoundMetadata{
-						RoundId:   gameState.RoundID,
+						RoundId:   state.RoundID,
 						ExtItemId: gameId,
 						ItemId:    0,
 						Vendor: FeedRoundVendordata{
-							State:   gameState,
-							StateV3: nil,
+							State:   state,
+							StateV3: stateV3,
 						},
 					},
 				}
@@ -1615,7 +1641,7 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 		}
 
 		var ok bool
-		ts, ok = i.getTransaction(gameState.PreviousGamestate)
+		ts, ok = i.getTransaction(state.PreviousGamestate)
 		if !ok {
 			break
 		}
@@ -1636,14 +1662,14 @@ func feedRoundId(i *LocalServiceImpl, token Token, mode Mode, gameId string, tra
 	}
 
 	for true {
-		gameState := DeserializeGamestateFromBytes(ts.GameState)
+		state, _, _ := DeserializeGamestate(gameId, ts.GameState)
 		tid := hashString(ts.TransactionId)
 		if tid == transactionId {
-			return gameState.RoundID, nil
+			return state.RoundID, nil
 		}
 
 		var ok bool
-		ts, ok = i.getTransaction(gameState.PreviousGamestate)
+		ts, ok = i.getTransaction(state.PreviousGamestate)
 		if !ok {
 			break
 		}
@@ -1670,9 +1696,9 @@ func (i *LocalServiceImpl) FeedRound(token Token, mode Mode, gameId string, tran
 
 	found := false
 	for true {
-		gameState := DeserializeGamestateFromBytes(ts.GameState)
+		state, stateV3, _ := DeserializeGamestate(gameId, ts.GameState)
 
-		if gameState.RoundID == roundId {
+		if state.RoundID == roundId {
 			amount, _ := strconv.ParseFloat(ts.Amount.Amount.ValueAsString(), 64)
 			feed := FeedTransaction{
 				Id:           hashString(ts.TransactionId),
@@ -1681,12 +1707,12 @@ func (i *LocalServiceImpl) FeedRound(token Token, mode Mode, gameId string, tran
 				CurrencyUnit: ts.Amount.Currency,
 				Amount:       amount,
 				Metadata: FeedRoundMetadata{
-					RoundId:   gameState.RoundID,
+					RoundId:   state.RoundID,
 					ExtItemId: gameId,
 					ItemId:    0,
 					Vendor: FeedRoundVendordata{
-						State:   gameState,
-						StateV3: nil,
+						State:   state,
+						StateV3: stateV3,
 					},
 				},
 				TxTime: ts.TxTime.UTC().Format("2006-01-02 15:04:05.000"),
@@ -1697,7 +1723,7 @@ func (i *LocalServiceImpl) FeedRound(token Token, mode Mode, gameId string, tran
 		}
 
 		var ok bool
-		ts, ok = i.getTransaction(gameState.PreviousGamestate)
+		ts, ok = i.getTransaction(state.PreviousGamestate)
 		if !ok {
 			break
 		}
@@ -1753,7 +1779,7 @@ func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime strin
 	nextPage = feedResp.NextPage
 	rounds = make([]FeedRound, len(feedResp.Rounds))
 	for i, v := range feedResp.Rounds {
-		rounds[i], finalErr = NewFeedRound(v)
+		rounds[i], finalErr = NewFeedRound(v, gameId)
 		if finalErr != nil {
 			return
 		}
@@ -1806,7 +1832,7 @@ func (i *RemoteServiceImpl) FeedRound(token Token, mode Mode, gameId string, rou
 	}
 	feeds = make([]FeedTransaction, len(feedResp.Feeds))
 	for i, v := range feedResp.Feeds {
-		feeds[i], finalErr = NewFeedTransaction(v)
+		feeds[i], finalErr = NewFeedTransaction(v, gameId)
 		if finalErr != nil {
 			return
 		}
