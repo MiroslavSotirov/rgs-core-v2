@@ -140,7 +140,8 @@ type (
 	}
 
 	FeedRoundVendordata struct {
-		State engine.Gamestate `json:"state"`
+		State   engine.Gamestate    `json:"state"`
+		StateV3 engine.IGameStateV3 `json:"statev3,omitempty"`
 	}
 
 	FeedTransaction struct {
@@ -189,6 +190,8 @@ type (
 		// retrieve transaction feed
 		Feed(token Token, mode Mode, gameId string, startTime string, endTime string, pageSize int, page int) ([]FeedRound, int, rgse.RGSErr)
 		FeedRound(token Token, mode Mode, gameId string, roundId int64) ([]FeedTransaction, rgse.RGSErr)
+		//		FeedV3(token Token, mode Mode, gameId string, startTime string, endTime string, pageSize int, page int) ([]FeedRound, int, rgse.RGSErr)
+		//		FeedRoundV3(token Token, mode Mode, gameId string, roundId int64) ([]FeedTransaction, rgse.RGSErr)
 	}
 
 	RemoteServiceImpl struct {
@@ -216,6 +219,8 @@ type (
 		SetBalance(token Token, amount engine.Money) rgse.RGSErr
 		Feed(token Token, mode Mode, gameId string, startTime string, endTime string, pageSize int, page int) ([]FeedRound, int, rgse.RGSErr)
 		FeedRound(token Token, mode Mode, gameId string, roundId int64) ([]FeedTransaction, rgse.RGSErr)
+		//		FeedV3(token Token, mode Mode, gameId string, startTime string, endTime string, pageSize int, page int) ([]FeedRound, int, rgse.RGSErr)
+		//		FeedRoundV3(token Token, mode Mode, gameId string, roundId int64) ([]FeedTransaction, rgse.RGSErr)
 	}
 
 	LocalServiceImpl struct{}
@@ -1584,7 +1589,8 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 						ExtItemId: gameId,
 						ItemId:    0,
 						Vendor: FeedRoundVendordata{
-							gameState,
+							State:   gameState,
+							StateV3: nil,
 						},
 					},
 				}
@@ -1679,7 +1685,8 @@ func (i *LocalServiceImpl) FeedRound(token Token, mode Mode, gameId string, tran
 					ExtItemId: gameId,
 					ItemId:    0,
 					Vendor: FeedRoundVendordata{
-						gameState,
+						State:   gameState,
+						StateV3: nil,
 					},
 				},
 				TxTime: ts.TxTime.UTC().Format("2006-01-02 15:04:05.000"),

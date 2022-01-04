@@ -15,34 +15,6 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
-type GameRouletteV3 struct {
-	GameV3
-}
-
-func (g *GameRouletteV3) Base() *GameV3 {
-	return &g.GameV3
-}
-
-func (g GameRouletteV3) InitState() IGameState {
-	rouletteState := initStateRoulette(g.GameV3.Game, g.GameV3.Currency)
-	return &rouletteState
-}
-
-func (g GameRouletteV3) SerializeState(state IGameState) []byte {
-	return state.Serialize()
-}
-
-func (g GameRouletteV3) DeserializeState(serializedState []byte) (state IGameState, rgserr rgse.RGSErr) {
-	var rouletteState GameStateRoulette
-	err := json.Unmarshal(serializedState, &rouletteState)
-	if err != nil {
-		rgserr = rgse.Create(rgse.GamestateByteDeserializerError)
-		return
-	}
-	state = &rouletteState
-	return
-}
-
 type initParamsRoulette struct {
 	initParamsV3
 	//	Bets map[string]BetRoulette `json:"bets"`
@@ -83,10 +55,7 @@ type BetRoulette struct {
 	Amount  engine.Fixed `json:"amount"`
 	Symbols []int        `json:"symbols"`
 }
-type PrizeRoulette struct {
-	Index  string       `json:"index"`
-	Amount engine.Fixed `json:"amount"`
-}
+
 type PayoutRoulette struct {
 	Multiplier int   `json:"multiplier"`
 	Symbols    []int `json:"symbols"`
@@ -127,9 +96,9 @@ func (resp GameInitResponseRoulette) Render(w http.ResponseWriter, r *http.Reque
 type GamePlayResponseRoulette struct {
 	GamePlayResponseV3
 
-	Symbol   int             `json:"number"`
-	Position int             `json:"position"`
-	Prizes   []PrizeRoulette `json:"wins"`
+	Symbol   int                    `json:"number"`
+	Position int                    `json:"position"`
+	Prizes   []engine.PrizeRoulette `json:"wins"`
 }
 
 func (resp GamePlayResponseRoulette) Base() GamePlayResponseV3 {
@@ -138,30 +107,6 @@ func (resp GamePlayResponseRoulette) Base() GamePlayResponseV3 {
 
 func (resp GamePlayResponseRoulette) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
-}
-
-type GameStateRoulette struct {
-	GameStateV3
-
-	Position int             `json:"positions"`
-	Symbol   int             `json:"symbol"`
-	Prizes   []PrizeRoulette `json:"prizes"`
-	Bet      engine.Fixed    `json:"bet"`
-	Win      engine.Fixed    `json:"win"`
-}
-
-func (g *GameStateRoulette) Base() *GameStateV3 {
-	return &g.GameStateV3
-}
-
-func (s GameStateRoulette) Serialize() []byte {
-	b, _ := json.Marshal(s)
-	logger.Debugf("GameStateRoulette.Serialize %s", string(b))
-	return b
-}
-
-func (s GameStateRoulette) GetTtl() int64 {
-	return 3600
 }
 
 func initRoulette(player store.PlayerStore, engineId string, wallet string, body []byte, engineConf engine.EngineConfig, token store.Token, state []byte) (
@@ -174,9 +119,9 @@ func initRoulette(player store.PlayerStore, engineId string, wallet string, body
 
 	engineDef := engineConf.EngineDefs[0]
 
-	var gameState GameStateRoulette
+	var gameState engine.GameStateRoulette
 	if len(state) == 0 {
-		gameState = initStateRoulette(data.Game, data.Ccy)
+		gameState = store.InitStateRoulette(data.Game, data.Ccy)
 		gameState.Id = string(token) + data.Game + "GSinit"
 	} else {
 		err := json.Unmarshal(state, &gameState)
@@ -246,7 +191,7 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 		return nil, rgse.Create(rgse.InvalidStakeError)
 	}
 
-	var prevState GameStateRoulette
+	var prevState engine.GameStateRoulette
 
 	if len(txStore.GameState) == 0 {
 		logger.Debugf("no previous gamestate in playRoulette")
@@ -255,7 +200,7 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 				Game: data.Game,
 			},
 		}
-		prevState = initStateRoulette(initParams.Game, txStore.Amount.Currency)
+		prevState = store.InitStateRoulette(initParams.Game, txStore.Amount.Currency)
 	} else {
 		err := json.Unmarshal(txStore.GameState, &prevState)
 		if err != nil {
@@ -267,24 +212,6 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 	var engineDef engine.EngineDef = engineConf.EngineDefs[0]
 
 	return getRouletteResults(data, engineDef, stake, prevState, txStore)
-}
-
-func initStateRoulette(game string, currency string) GameStateRoulette {
-	id := uuid.NewV4().String()
-	nextid := uuid.NewV4().String()
-	gameState := GameStateRoulette{
-		GameStateV3: GameStateV3{
-			Id:            id,
-			NextGamestate: nextid,
-			Game:          game,
-			Currency:      currency,
-		},
-		Position: 0,
-		Symbol:   0,
-		Prizes:   []PrizeRoulette{},
-	}
-	logger.Debugf("init state roulette %#v", gameState)
-	return gameState
 }
 
 func validateRouletteBets(bets map[string]BetRoulette, validBets map[string]engine.RoulettePayout, validStakes []engine.Fixed) (bool, engine.Fixed) {
@@ -345,14 +272,14 @@ func validateRouletteStake(bet BetRoulette, stakes []engine.Fixed) bool {
 	return true
 }
 
-func processRouletteBets(symbol int, bets map[string]BetRoulette, payouts map[string]engine.RoulettePayout) (engine.Fixed, []PrizeRoulette) {
-	sum, prizes := engine.NewFixedFromInt(0), []PrizeRoulette{}
+func processRouletteBets(symbol int, bets map[string]BetRoulette, payouts map[string]engine.RoulettePayout) (engine.Fixed, []engine.PrizeRoulette) {
+	sum, prizes := engine.NewFixedFromInt(0), []engine.PrizeRoulette{}
 	for k, v := range bets {
 		for _, s := range v.Symbols {
 			if s == symbol {
 				win := v.Amount.Mul(engine.NewFixedFromInt(payouts[k].Multiplier))
 				sum += win
-				prizes = append(prizes, PrizeRoulette{Index: k, Amount: win})
+				prizes = append(prizes, engine.PrizeRoulette{Index: k, Amount: win})
 				break
 			}
 		}
@@ -364,7 +291,7 @@ func getRouletteResults(
 	data playParamsRoulette,
 	engineDef engine.EngineDef,
 	bet engine.Fixed,
-	prevState GameStateRoulette,
+	prevState engine.GameStateRoulette,
 	txStore store.TransactionStore) (response GamePlayResponseRoulette, err rgse.RGSErr) {
 
 	gameState := rouletteRound(data, engineDef, prevState)
@@ -434,7 +361,7 @@ func getRouletteResults(
 	return
 }
 
-func rouletteRound(data playParamsRoulette, engineDef engine.EngineDef, prevState GameStateRoulette) GameStateRoulette {
+func rouletteRound(data playParamsRoulette, engineDef engine.EngineDef, prevState engine.GameStateRoulette) engine.GameStateRoulette {
 	reel := engineDef.Reels[0]
 	position := rng.RandFromRange(len(reel))
 	symbol := reel[position]
@@ -442,10 +369,11 @@ func rouletteRound(data playParamsRoulette, engineDef engine.EngineDef, prevStat
 	id := prevState.NextGamestate
 	roundId := id
 	nextid := uuid.NewV4().String()
-	gameState := GameStateRoulette{
-		GameStateV3: GameStateV3{
+	gameState := engine.GameStateRoulette{
+		GameStateV3: engine.GameStateV3{
 			Id:                prevState.NextGamestate,
 			Game:              data.Game,
+			Version:           "3",
 			Currency:          prevState.Currency,
 			RoundId:           roundId,
 			PreviousGamestate: data.PreviousID,
@@ -457,7 +385,7 @@ func rouletteRound(data playParamsRoulette, engineDef engine.EngineDef, prevStat
 	return gameState
 }
 
-func fillRoulettePlayResponse(gameState GameStateRoulette, balance store.BalanceStore) GamePlayResponseRoulette {
+func fillRoulettePlayResponse(gameState engine.GameStateRoulette, balance store.BalanceStore) GamePlayResponseRoulette {
 	return GamePlayResponseRoulette{
 		GamePlayResponseV3: GamePlayResponseV3{
 			Token:   balance.Token,

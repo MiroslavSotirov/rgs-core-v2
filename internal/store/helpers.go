@@ -3,6 +3,7 @@ package store
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -175,4 +176,13 @@ func GenerateToken() Token {
 	bt, _ := time.Now().MarshalBinary()
 	b64token := rng.RandStringRunes(16) + base64.StdEncoding.EncodeToString(bt)
 	return Token(strings.ReplaceAll(b64token, "/", "-"))
+}
+
+func DeserializeGamestateV3FromBytes(serialized []byte) (state engine.GameStateV3, rgserr rgse.RGSErr) {
+	err := json.Unmarshal(serialized, &state)
+	if err != nil {
+		rgserr = rgse.Create(rgse.GamestateByteDeserializerError)
+		return
+	}
+	return
 }

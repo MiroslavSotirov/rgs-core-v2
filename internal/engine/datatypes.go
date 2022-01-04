@@ -549,3 +549,36 @@ func (gamestate Gamestate) ConvertLegacy() (GamestatePB, []*WalletTransactionPB)
 		PlaySequence:      int32(gamestate.PlaySequence),
 	}, convertTransactionsToPB(gamestate.Transactions)
 }
+
+type IGameStateV3 interface {
+	Serialize() []byte
+	GetTtl() int64
+	Base() *GameStateV3
+}
+
+type GameStateV3 struct {
+	Id                string              `json:"id"`
+	Game              string              `json:"game"`
+	Version           string              `json:"version"`
+	Currency          string              `json:"ccy"`
+	Transactions      []WalletTransaction `json:"transactions"`
+	PreviousGamestate string              `json:"prevGamestate"`
+	NextGamestate     string              `json:"nextGamestate"`
+	Closed            bool                `json:"closed"`
+	RoundId           string              `json:"roundId"`
+	Features          []features.Feature  `json:"features"`
+}
+
+func (s *GameStateV3) Base() *GameStateV3 {
+	return s
+}
+
+func (s GameStateV3) Serialize() []byte {
+	b, _ := json.Marshal(s)
+	logger.Debugf("GameStateV3.Serialize %s", string(b))
+	return b
+}
+
+func (s GameStateV3) GetTtl() int64 {
+	return 3600
+}
