@@ -210,7 +210,7 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 
 	var player store.PlayerStore
 	var txStore store.TransactionStore
-	//	var prevStateStore store.GameStateStore
+	var prevStateStore store.GameStateStore
 	var prevIState engine.IGameStateV3 // GameStateRoulette
 
 	switch data.Wallet {
@@ -219,7 +219,7 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 		if bfirst {
 			//			player, prevStateStore, err = store.Serv.PlayerByToken(token, store.ModeReal, data.Game)
 			logger.Debugf("store.Serv.PlayerByToken token=%s, mode=%v, game=%s", string(token), store.ModeReal, data.Game)
-			player, _, rgserr = store.Serv.PlayerByToken(token, store.ModeReal, data.Game)
+			player, prevStateStore, rgserr = store.Serv.PlayerByToken(token, store.ModeReal, data.Game)
 			logger.Debugf("store.Serv.PlayerByToken done. player=%#v", player)
 		} else {
 			logger.Debugf("store.Serv.TransactionByGameId token=%s, mode=%v, game=%s", string(token), store.ModeReal, data.Game)
@@ -232,12 +232,12 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 		if bfirst {
 			//			player, prevStateStore, err = store.ServLocal.PlayerByToken(token, store.ModeDemo, data.Game)
 			logger.Debugf("store.ServLocal.PlayerByToken token=%s, mode=%v, game=%s", string(token), store.ModeReal, data.Game)
-			player, _, rgserr = store.ServLocal.PlayerByToken(token, store.ModeDemo, data.Game)
+			player, prevStateStore, rgserr = store.ServLocal.PlayerByToken(token, store.ModeDemo, data.Game)
 			logger.Debugf("store.ServLocal.PlayerByToken done. player=%#v", player)
 		} else {
 			logger.Debugf("store.ServLocal.TransactionByGameId token=%s, mode=%v, game=%s", string(token), store.ModeReal, data.Game)
 			txStore, rgserr = store.ServLocal.TransactionByGameId(token, store.ModeDemo, data.Game)
-			logger.Debugf("store.ServLocal.TransactionByGameId done. txStore=%#v", txStore)
+			logger.Debugf("store.ServLocal.TransactionByGameId done. txStore.TransactionId=%#v", txStore.TransactionId)
 		}
 		break
 	default:
@@ -263,6 +263,12 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 	}
 
 	if bfirst {
+		if len(prevStateStore.GameState) != 0 {
+			logger.Debugf("first play but previous state store len != 0")
+			rgserr = rgse.Create(rgse.SpinSequenceError)
+			return
+		}
+
 		txStore = store.TransactionStore{
 			RoundStatus:         store.RoundStatusClose,
 			BetLimitSettingCode: player.BetLimitSettingCode,
@@ -284,6 +290,18 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 		}
 		logger.Debugf("prev game state= %#v", prevIState)
 		var prevState *engine.GameStateV3 = prevIState.Base()
+
+		if data.PreviousID != prevState.Id {
+			logger.Debugf("Gamestate ID mismatch. data.PreviousID=%v prevState.ID=%v", data.PreviousID, prevState.Id)
+			rgserr = rgse.Create(rgse.SpinSequenceError)
+			return
+		}
+		if !prevState.Closed {
+			logger.Debugf("Spin sequence error. Previous gamestate was not closed")
+			rgserr = rgse.Create(rgse.SpinSequenceError)
+			return
+		}
+
 		if txStore.Amount.Currency == "" {
 			logger.Debugf("previous transaction has no currency, using prev gamestate setting: %s", prevState.Currency)
 			txStore.Amount.Currency = prevState.Currency

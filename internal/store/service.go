@@ -1594,6 +1594,7 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 			if state.RoundID == round.Metadata.RoundId {
 				round.TransactionIds = append(round.TransactionIds, tids...)
 			} else {
+				first := true
 				if round.Metadata.RoundId != "" {
 					idx++
 					for idx > pageidx*pageSize {
@@ -1602,6 +1603,7 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 					if pageidx == page {
 						rounds = append(rounds, round)
 					}
+					first = false
 				}
 				round = FeedRound{
 					Id:             hashString(ts.TransactionId),
@@ -1619,6 +1621,9 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 							StateV3: stateV3,
 						},
 					},
+				}
+				if first {
+					rounds = append(rounds, round)
 				}
 			}
 			amount, _ := strconv.ParseFloat(ts.Amount.Amount.ValueAsString(), 64)
