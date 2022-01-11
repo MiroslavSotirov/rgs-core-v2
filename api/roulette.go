@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -169,7 +168,7 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 	var data playParamsRoulette
 	rgserr = data.deserialize(body)
 
-	fmt.Printf("playRoulette %#v\n", data)
+	logger.Debugf("playRoulette %#v\n", data)
 
 	engineConf := engine.BuildEngineDefs(engineId)
 
