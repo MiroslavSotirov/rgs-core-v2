@@ -9,11 +9,12 @@ import (
 type GameStateRoulette struct {
 	GameStateV3
 
-	Position int             `json:"positions"`
-	Symbol   int             `json:"symbol"`
-	Prizes   []PrizeRoulette `json:"prizes"`
-	Bet      Fixed           `json:"bet"`
-	Win      Fixed           `json:"win"`
+	Position int                    `json:"positions"`
+	Symbol   int                    `json:"symbol"`
+	Prizes   []PrizeRoulette        `json:"prizes"`
+	Bets     map[string]BetRoulette `json:"bets"`
+	Bet      Fixed                  `json:"bet"`
+	Win      Fixed                  `json:"win"`
 }
 
 func (g *GameStateRoulette) Base() *GameStateV3 {
@@ -28,6 +29,11 @@ func (s GameStateRoulette) Serialize() []byte {
 
 func (s GameStateRoulette) GetTtl() int64 {
 	return 3600
+}
+
+type BetRoulette struct {
+	Amount  Fixed `json:"amount"`
+	Symbols []int `json:"symbols"`
 }
 
 type PrizeRoulette struct {

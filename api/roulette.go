@@ -34,7 +34,7 @@ func (i *initParamsRoulette) deserialize(b []byte) rgse.RGSErr {
 type playParamsRoulette struct {
 	playParamsV3
 
-	Bets map[string]BetRoulette `json:"bets"`
+	Bets map[string]engine.BetRoulette `json:"bets"`
 }
 
 func (i *playParamsRoulette) decode(request *http.Request) rgse.RGSErr {
@@ -47,12 +47,6 @@ func (i playParamsRoulette) validate() rgse.RGSErr {
 
 func (i *playParamsRoulette) deserialize(b []byte) rgse.RGSErr {
 	return deserializeParams(i, b)
-}
-
-type BetRoulette struct {
-	//	Index   string       `json:"index"`
-	Amount  engine.Fixed `json:"amount"`
-	Symbols []int        `json:"symbols"`
 }
 
 type PayoutRoulette struct {
@@ -95,9 +89,10 @@ func (resp GameInitResponseRoulette) Render(w http.ResponseWriter, r *http.Reque
 type GamePlayResponseRoulette struct {
 	GamePlayResponseV3
 
-	Symbol   int                    `json:"number"`
-	Position int                    `json:"position"`
-	Prizes   []engine.PrizeRoulette `json:"wins"`
+	Symbol   int                           `json:"number"`
+	Position int                           `json:"position"`
+	Bets     map[string]engine.BetRoulette `json:"bets"`
+	Prizes   []engine.PrizeRoulette        `json:"wins"`
 }
 
 func (resp GamePlayResponseRoulette) Base() GamePlayResponseV3 {
@@ -213,7 +208,7 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 	return getRouletteResults(data, engineDef, stake, prevState, txStore)
 }
 
-func validateRouletteBets(bets map[string]BetRoulette, validBets map[string]engine.RoulettePayout, validStakes []engine.Fixed) (bool, engine.Fixed) {
+func validateRouletteBets(bets map[string]engine.BetRoulette, validBets map[string]engine.RoulettePayout, validStakes []engine.Fixed) (bool, engine.Fixed) {
 	sum := engine.NewFixedFromInt(0)
 	for k, v := range bets {
 		logger.Debugf("validating bet %#v", v)
@@ -226,7 +221,7 @@ func validateRouletteBets(bets map[string]BetRoulette, validBets map[string]engi
 	return true, sum
 }
 
-func validateRouletteBet(index string, bet BetRoulette, payouts map[string]engine.RoulettePayout) bool {
+func validateRouletteBet(index string, bet engine.BetRoulette, payouts map[string]engine.RoulettePayout) bool {
 	v, ok := payouts[index]
 	if ok {
 		if len(v.Symbols) != len(bet.Symbols) {
@@ -247,7 +242,7 @@ func validateRouletteBet(index string, bet BetRoulette, payouts map[string]engin
 	return false
 }
 
-func validateRouletteStake(bet BetRoulette, stakes []engine.Fixed) bool {
+func validateRouletteStake(bet engine.BetRoulette, stakes []engine.Fixed) bool {
 	logger.Debugf("validating stake in bet %#v", bet)
 	amount := bet.Amount
 	lastAmount := engine.Fixed(0)
@@ -271,7 +266,7 @@ func validateRouletteStake(bet BetRoulette, stakes []engine.Fixed) bool {
 	return true
 }
 
-func processRouletteBets(symbol int, bets map[string]BetRoulette, payouts map[string]engine.RoulettePayout) (engine.Fixed, []engine.PrizeRoulette) {
+func processRouletteBets(symbol int, bets map[string]engine.BetRoulette, payouts map[string]engine.RoulettePayout) (engine.Fixed, []engine.PrizeRoulette) {
 	sum, prizes := engine.NewFixedFromInt(0), []engine.PrizeRoulette{}
 	for k, v := range bets {
 		for _, s := range v.Symbols {
@@ -380,6 +375,7 @@ func rouletteRound(data playParamsRoulette, engineDef engine.EngineDef, prevStat
 		},
 		Position: position,
 		Symbol:   symbol,
+		Bets:     data.Bets,
 	}
 	return gameState
 }
@@ -398,6 +394,7 @@ func fillRoulettePlayResponse(gameState engine.GameStateRoulette, balance store.
 		},
 		Symbol:   gameState.Symbol,
 		Position: gameState.Position,
+		Bets:     gameState.Bets,
 		Prizes:   gameState.Prizes,
 	}
 }
