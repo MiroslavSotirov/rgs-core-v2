@@ -1,7 +1,11 @@
 version: 2.0
-# rtp: .940047
-# volatility: 74.10328
-# UNCONFIRMED
+# rtp: .973818
+# volatility: .9996
+# Standard Deviation: Even Money (18/37) = sqrt(100 * (18/37) * (19/37)) = 4.998173515920792
+# Dragon/Dozen (12/37) = sqrt(100 * (12/37) * (25/37)) = 4.681218398834804
+# Corner Bet (4/37) = sqrt(100 * (4/37) * (33/37)) = 3.105168998128664
+# Split Bet (2/37) = sqrt(100 * (2/37) * (35/37)) = 2.261243314956961
+# Single Number (1/37) = sqrt(100 * (1/37) * (36/37)) = 1.6216216216216217
 
 EngineDefs:
   - name: base
