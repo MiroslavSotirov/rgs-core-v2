@@ -80,7 +80,7 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 		istate, rgserr = igameV3.DeserializeState(gsbytes)
 		if rgserr != nil {
 			logger.Infof("Could not deserialize state for game %s though it was possible to decode a GameStateV3 = %#v\n", stateV3.Game, stateV3)
-			fmt.Fprintf(w, "<center><h1>Internal Error</h1>Decoded gameId: %s could not deserialize %#v</center>", stateV3, stateV3.Game)
+			fmt.Fprintf(w, "<center><h1>Internal Error</h1>Decoded gameId: %s could not deserialize %#v</center>", stateV3.Game, stateV3)
 			return
 		}
 
