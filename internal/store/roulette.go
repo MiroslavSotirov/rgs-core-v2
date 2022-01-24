@@ -22,7 +22,7 @@ func (g GameRouletteV3) InitState() engine.IGameStateV3 {
 
 func (g GameRouletteV3) SerializeState(state engine.IGameStateV3) []byte {
 	b := state.Serialize()
-	return CompressState(b)
+	return CompressState(b, COMPRESSION_LZW)
 	//	return b
 }
 

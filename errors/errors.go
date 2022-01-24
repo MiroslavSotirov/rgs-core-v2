@@ -25,6 +25,9 @@ const (
 	GamestateStringDeserializerError = 111
 	GamestateByteSerializerError     = 112
 	GamestateByteDeserializerError   = 114
+	GamestateByteCompressError       = 116
+	GamestateByteDecompressError     = 117
+	GamestateByteDecompressAlgoError = 119
 
 	//Memcached gamestate store/retrieve error
 	GamestateCacheStoreError    = 200
@@ -106,6 +109,9 @@ var ErrMsg = map[int]string{
 	GamestateByteSerializerError:     "Failure serializing Gamestate to bytes",
 	GamestateStringDeserializerError: "Failure deserializing Gamestate from string",
 	GamestateByteDeserializerError:   "Failure deserializing Gamestate from Errorbytes",
+	GamestateByteCompressError:       "Failed to compress Gamestate",
+	GamestateByteDecompressError:     "Failed to decompress Gamestate",
+	GamestateByteDecompressAlgoError: "Failed to determine Gamestate compression algorithm",
 	GamestateCacheStoreError:         "Failure storing gamestate to memcached",
 	GamestateCacheRetrieveError:      "Failure retrieving gamestate from memcached",
 	InvalidContentTypeError:          "Invalid Content-Type",

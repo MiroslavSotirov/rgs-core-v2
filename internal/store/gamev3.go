@@ -52,27 +52,59 @@ func (g GameV3) DeserializeState(serialized []byte) (state engine.IGameStateV3, 
 	return
 }
 
-func CompressState(serialized []byte) []byte {
+const (
+	// compression header (must be 4 bytes long)
+	COMPRESSION_LZW  = "lzw "
+	COMPRESSION_ZLIB = "zlib"
+)
+
+func CompressState(serialized []byte, algo string) []byte {
+	var compressed []byte
+
 	startTime := time.Now()
-	compressed := CompressStateLzw(serialized)
+	switch algo {
+	case COMPRESSION_LZW:
+		compressed = CompressStateLzw(serialized)
+	case COMPRESSION_ZLIB:
+		compressed = CompressStateZlib(serialized)
+	default:
+		panic("CompressState unknown algorithm: " + algo)
+	}
 	duration := time.Now().Sub(startTime)
-	logger.Debugf("CompressState input len= %d output len= %d in %.4fms", len(serialized), len(compressed), duration.Seconds()*1000.0)
+	logger.Debugf("CompressState algo= %s input len= %d output len= %d in %.4fms", algo, len(serialized), len(compressed), duration.Seconds()*1000.0)
 	return compressed
 }
 
 func DecompressState(compressed []byte) ([]byte, rgse.RGSErr) {
+	var serialized []byte
+	var err rgse.RGSErr
+
 	startTime := time.Now()
-	serialized, err := DecompressStateLzw(compressed)
+	if len(compressed) <= 4 {
+		logger.Errorf("compressed buffer is too small to be valid")
+		return []byte{}, rgse.Create(rgse.GamestateByteDecompressAlgoError)
+	}
+	algo := string(compressed[0:4])
+	switch algo {
+	case COMPRESSION_LZW:
+		serialized, err = DecompressStateLzw(compressed[4:])
+	case COMPRESSION_ZLIB:
+		serialized, err = DecompressStateZlib(compressed[4:])
+	default:
+		logger.Errorf("compressed buffer does not encode an implemented algorithm")
+		err = rgse.Create(rgse.GamestateByteDecompressAlgoError)
+	}
 	if err != nil {
 		return []byte{}, err
 	}
 	duration := time.Now().Sub(startTime)
-	logger.Debugf("DecompressState input len= %d output len= %d in %.4fms", len(compressed), len(serialized), duration.Seconds()*1000.0)
+	logger.Debugf("DecompressState algo= %s input len= %d output len= %d in %.4fms", algo, len(compressed), len(serialized), duration.Seconds()*1000.0)
 	return serialized, err
 }
 
 func CompressStateZlib(serialized []byte) (compressed []byte) {
 	var b bytes.Buffer
+	b.WriteString(COMPRESSION_ZLIB)
 	w := zlib.NewWriter(&b)
 	w.Write(serialized)
 	w.Close()
@@ -85,14 +117,14 @@ func DecompressStateZlib(compressed []byte) (serialized []byte, rgserr rgse.RGSE
 	r, err := zlib.NewReader(bin)
 	if err != nil {
 		logger.Errorf("could not create zlib reader")
-		rgserr = rgse.Create(rgse.GamestateByteSerializerError)
+		rgserr = rgse.Create(rgse.GamestateByteDecompressAlgoError)
 		return
 	}
 	var bout bytes.Buffer
 	nb, err := io.Copy(&bout, r)
 	if err != nil {
 		logger.Errorf("could not decompress using zlib reader. input len= %dnb decompressed len=%dnb", len(compressed), nb)
-		rgserr = rgse.Create(rgse.GamestateByteSerializerError)
+		rgserr = rgse.Create(rgse.GamestateByteDecompressError)
 		return
 	}
 	serialized = bout.Bytes()
@@ -102,6 +134,7 @@ func DecompressStateZlib(compressed []byte) (serialized []byte, rgserr rgse.RGSE
 
 func CompressStateLzw(serialized []byte) (compressed []byte) {
 	var b bytes.Buffer
+	b.WriteString(COMPRESSION_LZW)
 	w := lzw.NewWriter(&b, lzw.LSB, 8)
 	w.Write(serialized)
 	w.Close()
@@ -116,7 +149,7 @@ func DecompressStateLzw(compressed []byte) (serialized []byte, rgserr rgse.RGSEr
 	nb, err := io.Copy(&bout, r)
 	if err != nil {
 		logger.Errorf("could not decompress using lzw reader. input len= %dnb decompressed len=%dnb", len(compressed), nb)
-		rgserr = rgse.Create(rgse.GamestateByteSerializerError)
+		rgserr = rgse.Create(rgse.GamestateByteDecompressAlgoError)
 		return
 	}
 	serialized = bout.Bytes()
