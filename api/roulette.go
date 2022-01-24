@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
@@ -113,15 +112,13 @@ func initRoulette(player store.PlayerStore, engineId string, wallet string, body
 
 	engineDef := engineConf.EngineDefs[0]
 
+	var game store.GameRouletteV3
 	var gameState engine.GameStateRoulette
 	if len(state) == 0 {
 		gameState = store.InitStateRoulette(data.Game, data.Ccy)
 		gameState.Id = string(token) + data.Game + "GSinit"
 	} else {
-		err := json.Unmarshal(state, &gameState)
-		if err != nil {
-			rgserr = rgse.Create(rgse.StoreInitError)
-		}
+		gameState, rgserr = game.DeserializeStateRoulette(state)
 		logger.Debugf("initRoulette state:%s\ndeserialized:%#v", string(state), gameState)
 	}
 
@@ -185,6 +182,7 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 		return nil, rgse.Create(rgse.InvalidStakeError)
 	}
 
+	var game store.GameRouletteV3
 	var prevState engine.GameStateRoulette
 
 	if len(txStore.GameState) == 0 {
@@ -196,9 +194,9 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 		}
 		prevState = store.InitStateRoulette(initParams.Game, txStore.Amount.Currency)
 	} else {
-		err := json.Unmarshal(txStore.GameState, &prevState)
-		if err != nil {
-			return nil, rgse.Create(rgse.JsonError)
+		prevState, rgserr = game.DeserializeStateRoulette(txStore.GameState)
+		if rgserr != nil {
+			return
 		}
 	}
 	logger.Debugf("playRoulette prevState:%s\nunserialized:%#v", string(txStore.GameState), prevState)
@@ -288,6 +286,7 @@ func getRouletteResults(
 	prevState engine.GameStateRoulette,
 	txStore store.TransactionStore) (response GamePlayResponseRoulette, err rgse.RGSErr) {
 
+	var game store.GameRouletteV3
 	gameState := rouletteRound(data, engineDef, prevState)
 
 	logger.Debugf("getRouletteResults gameState.Id=%s prevState.NextGamestate.Id=%s gameState.RoundId=%s",
@@ -322,7 +321,7 @@ func getRouletteResults(
 		}
 	*/
 	logger.Debugf("processing state: %#v", gameState)
-	stateBytes := gameState.Serialize()
+	stateBytes := game.SerializeState(&gameState) // gameState.Serialize()
 	token := txStore.Token
 	for _, t := range gameState.Transactions {
 		logger.Debugf("performing transaction %#v", t)

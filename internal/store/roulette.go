@@ -1,8 +1,6 @@
 package store
 
 import (
-	"encoding/json"
-
 	uuid "github.com/satori/go.uuid"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
@@ -23,17 +21,24 @@ func (g GameRouletteV3) InitState() engine.IGameStateV3 {
 }
 
 func (g GameRouletteV3) SerializeState(state engine.IGameStateV3) []byte {
-	return state.Serialize()
+	b := state.Serialize()
+	return CompressState(b)
+	//	return b
 }
 
-func (g GameRouletteV3) DeserializeState(serializedState []byte) (state engine.IGameStateV3, rgserr rgse.RGSErr) {
-	var rouletteState engine.GameStateRoulette
-	err := json.Unmarshal(serializedState, &rouletteState)
-	if err != nil {
-		rgserr = rgse.Create(rgse.GamestateByteDeserializerError)
+func (g GameRouletteV3) DeserializeState(serialized []byte) (engine.IGameStateV3, rgse.RGSErr) {
+	state, err := g.DeserializeStateRoulette(serialized)
+	return &state, err
+}
+
+func (g GameRouletteV3) DeserializeStateRoulette(serialized []byte) (state engine.GameStateRoulette, rgserr rgse.RGSErr) {
+	var uncompressed []byte
+	uncompressed, rgserr = DecompressState(serialized)
+	if rgserr != nil {
 		return
 	}
-	state = &rouletteState
+	//	rgserr = state.Deserialize(serialized)
+	rgserr = state.Deserialize(uncompressed)
 	return
 }
 

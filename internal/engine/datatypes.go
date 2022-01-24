@@ -7,6 +7,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
@@ -552,6 +553,7 @@ func (gamestate Gamestate) ConvertLegacy() (GamestatePB, []*WalletTransactionPB)
 
 type IGameStateV3 interface {
 	Serialize() []byte
+	Deserialize([]byte) rgse.RGSErr
 	GetTtl() int64
 	Base() *GameStateV3
 }
@@ -577,6 +579,14 @@ func (s GameStateV3) Serialize() []byte {
 	b, _ := json.Marshal(s)
 	logger.Debugf("GameStateV3.Serialize %s", string(b))
 	return b
+}
+
+func (s *GameStateV3) Deserialize(serialized []byte) rgse.RGSErr {
+	err := json.Unmarshal(serialized, s)
+	if err != nil {
+		return rgse.Create(rgse.GamestateByteDeserializerError)
+	}
+	return nil
 }
 
 func (s GameStateV3) GetTtl() int64 {

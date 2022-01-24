@@ -390,8 +390,7 @@ func closeV3(request *http.Request) rgse.RGSErr {
 	}
 	var state *engine.GameStateV3 = istate.Base()
 
-	logger.Debugf("serialized state: %s", string(txStore.GameState))
-	logger.Debugf("deserialized state: %#v", state)
+	logger.Debugf("serialized state len: %d\ndeserialized state: %#v", len(txStore.GameState), state)
 	if state.RoundId != data.RoundID {
 		logger.Debugf("state round id %s != data round id %s", state.RoundId, data.RoundID)
 		return rgse.Create(rgse.SpinSequenceError)
@@ -401,7 +400,7 @@ func closeV3(request *http.Request) rgse.RGSErr {
 	if roundId == "" {
 		roundId = state.Id
 	}
-	serializedState := istate.Serialize()
+	serializedState := gameV3.SerializeState(istate) // istate.Serialize()
 
 	CloseByWallet(token, data.Wallet, data.Game, roundId, serializedState)
 
@@ -503,7 +502,7 @@ func TransactionByWalletAndGame(token store.Token, wallet string, game string) (
 }
 
 func CloseByWallet(token store.Token, wallet string, game string, roundId string, serializedState []byte) (rgserr rgse.RGSErr) {
-	logger.Debugf("CloseByWallet token=%s, wallet=%s, game=%s, serializedState=%s", string(token), wallet, game, string(serializedState))
+	logger.Debugf("CloseByWallet token=%s, wallet=%s, game=%s, serializedState len=%d", string(token), wallet, game, len(serializedState))
 	switch wallet {
 	case "demo":
 		_, rgserr = store.ServLocal.CloseRound(token, store.ModeDemo, game, roundId, serializedState, 3600)

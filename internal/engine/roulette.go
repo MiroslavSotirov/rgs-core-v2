@@ -3,6 +3,7 @@ package engine
 import (
 	"encoding/json"
 
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
@@ -25,6 +26,14 @@ func (s GameStateRoulette) Serialize() []byte {
 	b, _ := json.Marshal(s)
 	logger.Debugf("GameStateRoulette.Serialize %s", string(b))
 	return b
+}
+
+func (s *GameStateRoulette) Deserialize(serialized []byte) rgse.RGSErr {
+	err := json.Unmarshal(serialized, s)
+	if err != nil {
+		return rgse.Create(rgse.GamestateByteDeserializerError)
+	}
+	return nil
 }
 
 func (s GameStateRoulette) GetTtl() int64 {
