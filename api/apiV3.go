@@ -284,6 +284,15 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 	} else {
 		logger.Debugf("not first gameplay")
 
+		if len(txStore.GameState) == 0 {
+			logger.Errorf("Not first gameplay but retreived gamestate was zero in length. PreviousID= %s", data.PreviousID)
+			if len(data.PreviousID) == 0 {
+				logger.Errorf("PreviousID must be specified")
+			}
+			rgserr = rgse.Create(rgse.SpinSequenceError)
+			return
+		}
+
 		prevIState, rgserr = gameV3.DeserializeState(txStore.GameState)
 		if rgserr != nil {
 			return
@@ -292,12 +301,12 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 		var prevState *engine.GameStateV3 = prevIState.Base()
 
 		if data.PreviousID != prevState.Id {
-			logger.Debugf("Gamestate ID mismatch. data.PreviousID=%v prevState.ID=%v", data.PreviousID, prevState.Id)
+			logger.Errorf("Gamestate ID mismatch. data.PreviousID=%v prevState.ID=%v", data.PreviousID, prevState.Id)
 			rgserr = rgse.Create(rgse.SpinSequenceError)
 			return
 		}
 		if !prevState.Closed {
-			logger.Debugf("Spin sequence error. Previous gamestate was not closed")
+			logger.Errorf("Spin sequence error. Previous gamestate was not closed")
 			rgserr = rgse.Create(rgse.SpinSequenceError)
 			return
 		}
