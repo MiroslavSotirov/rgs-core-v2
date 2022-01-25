@@ -1,6 +1,7 @@
 name: Build and Deploy RGS to Dev environment
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
