@@ -1,0 +1,14 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: engineconfigs
+  namespace: {{ .Values.namespace | default "elysium" }}
+  labels:
+  {{- include "rgs-v2.labels" . | nindent 4 }}
+data:
+  {{- $files := .Files }}
+  {{- range $path, $_ :=  .Files.Glob  "**.yml" }}
+  {{ base $path }}: |
+    {{- $files.Get $path | nindent 4 }}
+  {{- end }}
