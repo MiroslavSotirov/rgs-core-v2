@@ -201,7 +201,10 @@ gameConfig:
   - engineID: mvgEngineRoulette1
     games:
       - dragon-roulette
-
+  - engineID: mvgEngineGodot3
+    games:
+      - spirit-hunters
+      
 gamification:
   a-fairy-tale:
     function: Increment
