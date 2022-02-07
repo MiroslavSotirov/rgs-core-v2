@@ -135,7 +135,9 @@ func InitGameConfig() error {
 }
 
 func GetEngineFromGame(gameName string) (engineID string, err rgse.RGSErr) {
+	logger.Debugf("GetEngineFromGame(%s)", gameName)
 	for i := 0; i < len(GlobalGameConfig); i++ {
+		logger.Debugf("engine %s supports games: %v", GlobalGameConfig[i].EngineID, GlobalGameConfig[i].Games)
 		for j := 0; j < len(GlobalGameConfig[i].Games); j++ {
 			if GlobalGameConfig[i].Games[j] == gameName {
 				engineID = GlobalGameConfig[i].EngineID
