@@ -2,6 +2,7 @@ package features
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -309,7 +310,7 @@ func (p FeatureParams) GetForce(force string) string {
 				var val string
 				if strings.Contains(f, ":") {
 					parts := strings.Split(f, ":")
-					val = parts[1]
+					val, _ = url.PathUnescape(parts[1])
 				} else {
 					val = f
 				}

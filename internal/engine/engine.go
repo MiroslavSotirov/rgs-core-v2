@@ -3,11 +3,13 @@ package engine
 // Spin and play functions of engines
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	uuid "github.com/satori/go.uuid"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
@@ -1489,6 +1491,25 @@ func (engine EngineDef) TriggerConfiguredFeatures(symbolgrid [][]int, parameters
 }
 
 func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
+	if parameters.Force != "" {
+		fp := features.FeatureParams{"force": parameters.Force}
+		filter := fp.GetForce("filter")
+		if filter != "" {
+			startTime := time.Now()
+			for true {
+				state := engine.FeatureRoundGen(parameters)
+				js, err := json.Marshal(state)
+				elapsed := time.Now().Sub(startTime)
+				if err != nil || elapsed > 1000000000 || strings.Contains(string(js), filter) {
+					return state
+				}
+			}
+		}
+	}
+	return engine.FeatureRoundGen(parameters)
+}
+
+func (engine EngineDef) FeatureRoundGen(parameters GameParams) Gamestate {
 	// the base gameplay round
 	// uses round multiplier if included
 	// no dynamic reel calculation
