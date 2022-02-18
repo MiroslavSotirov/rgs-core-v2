@@ -1,0 +1,256 @@
+# Default values for rgs-v2.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: elysium
+
+image:
+  repo: "harbor.elysiumstudios.se/elysium/"
+  name: "mvg_rgs"
+
+imagePullSecrets:
+  - name: harborcred
+
+nameOverride: ""
+fullnameOverride: ""
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: 60
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/http2-push-preload: "true"
+    field.cattle.io/ingressState: "{}"
+    nginx.ingress.kubernetes.io/configuration-snippet: "more_set_headers \"Access-Control-Expose-Headers: ETag\";"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Content-Type, If-Match"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS, PUT"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-max-age: "151200"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+  hosts:
+    - host: dev.elysiumstudios.se
+      paths:
+        - path: /v2
+          pathType: Prefix
+  tls: []
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+volumes:
+  - engineconfigs
+  - baseconfigs
+  - parameterconfig
+  - forcetool
+
+affinity: {}
+
+livenessProbe:
+  path: /v2/rgs/healthcheck
+  port: rgs
+  initialDelaySeconds: 5
+  periodSeconds: 30
+
+readinessProbe:
+  path: /v2/rgs/healthcheck
+  port: rgs
+  initialDelaySeconds: 5
+  periodSeconds: 30
+
+config:
+  devmode: false
+  local: false
+  logging: debug
+  environment: production
+  mcrouter: ""
+  server:
+    host: "0.0.0.0"
+    port: 3000
+    name: elysium
+  storeurl: "http://gnrc-integ.dashur-integ/v1/gnrc/maverick"
+  storeappid: "HAAJ6njttH"
+  storeapppass: "WKXUZWTzNzvmTqYxiHnH9hKc"
+  defaultlanguage: "en"
+  defaultplatform: "html5"
+  demotokenprefix: "demo-token-e6ENjpt76fe8gun9vccRpEP"
+  democurrency: "USD"
+  logaccount: "145472021_144443389"
+  datalimit: 3200
+  localdatattl: 3600
+
+gameConfig:
+  - engineID: mvgEngineI
+    games:
+      - the-year-of-zhu
+      - cat-thief
+      - lantern-festival
+      - crimson-masquerade
+      - babaks-quest
+      - astro-gems
+      - jungle-saga
+      - wukong-treasures
+      - three-kingdom-shu
+  - engineID: mvgEngineII
+    games:
+      - zodiac
+      - street-racer
+      - panda
+      - three-kingdom-wu
+      - candy-girls
+      - bistro
+  - engineID: mvgEngineIII
+    games:
+      - three-kingdom-wei
+      - king-of-gamblers
+      - a-million-lights
+  - engineID: mvgEngineV
+    games:
+      - a-fairy-tale
+      - a-candy-girls-christmas
+  - engineID: mvgEngineVII
+    games:
+      - art-of-the-fist
+      - battlemech
+      - a-year-of-laoshu
+      - candy-smash
+  - engineID: mvgEngineIX
+    games:
+      - fruity-verse
+      - a-hidden-forest
+      - daytona
+      - crazy-easter-eggs
+  - engineID: mvgEngineX
+    games:
+      - seasons-winter
+      - seasons-spring
+      - seasons-summer
+      - seasons-autumn
+      - seasons
+  - engineID: mvgEngineXII
+    games:
+      - cloud9
+      - pearl-fisher
+      - dragon-myst
+  - engineID: mvgEngineXIII
+    games:
+      - sky-jewels
+      - goal
+      - cookoff-champion
+      - drift
+      - princess
+  - engineID: mvgEngineXIV
+    games:
+      - valley-of-kings
+      - bangkok-fighter
+      - asuka-x-samurai
+      - battlemech-mars
+  - engineID: mvgEngineXI
+    games:
+      - mah-jong
+  - engineID: mvgEngineXV
+    games:
+      - museum
+  - engineID: mvgEngineXVI
+    games:
+      - sparta
+  - engineID: mvgEngineXVII
+    games:
+      - book-of-living
+  - engineID: mvgEngineXVIII
+    games:
+      - zodiac-elements
+  - engineID: mvgEngineUnity1
+    games:
+      - supa-crew
+  - engineID: mvgEngineGodot2
+    games:
+      - fox-tale
+  - engineID: mvgEngineRoulette1
+    games:
+      - dragon-roulette
+  - engineID: mvgEngineGodot3
+    games:
+      - spirit-hunters
+      
+gamification:
+  a-fairy-tale:
+    function: Increment
+    stages: 3
+  a-candy-girls-christmas:
+    function: Increment
+    stages: 3
+  battlemech:
+    function: Increment
+    stages: 3
+  candy-smash:
+    function: Increment
+    stages: 3
+  sky-jewels:
+    function: IncrementSpins
+    stages: 6
+    spinsMin: 20
+    spinsMax: 50
+  drift:
+    function: IncrementSpins
+    stages: 5
+    spinsMin: 30
+    spinsMax: 50
+  goal:
+    function: IncrementSpins
+    stages: 3
+    spinsMin: 50
+    spinsMax: 70
+  cookoff-champion:
+    function: IncrementSpins
+    stages: 3
+    spinsMin: 50
+    spinsMax: 70
+  bangkok-fighter:
+    function: IncrementSpins
+    stages: 1
+    spinsMin: 50
+    spinsMax: 70
+  asuka-x-samurai:
+    function: IncrementSpins
+    stages: 5
+    spinsMin: 50
+    spinsMax: 70
+  battlemech-mars:
+    function: IncrementSpins
+    stages: 5
+    spinsMin: 50
+    spinsMax: 70
