@@ -176,6 +176,10 @@ func Create(code int) *RGSError {
 	return e
 }
 
+func CreateWithoutException(code int) *RGSError {
+	return &RGSError{ErrCode: code, DefaultErrorText: ErrMsg[code]}
+}
+
 func (e *RGSError) Error() (errorMsg string) {
 	//sentry.CaptureException(e)
 	//sentry.Flush(10*time.Millisecond)

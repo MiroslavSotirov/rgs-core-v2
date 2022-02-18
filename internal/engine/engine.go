@@ -1585,3 +1585,12 @@ func (engine EngineDef) FeatureRoundGen(parameters GameParams) Gamestate {
 
 	return gamestate
 }
+
+func (engine EngineDef) InitRound(parameters GameParams) (state Gamestate) {
+	stopList := make([]int, len(engine.ViewSize))
+	for i := range stopList {
+		stopList[i] = rng.RandFromRange(len(engine.Reels[0]))
+	}
+	state.SymbolGrid = GetSymbolGridFromStopList(engine.Reels, engine.ViewSize, stopList)
+	return
+}

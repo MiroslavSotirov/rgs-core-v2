@@ -117,7 +117,6 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 	}
 
 	EC, confErr := engine.GetEngineDefFromGame(gameID)
-	logger.Debugf("GetDemoWalletDefaults EC=%v", EC)
 	if len(EC.EngineDefs) == 0 {
 		logger.Debugf("  EC.EngineDefs has zero length")
 	}

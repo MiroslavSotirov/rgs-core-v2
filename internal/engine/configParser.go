@@ -191,7 +191,7 @@ func (config EngineConfig) DefIdByName(action string) int {
 	return -1
 }
 
-func (config EngineConfig) getEngineAndMethod(action string) (reflect.Value, rgse.RGSErr) {
+func (config EngineConfig) getEngineAndMethodInternal(action string, exception bool) (reflect.Value, rgse.RGSErr) {
 	//log.Printf("Retrieving method: %v", action)
 	var matchedEngines []EngineDef
 	sumEngineProbabilities := 0
@@ -206,7 +206,12 @@ func (config EngineConfig) getEngineAndMethod(action string) (reflect.Value, rgs
 	}
 	//logger.Debugf("matched %v engines", len(matchedEngines))
 	if len(matchedEngines) == 0 {
-		e := rgse.Create(rgse.EngineNotFoundError)
+		var e rgse.RGSErr
+		if exception {
+			e = rgse.Create(rgse.EngineNotFoundError)
+		} else {
+			e = rgse.CreateWithoutException(rgse.EngineNotFoundError)
+		}
 		e.AppendErrorText(fmt.Sprintf("No engine matched action %v", action))
 		return reflect.Value{}, e
 	}
@@ -225,6 +230,10 @@ func (config EngineConfig) getEngineAndMethod(action string) (reflect.Value, rgs
 		}
 	}
 	return reflect.ValueOf(selectedEngine).MethodByName(selectedEngine.Function), nil
+}
+
+func (config EngineConfig) getEngineAndMethod(action string) (reflect.Value, rgse.RGSErr) {
+	return config.getEngineAndMethodInternal(action, true)
 }
 
 func (engine EngineConfig) NumSpinsStat() int {

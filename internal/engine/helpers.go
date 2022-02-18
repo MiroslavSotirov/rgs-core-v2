@@ -451,10 +451,16 @@ func GetMaxWin(e EngineConfig) {
 }
 
 func GetDefaultView(gameName string) (symbolGrid [][]int) {
+	logger.Debugf("GetDefaultView(%s)", gameName)
 	e, err := GetEngineDefFromGame(gameName)
 	if err != nil {
 		return
 	}
+	method, err := e.getEngineAndMethodInternal("init", false)
+	if err == nil {
+		return GetDefaultViewFromFunction(method)
+	}
+	logger.Debugf("could not find a config for \"init\" use reels from first defined config")
 
 	for i := 0; i < len(e.EngineDefs[0].ViewSize); i++ {
 		row := []int{}
@@ -463,6 +469,19 @@ func GetDefaultView(gameName string) (symbolGrid [][]int) {
 		}
 		symbolGrid = append(symbolGrid, row)
 	}
+	return
+}
+
+func GetDefaultViewFromFunction(method reflect.Value) (symbolGrid [][]int) {
+	logger.Debugf("call configured init function to generate default view")
+	var params GameParams
+	objs := method.Call([]reflect.Value{reflect.ValueOf(params)})
+	gamestate, ok := objs[0].Interface().(Gamestate)
+	if !ok {
+		panic("value not a gamestate")
+	}
+	logger.Debugf("default symbolGrid= %v", gamestate.SymbolGrid)
+	symbolGrid = gamestate.SymbolGrid
 	return
 }
 
