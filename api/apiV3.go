@@ -133,7 +133,7 @@ func initV3(request *http.Request) (response IGameInitResponseV3, rgserr rgse.RG
 		return
 	}
 	if len(state.GameState) == 0 {
-		logger.Debugf("initV3 gamestate is length")
+		logger.Debugf("initV3 gamestate length is zero")
 		if wallet == "demo" {
 			logger.Debugf("initV3 wallet is demo, save a player")
 			var balance engine.Money
@@ -261,6 +261,7 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 	if rgserr != nil {
 		return
 	}
+	logger.Debugf("gameV3: %#v", gameV3)
 
 	if bfirst {
 		if len(prevStateStore.GameState) != 0 {

@@ -207,14 +207,15 @@ type GameParams struct {
 //	return
 //}
 
-func (gp *GameParams) Decode(request *http.Request) rgse.RGSErr {
+func (gp *GameParams) Decode(request *http.Request) (rgserr rgse.RGSErr) {
 	decoder := json.NewDecoder(request.Body)
 	decoderror := decoder.Decode(gp)
 
 	if decoderror != nil {
-		return rgse.Create(rgse.JsonError)
+		rgserr = rgse.Create(rgse.JsonError)
+		rgserr.AppendErrorText(decoderror.Error())
 	}
-	return nil
+	return
 }
 
 // if this is the action, a wager must be charged

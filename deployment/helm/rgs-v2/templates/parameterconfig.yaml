@@ -42,11 +42,11 @@ data:
       BCH: 0.001
       BDT: 0.5
       BGN: 0.01
-      BHD: 0.01 # 0.005 before test
+      BHD: 0.01
       BND: 0.01
       BOB: 0.05
       BRL: 0.04
-      BTC: 0.01 # 0.001 before test
+      BTC: 0.01
       BWP: 0.05
       BYN: 0.02
       CAD: 0.01
@@ -59,7 +59,9 @@ data:
       CZK: 0.2
       DKK: 0.5
       DOP: 0.5
+      DZD: 1
       EGP: 0.25
+      ETB: 0.3
       ETH: 0.001
       EUR: 0.01
       GBP: 0.01
@@ -77,33 +79,41 @@ data:
       INR: 1
       IQD: 25
       IRR: 250
+      IRT: 0.1
       ISK: 1
       JOD: 0.01
       JPY: 1
       KES: 1
       KGS: .8
       KRW: 10
-      KWD: 0.01 # 0.005 before test
+      KWD: 0.01
+      KHR: 40
       KZT: 3.5
       LBP: 25
       LKR: 1.5
       LSL: 0.1
       LTC: 0.001
+      LYD: 0.03
       MAD: 0.1
       MBC: 0.01
       MDL: 0.15
       MGA: 30
       MKD: 0.5
       MMK: 10
+      MNT: 30
       MWK: 1
       MXN: 0.2
       MYR: 0.02
+      MZN: 0.5
       NAD: 0.05
       NGN: 1
       NOK: 0.01
+      NHL: 0.1
       NZD: 0.1
-      OMR: 0.01 # 0.005 before test
+      OMR: 0.01
+      PAB: 0.01
       PEN: 0.02
+      PKR: 1.75
       PLN: 0.3
       PYG: 50
       QAR: 0.03
@@ -113,6 +123,8 @@ data:
       RWF: 5
       SAR: 0.03
       SEK: 0.01
+      SLL: 100
+      SSP: 1
       THB: 0.2
       TJS: .1
       TMT: 0.03
@@ -126,7 +138,7 @@ data:
       UST: 0.01
       UYU: 0.4
       UZS: 50
-      VES: 0.01 # 0.001 before test
+      VES: 0.01
       VEX: 2000
       VND: 100
       XAF: 5
@@ -155,6 +167,20 @@ data:
       THB: highdefault
 
     override:
+      mvgEngineII:
+        TND:
+          defaultBet: 0.03
+          stakeValues:
+            - 0.01
+            - 0.02
+            - 0.03
+            - 0.05
+            - 0.1
+            - 0.2
+            - 0.3
+            - 0.5
+            - 1
+            - 2
       mvgEngineV:
         UZS:
           defaultBet: 120
@@ -183,6 +209,19 @@ data:
             - 50000
             - 100000
             - 200000
+        TND:
+          defaultBet: 0.6
+          stakeValues:
+            - 0.2
+            - 0.4
+            - 0.6
+            - 1
+            - 2
+            - 4
+            - 6
+            - 10
+            - 20
+            - 40
       mvgEngineX:
         UZS:
           defaultBet: 1500
@@ -225,6 +264,19 @@ data:
             - 1250  
             - 2500  
             - 5000
+        TND:
+          defaultBet: 0.03
+          stakeValues:
+            - 0.01
+            - 0.02
+            - 0.03
+            - 0.05
+            - 0.1
+            - 0.2
+            - 0.3
+            - 0.5
+            - 1
+            - 2
       mvgEngineXIII:
         UZS:
           defaultBet: 60
@@ -239,6 +291,19 @@ data:
             - 1000  
             - 2000  
             - 4000
+        TND:
+          defaultBet: 0.03
+          stakeValues:
+            - 0.01
+            - 0.02
+            - 0.03
+            - 0.05
+            - 0.1
+            - 0.2
+            - 0.3
+            - 0.5
+            - 1
+            - 2
       mvgEngineXIV:
         UZS:
           defaultBet: 60
@@ -253,6 +318,19 @@ data:
             - 1000  
             - 2000  
             - 4000
+        TND:
+          defaultBet: 0.03
+          stakeValues:
+            - 0.01
+            - 0.02
+            - 0.03
+            - 0.05
+            - 0.1
+            - 0.2
+            - 0.3
+            - 0.5
+            - 1
+            - 2
       mvgEngineXV:
         UZS:
           defaultBet: 120
@@ -281,6 +359,19 @@ data:
             - 1250  
             - 2500  
             - 5000
+        TND:
+          defaultBet: 0.03
+          stakeValues:
+            - 0.01
+            - 0.02
+            - 0.03
+            - 0.05
+            - 0.1
+            - 0.2
+            - 0.3
+            - 0.5
+            - 1
+            - 2
       mvgEngineUnity1:
         credits:
           defaultBet: 10
@@ -310,3 +401,17 @@ data:
             - 5000
             - 10000
             - 50000
+        TND:
+          defaultBet: 0.1
+          minBet: 0.1
+          maxBet: 100
+          stakeValues:
+            - 0.1
+            - 0.2
+            - 0.4
+            - 1
+            - 2
+            - 4
+            - 10
+            - 20
+            - 100

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/crgimenes/goconfig"
 	_ "github.com/crgimenes/goconfig/yaml"
@@ -25,6 +26,11 @@ var GlobalGameConfig []GameConfig
 type Server struct {
 	Host string `yaml:"host" cfg:"host" cfgDefault:"0.0.0.0"`
 	Port string `yaml:"port" cfg:"port" cfgDefault:"3000"`
+	Name string `yaml:"name" cfg:"name" cfgDefault:""`
+}
+
+func (s Server) IsV3() bool {
+	return strings.Contains(s.Name, "elysium")
 }
 
 type StoreConfig struct {

@@ -3,7 +3,7 @@ package store
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -180,11 +180,20 @@ func GenerateToken() Token {
 	return Token(strings.ReplaceAll(b64token, "/", "-"))
 }
 
-func DeserializeGamestateV3FromBytes(serialized []byte) (state engine.GameStateV3, rgserr rgse.RGSErr) {
-	err := json.Unmarshal(serialized, &state)
-	if err != nil {
-		rgserr = rgse.Create(rgse.GamestateByteDeserializerError)
-		return
-	}
-	return
+// logging help functions (omits some values)
+
+func (t TransactionStore) String() string {
+	return fmt.Sprintf("TransactionId: %s, Token: %s, Mode: %s, Category: %s, RoundStatus: %s, PlayerId: %s, "+
+		"GameId: %s, RoundId: %s, Amount: %v, ParentTransactionId: %s, TxTime: %v, BetLimitSettingsCode: %s, "+
+		"FreeGames: %v, WalletStatus: %d, Ttl: %d ",
+		t.TransactionId, t.Token, t.Mode, t.Category, t.RoundStatus, t.PlayerId, t.GameId, t.RoundId, t.Amount,
+		t.ParentTransactionId, t.TxTime, t.BetLimitSettingCode, t.FreeGames, t.WalletStatus, t.Ttl)
+}
+
+func (r restTransactionRequest) String() string {
+	return fmt.Sprintf("ReqId: %s, Token: %s, Game: %s, Platform: %s, Mode: %s, Session: %s, Currency: %s, Amount: %d, "+
+		"BonusAmount: %d, JpAmount: %d, Category: %s, CampaignRef: %s CloseRound: %v Round: %s TxRef: %s Description: %s"+
+		"InternalStatus: %d, Ttl: %d, TtlStamp: %d",
+		r.ReqId, r.Token, r.Game, r.Platform, r.Mode, r.Session, r.Currency, r.Amount, r.BonusAmount, r.JpAmount, r.Category,
+		r.CampaignRef, r.CloseRound, r.Round, r.TxRef, r.Description, r.InternalStatus, r.Ttl, r.TtlStamp)
 }

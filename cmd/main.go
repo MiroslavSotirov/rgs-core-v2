@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 
@@ -26,6 +29,7 @@ var (
 	maxes      bool
 	getHashes  bool
 	memProfile string
+	gameState  string
 )
 
 func main() {
@@ -37,6 +41,7 @@ func main() {
 	flag.BoolVar(&perSpin, "perspin", false, "show results per spin")
 	flag.BoolVar(&maxes, "maxes", false, "get max theoretical values per engine")
 	flag.BoolVar(&getHashes, "gethashes", true, "get hashes of engine files")
+	flag.StringVar(&gameState, "decodestate", "", "decode the base64 encoded gamestate to json")
 
 	config.InitConfig()
 	initerr := store.Init(getHashes)
@@ -90,6 +95,15 @@ func main() {
 	// Flush buffered events before the program terminates.
 	// Set the timeout to the maximum duration the program can afford to wait.
 	//defer sentry.Flush(20 * time.Millisecond)
+
+	if gameState != "" {
+		urldec, _ := url.PathUnescape(gameState)
+		gsbytes, _ := base64.StdEncoding.DecodeString(urldec)
+		gameplay := store.DeserializeGamestateFromBytes(gsbytes)
+		jsgameplay, _ := json.Marshal(gameplay)
+		fmt.Println(string(jsgameplay))
+		return
+	}
 
 	srv := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: router}
 	logger.Infof("Starting RGS Core on port: %d", port)

@@ -151,7 +151,7 @@ func playV2(request *http.Request) (GameplayResponseV2, rgse.RGSErr) {
 		return GameplayResponseV2{}, rgse.Create(rgse.InvalidWallet)
 	}
 
-	logger.Debugf("txstore: %#v, err: %v", txStore, err)
+	logger.Debugf("txstore: {%v}, err: %v", txStore, err)
 	if err != nil {
 		return GameplayResponseV2{}, err
 	}

@@ -44,10 +44,12 @@ func (g GameV3) SerializeState(_ engine.IGameStateV3) []byte {
 
 func (g GameV3) DeserializeState(serialized []byte) (state engine.IGameStateV3, rgserr rgse.RGSErr) {
 	var stateV3 engine.GameStateV3
-	rgserr = stateV3.Deserialize(serialized)
+	var uncompressed []byte
+	uncompressed, rgserr = DecompressState(serialized)
 	if rgserr != nil {
 		return
 	}
+	rgserr = stateV3.Deserialize(uncompressed)
 	state = &stateV3
 	return
 }

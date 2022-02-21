@@ -108,7 +108,7 @@ var ErrMsg = map[int]string{
 	GamestateStringSerializerError:   "Failure serializing Gamestate to string",
 	GamestateByteSerializerError:     "Failure serializing Gamestate to bytes",
 	GamestateStringDeserializerError: "Failure deserializing Gamestate from string",
-	GamestateByteDeserializerError:   "Failure deserializing Gamestate from Errorbytes",
+	GamestateByteDeserializerError:   "Failure deserializing Gamestate from bytes",
 	GamestateByteCompressError:       "Failed to compress Gamestate",
 	GamestateByteDecompressError:     "Failed to decompress Gamestate",
 	GamestateByteDecompressAlgoError: "Failed to determine Gamestate compression algorithm",

@@ -72,6 +72,7 @@ type GameplayResponseV2 struct {
 	RoundID          string       `json:"roundID"`
 	ReelsetID        int          `json:"reelset"`
 	Stake            engine.Fixed `json:"totalStake"`
+	LineBet          engine.Fixed `json:"lineBet,omitempty"` // line bet used in prize calculations
 	Win              engine.Fixed
 	RoundWin         engine.Fixed        `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
 	SpinWin          engine.Fixed        `json:"spinWin"`                 // total win only on this spin
@@ -220,6 +221,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		RoundID:     gamestate.RoundID,
 		ReelsetID:   gamestate.DefID,
 		Stake:       stake,
+		LineBet:     gamestate.BetPerLine.Amount,
 		Win:         win,
 		RoundWin:    roundWin,
 		SpinWin:     gamestate.SpinWin,

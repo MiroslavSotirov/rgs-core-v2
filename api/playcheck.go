@@ -92,7 +92,8 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 		}
 		return
 	} else {
-		logger.Debugf("creating V1/V2 playcheck")
+		logger.Debugf("V3 state deserialization generated error: %s", rgserr.Error())
+		logger.Infof("creating V1/V2 playcheck")
 	}
 
 	gameplay := store.DeserializeGamestateFromBytes(gsbytes)

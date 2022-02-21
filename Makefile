@@ -8,10 +8,16 @@ GORUN=$(GOCMD) run
 CONTAINER_NAME=rgs-core
 PACKAGE_NAME=gitlab.maverick-ops.com/maverick/rgs-core-v2
 IMAGE=harbor.inf01.activeops.io/maverick/mvg_rgs
+ifndef BUILDVERSION
+	BUILDVERSION=latest
+endif
 
+# Dockerfile is not set up to run locally
+# add config file copy commands to enable this,
+# however this would conflict with the hosted setup
 
 .PHONY: build test start push run stop latest test_all
-all: test build run
+all: test build docker rundocker
 
 test:
 	go test ./... -short
@@ -34,14 +40,21 @@ latest:
 	docker tag "$(IMAGE):$(BUILDVERSION)" "$(IMAGE):latest"
 	docker push "$(IMAGE):latest"
 
-build:
+docker:
+	@echo 'BUILDVERSION set to $(BUILDVERSION)'
 	docker build  \
 		--pull -t "$(IMAGE):$(BUILDVERSION)" \
 		--file Dockerfile .
-run:
+rundocker:
+	@echo 'BUILDVERSION set to $(BUILDVERSION)'
 	docker run  --name "${CONTAINER_NAME}-$(BUILDVERSION)" -p 3000:3000 -d "$(IMAGE):$(BUILDVERSION)"
 
 stop:
 	docker stop "${CONTAINER_NAME}-$(BUILDVERSION)"
 	docker rm "${CONTAINER_NAME}-$(BUILDVERSION)"
 
+build:
+	$(GOBUILD) -o rgs cmd/main.go
+
+run:
+	./rgs

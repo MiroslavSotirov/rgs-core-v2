@@ -119,7 +119,7 @@ func initRoulette(player store.PlayerStore, engineId string, wallet string, body
 		gameState.Id = string(token) + data.Game + "GSinit"
 	} else {
 		gameState, rgserr = game.DeserializeStateRoulette(state)
-		logger.Debugf("initRoulette state:%s\ndeserialized:%#v", string(state), gameState)
+		logger.Debugf("initRoulette state length:%s\ndeserialized:%#v", len(state), gameState)
 	}
 
 	balance := store.BalanceStore{
@@ -199,7 +199,7 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 			return
 		}
 	}
-	logger.Debugf("playRoulette prevState:%s\nunserialized:%#v", string(txStore.GameState), prevState)
+	logger.Debugf("playRoulette prevState len:%d\ndeserialized:%#v", len(txStore.GameState), prevState)
 
 	var engineDef engine.EngineDef = engineConf.EngineDefs[0]
 
@@ -295,7 +295,7 @@ func getRouletteResults(
 	bets := []engine.WalletTransaction{
 		{
 			Id:     prevState.NextGamestate,
-			Amount: engine.Money{Amount: bet, Currency: "USD"},
+			Amount: engine.Money{Amount: bet, Currency: txStore.Amount.Currency},
 			Type:   "WAGER",
 		}}
 	gameState.GameStateV3.Transactions = append(bets, gameState.GameStateV3.Transactions...)
@@ -305,7 +305,7 @@ func getRouletteResults(
 	if len(prizes) > 0 {
 		gameState.GameStateV3.Transactions = append(gameState.GameStateV3.Transactions, engine.WalletTransaction{
 			Id:     uuid.NewV4().String(), // prevState.NextGamestate,
-			Amount: engine.Money{Amount: win, Currency: "USD"},
+			Amount: engine.Money{Amount: win, Currency: txStore.Amount.Currency},
 			Type:   "PAYOUT",
 		})
 	}

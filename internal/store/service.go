@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/crc32"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -594,14 +593,15 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 
 }
 
-func (i *RemoteServiceImpl) request(apiType ApiType, body io.Reader) (resp *http.Response, err error) {
+func (i *RemoteServiceImpl) request(apiType ApiType, body *bytes.Buffer) (resp *http.Response, err error) {
+	logger.Debugf("%s request: %s", apiType, body.String())
 	req, _ := http.NewRequest("POST", i.serverUrl+"/"+string(apiType), body)
 	req.Header.Add("Content-Type", "application/json")
 	req.SetBasicAuth(i.appId, i.appCredential)
 	start := time.Now()
 	client := i.httpClient()
 	resp, err = client.Do(req)
-	logger.Debugf("%v request took %v", apiType, time.Now().Sub(start).String())
+	logger.Debugf("%v request to %s took %v", apiType, req.URL, time.Now().Sub(start).String())
 	return
 }
 
@@ -705,10 +705,9 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 	authResp := i.restAuthenticateResponse(resp)
 	finalErr = i.errorResponseCode(authResp.ResponseCode)
 	if finalErr != nil {
-		logger.Debugf("response code error. reply: %s", b.String())
+		finalErr.AppendErrorText(authResp.Message)
 		return PlayerStore{}, GameStateStore{}, finalErr
 	}
-
 	var lastTransaction restTransactionRequest
 	var balance BalanceStore
 	// we don't care about this error
@@ -750,7 +749,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 
 func (i *RemoteServiceImpl) getLastGamestate(lastTx restTransactionRequest, lastAttemptedTx restTransactionRequest) (lastTxInfo restTransactionRequest, balance BalanceStore, err rgse.RGSErr) {
 	// if last_tx and last_attempted_tx are the same, doesn't matter
-	logger.Debugf("Determining last GS : Last Tx = %#v, Last Attempted Tx = %#v", lastTx, lastAttemptedTx)
+	logger.Debugf("Determining last GS : Last Tx = {%v}, Last Attempted Tx = {%v}", lastTx, lastAttemptedTx)
 	if lastAttemptedTx.TxRef == lastTx.TxRef {
 		lastTxInfo = lastTx
 		return
@@ -826,6 +825,7 @@ func (i *RemoteServiceImpl) getLastGamestate(lastTx restTransactionRequest, last
 func (i *RemoteServiceImpl) restAuthenticateResponse(response *http.Response) restAuthenticateResponse {
 	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
+	logger.Debugf("auth response: %s", string(body))
 	var data restAuthenticateResponse
 	json.Unmarshal(body, &data)
 	return data
@@ -911,6 +911,7 @@ func (i *RemoteServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore
 
 	finalErr = i.errorResponseCode(balResp.ResponseCode)
 	if finalErr != nil {
+		finalErr.AppendErrorText(balResp.Message)
 		return BalanceStore{}, finalErr
 	}
 	if balResp.PlayerId == i.logAccount {
@@ -930,6 +931,7 @@ func (i *RemoteServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore
 func (i *RemoteServiceImpl) restBalanceResponse(response *http.Response) restBalanceResponse {
 	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
+	logger.Debugf("balance response: %s", string(body))
 	var data restBalanceResponse
 	json.Unmarshal(body, &data)
 	return data
@@ -1020,8 +1022,6 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 		TtlStamp:    transaction.TxTime.Unix() + transaction.Ttl,
 	}
 
-	logger.Debugf("Transaction request: %#v", txRq)
-
 	return i.txSend(txRq)
 }
 
@@ -1046,10 +1046,10 @@ func (i *RemoteServiceImpl) txSend(txRq restTransactionRequest) (BalanceStore, r
 	}
 
 	txResp := i.restTransactionResponse(resp)
-	logger.Debugf("TX RESP: %#v", txResp)
 
 	finalErr = i.errorResponseCode(txResp.ResponseCode)
 	if finalErr != nil {
+		finalErr.AppendErrorText(txResp.Message)
 		return BalanceStore{}, finalErr
 	}
 	if txResp.PlayerId == i.logAccount {
@@ -1069,6 +1069,7 @@ func (i *RemoteServiceImpl) txSend(txRq restTransactionRequest) (BalanceStore, r
 func (i *RemoteServiceImpl) restTransactionResponse(response *http.Response) restTransactionResponse {
 	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
+	logger.Debugf("transaction response: %s", string(body))
 	var data restTransactionResponse
 	json.Unmarshal(body, &data)
 	return data
@@ -1157,11 +1158,11 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 
 	finalErr = i.errorResponseCode(queryResp.ResponseCode)
 	if finalErr != nil {
-
 		// special handling for err does not exists
 		if queryResp.ResponseCode == ResponseCodeUnknownError && strings.Contains(queryResp.Message, "E-CODE: [004:1003]") {
 			return TransactionStore{}, rgse.Create(rgse.EntityNotFound)
 		} else {
+			finalErr.AppendErrorText(queryResp.Message)
 			return TransactionStore{}, finalErr
 		}
 	}
@@ -1220,6 +1221,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 func (i *RemoteServiceImpl) restQueryResponse(response *http.Response) restQueryResponse {
 	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
+	logger.Debugf("query response: %s", string(body))
 	var data restQueryResponse
 	json.Unmarshal(body, &data)
 	return data
@@ -1228,6 +1230,7 @@ func (i *RemoteServiceImpl) restQueryResponse(response *http.Response) restQuery
 func (i *RemoteServiceImpl) restGameStateResponse(response *http.Response) restGameStateResponse {
 	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
+	logger.Debugf("auth response: %s", string(body))
 	var data restGameStateResponse
 	json.Unmarshal(body, &data)
 	return data
@@ -1236,6 +1239,7 @@ func (i *RemoteServiceImpl) restGameStateResponse(response *http.Response) restG
 func (i *RemoteServiceImpl) restFeedResponse(response *http.Response) restFeedResponse {
 	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
+	logger.Debugf("feed response: %s", string(body))
 	var data restFeedResponse
 	json.Unmarshal(body, &data)
 	return data
@@ -1244,6 +1248,7 @@ func (i *RemoteServiceImpl) restFeedResponse(response *http.Response) restFeedRe
 func (i *RemoteServiceImpl) restFeedRoundResponse(response *http.Response) restFeedRoundResponse {
 	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
+	logger.Debugf("feed round response: %s", string(body))
 	var data restFeedRoundResponse
 	json.Unmarshal(body, &data)
 	return data
@@ -1333,6 +1338,7 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 
 	finalErr = i.errorResponseCode(txResp.ResponseCode)
 	if finalErr != nil {
+		finalErr.AppendErrorText(txResp.Message)
 		return BalanceStore{}, finalErr
 	}
 	if txResp.PlayerId == i.logAccount {
@@ -1584,6 +1590,18 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 	idx := 0
 	pageidx := 0
 	round := FeedRound{Metadata: FeedRoundMetadata{}}
+	addRound := func() {
+		if round.Metadata.RoundId != "" {
+			idx++
+			for idx > pageidx*pageSize {
+				pageidx++
+			}
+			if pageidx == page {
+				rounds = append(rounds, round)
+				round.Metadata.RoundId = ""
+			}
+		}
+	}
 	for true {
 		state, stateV3, _ := DeserializeGamestate(gameId, ts.GameState)
 		if ts.TxTime.After(tstart) && ts.TxTime.Before(tend) {
@@ -1594,17 +1612,7 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 			if state.RoundID == round.Metadata.RoundId {
 				round.TransactionIds = append(round.TransactionIds, tids...)
 			} else {
-				first := true
-				if round.Metadata.RoundId != "" {
-					idx++
-					for idx > pageidx*pageSize {
-						pageidx++
-					}
-					if pageidx == page {
-						rounds = append(rounds, round)
-					}
-					first = false
-				}
+				addRound()
 				round = FeedRound{
 					Id:             hashString(ts.TransactionId),
 					CurrencyUnit:   ts.Amount.Currency,
@@ -1621,9 +1629,6 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 							StateV3: stateV3,
 						},
 					},
-				}
-				if first {
-					rounds = append(rounds, round)
 				}
 			}
 			amount, _ := strconv.ParseFloat(ts.Amount.Amount.ValueAsString(), 64)
@@ -1648,6 +1653,7 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 		var ok bool
 		ts, ok = i.getTransaction(state.PreviousGamestate)
 		if !ok {
+			addRound()
 			break
 		}
 	}
@@ -1773,12 +1779,10 @@ func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime strin
 
 	feedResp := i.restFeedResponse(resp)
 	bfeedresp, _ := json.Marshal(feedResp)
-	logger.Debugf("feed response: %s", bfeedresp)
 
 	finalErr = i.errorResponseCode(feedResp.Code)
 	if finalErr != nil {
-		//		bfeedresp, _ := json.Marshal(feedResp)
-		logger.Errorf("feed response error code. feedResp: %s", bfeedresp)
+		logger.Errorf("feed response error code. feedresponse: %s", bfeedresp)
 		return
 	}
 	nextPage = feedResp.NextPage
@@ -1827,12 +1831,10 @@ func (i *RemoteServiceImpl) FeedRound(token Token, mode Mode, gameId string, rou
 
 	feedResp := i.restFeedRoundResponse(resp)
 	bfeedresp, _ := json.Marshal(feedResp)
-	logger.Debugf("feed round response: %s", bfeedresp)
 
 	finalErr = i.errorResponseCode(feedResp.Code)
 	if finalErr != nil {
-		//		bfeedresp, _ := json.Marshal(feedResp)
-		logger.Errorf("feed round response error code. feedResp: %s", bfeedresp)
+		logger.Errorf("feed round response error code. feedresponse: %s", bfeedresp)
 		return
 	}
 	feeds = make([]FeedTransaction, len(feedResp.Feeds))

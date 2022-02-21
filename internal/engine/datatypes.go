@@ -584,6 +584,7 @@ func (s GameStateV3) Serialize() []byte {
 func (s *GameStateV3) Deserialize(serialized []byte) rgse.RGSErr {
 	err := json.Unmarshal(serialized, s)
 	if err != nil {
+		logger.Debugf("unmarshal json failed with error %s", err.Error())
 		return rgse.Create(rgse.GamestateByteDeserializerError)
 	}
 	return nil

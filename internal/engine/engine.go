@@ -234,7 +234,7 @@ func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payou
 	if gridw > 0 {
 		gridh = len(symbolGrid[0])
 	}
-	logger.Debugf("Symbol grid: %d x %d\n", gridw, gridh)
+	logger.Debugf("Symbol grid: %d x %d", gridw, gridh)
 	for winLineIndex, winLine := range WinLines {
 		//		logger.Debugf("Checking winline %d / %d\n", winLineIndex, len(WinLines))
 		lineContent := make([]int, len(symbolGrid))
@@ -1491,16 +1491,17 @@ func (engine EngineDef) TriggerConfiguredFeatures(symbolgrid [][]int, parameters
 }
 
 func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
-	if parameters.Force != "" {
+	if config.GlobalConfig.Server.IsV3() && config.GlobalConfig.DevMode == true && parameters.Force != "" {
 		fp := features.FeatureParams{"force": parameters.Force}
 		filter := fp.GetForce("filter")
+		logger.Debugf("force play using filter: \"%s\"", filter)
 		if filter != "" {
 			startTime := time.Now()
 			for true {
 				state := engine.FeatureRoundGen(parameters)
 				js, err := json.Marshal(state)
 				elapsed := time.Now().Sub(startTime)
-				if err != nil || elapsed > 1000000000 || strings.Contains(string(js), filter) {
+				if err != nil || elapsed > 100000000 || strings.Contains(string(js), filter) {
 					return state
 				}
 			}
@@ -1524,7 +1525,7 @@ func (engine EngineDef) FeatureRoundGen(parameters GameParams) Gamestate {
 	symbolGrid = engine.addStickyWilds(parameters.previousGamestate, symbolGrid)
 
 	featurestate := engine.TriggerConfiguredFeatures(symbolGrid, parameters)
-	logger.Debugf("symbolGrid= %v\nfeatureGrid= %v\n", symbolGrid, featurestate.SymbolGrid)
+	logger.Debugf("symbolGrid= %v featureGrid= %v", symbolGrid, featurestate.SymbolGrid)
 
 	wins, relativePayout := engine.DetermineWins(featurestate.SymbolGrid)
 	featurewins := []Prize{}

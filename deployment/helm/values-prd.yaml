@@ -100,7 +100,7 @@ readinessProbe:
 config:
   devmode: false
   local: false
-  logging: error
+  logging: debug
   environment: production
   mcrouter: ""
   server:
