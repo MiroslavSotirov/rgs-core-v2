@@ -1490,7 +1490,7 @@ func (engine EngineDef) TriggerConfiguredFeatures(symbolgrid [][]int, parameters
 }
 
 func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
-	logger.Debugf("FeatureRound IsV3: %v devmode: %v force: %s", config.GlobalConfig.Server.IsV3(), config.GlobalConfig.DevMode, parameters.Force)
+	logger.Debugf("FeatureRound IsV3: %v name: %s devmode: %v force: %s", config.GlobalConfig.Server.Name, config.GlobalConfig.Server.IsV3(), config.GlobalConfig.DevMode, parameters.Force)
 	if config.GlobalConfig.Server.IsV3() && config.GlobalConfig.DevMode == true && parameters.Force != "" {
 		fp := features.FeatureParams{"force": parameters.Force}
 		filter := fp.GetForce("filter")
