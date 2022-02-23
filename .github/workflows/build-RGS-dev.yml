@@ -7,7 +7,6 @@ on:
       - main
       - master
     paths-ignore:
-      - 'charts/**'
       - '**/.gitignore'
       - '.github/**'
 
