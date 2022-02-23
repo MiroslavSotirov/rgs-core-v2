@@ -13,7 +13,6 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
@@ -34,7 +33,7 @@ func (engine EngineDef) Spin() ([][]int, []int) {
 	}
 	if config.GlobalConfig.DevMode == true && len(engine.force) == len(engine.ViewSize) {
 		stopList = engine.force
-		rgse.Create(rgse.Forcing)
+		//rgse.Create(rgse.Forcing)
 		//logger.Warnf("forcing engine %v", engine.ID)
 	}
 	symbolGrid := GetSymbolGridFromStopList(engine.Reels, engine.ViewSize, stopList)
@@ -1494,8 +1493,8 @@ func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 	if config.GlobalConfig.Server.IsV3() && config.GlobalConfig.DevMode == true && parameters.Force != "" {
 		fp := features.FeatureParams{"force": parameters.Force}
 		filter := fp.GetForce("filter")
-		logger.Debugf("force play using filter: \"%s\"", filter)
 		if filter != "" {
+			logger.Infof("force play using filter: \"%s\"", filter)
 			startTime := time.Now()
 			for true {
 				state := engine.FeatureRoundGen(parameters)
@@ -1505,6 +1504,33 @@ func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 					return state
 				}
 			}
+		}
+		stops := fp.GetForce("stops")
+		if stops != "" {
+			logger.Infof("force play using stoplist: \"%s\"", stops)
+			stopStrs := strings.Split(stops, ",")
+			if len(stopStrs) == len(engine.Reels) {
+				stopList := make([]int, len(engine.Reels))
+				for i, s := range stopStrs {
+					p64, err := strconv.ParseInt(s, 10, 64)
+					p := int(p64)
+					if err != nil {
+						logger.Infof("skipping force due to parse error")
+						return engine.FeatureRoundGen(parameters)
+					} else {
+						if p < 0 {
+							p = rng.RandFromRange(len(engine.Reels[i]))
+						}
+						stopList[i] = p
+					}
+				}
+				forcedEngine := engine
+				forcedEngine.force = stopList
+				return forcedEngine.FeatureRoundGen(parameters)
+			} else {
+				logger.Infof("skipping force due to wrong number of stop values")
+			}
+
 		}
 	}
 	return engine.FeatureRoundGen(parameters)
