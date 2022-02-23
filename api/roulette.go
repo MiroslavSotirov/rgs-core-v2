@@ -341,6 +341,7 @@ func getRouletteResults(
 			BetLimitSettingCode: txStore.BetLimitSettingCode,
 			FreeGames:           store.FreeGamesStore{NoOfFreeSpins: 0, CampaignRef: freeGameRef},
 			Ttl:                 gameState.GetTtl(),
+			History:             txStore.History,
 		}
 		balance, err = TransactionByWallet(token, data.Wallet, tx)
 		if err != nil {
