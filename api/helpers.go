@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
@@ -64,4 +65,21 @@ func PlayerBalance(r *http.Request) (BalanceCheckResponse, rgse.RGSErr) {
 		return BalanceCheckResponse{}, err
 	}
 	return BalanceCheckResponse{Token: balance.Token, BalanceResponseV2: BalanceResponseV2{Amount: balance.Balance, FreeGames: balance.FreeGames.NoOfFreeSpins, FreeSpinInfo: &FreespinResponse{CtRemaining: balance.FreeGames.NoOfFreeSpins, WagerAmt: balance.FreeGames.TotalWagerAmt}}}, nil
+}
+
+func AppendHistory(tx *store.TransactionStore, transaction engine.WalletTransaction) {
+	if tx.Category == store.CategoryClose {
+		tx.History = store.TransactionHistory{}
+		tx.Category = store.Category("")
+	}
+	amount := transaction.Amount.Amount.ValueAsFloat64()
+	switch store.Category(transaction.Type) {
+	case store.CategoryWager:
+		tx.History.NumWager++
+		tx.History.SumWager += amount
+	case store.CategoryPayout:
+		tx.History.NumPayout++
+		tx.History.SumPayout += amount
+	}
+	return
 }

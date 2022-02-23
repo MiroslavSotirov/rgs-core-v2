@@ -293,6 +293,7 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 	logger.Debugf("%v txs", len(gamestate.Transactions))
 	for _, transaction := range gamestate.Transactions {
 		logger.Debugf("%#v", transaction)
+		AppendHistory(&txStore, transaction)
 		gs := store.SerializeGamestateToBytes(gamestate)
 		tx := store.TransactionStore{
 			TransactionId:       transaction.Id,
@@ -309,6 +310,7 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 			BetLimitSettingCode: txStore.BetLimitSettingCode,
 			FreeGames:           store.FreeGamesStore{NoOfFreeSpins: 0, CampaignRef: freeGameRef},
 			Ttl:                 gamestate.GetTtl(),
+			History:             txStore.History,
 		}
 		switch data.Wallet {
 		case "demo":
@@ -388,9 +390,9 @@ func CloseGS(r *http.Request) (err rgse.RGSErr) {
 	ttl := gamestateUnmarshalled.GetTtl()
 	switch data.Wallet {
 	case "demo":
-		_, err = store.ServLocal.CloseRound(token, store.ModeDemo, data.Game, roundId, state, ttl)
+		_, err = store.ServLocal.CloseRound(token, store.ModeDemo, data.Game, roundId, state, ttl, &txStore.History)
 	case "dashur":
-		_, err = store.Serv.CloseRound(token, store.ModeReal, data.Game, roundId, state, ttl)
+		_, err = store.Serv.CloseRound(token, store.ModeReal, data.Game, roundId, state, ttl, nil)
 	}
 	return
 }

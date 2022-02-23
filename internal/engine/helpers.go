@@ -67,6 +67,14 @@ func (num Fixed) ValueAsFloat() float32 {
 	return float32(num) / float32(fixedExp)
 }
 
+func (num Fixed) ValueAsFloat64() float64 {
+	v, err := strconv.ParseFloat(num.ValueAsString(), 64)
+	if err != nil {
+		panic(fmt.Sprintf("could not parse currency value %#v", num))
+	}
+	return v
+}
+
 func (num Fixed) ValueAsString() string {
 	// prints number with max 3 decimal places
 	// this value is chosen due to the minimum currency value we support (3 decimal places)

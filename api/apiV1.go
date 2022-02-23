@@ -268,6 +268,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 	var balance store.BalanceStore
 	token := txStore.Token
 	for _, transaction := range gamestate.Transactions {
+		AppendHistory(&txStore, transaction)
 		gs := store.SerializeGamestateToBytes(gamestate)
 		status := store.RoundStatusOpen
 		tx := store.TransactionStore{
@@ -285,6 +286,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 			BetLimitSettingCode: txStore.BetLimitSettingCode,
 			FreeGames:           store.FreeGamesStore{NoOfFreeSpins: 0, CampaignRef: freeGameRef},
 			Ttl:                 gamestate.GetTtl(),
+			History:             txStore.History,
 		}
 		switch wallet {
 		case "demo":

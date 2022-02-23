@@ -8,7 +8,6 @@ import (
 	"hash/crc32"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -105,6 +104,17 @@ type (
 		FreeGames           FreeGamesStore
 		WalletStatus        int
 		Ttl                 int64
+		History             TransactionHistory
+	}
+
+	TransactionHistory struct {
+		NumWager        int
+		SumWager        float64
+		NumPayout       int
+		SumPayout       float64
+		NumRefund       int
+		SumRefundCredit float64
+		SumRefundDebit  float64
 	}
 
 	FreeGamesStore struct {
@@ -181,7 +191,7 @@ type (
 		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgse.RGSErr)
 
 		// close round.
-		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64) (BalanceStore, rgse.RGSErr)
+		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64, history *TransactionHistory) (BalanceStore, rgse.RGSErr)
 
 		//// gamestate by id
 		//GamestateById(gamestateId string) (GameStateStore, *Error)
@@ -212,7 +222,7 @@ type (
 		BalanceByToken(token Token, mode Mode) (BalanceStore, rgse.RGSErr)
 		Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, rgse.RGSErr)
 		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgse.RGSErr)
-		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64) (BalanceStore, rgse.RGSErr)
+		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64, history *TransactionHistory) (BalanceStore, rgse.RGSErr)
 		GamestateById(gamestateId string) (GameStateStore, rgse.RGSErr)
 		SetMessage(playerId string, message string) rgse.RGSErr
 		SetBalance(token Token, amount engine.Money) rgse.RGSErr
@@ -1119,6 +1129,7 @@ func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId st
 		FreeGames:           player.FreeGames,
 		WalletStatus:        1,
 		Ttl:                 transaction.Ttl,
+		History:             transaction.History,
 	}, nil
 }
 
@@ -1254,7 +1265,7 @@ func (i *RemoteServiceImpl) restFeedRoundResponse(response *http.Response) restF
 	return data
 }
 
-func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64) (BalanceStore, rgse.RGSErr) {
+func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64, history *TransactionHistory) (BalanceStore, rgse.RGSErr) {
 	// Used in clientstate call
 	playerId, _ := i.getToken(token)
 	player, _ := i.getPlayer(playerId)
@@ -1277,6 +1288,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 		GameState:           gamestate,
 		FreeGames:           player.FreeGames,
 		Ttl:                 ttl,
+		History:             *history,
 	})
 
 	if err != nil {
@@ -1288,7 +1300,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 	return balance, nil
 }
 
-func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64) (BalanceStore, rgse.RGSErr) {
+func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64, _ *TransactionHistory) (BalanceStore, rgse.RGSErr) {
 	// Used in clientstate call
 	closeRound := true
 
@@ -1629,24 +1641,11 @@ func (i *LocalServiceImpl) Feed(token Token, mode Mode, gameId, startTime string
 							StateV3: stateV3,
 						},
 					},
+					NumWager:  ts.History.NumWager,
+					SumWager:  ts.History.SumWager,
+					NumPayout: ts.History.NumPayout,
+					SumPayout: ts.History.SumPayout,
 				}
-			}
-			amount, _ := strconv.ParseFloat(ts.Amount.Amount.ValueAsString(), 64)
-			switch ts.Category {
-			case CategoryWager:
-				round.NumWager++
-				round.SumWager += amount
-				break
-			case CategoryPayout:
-				round.NumPayout++
-				round.SumPayout += amount
-				break
-			case CategoryRefund:
-				round.NumRefund++
-				round.SumRefundCredit += amount
-				break
-			default: // case CategoryClose:
-				break
 			}
 		}
 
@@ -1710,7 +1709,7 @@ func (i *LocalServiceImpl) FeedRound(token Token, mode Mode, gameId string, tran
 		state, stateV3, _ := DeserializeGamestate(gameId, ts.GameState)
 
 		if state.RoundID == roundId {
-			amount, _ := strconv.ParseFloat(ts.Amount.Amount.ValueAsString(), 64)
+			amount := ts.Amount.Amount.ValueAsFloat64()
 			feed := FeedTransaction{
 				Id:           hashString(ts.TransactionId),
 				Category:     string(ts.Category),

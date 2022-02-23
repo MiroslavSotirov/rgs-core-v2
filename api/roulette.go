@@ -323,17 +323,18 @@ func getRouletteResults(
 	logger.Debugf("processing state: %#v", gameState)
 	stateBytes := game.SerializeState(&gameState) // gameState.Serialize()
 	token := txStore.Token
-	for _, t := range gameState.Transactions {
-		logger.Debugf("performing transaction %#v", t)
+	for _, transaction := range gameState.Transactions {
+		logger.Debugf("performing transaction %#v", transaction)
+		AppendHistory(&txStore, transaction)
 		tx := store.TransactionStore{
-			TransactionId:       t.Id,
+			TransactionId:       transaction.Id,
 			Token:               token,
-			Category:            store.Category(t.Type),
+			Category:            store.Category(transaction.Type),
 			RoundStatus:         store.RoundStatusOpen,
 			PlayerId:            txStore.PlayerId,
 			GameId:              data.Game,
 			RoundId:             gameState.RoundId,
-			Amount:              t.Amount,
+			Amount:              transaction.Amount,
 			ParentTransactionId: "",
 			TxTime:              time.Now(),
 			GameState:           stateBytes,

@@ -412,7 +412,7 @@ func closeV3(request *http.Request) rgse.RGSErr {
 	}
 	serializedState := gameV3.SerializeState(istate) // istate.Serialize()
 
-	CloseByWallet(token, data.Wallet, data.Game, roundId, serializedState)
+	CloseByWallet(token, data.Wallet, data.Game, roundId, serializedState, &txStore.History)
 
 	return nil
 }
@@ -511,13 +511,13 @@ func TransactionByWalletAndGame(token store.Token, wallet string, game string) (
 	return
 }
 
-func CloseByWallet(token store.Token, wallet string, game string, roundId string, serializedState []byte) (rgserr rgse.RGSErr) {
+func CloseByWallet(token store.Token, wallet string, game string, roundId string, serializedState []byte, history *store.TransactionHistory) (rgserr rgse.RGSErr) {
 	logger.Debugf("CloseByWallet token=%s, wallet=%s, game=%s, serializedState len=%d", string(token), wallet, game, len(serializedState))
 	switch wallet {
 	case "demo":
-		_, rgserr = store.ServLocal.CloseRound(token, store.ModeDemo, game, roundId, serializedState, 3600)
+		_, rgserr = store.ServLocal.CloseRound(token, store.ModeDemo, game, roundId, serializedState, 3600, history)
 	case "dashur":
-		_, rgserr = store.Serv.CloseRound(token, store.ModeReal, game, roundId, serializedState, 3600)
+		_, rgserr = store.Serv.CloseRound(token, store.ModeReal, game, roundId, serializedState, 3600, nil)
 	}
 	logger.Debugf("CloseByWallet done")
 	return
