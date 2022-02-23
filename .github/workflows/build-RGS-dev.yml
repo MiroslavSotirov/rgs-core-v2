@@ -7,6 +7,7 @@ on:
       - main
       - master
     paths-ignore:
+      - 'charts/rgs-v2/Chart.yaml'
       - '**/.gitignore'
       - '.github/**'
 
