@@ -13,6 +13,7 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
@@ -1490,48 +1491,56 @@ func (engine EngineDef) TriggerConfiguredFeatures(symbolgrid [][]int, parameters
 }
 
 func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
-	logger.Debugf("FeatureRound IsV3: %v name: \"%s\" devmode: %v force: %s", config.GlobalConfig.Server.IsV3(), config.GlobalConfig.Server.Name, config.GlobalConfig.DevMode, parameters.Force)
-	if config.GlobalConfig.Server.IsV3() && config.GlobalConfig.DevMode == true && parameters.Force != "" {
-		fp := features.FeatureParams{"force": parameters.Force}
-		filter := fp.GetForce("filter")
-		if filter != "" {
-			logger.Infof("force play using filter: \"%s\"", filter)
-			startTime := time.Now()
-			for true {
-				state := engine.FeatureRoundGen(parameters)
-				js, err := json.Marshal(state)
-				elapsed := time.Now().Sub(startTime)
-				if err != nil || elapsed > 100000000 || strings.Contains(string(js), filter) {
-					return state
-				}
-			}
-		}
-		stops := fp.GetForce("stops")
-		if stops != "" {
-			logger.Infof("force play using stoplist: \"%s\"", stops)
-			stopStrs := strings.Split(stops, ",")
-			if len(stopStrs) == len(engine.Reels) {
-				stopList := make([]int, len(engine.Reels))
-				for i, s := range stopStrs {
-					p64, err := strconv.ParseInt(s, 10, 64)
-					p := int(p64)
-					if err != nil {
-						logger.Infof("skipping force due to parse error")
-						return engine.FeatureRoundGen(parameters)
-					} else {
-						if p < 0 {
-							p = rng.RandFromRange(len(engine.Reels[i]))
+	if parameters.Force != "" {
+		logger.Debugf("FeatureRound devmode: %v force: %s IsV3: %v", config.GlobalConfig.DevMode, parameters.Force, config.GlobalConfig.Server.IsV3())
+		if config.GlobalConfig.DevMode == true {
+			fp := features.FeatureParams{"force": parameters.Force}
+			filter := fp.GetForce("filter")
+			stops := fp.GetForce("stops")
+			if filter != "" {
+				if config.GlobalConfig.Server.IsV3() {
+					logger.Infof("force play using filter: \"%s\"", filter)
+					startTime := time.Now()
+					for true {
+						state := engine.FeatureRoundGen(parameters)
+						js, err := json.Marshal(state)
+						elapsed := time.Now().Sub(startTime)
+						if err != nil || elapsed > 100000000 || strings.Contains(string(js), filter) {
+							return state
 						}
-						stopList[i] = p
 					}
+				} else {
+					logger.Infof("attempted filter force on a non V3 server configuration")
+					rgse.Create(rgse.Forcing)
 				}
-				forcedEngine := engine
-				forcedEngine.force = stopList
-				return forcedEngine.FeatureRoundGen(parameters)
-			} else {
-				logger.Infof("skipping force due to wrong number of stop values")
+			} else if stops != "" {
+				logger.Infof("force play using stoplist: \"%s\"", stops)
+				stopStrs := strings.Split(stops, ",")
+				if len(stopStrs) == len(engine.Reels) {
+					stopList := make([]int, len(engine.Reels))
+					for i, s := range stopStrs {
+						p64, err := strconv.ParseInt(s, 10, 64)
+						p := int(p64)
+						if err != nil {
+							logger.Infof("skipping force due to parse error")
+							return engine.FeatureRoundGen(parameters)
+						} else {
+							if p < 0 {
+								p = rng.RandFromRange(len(engine.Reels[i]))
+							}
+							stopList[i] = p
+						}
+					}
+					forcedEngine := engine
+					forcedEngine.force = stopList
+					return forcedEngine.FeatureRoundGen(parameters)
+				} else {
+					logger.Infof("skipping force due to wrong number of stop values")
+				}
 			}
-
+		} else {
+			logger.Infof("attempted force on a non devmode server configuration")
+			rgse.Create(rgse.Forcing)
 		}
 	}
 	return engine.FeatureRoundGen(parameters)
