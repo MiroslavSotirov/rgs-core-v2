@@ -25,6 +25,7 @@ data:
     server:
       host: {{ .Values.config.server.host }}
       port: {{ .Values.config.server.port }}
+      name: {{ .Values.config.server.name }}
     
     sentryDsn: "https://9e9385a737394a4ead1619bc53bcce81@o422612.ingest.sentry.io/5351538"
 
