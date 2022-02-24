@@ -40,6 +40,8 @@ data:
 
     demotokenprefix: {{ .Values.config.demotokenprefix }}
     democurrency: {{ .Values.config.democurrency }}
+    datalimit: {{ .Values.config.datalimit }}
+    localdatattl: {{ .Values.config.localdatattl }}
   gameConfig.yml: |
     {{- range $i, $engine := .Values.gameConfig }}
     - engineID: {{ $engine.engineID }}
