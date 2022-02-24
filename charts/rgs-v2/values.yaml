@@ -100,7 +100,7 @@ config:
   server:
     host: "0.0.0.0"
     port: 3000
-    name: elysium
+    name: elysiumtest
   storeurl: "https://gnrc-api.dashur.io/v1/gnrc/maverick"
   storeappid: "VrCLq4UqYBf39rJt"
   storeapppass: "V6Kg9muzJxsz3nWFvJeyccU7"
