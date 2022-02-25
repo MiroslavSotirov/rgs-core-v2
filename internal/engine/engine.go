@@ -33,6 +33,7 @@ func (engine EngineDef) Spin() ([][]int, []int) {
 		stopList[index] = reelIndex
 	}
 	if config.GlobalConfig.DevMode == true && len(engine.force) == len(engine.ViewSize) {
+		logger.Infof("spin using forced stoplist: %v", engine.force)
 		stopList = engine.force
 		//rgse.Create(rgse.Forcing)
 		//logger.Warnf("forcing engine %v", engine.ID)
@@ -1514,22 +1515,25 @@ func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 					rgse.Create(rgse.Forcing)
 				}
 			} else if stops != "" {
-				logger.Infof("force play using stoplist: \"%s\"", stops)
+				logger.Infof("force play using stops: \"%s\"", stops)
 				stopStrs := strings.Split(stops, ",")
 				if len(stopStrs) == len(engine.Reels) {
 					stopList := make([]int, len(engine.Reels))
 					for i, s := range stopStrs {
-						p64, err := strconv.ParseInt(s, 10, 64)
-						p := int(p64)
-						if err != nil {
-							logger.Infof("skipping force due to parse error")
-							return engine.FeatureRoundGen(parameters)
-						} else {
-							if p < 0 {
-								p = rng.RandFromRange(len(engine.Reels[i]))
+						rl := len(engine.Reels[i])
+						p := rng.RandFromRange(rl)
+						if s != "" {
+							p64, err := strconv.ParseInt(s, 10, 64)
+							if err != nil {
+								logger.Infof("skipping force due to parse error")
+								return engine.FeatureRoundGen(parameters)
 							}
-							stopList[i] = p
+							p = int(p64) % rl
+							if p < 0 {
+								p += rl
+							}
 						}
+						stopList[i] = p
 					}
 					forcedEngine := engine
 					forcedEngine.force = stopList
