@@ -633,6 +633,7 @@ func (i *RemoteServiceImpl) errorJson(err error) rgse.RGSErr {
 
 func (i *RemoteServiceImpl) errorRest(err error) rgse.RGSErr {
 	if err != nil {
+		logger.Debugf("rest error: %v", err)
 		return rgse.Create(rgse.RestError)
 	}
 	return nil
