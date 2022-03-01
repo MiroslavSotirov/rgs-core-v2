@@ -102,7 +102,7 @@ config:
     port: 3000
     name: elysium
 #  storeurl: "http://gnrc-integ.dashur-integ/v1/gnrc/maverick"
-  storeurl: "http://gnrc-api.maverick-ops.com/v1/gnrc/maverick"
+  storeurl: "http://gnrc-api.maverick-ops.com"
   storeappid: "HAAJ6njttH"
   storeapppass: "WKXUZWTzNzvmTqYxiHnH9hKc"
   defaultlanguage: "en"
