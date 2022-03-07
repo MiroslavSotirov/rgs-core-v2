@@ -229,6 +229,7 @@ func (config EngineConfig) getEngineAndMethodInternal(action string, exception b
 			}
 		}
 	}
+	logger.Debugf("method selected: %s", selectedEngine.Function)
 	return reflect.ValueOf(selectedEngine).MethodByName(selectedEngine.Function), nil
 }
 

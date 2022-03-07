@@ -200,6 +200,7 @@ message GamestatePB {
   FOX_TALE=52;
   DRAGON_ROULETTE=53;
   SPIRIT_HUNTERS=54;
+  WIZARDZ_WORLD=55;
   }
   GameID game_id = 1;
   int32 engine_def = 2;

@@ -649,14 +649,17 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 		parameters.previousGamestate = previousGamestate
 		parameters.SelectedWinLines = previousGamestate.SelectedWinLines
 	}
+	parameters.previousGamestate.Features = previousGamestate.Features
 
 	var method reflect.Value
 	switch parameters.Action {
 	case "cascade":
 		// action must be performed on the same engine as previous round
+		logger.Debugf("cascade method selected: %s", engineConf.EngineDefs[previousGamestate.DefID].Function)
 		method = reflect.ValueOf(engineConf.EngineDefs[previousGamestate.DefID]).MethodByName(engineConf.EngineDefs[previousGamestate.DefID].Function)
 	case "respin":
 		// action must be performed on the same engine as previous round, but method will always be respin
+		logger.Debugf("respin method selected: %s", engineConf.EngineDefs[previousGamestate.DefID].Respin)
 		method = reflect.ValueOf(engineConf.EngineDefs[previousGamestate.DefID].Respin)
 	//case "gamble":
 	//	// action must be performed on the gamble engine
@@ -1459,39 +1462,100 @@ func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
 	return gamestate
 }
 
-func (engine EngineDef) TriggerConfiguredFeatures(symbolgrid [][]int, parameters GameParams) features.FeatureState {
-	var featurestate features.FeatureState
-	featurestate.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
-	gridw, gridh := len(symbolgrid), len(symbolgrid[0])
-	featurestate.SourceGrid = symbolgrid
-	featurestate.SymbolGrid = make([][]int, gridw)
-	grid := make([]int, gridw*gridh)
-	for i := range featurestate.SymbolGrid {
-		featurestate.SymbolGrid[i], grid = grid[:gridh], grid[gridh:]
-		for j := range featurestate.SymbolGrid[i] {
-			featurestate.SymbolGrid[i][j] = symbolgrid[i][j]
-		}
-	}
-	for _, featuredef := range engine.Features {
-		feature := features.MakeFeature(featuredef.Type)
-		if feature == nil {
-			logger.Errorf("misconfigured engine: %v, unknown feature %s", engine.ID, featuredef.Type)
-			return features.FeatureState{}
-		}
-		feature.Init(featuredef)
-		featureparams := features.FeatureParams{
-			"Engine": engine.ID,
-		}
-		if config.GlobalConfig.DevMode == true && parameters.Force != "" {
-			logger.Debugf("trigger configured features using force %s", parameters.Force)
-			featureparams["force"] = parameters.Force
-		}
-		feature.Trigger(&featurestate, featureparams)
-	}
-	return featurestate
+type GenerateRound interface {
+	ForceRound(EngineDef, GameParams) Gamestate
+	FeatureRound(EngineDef, GameParams) Gamestate
+	TriggerFeatures(EngineDef, [][]int, GameParams) features.FeatureState
 }
 
-func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
+type GenerateFeatureRound struct {
+}
+
+func (gen GenerateFeatureRound) ForceRound(engine EngineDef, parameters GameParams) Gamestate {
+	return genForcedRound(gen, engine, parameters)
+}
+
+func (gen GenerateFeatureRound) FeatureRound(engine EngineDef, parameters GameParams) Gamestate {
+	return genFeatureRound(gen, engine, parameters)
+}
+
+func (gen GenerateFeatureRound) TriggerFeatures(engine EngineDef, symbolgrid [][]int, parameters GameParams) features.FeatureState {
+	return triggerConfiguredFeatures(engine, symbolgrid, parameters)
+}
+
+type GenerateStatefulRound struct {
+}
+
+func (gen GenerateStatefulRound) ForceRound(engine EngineDef, parameters GameParams) Gamestate {
+	return genForcedRound(gen, engine, parameters)
+}
+
+func (gen GenerateStatefulRound) FeatureRound(engine EngineDef, parameters GameParams) Gamestate {
+	return genFeatureRound(gen, engine, parameters)
+}
+
+func (gen GenerateStatefulRound) TriggerFeatures(engine EngineDef, symbolgrid [][]int, parameters GameParams) features.FeatureState {
+	return triggerStatefulFeatures(engine, symbolgrid, parameters)
+}
+
+func triggerFeatures(engine EngineDef, fs *features.FeatureState, parameters GameParams) error {
+	featureparams := features.FeatureParams{
+		"Engine": engine.ID,
+	}
+	if config.GlobalConfig.DevMode == true && parameters.Force != "" {
+		logger.Debugf("trigger configured features using force %s", parameters.Force)
+		featureparams["force"] = parameters.Force
+	}
+	featuredef := features.FeatureDef{Features: engine.Features}
+	features.ActivateFeatures(featuredef, fs, featureparams)
+
+	/*
+		for _, featuredef := range engine.Features {
+			feature := features.MakeFeature(featuredef.Type)
+			if feature == nil {
+				return fmt.Errorf("misconfigured engine: %v, unknown feature %s", engine.ID, featuredef.Type)
+			}
+			feature.Init(featuredef)
+			featureparams := features.FeatureParams{
+				"Engine": engine.ID,
+			}
+			if config.GlobalConfig.DevMode == true && parameters.Force != "" {
+				logger.Debugf("trigger configured features using force %s", parameters.Force)
+				featureparams["force"] = parameters.Force
+			}
+			feature.Trigger(fs, featureparams)
+		}
+	*/
+	return nil
+}
+
+func triggerConfiguredFeatures(engine EngineDef, symbolgrid [][]int, parameters GameParams) features.FeatureState {
+	logger.Debugf("Trigger configured features")
+	var fs features.FeatureState
+	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
+	fs.SetGrid(symbolgrid)
+	if err := triggerFeatures(engine, &fs, parameters); err != nil {
+		logger.Errorf("%v", err)
+		return features.FeatureState{}
+	}
+	return fs
+}
+
+func triggerStatefulFeatures(engine EngineDef, symbolgrid [][]int, parameters GameParams) features.FeatureState {
+	logger.Debugf("Trigger stateful from previous features %#v", parameters.previousGamestate.Features)
+	var fs, prevfs features.FeatureState
+	prevfs.Features = parameters.previousGamestate.Features
+	fs.Stateful = &prevfs
+	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
+	fs.SetGrid(symbolgrid)
+	if err := triggerFeatures(engine, &fs, parameters); err != nil {
+		logger.Errorf("%v", err)
+		return features.FeatureState{}
+	}
+	return fs
+}
+
+func genForcedRound(gen GenerateRound, engine EngineDef, parameters GameParams) Gamestate {
 	if parameters.Force != "" {
 		logger.Debugf("FeatureRound devmode: %v force: %s IsV3: %v", config.GlobalConfig.DevMode, parameters.Force, config.GlobalConfig.Server.IsV3())
 		if config.GlobalConfig.DevMode == true {
@@ -1503,10 +1567,19 @@ func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 					logger.Infof("force play using filter: \"%s\"", filter)
 					startTime := time.Now()
 					for true {
-						state := engine.FeatureRoundGen(parameters)
+						state := gen.FeatureRound(engine, parameters) // engine.FeatureRoundGen(parameters)
 						js, err := json.Marshal(state)
 						elapsed := time.Now().Sub(startTime)
-						if err != nil || elapsed > 100000000 || strings.Contains(string(js), filter) {
+						if err != nil {
+							logger.Errorf("filter halted due to error %v", err)
+							return state
+						}
+						if elapsed > 100000000 {
+							logger.Warnf("filter halted due to timeout")
+							return state
+						}
+						if strings.Contains(string(js), filter) {
+							logger.Infof("filter force was satisfied")
 							return state
 						}
 					}
@@ -1526,7 +1599,7 @@ func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 							p64, err := strconv.ParseInt(s, 10, 64)
 							if err != nil {
 								logger.Infof("skipping force due to parse error")
-								return engine.FeatureRoundGen(parameters)
+								return gen.FeatureRound(engine, parameters) // engine.FeatureRoundGen(parameters)
 							}
 							p = int(p64) % rl
 							if p < 0 {
@@ -1537,7 +1610,7 @@ func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 					}
 					forcedEngine := engine
 					forcedEngine.force = stopList
-					return forcedEngine.FeatureRoundGen(parameters)
+					return gen.FeatureRound(forcedEngine, parameters) // forcedEngine.FeatureRoundGen(parameters)
 				} else {
 					logger.Infof("skipping force due to wrong number of stop values")
 				}
@@ -1547,10 +1620,10 @@ func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 			rgse.Create(rgse.Forcing)
 		}
 	}
-	return engine.FeatureRoundGen(parameters)
+	return gen.FeatureRound(engine, parameters) // engine.FeatureRoundGen(parameters)
 }
 
-func (engine EngineDef) FeatureRoundGen(parameters GameParams) Gamestate {
+func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams) Gamestate {
 	// the base gameplay round
 	// uses round multiplier if included
 	// no dynamic reel calculation
@@ -1564,7 +1637,7 @@ func (engine EngineDef) FeatureRoundGen(parameters GameParams) Gamestate {
 	// replace any symbols with sticky wilds
 	symbolGrid = engine.addStickyWilds(parameters.previousGamestate, symbolGrid)
 
-	featurestate := engine.TriggerConfiguredFeatures(symbolGrid, parameters)
+	featurestate := gen.TriggerFeatures(engine, symbolGrid, parameters)
 	logger.Debugf("symbolGrid= %v featureGrid= %v", symbolGrid, featurestate.SymbolGrid)
 
 	wins, relativePayout := engine.DetermineWins(featurestate.SymbolGrid)
@@ -1625,6 +1698,14 @@ func (engine EngineDef) FeatureRoundGen(parameters GameParams) Gamestate {
 		FeatureView:      featurestate.SymbolGrid}
 
 	return gamestate
+}
+
+func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
+	return GenerateFeatureRound{}.ForceRound(engine, parameters)
+}
+
+func (engine EngineDef) StatefulRound(parameters GameParams) Gamestate {
+	return GenerateStatefulRound{}.ForceRound(engine, parameters)
 }
 
 func (engine EngineDef) InitRound(parameters GameParams) (state Gamestate) {

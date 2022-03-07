@@ -26,7 +26,9 @@ func deserializeInt(in interface{}) (val int64, ok bool) {
 	case int64:
 		val, ok = in.(int64), true
 	default:
-		val, ok = 0, false
+		var fval float64
+		fval, ok = deserializeFloat(in)
+		val = int64(fval)
 	}
 	return
 }
@@ -44,7 +46,9 @@ func deserializeUint(in interface{}) (val uint64, ok bool) {
 	case uint64:
 		val, ok = in.(uint64), true
 	default:
-		val, ok = 0, false
+		var fval float64
+		fval, ok = deserializeFloat(in)
+		val = uint64(fval)
 	}
 	return
 }
@@ -197,6 +201,14 @@ func convertIntSlice(in interface{}) []int {
 	return val
 }
 
+func convertMap(in interface{}) map[string]interface{} {
+	val, ok := in.(map[string]interface{})
+	if !ok {
+		panic("not a map[string]interface{} type")
+	}
+	return val
+}
+
 func paramconvertpanic(name string) {
 	if x := recover(); x != nil {
 		panic(fmt.Errorf("param %s is %s", name, x))
@@ -299,6 +311,11 @@ func (p FeatureParams) GetBool(name string) bool {
 func (p FeatureParams) GetIntSlice(name string) []int {
 	defer paramconvertpanic(name)
 	return convertIntSlice(p.Get(name))
+}
+
+func (p FeatureParams) GetParams(name string) FeatureParams {
+	defer paramconvertpanic(name)
+	return convertMap(p.Get(name))
 }
 
 // get a specific force from a list of space separated forces [force:value] or [forceflag]

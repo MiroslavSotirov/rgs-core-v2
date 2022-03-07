@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 type FeatureDef struct {
@@ -19,6 +21,20 @@ type FeatureState struct {
 	Features   []Feature
 	Wins       []FeatureWin
 	TotalStake float64
+	Stateful   *FeatureState
+}
+
+func (fs *FeatureState) SetGrid(symbolgrid [][]int) {
+	gridw, gridh := len(symbolgrid), len(symbolgrid[0])
+	fs.SourceGrid = symbolgrid
+	fs.SymbolGrid = make([][]int, gridw)
+	grid := make([]int, gridw*gridh)
+	for i := range fs.SymbolGrid {
+		fs.SymbolGrid[i], grid = grid[:gridh], grid[gridh:]
+		for j := range fs.SymbolGrid[i] {
+			fs.SymbolGrid[i][j] = symbolgrid[i][j]
+		}
+	}
 }
 
 type FeatureWin struct {
@@ -42,6 +58,7 @@ type EnabledFeatureSet struct {
 	_ FatTile
 	_ InstaWin
 	_ ReplaceTile
+	_ StatefulMap
 	_ TriggerFoxTale
 	_ TriggerFoxTaleBonus
 	_ TriggerFoxTaleWild
@@ -51,6 +68,11 @@ type EnabledFeatureSet struct {
 	_ TriggerSupaCrewActionSymbol
 	_ TriggerSupaCrewSuperSymbol
 	_ TriggerSupaCrewMultiSymbol
+	_ TriggerWizardzWorld
+	_ TriggerWizardzWorldBonus
+	_ TriggerWeightedRandom
+	_ TriggerWeightedPayout
+	_ TriggerFatTile
 }
 
 func MakeFeature(typename string) Feature {
@@ -63,6 +85,19 @@ func MakeFeature(typename string) Feature {
 		return nil
 	}
 	return feature
+}
+
+func FindFeature(typename string, features []Feature) Feature {
+	for _, f := range features {
+		if f.DefPtr().Type == typename {
+			return f
+		}
+	}
+	return nil
+}
+
+func ActivateFeatures(def FeatureDef, state *FeatureState, params FeatureParams) {
+	activateFeatures(def, state, params)
 }
 
 //func GetTypeName(f Feature) string {
@@ -100,12 +135,37 @@ func mergeParams(p1 FeatureParams, p2 FeatureParams) (p FeatureParams) {
 	return
 }
 
+func collateParams(p1 FeatureParams, p2 FeatureParams) (p FeatureParams) {
+	for k, v := range mergeParams(p2, p1) {
+		p2[k] = v
+	}
+	return p2
+}
+
+type FilterFunc func(int, FeatureDef, *FeatureState, FeatureParams) bool
+
 func activateFeatures(def FeatureDef, state *FeatureState, params FeatureParams) {
-	for _, featuredef := range def.Features {
-		feature := MakeFeature(featuredef.Type)
-		feature.Init(featuredef)
-		feature.Trigger(state, mergeParams(featuredef.Params, params))
-		// TODO: a mode could control how features should be collated
+	all := func(i int, d FeatureDef, s *FeatureState, p FeatureParams) bool { return true }
+	activateFilteredFeatures(def, state, params, all)
+}
+
+func activateFilteredFeatures(def FeatureDef, state *FeatureState, params FeatureParams, filter FilterFunc) {
+	collate := params.HasKey("Collated") && params.GetBool("Collated")
+	for i, featuredef := range def.Features {
+		if filter(i, featuredef, state, params) {
+			logger.Debugf("activate feature %s collated %v", featuredef.Type, collate)
+			feature := MakeFeature(featuredef.Type)
+			if feature == nil {
+				logger.Errorf("feature %s is not registred", featuredef.Type)
+				continue
+			}
+			feature.Init(featuredef)
+			if collate {
+				feature.Trigger(state, collateParams(featuredef.Params, params))
+			} else {
+				feature.Trigger(state, mergeParams(featuredef.Params, params))
+			}
+		}
 	}
 }
 
