@@ -205,7 +205,10 @@ gameConfig:
   - engineID: mvgEngineGodot3
     games:
       - spirit-hunters
-      
+  - engineID: mvgEngineGodot4
+    games:
+      - wizardz-world
+
 gamification:
   a-fairy-tale:
     function: Increment
