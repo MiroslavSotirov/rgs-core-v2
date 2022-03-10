@@ -687,10 +687,13 @@ func (gamestate *Gamestate) PostProcess(previousGamestate Gamestate, chargeWager
 	if chargeWager {
 		if totalBet.Currency == "" {
 			sd := engineConf.EngineDefs[0].StakeDivisor
-			if len(gamestate.SelectedWinLines) > 0 {
-				sd = len(gamestate.SelectedWinLines)
+			if !config.GlobalConfig.IsV3() {
+				if len(gamestate.SelectedWinLines) > 0 {
+					sd = len(gamestate.SelectedWinLines)
+				}
 			}
 			totalBet = Money{Amount: betPerLine.Mul(NewFixedFromInt(sd)), Currency: currency}
+			logger.Debugf("totalBet: %v sd: %d StakeDivisor: %d", totalBet, sd, engineConf.EngineDefs[0].StakeDivisor)
 		}
 		gamestate.Transactions = []WalletTransaction{{
 			Id:     previousGamestate.NextGamestate,
@@ -1465,7 +1468,7 @@ func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
 type GenerateRound interface {
 	ForceRound(EngineDef, GameParams) Gamestate
 	FeatureRound(EngineDef, GameParams) Gamestate
-	TriggerFeatures(EngineDef, [][]int, GameParams) features.FeatureState
+	TriggerFeatures(EngineDef, [][]int, []int, GameParams) features.FeatureState
 }
 
 type GenerateFeatureRound struct {
@@ -1479,8 +1482,8 @@ func (gen GenerateFeatureRound) FeatureRound(engine EngineDef, parameters GamePa
 	return genFeatureRound(gen, engine, parameters)
 }
 
-func (gen GenerateFeatureRound) TriggerFeatures(engine EngineDef, symbolgrid [][]int, parameters GameParams) features.FeatureState {
-	return triggerConfiguredFeatures(engine, symbolgrid, parameters)
+func (gen GenerateFeatureRound) TriggerFeatures(engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams) features.FeatureState {
+	return triggerConfiguredFeatures(engine, symbolGrid, stopList, parameters)
 }
 
 type GenerateStatefulRound struct {
@@ -1494,8 +1497,8 @@ func (gen GenerateStatefulRound) FeatureRound(engine EngineDef, parameters GameP
 	return genFeatureRound(gen, engine, parameters)
 }
 
-func (gen GenerateStatefulRound) TriggerFeatures(engine EngineDef, symbolgrid [][]int, parameters GameParams) features.FeatureState {
-	return triggerStatefulFeatures(engine, symbolgrid, parameters)
+func (gen GenerateStatefulRound) TriggerFeatures(engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams) features.FeatureState {
+	return triggerStatefulFeatures(engine, symbolGrid, stopList, parameters)
 }
 
 func triggerFeatures(engine EngineDef, fs *features.FeatureState, parameters GameParams) error {
@@ -1508,32 +1511,16 @@ func triggerFeatures(engine EngineDef, fs *features.FeatureState, parameters Gam
 	}
 	featuredef := features.FeatureDef{Features: engine.Features}
 	features.ActivateFeatures(featuredef, fs, featureparams)
-
-	/*
-		for _, featuredef := range engine.Features {
-			feature := features.MakeFeature(featuredef.Type)
-			if feature == nil {
-				return fmt.Errorf("misconfigured engine: %v, unknown feature %s", engine.ID, featuredef.Type)
-			}
-			feature.Init(featuredef)
-			featureparams := features.FeatureParams{
-				"Engine": engine.ID,
-			}
-			if config.GlobalConfig.DevMode == true && parameters.Force != "" {
-				logger.Debugf("trigger configured features using force %s", parameters.Force)
-				featureparams["force"] = parameters.Force
-			}
-			feature.Trigger(fs, featureparams)
-		}
-	*/
 	return nil
 }
 
-func triggerConfiguredFeatures(engine EngineDef, symbolgrid [][]int, parameters GameParams) features.FeatureState {
+func triggerConfiguredFeatures(engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams) features.FeatureState {
 	logger.Debugf("Trigger configured features")
 	var fs features.FeatureState
 	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
-	fs.SetGrid(symbolgrid)
+	fs.SetGrid(symbolGrid)
+	fs.StopList = stopList
+	fs.Reels = engine.Reels
 	if err := triggerFeatures(engine, &fs, parameters); err != nil {
 		logger.Errorf("%v", err)
 		return features.FeatureState{}
@@ -1541,13 +1528,15 @@ func triggerConfiguredFeatures(engine EngineDef, symbolgrid [][]int, parameters 
 	return fs
 }
 
-func triggerStatefulFeatures(engine EngineDef, symbolgrid [][]int, parameters GameParams) features.FeatureState {
+func triggerStatefulFeatures(engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams) features.FeatureState {
 	logger.Debugf("Trigger stateful from previous features %#v", parameters.previousGamestate.Features)
 	var fs, prevfs features.FeatureState
 	prevfs.Features = parameters.previousGamestate.Features
 	fs.Stateful = &prevfs
 	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
-	fs.SetGrid(symbolgrid)
+	fs.SetGrid(symbolGrid)
+	fs.StopList = stopList
+	fs.Reels = engine.Reels
 	if err := triggerFeatures(engine, &fs, parameters); err != nil {
 		logger.Errorf("%v", err)
 		return features.FeatureState{}
@@ -1637,7 +1626,7 @@ func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams)
 	// replace any symbols with sticky wilds
 	symbolGrid = engine.addStickyWilds(parameters.previousGamestate, symbolGrid)
 
-	featurestate := gen.TriggerFeatures(engine, symbolGrid, parameters)
+	featurestate := gen.TriggerFeatures(engine, symbolGrid, stopList, parameters)
 	logger.Debugf("symbolGrid= %v featureGrid= %v", symbolGrid, featurestate.SymbolGrid)
 
 	wins, relativePayout := engine.DetermineWins(featurestate.SymbolGrid)

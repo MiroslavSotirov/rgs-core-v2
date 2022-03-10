@@ -63,6 +63,7 @@ func (f TriggerWizardzWorldBonus) Trigger(state *FeatureState, params FeaturePar
 	}
 
 	incremented := []int{}
+	amounts := []int{}
 	for i := range counters {
 		tileId := tileIds[i]
 		for _, r := range state.SymbolGrid {
@@ -74,15 +75,32 @@ func (f TriggerWizardzWorldBonus) Trigger(state *FeatureState, params FeaturePar
 				}
 			}
 			if full {
-				incremented = append(incremented, i)
+				if len(incremented) > 0 && incremented[len(incremented)-1] == i {
+					amounts[len(incremented)-1]++
+				} else {
+					incremented = append(incremented, i)
+					amounts = append(amounts, 1)
+				}
+				break
 			}
 		}
 	}
 
-	if len(incremented) > 1 {
-		inudge := rng.RandFromRange(len(incremented))
+	limited := []int{}
+	for i, c := range incremented {
+		if counters[c]+amounts[i] >= limits[i] {
+			limited = append(limited, c)
+		}
+	}
+	logger.Debugf("counters: %v incremented: %v amounts: %v limited: %v", counters, incremented, amounts, limited)
+
+	if len(limited) > 1 {
+		inudge := rng.RandFromRange(len(limited))
 		tileId := tileIds[inudge]
-		for _, r := range state.SymbolGrid {
+		logger.Infof("Nudge on %s (symbol %d) due to both counters reaching limit", counterName(inudge), tileId)
+		logger.Debugf("SourceGrid: %v", state.SourceGrid)
+		logger.Debugf("SymbolGrid: %v", state.SourceGrid)
+		for x, r := range state.SymbolGrid {
 			full := true
 			for _, s := range r {
 				if s != tileId {
@@ -91,42 +109,47 @@ func (f TriggerWizardzWorldBonus) Trigger(state *FeatureState, params FeaturePar
 				}
 			}
 			if full {
-				logger.Warnf("STUB: Nudge when both counters reach limit is not implemented")
-			}
-		}
-	}
+				ofs := []int{-2, -1, 1, 2}[rng.RandFromRange(4)]
+				num := len(state.Reels[x])
+				if ofs < 0 {
+					ofs += len(state.Reels[x])
+				}
+				for y := range r {
+					s := state.Reels[x][(state.StopList[x]+ofs+y)%num]
+					state.SourceGrid[x][y] = s
+					state.SymbolGrid[x][y] = s
 
-	for i := range counters {
-		tileId := tileIds[i]
-		for _, r := range state.SymbolGrid {
-			full := true
-			for _, s := range r {
-				if s != tileId {
-					full = false
-					break
 				}
 			}
-			if full {
-				counters[i]++
+		}
+		idx := 0
+		for i, v := range incremented {
+			if v == inudge {
+				idx = i
+				break
 			}
 		}
-		logger.Debugf("%s is %d", counterName(i), counters[i])
-	}
-
-	actcounter := -1
-	for i := range counters {
-		if counters[i] >= limits[i] {
-			if actcounter < 0 {
-				actcounter = i
-			} else {
-
+		incremented = append(incremented[:idx], incremented[idx+1:]...)
+		amounts = append(amounts[:idx], amounts[idx+1:]...)
+		for i, v := range limited {
+			if v == inudge {
+				idx = i
+				break
 			}
 		}
+		limited = append(limited[:idx], limited[idx+1:]...)
+		logger.Debugf("after nudge. counters: %v incremented: %v amounts: %v limited: %v", counters, incremented, amounts, limited)
 	}
 
-	if actcounter >= 0 {
-		logger.Debugf("activating counter %d with tileId %d", actcounter, tileIds[actcounter])
-		params["TileId"] = tileIds[actcounter]
+	for i, c := range incremented {
+		counters[c] += amounts[i]
+		logger.Debugf("%s is %d after an increase of %d", counterName(c), counters[c], amounts[i])
+	}
+
+	if len(limited) > 0 {
+		c := limited[0]
+		logger.Debugf("activating %s with tileId %d", counterName(c), tileIds[c])
+		params["TileId"] = tileIds[c]
 		activateFeatures(f.FeatureDef, state, params)
 	}
 

@@ -18,6 +18,8 @@ type FeatureDef struct {
 type FeatureState struct {
 	SourceGrid [][]int
 	SymbolGrid [][]int
+	Reels      [][]int
+	StopList   []int
 	Features   []Feature
 	Wins       []FeatureWin
 	TotalStake float64
