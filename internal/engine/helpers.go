@@ -196,6 +196,7 @@ func NewFixedFromInt(num int) Fixed {
 
 type GameParams struct {
 	Stake             Fixed     `json:"stake"`
+	TotalStake        Fixed     `json:"totalStake"`
 	SelectedWinLines  []int     `json:"selectedWinLines"`
 	Selection         string    `json:"selectedFeature"`
 	RespinReel        int       `json:"respinReel"`

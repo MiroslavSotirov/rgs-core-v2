@@ -37,38 +37,38 @@ EngineDefs:
       - [2,1,2,1,2]
       - [2,2,1,0,0]
       - [2,2,2,2,2]   # 20
-    WinConfig:
+    wilds:
+      - symbol: 10
+        multiplier: {multipliers: [1], probabilities: [1]}
     Payouts:
-      - {Symbol: 1, Count: 3, Multiplier: 2}
-      - {Symbol: 1, Count: 4, Multiplier: 4}
-      - {Symbol: 1, Count: 5, Multiplier: 8}
-      - {Symbol: 2, Count: 3, Multiplier: 4}
-      - {Symbol: 2, Count: 4, Multiplier: 8}
-      - {Symbol: 2, Count: 5, Multiplier: 16}
-      - {Symbol: 3, Count: 3, Multiplier: 6}
-      - {Symbol: 3, Count: 4, Multiplier: 12}
-      - {Symbol: 3, Count: 5, Multiplier: 24}
-      - {Symbol: 4, Count: 3, Multiplier: 8}
-      - {Symbol: 4, Count: 4, Multiplier: 16}
-      - {Symbol: 4, Count: 5, Multiplier: 30}
-      - {Symbol: 5, Count: 3, Multiplier: 10}
-      - {Symbol: 5, Count: 4, Multiplier: 20}
-      - {Symbol: 5, Count: 5, Multiplier: 40}
-      - {Symbol: 6, Count: 3, Multiplier: 12}
-      - {Symbol: 6, Count: 4, Multiplier: 24}
-      - {Symbol: 6, Count: 5, Multiplier: 50}
-      - {Symbol: 7, Count: 3, Multiplier: 16}
-      - {Symbol: 7, Count: 4, Multiplier: 30}
-      - {Symbol: 7, Count: 5, Multiplier: 60}
-      - {Symbol: 8, Count: 3, Multiplier: 30}
-      - {Symbol: 8, Count: 4, Multiplier: 60}
-      - {Symbol: 8, Count: 5, Multiplier: 120}
-      - {Symbol: 9, Count: 3, Multiplier: 30}
-      - {Symbol: 9, Count: 4, Multiplier: 600}
-      - {Symbol: 9, Count: 5, Multiplier: 1200}
-      - {Symbol: 10, Count: 3, Multiplier: 0}
-      - {Symbol: 10, Count: 4, Multiplier: 0}
-      - {Symbol: 10, Count: 5, Multiplier: 200}
+      - {Symbol: 1, Count: 3, Multiplier: 1}
+      - {Symbol: 1, Count: 4, Multiplier: 2}
+      - {Symbol: 1, Count: 5, Multiplier: 4}
+      - {Symbol: 2, Count: 3, Multiplier: 2}
+      - {Symbol: 2, Count: 4, Multiplier: 4}
+      - {Symbol: 2, Count: 5, Multiplier: 8}
+      - {Symbol: 3, Count: 3, Multiplier: 3}
+      - {Symbol: 3, Count: 4, Multiplier: 6}
+      - {Symbol: 3, Count: 5, Multiplier: 12}
+      - {Symbol: 4, Count: 3, Multiplier: 4}
+      - {Symbol: 4, Count: 4, Multiplier: 8}
+      - {Symbol: 4, Count: 5, Multiplier: 15}
+      - {Symbol: 5, Count: 3, Multiplier: 5}
+      - {Symbol: 5, Count: 4, Multiplier: 10}
+      - {Symbol: 5, Count: 5, Multiplier: 20}
+      - {Symbol: 6, Count: 3, Multiplier: 6}
+      - {Symbol: 6, Count: 4, Multiplier: 12}
+      - {Symbol: 6, Count: 5, Multiplier: 25}
+      - {Symbol: 7, Count: 3, Multiplier: 8}
+      - {Symbol: 7, Count: 4, Multiplier: 15}
+      - {Symbol: 7, Count: 5, Multiplier: 30}
+      - {Symbol: 8, Count: 3, Multiplier: 15}
+      - {Symbol: 8, Count: 4, Multiplier: 30}
+      - {Symbol: 8, Count: 5, Multiplier: 60}
+      - {Symbol: 9, Count: 3, Multiplier: 15}
+      - {Symbol: 9, Count: 4, Multiplier: 30}
+      - {Symbol: 9, Count: 5, Multiplier: 60}
+      - {Symbol: 10, Count: 5, Multiplier: 100}
     Features:
       - Type: "TriggerWizardzWorld"
         Params:
@@ -88,6 +88,13 @@ EngineDefs:
               H:      3
             Features:
               - Type: "FatTile"
+          - Type: "TriggerFatTile"
+            Params:
+              TileId: 10
+              W:      1
+              H:      3
+            Features:
+              - Type: "FatTile"
           - Type: "TriggerWizardzWorldBonus"
             Params:
               TileIds: [8, 9]
@@ -95,7 +102,7 @@ EngineDefs:
             Features:
               - Type: "TriggerWeightedRandom"
                 Params:
-                  Weights: [1,2]
+                  Weights: [1,1]
                 Features:
                   - Type: "TriggerWeightedPayout"
                     Params:
