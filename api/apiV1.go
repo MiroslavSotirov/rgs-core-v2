@@ -138,9 +138,25 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 			return data, err
 		}
 
+		var sd int
+		if data.Stake > 0 {
+			sd = 1
+		} else {
+			engineID, err := config.GetEngineFromGame(data.Game)
+			if err != nil {
+				return engine.GameParams{}, rgse.Create(rgse.EngineConfigError)
+			}
+			engineConfig := engine.BuildEngineDefs(engineID)
+			sd = engineConfig.EngineDefs[0].StakeDivisor
+			logger.Infof("Validating a total stake of %s", data.TotalStake.ValueAsString())
+			data.Stake = data.TotalStake
+		}
+
 		valid := false
 		for i := 0; i < len(stakeValues); i++ {
-			if data.Stake == stakeValues[i] {
+			validStake := stakeValues[i].Mul(engine.NewFixedFromInt(sd))
+			if data.Stake == validStake {
+				data.Stake = stakeValues[i]
 				valid = true
 				if i == len(stakeValues)-1 && data.Action == "base" {
 					// pass on when max bet is played, only if no action is passed already and game allows it

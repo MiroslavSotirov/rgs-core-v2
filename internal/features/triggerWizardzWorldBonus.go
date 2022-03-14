@@ -81,7 +81,6 @@ func (f TriggerWizardzWorldBonus) Trigger(state *FeatureState, params FeaturePar
 					incremented = append(incremented, i)
 					amounts = append(amounts, 1)
 				}
-				break
 			}
 		}
 	}
@@ -139,6 +138,8 @@ func (f TriggerWizardzWorldBonus) Trigger(state *FeatureState, params FeaturePar
 		}
 		limited = append(limited[:idx], limited[idx+1:]...)
 		logger.Debugf("after nudge. counters: %v incremented: %v amounts: %v limited: %v", counters, incremented, amounts, limited)
+		logger.Debugf("SourceGrid: %v", state.SourceGrid)
+		logger.Debugf("SymbolGrid: %v", state.SourceGrid)
 	}
 
 	for i, c := range incremented {

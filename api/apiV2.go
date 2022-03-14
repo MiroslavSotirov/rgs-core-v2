@@ -111,8 +111,14 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 	if err != nil {
 		return GameInitResponseV2{}, err
 	}
+	sd := engine.NewFixedFromInt(engineConfig.EngineDefs[0].StakeDivisor)
 	giResp.DefaultBet = defaultBet
+	giResp.DefaultTotal = defaultBet.Mul(sd)
 	giResp.StakeValues = stakeValues
+	giResp.TotalStakes = make([]engine.Fixed, len(stakeValues))
+	for i := range giResp.TotalStakes {
+		giResp.TotalStakes[i] = stakeValues[i].Mul(sd)
+	}
 	for i := 0; i < len(stakeValues); i++ {
 		if player.FreeGames.NoOfFreeSpins > 0 && stakeValues[i].Mul(engine.NewFixedFromInt(engineConfig.EngineDefs[0].StakeDivisor)) == player.FreeGames.TotalWagerAmt {
 			giResp.DefaultBet = stakeValues[i]

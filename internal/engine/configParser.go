@@ -221,10 +221,11 @@ func (config EngineConfig) getEngineAndMethodInternal(action string, exception b
 		engineDefThreshold := rng.RandFromRange(sumEngineProbabilities)
 		logger.Debugf("Using Probabilities to Select Engine -- Probability Sum: %v; Threshold: %v", sumEngineProbabilities, engineDefThreshold)
 		engineDefCurrent := -1
-		for _, engine := range matchedEngines {
+		for idx, engine := range matchedEngines {
 			engineDefCurrent += engine.Probability
 			if engineDefCurrent >= engineDefThreshold {
 				selectedEngine = engine
+				logger.Debugf("selecting engine %d", idx)
 				break
 			}
 		}
