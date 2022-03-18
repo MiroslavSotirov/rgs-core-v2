@@ -1534,6 +1534,7 @@ func triggerStatefulFeatures(engine EngineDef, symbolGrid [][]int, stopList []in
 	prevfs.Features = parameters.previousGamestate.Features
 	fs.Stateful = &prevfs
 	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
+	logger.Debugf("total stake: %f", fs.TotalStake)
 	fs.SetGrid(symbolGrid)
 	fs.StopList = stopList
 	fs.Reels = engine.Reels

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
@@ -23,7 +24,7 @@ type GameInitResponseV2 struct {
 	DefaultBet   engine.Fixed                  `json:"defaultBet"`
 	DefaultTotal engine.Fixed                  `json:"defaultTotal"`
 	LastRound    map[string]GameplayResponseV2 `json:"lastRound"`
-	ReelSets     map[string]ReelResponse       `json:"reelSets"` // base, freeSpin, etc. as keys  might want to have this as ReelSetResponse
+	ReelSets     map[string]ReelResponse       `json:"reelSets,omitempty"` // base, freeSpin, etc. as keys  might want to have this as ReelSetResponse
 }
 
 func (gi GameInitResponseV2) Render(w http.ResponseWriter, r *http.Request) error {
@@ -276,10 +277,10 @@ func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance st
 	return resp
 }
 
-func (initResp *GameInitResponseV2) FillEngineInfo(config engine.EngineConfig) {
+func (initResp *GameInitResponseV2) FillEngineInfo(enginecfg engine.EngineConfig) {
 	// todo: this doesn't handle when there are multiple reel sets for a single def (i.e. multiple defs with same ID)
-	reelResp := make(map[string]ReelResponse, len(config.EngineDefs))
-	for i, def := range config.EngineDefs {
+	reelResp := make(map[string]ReelResponse, len(enginecfg.EngineDefs))
+	for i, def := range enginecfg.EngineDefs {
 		var reels ReelResponse
 
 		reels.ID = make([][]int, len(def.ViewSize))
@@ -349,6 +350,8 @@ func (initResp *GameInitResponseV2) FillEngineInfo(config engine.EngineConfig) {
 		}
 		reelResp[label] = reels
 	}
-	initResp.ReelSets = reelResp
+	if !config.GlobalConfig.IsV3() {
+		initResp.ReelSets = reelResp
+	}
 	return
 }
