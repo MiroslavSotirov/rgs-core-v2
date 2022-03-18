@@ -34,22 +34,28 @@ func (f TriggerWizardzWorldBonus) Trigger(state *FeatureState, params FeaturePar
 	counterName := func(idx int) string {
 		return fmt.Sprintf("counter%d", idx+1)
 	}
-
+	var statefulMap FeatureParams = FeatureParams{}
+	stake := fmt.Sprintf("%.3f", state.TotalStake)
 	if state.Stateful != nil {
 		sf := FindFeature("StatefulMap", state.Stateful.Features)
 		if sf != nil {
 			sfmap := sf.(*StatefulMap)
 			if sfmap != nil {
-				reset := false
-				for i := range counters {
-					counters[i] = sfmap.Data.Map.GetInt(counterName(i))
-					if counters[i] >= limits[i] {
-						reset = true
-					}
+				for k, v := range sfmap.Data.Map {
+					statefulMap[k] = v
 				}
-				if reset {
+				if sfmap.Data.Map.HasKey(stake) {
+					reset := false
 					for i := range counters {
-						counters[i] = 0
+						counters[i] = sfmap.Data.Map.GetParams(stake).GetInt(counterName(i))
+						if counters[i] >= limits[i] {
+							reset = true
+						}
+					}
+					if reset {
+						for i := range counters {
+							counters[i] = 0
+						}
 					}
 				}
 			} else {
@@ -154,11 +160,15 @@ func (f TriggerWizardzWorldBonus) Trigger(state *FeatureState, params FeaturePar
 		activateFeatures(f.FeatureDef, state, params)
 	}
 
-	statefulMap := make(map[string]interface{}, len(counters))
+	stakeMap := make(map[string]interface{}, len(counters))
 	for i := range counters {
-		statefulMap[counterName(i)] = counters[i]
+		stakeMap[counterName(i)] = counters[i]
+		stakeMap[fmt.Sprintf("min%d", i+1)] = 0
+		stakeMap[fmt.Sprintf("max%d", i+1)] = limits[i]
 	}
+	statefulMap[stake] = stakeMap
 	params["StatefulMap"] = statefulMap
+	logger.Debugf("statefulMap= %#v", statefulMap)
 
 	return
 }

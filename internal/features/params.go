@@ -3,10 +3,12 @@ package features
 import (
 	"fmt"
 	"net/url"
+	"reflect"
 	"strconv"
 	"strings"
 
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 type FeatureParams map[string]interface{}
@@ -204,7 +206,13 @@ func convertIntSlice(in interface{}) []int {
 func convertMap(in interface{}) map[string]interface{} {
 	val, ok := in.(map[string]interface{})
 	if !ok {
-		panic("not a map[string]interface{} type")
+		var tval FeatureParams
+		tval, ok = in.(FeatureParams)
+		if !ok {
+			logger.Debugf("type: %s", reflect.TypeOf(in).Name())
+			panic("not a map[string]interface{} type")
+		}
+		val = map[string]interface{}(tval)
 	}
 	return val
 }
