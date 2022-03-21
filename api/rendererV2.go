@@ -55,9 +55,23 @@ func (gi VersionResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+func (gi GameHashResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
 // GameLinkResponse ...
 type GameLinkResponse struct {
 	Results []LinkResponse `json:"results"`
+}
+
+type GameHashInfo struct {
+	Id   string
+	Name string
+	Hash string
+}
+
+type GameHashResponse struct {
+	Games []GameHashInfo
 }
 
 type OperatorResponse struct {

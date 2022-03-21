@@ -291,7 +291,27 @@ func Routes() *chi.Mux {
 				return
 			}
 		})
+		r.Get("/gamehashes", func(w http.ResponseWriter, r *http.Request) {
+			gameinfos, err := getGameHashes(r)
+			if err != nil {
+				logger.Errorf("Error initializing game %s", err.Error())
 
+				switch t := err.(type) {
+				default:
+					_ = render.Render(w, r, ErrRender(err))
+				case *rgserror.RGSError:
+					logger.Debugf("%v", t)
+					_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
+
+				}
+				return
+			}
+			if err := render.Render(w, r, gameinfos); err != nil {
+				logger.Errorf("Error rendering game info response %s", err)
+				_ = render.Render(w, r, ErrRender(err))
+				return
+			}
+		})
 		r.Post("/init2", func(w http.ResponseWriter, r *http.Request) {
 			initResp, err := initV2(r)
 			if err != nil {

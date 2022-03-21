@@ -58,6 +58,28 @@ func getGameLink(request *http.Request) GameLinkResponse {
 	return response
 }
 
+func getGameHashes(request *http.Request) (GameHashResponse, rgse.RGSErr) {
+	engineIds, md5strings, _ /* sha1strings */, rgserr := engine.GetHashes()
+	if rgserr != nil {
+		return GameHashResponse{}, rgserr
+	}
+	infos := []GameHashInfo{}
+	for _, c := range config.GlobalGameConfig {
+		for i, e := range engineIds {
+			if strings.Contains(e, c.EngineID) {
+				for _, g := range c.Games {
+					infos = append(infos, GameHashInfo{
+						Id:   e,
+						Name: g,
+						Hash: md5strings[i],
+					})
+				}
+			}
+		}
+	}
+	return GameHashResponse{Games: infos}, nil
+}
+
 func (i *initParams) decode(request *http.Request) rgse.RGSErr {
 	decoder := json.NewDecoder(request.Body)
 	decoderror := decoder.Decode(i)
