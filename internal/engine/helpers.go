@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
@@ -282,12 +283,14 @@ func GetHashes() (IDStrings []string, MD5Strings []string, SHA1Strings []string,
 		SHA1Strings = append(SHA1Strings, sha1hash)
 	}
 	// generate rng hashes
-	logger.Infof("Generating checksums for rng")
-	_, _, err = GetHash(filepath.Join(currentDir, "internal/rng/mt19937.go"))
-	if err != nil {
-		logger.Errorf("error generating checksum for rng: %v", err)
-		rgserr = rgse.Create(rgse.EngineHashError)
-		return
+	if config.GlobalConfig.Local {
+		logger.Infof("Generating checksums for rng")
+		_, _, err = GetHash(filepath.Join(currentDir, "internal/rng/mt19937.go"))
+		if err != nil {
+			logger.Errorf("error generating checksum for rng: %v", err)
+			rgserr = rgse.Create(rgse.EngineHashError)
+			return
+		}
 	}
 	return
 }
