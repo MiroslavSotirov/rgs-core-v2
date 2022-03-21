@@ -33,7 +33,7 @@ func Init(getHashes bool) rgse.RGSErr {
 		MC = memcache.New(config.GlobalConfig.MCRouter)
 	}
 	if getHashes {
-		_, _, err := engine.GetHashes()
+		_, _, _, err := engine.GetHashes()
 		if err != nil {
 			return err
 		}
@@ -94,7 +94,7 @@ func DeserializeGamestateFromBytesLegacy(serialized []byte) engine.Gamestate {
 	// Decode (receive) the value.
 	logger.Debugf("GS %#v", deserializedGS)
 	if err != nil {
-		logger.Errorf("Error deserializing gamestate from bytes: %v", err)
+		logger.Debugf("Error deserializing gamestate from bytes: %v", err)
 		return engine.Gamestate{}
 	}
 	deserializedTX := make([]*engine.WalletTransactionPB, len(data)-1)
