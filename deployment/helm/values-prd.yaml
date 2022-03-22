@@ -120,90 +120,140 @@ config:
 gameConfig:
   - engineID: mvgEngineI
     games:
-      - the-year-of-zhu
-      - cat-thief
-      - lantern-festival
-      - crimson-masquerade
-      - babaks-quest
-      - astro-gems
-      - jungle-saga
-      - wukong-treasures
-      - three-kingdom-shu
+      - name: the-year-of-zhu
+        item: 5124
+      - name: cat-thief
+        item: 5113
+      - name: lantern-festival
+        item: 5131
+      - name: crimson-masquerade
+        item: 5114
+      - name: babaks-quest
+        item: 5110
+      - name: astro-gems
+        item: 5109
+      - name: jungle-saga
+        item: 5116
+      - name: wukong-treasures
+        item: 5128
+      - name: three-kingdom-shu
+        item: 5125
   - engineID: mvgEngineII
     games:
-      - zodiac
-      - street-racer
-      - panda
-      - three-kingdom-wu
-      - candy-girls
-      - bistro
+      - name: zodiac
+        item: 5129
+      - name: street-racer
+        item: 5123
+      - name: panda
+        item: 5118
+      - name: three-kingdom-wu
+        item: 5127
+      - name: candy-girls
+        item: 5112
+      - name: bistro
+        item: 5130
   - engineID: mvgEngineIII
     games:
-      - three-kingdom-wei
-      - king-of-gamblers
-      - a-million-lights
+      - name: three-kingdom-wei
+        item: 5126      
+      - name: king-of-gamblers
+        item: 5117
+      - name: a-million-lights
+        item: 5134
   - engineID: mvgEngineV
     games:
-      - a-fairy-tale
-      - a-candy-girls-christmas
+      - name: a-fairy-tale
+        item: 5104
+      - name: a-candy-girls-christmas
+        item: 5139
   - engineID: mvgEngineVII
     games:
-      - art-of-the-fist
-      - battlemech
-      - a-year-of-laoshu
-      - candy-smash
+      - name: art-of-the-fist
+        item: 5108
+      - name: battlemech
+        item: 5111
+      - name: a-year-of-laoshu
+        item: 5170
+      - name: candy-smash
+        item: 5376
   - engineID: mvgEngineIX
     games:
-      - fruity-verse
-      - a-hidden-forest
-      - daytona
-      - crazy-easter-eggs
+      - name: fruity-verse
+        item: 5115
+      - name: a-hidden-forest
+        item: 5106
+      - name: daytona
+        item: 5171
+      - name: crazy-easter-eggs
+        item: 5445
   - engineID: mvgEngineX
     games:
-      - seasons-winter
-      - seasons-spring
-      - seasons-summer
-      - seasons-autumn
-      - seasons
+      - name: seasons-winter
+        item: 5122
+      - name: seasons-spring
+        item: 5120
+      - name: seasons-summer
+        item: 5121
+      - name: seasons-autumn
+        item: 5119
+      - name: seasons
   - engineID: mvgEngineXII
     games:
-      - cloud9
-      - pearl-fisher
-      - dragon-myst
+      - name: cloud9
+        item: 5132
+      - name: pearl-fisher
+        item: 5136
+      - name: dragon-myst
+        item: 5377
   - engineID: mvgEngineXIII
     games:
-      - sky-jewels
-      - goal
-      - cookoff-champion
-      - drift
+      - name: sky-jewels
+        item: 5135
+      - name: goal
+        item: 5169
+      - name: cookoff-champion
+        item: 5378
+      - name: drift
+        item: 5471
   - engineID: mvgEngineXIV
     games:
-      - valley-of-kings
-      - bangkok-fighter
-      - asuka-x-samurai
-      - battlemech-mars
+      - name: valley-of-kings
+        item: 5494
+      - name: bangkok-fighter
+        item: 5610
+      - name: asuka-x-samurai
+        item: 5613
+      - name: battlemech-mars
+        item: 5721
   - engineID: mvgEngineXI
     games:
-      - mah-jong
+      - name: mah-jong
+        item: 5612
   - engineID: mvgEngineXV
     games:
-      - museum
+      - name: museum
+        item: 5611
   - engineID: mvgEngineXVI
     games:
-      - sparta
+      - name: sparta
+        item: 6199
   - engineID: mvgEngineUnity1
     games:
-      - supa-crew
+      - name: supa-crew
+        item: 7523
   - engineID: mvgEngineGodot2
     games:
-      - fox-tale
+      - name: fox-tale
+        item: 7797
   - engineID: mvgEngineRoulette1
     games:
-      - dragon-roulette
+      - name: dragon-roulette
+        item: 7863
   - engineID: mvgEngineGodot3
     games:
-      - spirit-hunters
-
+      - name: spirit-hunters
+        item: 7985
+      
 gamification:
   a-fairy-tale:
     function: Increment

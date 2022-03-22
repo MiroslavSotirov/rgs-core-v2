@@ -65,9 +65,11 @@ type GameLinkResponse struct {
 }
 
 type GameHashInfo struct {
-	Id   string
-	Name string
-	Hash string
+	ItemId string `json:"item_id"`
+	Name   string `json:"name"`
+	Config string `json:"config"`
+	Md5    string `json:"md5_digest"`
+	Sha1   string `json:"sha1_digest"`
 }
 
 type GameHashResponse struct {

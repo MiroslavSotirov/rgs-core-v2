@@ -1,13 +1,14 @@
 package forceTool
 
 import (
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
+	"gopkg.in/yaml.v3"
 )
 
 type ForceGP struct {
@@ -90,7 +91,7 @@ func ReadGamesEngines() []GamesEngines {
 		for j := 0; j < len(config.GlobalGameConfig[i].Games); j++ {
 			ge = append(ge,
 				GamesEngines{
-					GameName: config.GlobalGameConfig[i].Games[j],
+					GameName: config.GlobalGameConfig[i].Games[j].Name,
 					Engine:   config.GlobalGameConfig[i].EngineID,
 				})
 		}

@@ -3,10 +3,6 @@ package volumeTester
 import (
 	"encoding/csv"
 	"fmt"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"io/ioutil"
 	"log"
 	"math"
@@ -14,6 +10,11 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 type defInfo struct {
@@ -112,7 +113,7 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 		for j := 0; j < chunkSize; j++ {
 			var params engine.GameParams
 			//if strings.Contains(previousGamestate.Action,"freespin") || (j == 0 && i == 0) {
-				params.Action = "base" // change this to maxBase or to any other special function for a particular wallet to see special RTP
+			params.Action = "base" // change this to maxBase or to any other special function for a particular wallet to see special RTP
 			//} else {
 			//	params.Action = "respin"
 			//	params.RespinReel = rng.RandFromRange(5)
@@ -228,7 +229,7 @@ func getMatchingGame(engineID string) string {
 	// function to get a game name that matches the given engine
 	for i := 0; i < len(config.GlobalGameConfig); i++ {
 		if config.GlobalGameConfig[i].EngineID == engineID {
-			return config.GlobalGameConfig[i].Games[0]
+			return config.GlobalGameConfig[i].Games[0].Name
 		}
 	}
 	return ""

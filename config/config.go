@@ -60,8 +60,12 @@ type Config struct {
 
 // Game config structure
 type GameConfig struct {
-	EngineID string   `yaml:"engineID"`
-	Games    []string `yaml:"games"`
+	EngineID string    `yaml:"engineID"`
+	Games    []GameDef `yaml:"games"`
+}
+type GameDef struct {
+	Name string `yaml:"name"`
+	Item string `yaml:"item"`
 }
 
 // ConfigError - forces server to exit for configuration error
@@ -143,7 +147,7 @@ func InitGameConfig() error {
 func GetEngineFromGame(gameName string) (engineID string, err rgse.RGSErr) {
 	for i := 0; i < len(GlobalGameConfig); i++ {
 		for j := 0; j < len(GlobalGameConfig[i].Games); j++ {
-			if GlobalGameConfig[i].Games[j] == gameName {
+			if GlobalGameConfig[i].Games[j].Name == gameName {
 				engineID = GlobalGameConfig[i].EngineID
 				return
 			}
