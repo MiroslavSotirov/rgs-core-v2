@@ -25,6 +25,7 @@ type GameInitResponseV2 struct {
 	DefaultTotal engine.Fixed                  `json:"defaultTotal"`
 	LastRound    map[string]GameplayResponseV2 `json:"lastRound"`
 	ReelSets     map[string]ReelResponse       `json:"reelSets,omitempty"` // base, freeSpin, etc. as keys  might want to have this as ReelSetResponse
+	BetMult      int                           `json:"betMultiplier"`
 }
 
 func (gi GameInitResponseV2) Render(w http.ResponseWriter, r *http.Request) error {
@@ -369,5 +370,11 @@ func (initResp *GameInitResponseV2) FillEngineInfo(enginecfg engine.EngineConfig
 	if !config.GlobalConfig.IsV3() {
 		initResp.ReelSets = reelResp
 	}
+	for k := range reelResp {
+		// per reel bet settings has been disabled, use first definition
+		initResp.BetMult = reelResp[k].BetMult
+		break
+	}
+
 	return
 }
