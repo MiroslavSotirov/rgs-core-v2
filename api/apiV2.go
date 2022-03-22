@@ -63,12 +63,12 @@ func getGameHashes(request *http.Request) (GameHashResponse, rgse.RGSErr) {
 	if rgserr != nil {
 		return GameHashResponse{}, rgserr
 	}
-	infos := []GameHashInfo{}
+	response := GameHashResponse{}
 	for _, c := range config.GlobalGameConfig {
 		for i, e := range engineIds {
 			if strings.Contains(e, c.EngineID) {
 				for _, g := range c.Games {
-					infos = append(infos, GameHashInfo{
+					response = append(response, GameHashInfo{
 						ItemId: g.Item,
 						Name:   g.Name,
 						Config: e,
@@ -79,7 +79,7 @@ func getGameHashes(request *http.Request) (GameHashResponse, rgse.RGSErr) {
 			}
 		}
 	}
-	return GameHashResponse{Games: infos}, nil
+	return response, nil
 }
 
 func (i *initParams) decode(request *http.Request) rgse.RGSErr {

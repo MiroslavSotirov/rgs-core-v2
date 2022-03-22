@@ -73,9 +73,7 @@ type GameHashInfo struct {
 	Sha1   string `json:"sha1_digest"`
 }
 
-type GameHashResponse struct {
-	Games []GameHashInfo
-}
+type GameHashResponse []GameHashInfo
 
 type OperatorResponse struct {
 	StopAutoPlay bool `json:"stopAutoPlay,omitempty"'`
