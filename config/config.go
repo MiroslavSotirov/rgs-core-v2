@@ -99,6 +99,10 @@ func InitConfig() {
 	if err != nil {
 		BadConfigError(err)
 	}
+	err = InitHashes()
+	if err != nil {
+		BadConfigError(err)
+	}
 	////prints configuration
 	logger.Infof("Game Config: %v", GlobalGameConfig)
 }
