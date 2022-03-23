@@ -25,7 +25,8 @@ data:
     server:
       host: {{ .Values.config.server.host }}
       port: {{ .Values.config.server.port }}
-    
+      name: {{ .Values.config.server.name }}
+
     sentryDsn: "https://9e9385a737394a4ead1619bc53bcce81@o422612.ingest.sentry.io/5351538"
 
     # dashur configuration
@@ -39,6 +40,8 @@ data:
 
     demotokenprefix: {{ .Values.config.demotokenprefix }}
     democurrency: {{ .Values.config.democurrency }}
+    datalimit: {{ .Values.config.datalimit }}
+    localdatattl: {{ .Values.config.localdatattl }}
   gameConfig.yml: |
     {{- range $i, $engine := .Values.gameConfig }}
     - engineID: {{ $engine.engineID }}
@@ -56,3 +59,6 @@ data:
       spinsMin: {{ $game.spinsMin }}
       spinsMax: {{ $game.spinsMax }}
     {{- end }}
+  hashes.yml: |
+    {{- $files := .Files }}
+    {{- $files.Get "hashes.yaml" | nindent 4 }}

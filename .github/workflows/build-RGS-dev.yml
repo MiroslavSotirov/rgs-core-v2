@@ -43,6 +43,12 @@ jobs:
           docker login harbor.elysiumstudios.se -u ${{ env.HARBOR_USERNAME }} -p ${{ env.HARBOR_PASSWORD }}
           docker build . -t harbor.elysiumstudios.se/elysium/mvg_rgs:${{ steps.tag.outputs.new_tag }}
           docker push harbor.elysiumstudios.se/elysium/mvg_rgs:${{ steps.tag.outputs.new_tag }}
+      - name: Generate hashes
+        run: |
+          cd config
+          sh genhashes.sh
+          cat hashes.yml
+          cd ..
       - uses: azure/setup-helm@v1
         with:
           version: "3.*"

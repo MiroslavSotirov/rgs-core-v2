@@ -59,3 +59,6 @@ data:
       spinsMin: {{ $game.spinsMin }}
       spinsMax: {{ $game.spinsMax }}
     {{- end }}
+  hashes.yml: |
+    {{- $files := .Files }}
+    {{- $files.Get "hashes.yaml" | nindent 4 }}
