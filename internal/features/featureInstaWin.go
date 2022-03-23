@@ -4,6 +4,7 @@ type InstaWinData struct {
 	Type     string `json:"type"`
 	SourceId int32  `json:"sourceid"`
 	Amount   int    `json:"amount"`
+	Payouts  []int  `json:"payouts,omitempty"`
 }
 
 type InstaWin struct {
@@ -25,6 +26,10 @@ func (f *InstaWin) Init(def FeatureDef) error {
 
 func (f InstaWin) Trigger(state *FeatureState, params FeatureParams) {
 	multiplier := params.GetInt("InstaWinAmount")
+	var payouts []int
+	if params.HasKey("Payouts") {
+		payouts = params.GetIntSlice("Payouts")
+	}
 	state.Features = append(state.Features,
 		&InstaWin{
 			FeatureDef: *f.DefPtr(),
@@ -32,6 +37,7 @@ func (f InstaWin) Trigger(state *FeatureState, params FeatureParams) {
 				Type:     params.GetString("InstaWinType"),
 				SourceId: params.GetInt32("InstaWinSourceId"),
 				Amount:   multiplier,
+				Payouts:  payouts,
 			},
 		})
 	state.Wins = append(state.Wins,
