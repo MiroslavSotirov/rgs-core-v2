@@ -108,7 +108,7 @@ data:
       NAD: 0.05
       NGN: 1
       NOK: 0.01
-      NHL: 0.1
+      HNL: 0.1
       NZD: 0.1
       OMR: 0.01
       PAB: 0.01
@@ -415,3 +415,17 @@ data:
             - 10
             - 20
             - 100
+      mvgEngineGodot4:
+        credits:
+          defaultBet: 6
+          stakeValues:
+            - 2
+            - 4
+            - 6
+            - 10
+            - 20
+            - 40
+            - 60
+            - 100
+            - 200
+            - 400
