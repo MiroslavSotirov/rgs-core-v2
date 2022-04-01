@@ -252,6 +252,7 @@ gameConfig:
   - engineID: mvgEngineGodot4
     games:
       - name: wizardz-world
+        item: 8243
       
 gamification:
   a-fairy-tale:
