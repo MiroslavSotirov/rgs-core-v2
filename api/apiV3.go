@@ -522,3 +522,24 @@ func CloseByWallet(token store.Token, wallet string, game string, roundId string
 	logger.Debugf("CloseByWallet done")
 	return
 }
+
+func DeserializeV3Gamestate(serialized []byte) (istate engine.IGameStateV3, rgserr rgse.RGSErr) {
+	var gameV3 store.GameV3
+	istate, rgserr = gameV3.DeserializeState(serialized)
+	if rgserr != nil {
+		return
+	}
+	var igameV3 store.IGameV3
+	stateV3 := istate.Base()
+	igameV3, rgserr = store.CreateGameV3(stateV3.Game)
+	if rgserr != nil {
+		logger.Errorf("could not create V3 game for %s\n", stateV3.Game)
+		return
+	}
+	istate, rgserr = igameV3.DeserializeState(serialized)
+	if rgserr != nil {
+		logger.Errorf("Could not deserialize state for game %s though it was possible to decode a GameStateV3 = %#v\n", stateV3.Game, stateV3)
+		return
+	}
+	return
+}
