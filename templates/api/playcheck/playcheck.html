@@ -481,6 +481,31 @@
 		.clearfix {
 			clear:both;
 		}
+		 /* Style the button that is used to open and close the collapsible content */
+		.collapsible {
+		  background-color: #eee;
+		  color: #444;
+		  cursor: pointer;
+		  padding: 18px;
+		  width: 100%;
+		  border: none;
+		  text-align: left;
+		  outline: none;
+		  font-size: 15px;
+		}
+
+		/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+		.active, .collapsible:hover {
+		  background-color: #ccc;
+		}
+
+		/* Style the collapsible content. Note: hidden by default */
+		.content {
+		  padding: 0 18px;
+		  display: none;
+		  overflow: hidden;
+		  background-color: #f1f1f1;
+		} 	
 		svg {
 			width: 150px;
 			display: block;
@@ -616,6 +641,24 @@
 	<div>Next Actions :
 		<span class="green">{{.Gamestate.NextActions}}</span>
 	</div>
+	<div>Features :
+		<span>
+			{{range $x := .Gamestate.Features}}
+				{{$x.Type}} &nbsp;
+			{{end}}
+		</span>
+	</div>
+	<div>Symbol Grid :
+		<table>
+			{{range $x := $.SymbolGrid}}
+			<tr>
+				{{range $y := $x}}
+					<th>{{ $y }}</th>
+				{{end}}
+			</tr>
+			{{end}}
+		</table>
+	</div>
 
 	<br/>
 	<div class="grid-container">
@@ -625,5 +668,41 @@
 			{{end}}
 		{{end}}
 	</div>
+
+	<br/>
+	<button type="button" class="collapsible">Original</button>
+	<div class="content">
+		<div class="grid-container">
+			{{range $x := $.OriginalGrid}}
+				{{range $y := $x}}
+					<div class="grid-item"><img src={{printf "https://symbols.maverick-ops.com/%v/icon%v.png" $.GameID $y}} alt="Noimage"></div>
+				{{end}}
+			{{end}}
+		</div>
+	</div>
+
+	<br/>
+	<button type="button" class="collapsible">Raw</button>
+	<div class="content">
+		<p>{{.Json}}</p>
+	</div>
+
+<script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {
+      content.style.display = "none";
+    } else {
+      content.style.display = "block";
+    }
+  });
+}
+</script>
+
 </div>
 </body>

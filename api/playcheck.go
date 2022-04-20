@@ -2,26 +2,28 @@ package api
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 type PlaycheckFields struct {
-	Gamestate  engine.Gamestate
-	GameID     string
-	Wager      string
-	Payout     string
-	Currency   string
-	BetPerLine string
-	SymbolGrid [][]int
-	ColSize    int
+	Gamestate    engine.Gamestate
+	GameID       string
+	Wager        string
+	Payout       string
+	Currency     string
+	BetPerLine   string
+	SymbolGrid   [][]int
+	OriginalGrid [][]int
+	ColSize      int
+	Json         string
 }
 
 func playcheck(request *http.Request, w http.ResponseWriter) {
@@ -60,40 +62,15 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 			return
 		}
 	}
-
-	var gameV3 store.GameV3
-	var istate engine.IGameStateV3
-	var rgserr rgse.RGSErr
-	istate, rgserr = gameV3.DeserializeState(gsbytes)
+	istate, rgserr := DeserializeV3Gamestate(gsbytes)
 	if rgserr == nil {
-		var stateV3 *engine.GameStateV3 = istate.Base()
-		logger.Debugf("creating V3 playcheck for state = %#v\n", stateV3)
-
-		var igameV3 store.IGameV3
-		igameV3, rgserr = store.CreateGameV3(stateV3.Game)
-		if rgserr != nil {
-			logger.Debugf("could not create V3 game for %s\n", stateV3.Game)
-			fmt.Fprintf(w, "<center><h1>Internal Error</h1>Unknown game: %s</center>", stateV3.Game)
-			return
-		}
-		//	gameV3.PlayCheck(istate, w)
-		istate, rgserr = igameV3.DeserializeState(gsbytes)
-		if rgserr != nil {
-			logger.Infof("Could not deserialize state for game %s though it was possible to decode a GameStateV3 = %#v\n", stateV3.Game, stateV3)
-			fmt.Fprintf(w, "<center><h1>Internal Error</h1>Decoded gameId: %s could not deserialize %#v</center>", stateV3.Game, stateV3)
-			return
-		}
-
-		switch stateV3.Game {
+		switch istate.Base().Game {
 		case "dragon-roulette":
 			playcheckRoulette(istate, w)
 		default:
-			logger.Infof("Can not produce playcheck for unknown V3 game \"%s\"", stateV3.Game)
+			logger.Infof("Can not produce playcheck for unknown V3 game \"%s\"", istate.Base().Game)
 		}
 		return
-	} else {
-		logger.Debugf("V3 state deserialization generated error: %s", rgserr.Error())
-		logger.Infof("creating V1/V2 playcheck")
 	}
 
 	gameplay := store.DeserializeGamestateFromBytes(gsbytes)
@@ -120,6 +97,11 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 
 	// transform symbolgrid
 	symbolGrid := engine.TransposeGrid(gameplay.SymbolGrid)
+	originalGrid := [][]int{}
+	if len(gameplay.FeatureView) > 0 {
+		originalGrid = symbolGrid
+		symbolGrid = engine.TransposeGrid(gameplay.FeatureView)
+	}
 	currency := gameplay.Transactions[0].Amount.Currency
 	betPerLine := gameplay.BetPerLine.Amount.ValueAsString()
 	var colSize int
@@ -128,7 +110,8 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 	} else {
 		colSize = 0
 	}
-	fields := PlaycheckFields{gameplay, gameplay.Game, wager, payout, currency, betPerLine, symbolGrid, colSize}
+	Json, _ := json.Marshal(gameplay)
+	fields := PlaycheckFields{gameplay, gameplay.Game, wager, payout, currency, betPerLine, symbolGrid, originalGrid, colSize, string(Json)}
 	err = t.Execute(w, fields)
 	if err != nil {
 		logger.Errorf("template executing error: ", err)
