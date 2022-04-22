@@ -122,6 +122,16 @@ enum Ccy {
   MGA = 103;
   TJS = 104;
   KGS = 105;
+  MZN = 106;
+  LYD = 107;
+  DZD = 108;
+  PAB = 109;
+  ETB = 110;
+  IRT = 111;
+  HNL = 112;
+  SSP = 113;
+  SLL = 114;
+  MNT = 115;
 }
 
 message WalletTransactionPB {
@@ -201,6 +211,7 @@ message GamestatePB {
   DRAGON_ROULETTE=53;
   SPIRIT_HUNTERS=54;
   WIZARDZ_WORLD=55;
+  BATTLE_OF_MYTHS=56;
   }
   GameID game_id = 1;
   int32 engine_def = 2;
