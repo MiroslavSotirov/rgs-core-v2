@@ -21,6 +21,9 @@ func (f *TriggerWeightedRandom) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *TriggerWeightedRandom) OnInit(state *FeatureState) {
+}
+
 func (f TriggerWeightedRandom) Trigger(state *FeatureState, params FeatureParams) {
 	var weights []int
 	if params.HasKey("Weights") {

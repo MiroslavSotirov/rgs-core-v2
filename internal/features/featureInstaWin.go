@@ -24,6 +24,9 @@ func (f *InstaWin) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *InstaWin) OnInit(state *FeatureState) {
+}
+
 func (f InstaWin) Trigger(state *FeatureState, params FeatureParams) {
 	multiplier := params.GetInt("InstaWinAmount")
 	var payouts []int

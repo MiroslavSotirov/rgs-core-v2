@@ -20,6 +20,9 @@ func (f *TriggerFoxTale) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *TriggerFoxTale) OnInit(state *FeatureState) {
+}
+
 func (f TriggerFoxTale) Trigger(state *FeatureState, params FeatureParams) {
 	if f.ForceTrigger(state, params) {
 		return

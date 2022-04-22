@@ -23,6 +23,9 @@ func (f *TriggerFoxTaleBonus) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *TriggerFoxTaleBonus) OnInit(state *FeatureState) {
+}
+
 func (f TriggerFoxTaleBonus) Trigger(state *FeatureState, params FeatureParams) {
 	if config.GlobalConfig.DevMode && params.HasKey("force") && strings.Contains(params.GetString("force"), "actionsymbol") {
 		f.ForceTrigger(state, params)

@@ -6,14 +6,16 @@ import (
 	uuid "github.com/satori/go.uuid"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
-func InitPlayerGS(refreshToken string, playerID string, gameName string, currency string, wallet string) (engine.Gamestate, PlayerStore, rgse.RGSErr) {
+func InitPlayerGS(refreshToken string, playerID string, gameName string, currency string, wallet string) (engine.Gamestate, PlayerStore, []features.Feature, rgse.RGSErr) {
 	logger.Debugf("init game %v for player %v", gameName, playerID)
 	var newPlayer PlayerStore
 	var latestGamestateStore GameStateStore
+	var initFeatures []features.Feature
 	var err rgse.RGSErr
 
 	switch wallet {
@@ -23,7 +25,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 		newPlayer, latestGamestateStore, err = ServLocal.PlayerByToken(Token(refreshToken), ModeDemo, gameName)
 	}
 	if err != nil && err.(*rgse.RGSError).ErrCode != rgse.NoSuchPlayer {
-		return engine.Gamestate{}, PlayerStore{}, err
+		return engine.Gamestate{}, PlayerStore{}, []features.Feature{}, err
 	}
 	var latestGamestate engine.Gamestate
 
@@ -34,7 +36,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 			balance, ctFS, waFS, err := parameterSelector.GetDemoWalletDefaults(currency, gameName, "", playerID)
 
 			if err != nil {
-				return engine.Gamestate{}, PlayerStore{}, err
+				return engine.Gamestate{}, PlayerStore{}, []features.Feature{}, err
 			}
 			logger.Debugf("balance: %v, freespins: %v, wageramt: %v", balance, ctFS, waFS)
 
@@ -46,12 +48,14 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 			newPlayer, err = ServLocal.PlayerSave(newPlayer.Token, ModeDemo, newPlayer)
 		}
 		latestGamestate = CreateInitGS(newPlayer, gameName)
+		initFeatures = latestGamestate.Features
 
 	} else {
 		latestGamestate = DeserializeGamestateFromBytes(latestGamestateStore.GameState)
+		_, initFeatures = engine.GetDefaultView(gameName)
 	}
 
-	return latestGamestate, newPlayer, nil
+	return latestGamestate, newPlayer, initFeatures, nil
 }
 
 func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.Gamestate) {
@@ -59,7 +63,8 @@ func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.G
 	logger.Debugf("First %v gameplay for player %v, creating sham gamestate", gameName, player)
 
 	gsID := player.PlayerId + gameName + "GSinit"
-	latestGamestate = engine.Gamestate{Game: gameName, DefID: 0, Id: gsID, BetPerLine: engine.Money{0, player.Balance.Currency}, NextActions: []string{"finish"}, Action: "init", Gamification: &engine.GamestatePB_Gamification{}, SymbolGrid: engine.GetDefaultView(gameName), NextGamestate: uuid.NewV4().String(), Closed: true}
+	view, features := engine.GetDefaultView(gameName)
+	latestGamestate = engine.Gamestate{Game: gameName, DefID: 0, Id: gsID, BetPerLine: engine.Money{0, player.Balance.Currency}, NextActions: []string{"finish"}, Action: "init", Gamification: &engine.GamestatePB_Gamification{}, SymbolGrid: view, Features: features, NextGamestate: uuid.NewV4().String(), Closed: true}
 	if strings.Contains(gameName, "seasons") {
 		latestGamestate.SelectedWinLines = []int{0, 1, 2}
 	}

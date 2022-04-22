@@ -128,7 +128,7 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 				params.Selection = []string{"freespin25:25", "freespin10:10", "freespin5:5"}[engine.SelectFromWeightedOptions([]int{0, 1, 2}, []int{1, 1, 1})]
 				// we do not add any selected win lines, always assume all lines. NB: ENGINE X has variable RTP based on selected win lines
 			}
-			gamestate, _ := engine.Play(previousGamestate, engine.Fixed(1000), "BTC", params)
+			gamestate, _, _ := engine.Play(previousGamestate, engine.Fixed(1000), "BTC", params)
 			currentWinnings, currentStake := engine.GetCurrentWinAndStake(gamestate)
 			//if strings.Contains(gamestate.Action, "freespin") {
 			//	logger.Warnf("winnings: %v, gamesate: %v", currentWinnings, gamestate)

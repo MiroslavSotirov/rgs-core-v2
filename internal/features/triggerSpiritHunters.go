@@ -16,6 +16,9 @@ func (f *TriggerSpiritHunters) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *TriggerSpiritHunters) OnInit(state *FeatureState) {
+}
+
 func (f TriggerSpiritHunters) Trigger(state *FeatureState, params FeatureParams) {
 	if f.ForceTrigger(state, params) {
 		return

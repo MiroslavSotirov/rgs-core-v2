@@ -19,6 +19,7 @@ import (
 
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
@@ -464,7 +465,7 @@ func GetMaxWin(e EngineConfig) {
 	}
 }
 
-func GetDefaultView(gameName string) (symbolGrid [][]int) {
+func GetDefaultView(gameName string) (symbolGrid [][]int, features []features.Feature) {
 	logger.Debugf("GetDefaultView(%s)", gameName)
 	e, err := GetEngineDefFromGame(gameName)
 	if err != nil {
@@ -486,7 +487,7 @@ func GetDefaultView(gameName string) (symbolGrid [][]int) {
 	return
 }
 
-func GetDefaultViewFromFunction(method reflect.Value) (symbolGrid [][]int) {
+func GetDefaultViewFromFunction(method reflect.Value) (symbolGrid [][]int, features []features.Feature) {
 	logger.Debugf("call configured init function to generate default view")
 	var params GameParams
 	objs := method.Call([]reflect.Value{reflect.ValueOf(params)})
@@ -495,7 +496,9 @@ func GetDefaultViewFromFunction(method reflect.Value) (symbolGrid [][]int) {
 		panic("value not a gamestate")
 	}
 	logger.Debugf("default symbolGrid= %v", gamestate.SymbolGrid)
+	logger.Debugf("default features= %v", gamestate.Features)
 	symbolGrid = gamestate.SymbolGrid
+	features = gamestate.Features
 	return
 }
 

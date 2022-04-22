@@ -22,6 +22,9 @@ func (f *TriggerSupaCrewSuperSymbol) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *TriggerSupaCrewSuperSymbol) OnInit(state *FeatureState) {
+}
+
 func (f TriggerSupaCrewSuperSymbol) Trigger(state *FeatureState, params FeatureParams) {
 	if params.HasKey("force") && strings.Contains(params.GetString("force"), "supersymbol") {
 		f.ForceTrigger(state, params)

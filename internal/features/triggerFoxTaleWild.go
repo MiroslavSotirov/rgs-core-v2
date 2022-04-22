@@ -22,6 +22,9 @@ func (f *TriggerFoxTaleWild) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *TriggerFoxTaleWild) OnInit(state *FeatureState) {
+}
+
 func (f TriggerFoxTaleWild) Trigger(state *FeatureState, params FeatureParams) {
 	if config.GlobalConfig.DevMode && params.HasKey("force") && strings.Contains(params.GetString("force"), "actionsymbol") {
 		f.ForceTrigger(state, params)

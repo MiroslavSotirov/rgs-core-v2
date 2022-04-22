@@ -40,15 +40,22 @@ func (fs *FeatureState) SetGrid(symbolgrid [][]int) {
 }
 
 type FeatureWin struct {
+	Index           string
 	Multiplier      int
 	Symbols         []int
 	SymbolPositions []int
+}
+
+type InitConfig struct {
+	FeatureDef
+	Data FeatureParams `json:"data"`
 }
 
 type Feature interface {
 	DefPtr() *FeatureDef
 	DataPtr() interface{}
 	Init(FeatureDef) error
+	OnInit(*FeatureState)
 	Trigger(*FeatureState, FeatureParams)
 	Serialize() ([]byte, error)
 	Deserialize([]byte) error
@@ -72,8 +79,14 @@ type EnabledFeatureSet struct {
 	_ TriggerSupaCrewMultiSymbol
 	_ TriggerWizardzWorld
 	_ TriggerWizardzWorldBonus
+	_ TriggerBattleOfMyths
+	_ TriggerBattleOfMythsFreespin
+	_ TriggerBattleOfMythsPrincess
+	_ TriggerBattleOfMythsDragon
+	_ TriggerBattleOfMythsTiger
 	_ TriggerWeightedRandom
 	_ TriggerWeightedPayout
+	_ TriggerConditional
 	_ TriggerFatTile
 }
 
@@ -100,6 +113,10 @@ func FindFeature(typename string, features []Feature) Feature {
 
 func ActivateFeatures(def FeatureDef, state *FeatureState, params FeatureParams) {
 	activateFeatures(def, state, params)
+}
+
+func InitFeatures(def FeatureDef, state *FeatureState) {
+	initFeatures(def, state)
 }
 
 //func GetTypeName(f Feature) string {
@@ -168,6 +185,18 @@ func activateFilteredFeatures(def FeatureDef, state *FeatureState, params Featur
 				feature.Trigger(state, mergeParams(featuredef.Params, params))
 			}
 		}
+	}
+}
+
+func initFeatures(def FeatureDef, state *FeatureState) {
+	for _, featuredef := range def.Features {
+		feature := MakeFeature(featuredef.Type)
+		if feature == nil {
+			logger.Errorf("feature %s is not registred", featuredef.Type)
+			continue
+		}
+		feature.Init(featuredef)
+		feature.OnInit(state)
 	}
 }
 

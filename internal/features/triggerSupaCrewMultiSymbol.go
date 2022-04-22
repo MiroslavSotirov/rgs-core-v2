@@ -22,6 +22,9 @@ func (f *TriggerSupaCrewMultiSymbol) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *TriggerSupaCrewMultiSymbol) OnInit(state *FeatureState) {
+}
+
 func (f TriggerSupaCrewMultiSymbol) Trigger(state *FeatureState, params FeatureParams) {
 	if params.HasKey("force") && strings.Contains(params.GetString("force"), "multisymbol") {
 		f.ForceTrigger(state, params)

@@ -18,6 +18,9 @@ func (f *TriggerFatTile) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *TriggerFatTile) OnInit(state *FeatureState) {
+}
+
 func (f TriggerFatTile) Trigger(state *FeatureState, params FeatureParams) {
 	if f.ForceTrigger(state, params) {
 		return

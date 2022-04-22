@@ -26,6 +26,7 @@ type GameInitResponseV2 struct {
 	LastRound    map[string]GameplayResponseV2 `json:"lastRound"`
 	ReelSets     map[string]ReelResponse       `json:"reelSets,omitempty"` // base, freeSpin, etc. as keys  might want to have this as ReelSetResponse
 	BetMult      int                           `json:"betMultiplier"`
+	Features     []features.Feature            `json:"featureConfigs,omitempty"`
 }
 
 func (gi GameInitResponseV2) Render(w http.ResponseWriter, r *http.Request) error {

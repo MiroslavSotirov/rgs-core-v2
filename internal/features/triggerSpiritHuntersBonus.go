@@ -24,6 +24,9 @@ func (f *TriggerSpiritHuntersBonus) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *TriggerSpiritHuntersBonus) OnInit(state *FeatureState) {
+}
+
 func (f TriggerSpiritHuntersBonus) Trigger(state *FeatureState, params FeatureParams) {
 	if config.GlobalConfig.DevMode && params.HasKey("force") && strings.Contains(params.GetString("force"), "actionsymbol") {
 		f.ForceTrigger(state, params)

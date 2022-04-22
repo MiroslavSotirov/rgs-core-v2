@@ -25,6 +25,9 @@ func (f *FatTile) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *FatTile) OnInit(state *FeatureState) {
+}
+
 func (f FatTile) forceActivateFeature(featurestate *FeatureState, x int, y int, tileid int) {
 	gridw, gridh := len(featurestate.SymbolGrid), len(featurestate.SymbolGrid[0])
 	tilew, tileh := f.Data.W, f.Data.H

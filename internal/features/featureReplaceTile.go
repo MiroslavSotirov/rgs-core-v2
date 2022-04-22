@@ -29,6 +29,9 @@ func (f *ReplaceTile) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *ReplaceTile) OnInit(state *FeatureState) {
+}
+
 func (f ReplaceTile) forceActivateFeature(featurestate *FeatureState) {
 	featurestate.SymbolGrid[0][0] = f.FeatureDef.Params.GetInt("TileId")
 }

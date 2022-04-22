@@ -176,13 +176,6 @@ func convertComplex128(in interface{}) complex128 {
 }
 
 func convertIntSlice(in interface{}) []int {
-	/*
-		val, ok := in.([]int)
-		if !ok {
-			panic("not an int slize")
-		}
-		return val
-	*/
 	val, ok := in.([]int)
 	if !ok {
 		var val2 []interface{}
@@ -199,6 +192,14 @@ func convertIntSlice(in interface{}) []int {
 			}
 			val[i] = v
 		}
+	}
+	return val
+}
+
+func convertSlice(in interface{}) []interface{} {
+	val, ok := in.([]interface{})
+	if !ok {
+		panic("not a slice")
 	}
 	return val
 }
@@ -319,6 +320,11 @@ func (p FeatureParams) GetBool(name string) bool {
 func (p FeatureParams) GetIntSlice(name string) []int {
 	defer paramconvertpanic(name)
 	return convertIntSlice(p.Get(name))
+}
+
+func (p FeatureParams) GetSlice(name string) []interface{} {
+	defer paramconvertpanic(name)
+	return convertSlice(p.Get(name))
 }
 
 func (p FeatureParams) GetParams(name string) FeatureParams {

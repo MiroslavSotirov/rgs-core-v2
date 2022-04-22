@@ -19,6 +19,7 @@ const (
 	BetConfigError       = 103
 	InvalidStakeError    = 104
 	IncompleteRoundError = 105
+	InvalidParamsError   = 106
 
 	// Gamestate JSON marshalling
 	GamestateStringSerializerError   = 110
@@ -103,6 +104,7 @@ var ErrMsg = map[int]string{
 	EngineNotFoundError:              "Engine not found",
 	BetConfigError:                   "Bet configuration error",
 	InvalidStakeError:                "Invalid stake error",
+	InvalidParamsError:               "Invalid params error",
 	RgsInitError:                     "RGS Initialization error",
 	StoreInitError:                   "RGS Storage Initialization error",
 	GamestateStringSerializerError:   "Failure serializing Gamestate to string",

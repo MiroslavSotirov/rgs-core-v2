@@ -11,6 +11,7 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
@@ -114,8 +115,9 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 	}
 	var player store.PlayerStore
 	var latestGamestate engine.Gamestate
+	var initFeatures []features.Feature
 
-	latestGamestate, player, err = store.InitPlayerGS(authToken, authToken, data.Game, data.Ccy, wallet)
+	latestGamestate, player, initFeatures, err = store.InitPlayerGS(authToken, authToken, data.Game, data.Ccy, wallet)
 
 	if err != nil {
 		return GameInitResponseV2{}, err
@@ -126,6 +128,7 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 	//logger.Debugf("reel response: %v", giResp.ReelSets)
 	giResp.Wallet = wallet
 	// set stakevalues, links,
+	giResp.Features = initFeatures
 
 	stakeValues, defaultBet, _, _, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine, player.BetLimitSettingCode, data.Game)
 	if err != nil {
@@ -287,8 +290,12 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 	if betValidationErr != nil {
 		return GameplayResponseV2{}, betValidationErr
 	}
-
-	gamestate, EC := engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
+	var gamestate engine.Gamestate
+	var EC engine.EngineConfig
+	gamestate, EC, err = engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
+	if err != nil {
+		return
+	}
 	if config.GlobalConfig.DevMode == true {
 		forcedGamestate, err := forceTool.GetForceValues(data, previousGamestate, txStore.PlayerId)
 		if err == nil {

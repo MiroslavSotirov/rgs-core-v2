@@ -34,7 +34,7 @@ func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, en
 		return store.PlayerStore{}, engine.EngineConfig{}, engine.Gamestate{}, err
 	}
 	wallet := chi.URLParam(request, "wallet")
-	latestGamestate, player, err := store.InitPlayerGS(authToken, authToken, gameSlug, currency, wallet)
+	latestGamestate, player, _, err := store.InitPlayerGS(authToken, authToken, gameSlug, currency, wallet)
 	if err != nil {
 		return store.PlayerStore{}, engine.EngineConfig{}, engine.Gamestate{}, err
 	}
@@ -152,6 +152,7 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 			data.Stake = data.TotalStake
 		}
 
+		EC, err := engine.Gamestate{Game: game}.Engine()
 		valid := false
 		for i := 0; i < len(stakeValues); i++ {
 			validStake := stakeValues[i].Mul(engine.NewFixedFromInt(sd))
@@ -160,7 +161,6 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 				valid = true
 				if i == len(stakeValues)-1 && data.Action == "base" {
 					// pass on when max bet is played, only if no action is passed already and game allows it
-					EC, err := engine.Gamestate{Game: game}.Engine()
 					if err == nil {
 						maxDef := EC.DefIdByName("maxBase")
 						if maxDef >= 0 && len(data.SelectedWinLines) == len(EC.EngineDefs[maxDef].WinLines) {
@@ -177,6 +177,25 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 		if valid == false {
 			logger.Debugf("invalid stake: %v (options: %v)", data.Stake, stakeValues)
 			return data, rgse.Create(rgse.InvalidStakeError)
+		}
+		if len(data.SelectedWinLines) > 0 {
+			actionDef := EC.DefIdByName(data.Action)
+			if actionDef >= 0 {
+				nwl := len(EC.EngineDefs[actionDef].WinLines)
+				for _, swl := range data.SelectedWinLines {
+					if swl < 0 || swl >= nwl {
+						valid = false
+						break
+					}
+				}
+			}
+			if valid == false {
+				logger.Debugf("invalid selected winlines: %v engine lines for action %s: %v",
+					data.SelectedWinLines, data.Action, EC.EngineDefs[actionDef].WinLines)
+				rgserr := rgse.Create(rgse.InvalidParamsError)
+				rgserr.AppendErrorText("undefined selected winlines for this action")
+				return data, rgserr
+			}
 		}
 	}
 	return data, nil
@@ -261,7 +280,10 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 		logger.Infof("Wallet Status is unexpectedly %v", txStore.WalletStatus)
 		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, rgse.Create(rgse.UnexpectedWalletStatus)
 	}
-	gamestate, engineConf := engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
+	gamestate, engineConf, err := engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
+	if err != nil {
+		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, err
+	}
 	if config.GlobalConfig.DevMode == true {
 		forcedGamestate, err := forceTool.GetForceValues(data, previousGamestate, txStore.PlayerId)
 		if err == nil {

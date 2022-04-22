@@ -23,6 +23,9 @@ func (f *TriggerWizardzWorldBonus) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *TriggerWizardzWorldBonus) OnInit(state *FeatureState) {
+}
+
 func (f TriggerWizardzWorldBonus) Trigger(state *FeatureState, params FeatureParams) {
 	if f.ForceTrigger(state, params) {
 		return

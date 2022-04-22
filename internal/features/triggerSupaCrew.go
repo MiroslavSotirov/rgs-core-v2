@@ -20,6 +20,9 @@ func (f *TriggerSupaCrew) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *TriggerSupaCrew) OnInit(state *FeatureState) {
+}
+
 func (f TriggerSupaCrew) Trigger(state *FeatureState, params FeatureParams) {
 	if f.ForceTrigger(state, params) {
 		return

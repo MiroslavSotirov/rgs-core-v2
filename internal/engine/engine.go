@@ -14,6 +14,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
@@ -593,12 +594,12 @@ func DetermineElysiumLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts 
 }
 
 // Play ...
-func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parameters GameParams) (Gamestate, EngineConfig) {
+func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parameters GameParams) (Gamestate, EngineConfig, rgserror.RGSErr) {
 	logger.Debugf("Playing round with parameters: %#v", parameters)
 
 	engineConf, err := previousGamestate.Engine()
 	if err != nil {
-		return Gamestate{}, EngineConfig{}
+		return Gamestate{}, EngineConfig{}, err
 	}
 	var totalBet Money
 	chargeWager := true
@@ -612,8 +613,10 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 			// if action is respin, WAGER is dependent on reel configuration
 			// index of the reel to be respun must be passed
 			if parameters.RespinReel < 0 {
-				logger.Errorf("ERROR, NO RESPIN REEL INDEX PASSED")
-				return Gamestate{}, EngineConfig{}
+				err = rgserror.Create(rgserror.InvalidParamsError)
+				err.AppendErrorText("ERROR, NO RESPIN REEL INDEX PASSED")
+				logger.Errorf("%v", err)
+				return Gamestate{}, EngineConfig{}, err
 			}
 			actions = []string{parameters.Action, "finish"}
 			betPerLine = previousGamestate.BetPerLine.Amount
@@ -623,12 +626,16 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 			// verify that the previous action was freespin and nextaction is finish
 			if !(strings.Contains(previousGamestate.Action, "freespin") && len(previousGamestate.NextActions) == 1 && previousGamestate.NextActions[0] == "finish") {
 				// this is not allowed
-				logger.Errorf("ERROR, NOT A VALID GAMBLE ROUND")
-				return Gamestate{}, EngineConfig{}
+				err = rgserror.Create(rgserror.InvalidParamsError)
+				err.AppendErrorText("ERROR, NOT A VALID GAMBLE ROUND")
+				logger.Errorf("%v", err)
+				return Gamestate{}, EngineConfig{}, err
 			}
 			if parameters.RespinReel < 0 {
-				logger.Errorf("ERROR, NO GAMBLE INDEX PASSED")
-				return Gamestate{}, EngineConfig{}
+				err = rgserror.Create(rgserror.InvalidParamsError)
+				err.AppendErrorText("ERROR, NO GAMBLE INDEX PASSED")
+				logger.Errorf("%v", err)
+				return Gamestate{}, EngineConfig{}, err
 			}
 			actions = []string{fmt.Sprintf("%v%v", parameters.Action, parameters.RespinReel), "finish"}
 			parameters.Action = actions[0]
@@ -649,6 +656,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 		parameters.previousGamestate = previousGamestate
 		parameters.SelectedWinLines = previousGamestate.SelectedWinLines
 	}
+	parameters.previousGamestate.BetPerLine.Amount = betPerLine
 	parameters.previousGamestate.Features = previousGamestate.Features
 
 	var method reflect.Value
@@ -672,6 +680,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 		panic(err)
 	}
 
+	logger.Debugf("calling engine function with parameters %#v", parameters)
 	gamestateAndNextActions := method.Call([]reflect.Value{reflect.ValueOf(parameters)})
 
 	gamestate, ok := gamestateAndNextActions[0].Interface().(Gamestate)
@@ -679,7 +688,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 		panic("value not a gamestate")
 	}
 	gamestate.PostProcess(previousGamestate, chargeWager, totalBet, engineConf, betPerLine, actions, currency)
-	return gamestate, engineConf
+	return gamestate, engineConf, nil
 }
 
 func (gamestate *Gamestate) PostProcess(previousGamestate Gamestate, chargeWager bool, totalBet Money, engineConf EngineConfig, betPerLine Fixed, actions []string, currency string) {
@@ -693,7 +702,7 @@ func (gamestate *Gamestate) PostProcess(previousGamestate Gamestate, chargeWager
 				}
 			}
 			totalBet = Money{Amount: betPerLine.Mul(NewFixedFromInt(sd)), Currency: currency}
-			logger.Debugf("totalBet: %v sd: %d StakeDivisor: %d", totalBet, sd, engineConf.EngineDefs[0].StakeDivisor)
+			logger.Debugf("totalBet: %v betPerLine: %f sd: %d StakeDivisor: %d", totalBet, betPerLine.ValueAsFloat(), sd, engineConf.EngineDefs[0].StakeDivisor)
 		}
 		gamestate.Transactions = []WalletTransaction{{
 			Id:     previousGamestate.NextGamestate,
@@ -1501,6 +1510,21 @@ func (gen GenerateStatefulRound) TriggerFeatures(engine EngineDef, symbolGrid []
 	return triggerStatefulFeatures(engine, symbolGrid, stopList, parameters)
 }
 
+type GenerateStatefulCascade struct {
+}
+
+func (gen GenerateStatefulCascade) ForceRound(engine EngineDef, parameters GameParams) Gamestate {
+	return genForcedRound(gen, engine, parameters)
+}
+
+func (gen GenerateStatefulCascade) FeatureRound(engine EngineDef, parameters GameParams) Gamestate {
+	return genFeatureCascade(gen, engine, parameters)
+}
+
+func (gen GenerateStatefulCascade) TriggerFeatures(engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams) features.FeatureState {
+	return triggerStatefulFeatures(engine, symbolGrid, stopList, parameters)
+}
+
 func triggerFeatures(engine EngineDef, fs *features.FeatureState, parameters GameParams) error {
 	featureparams := features.FeatureParams{
 		"Engine": engine.ID,
@@ -1517,7 +1541,8 @@ func triggerFeatures(engine EngineDef, fs *features.FeatureState, parameters Gam
 func triggerConfiguredFeatures(engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams) features.FeatureState {
 	logger.Debugf("Trigger configured features")
 	var fs features.FeatureState
-	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
+	//	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
+	fs.TotalStake = float64(parameters.previousGamestate.BetPerLine.Amount.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
 	fs.SetGrid(symbolGrid)
 	fs.StopList = stopList
 	fs.Reels = engine.Reels
@@ -1533,8 +1558,10 @@ func triggerStatefulFeatures(engine EngineDef, symbolGrid [][]int, stopList []in
 	var fs, prevfs features.FeatureState
 	prevfs.Features = parameters.previousGamestate.Features
 	fs.Stateful = &prevfs
-	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
-	logger.Debugf("total stake: %f", fs.TotalStake)
+	//	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
+	fs.TotalStake = float64(parameters.previousGamestate.BetPerLine.Amount.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
+	logger.Debugf("total stake: %f previousGamestate.BetPerLine: %f engine.StakeDivisor: %d parameters.Stake: %f",
+		fs.TotalStake, parameters.previousGamestate.BetPerLine.Amount.ValueAsFloat(), engine.StakeDivisor, parameters.Stake.ValueAsFloat())
 	fs.SetGrid(symbolGrid)
 	fs.StopList = stopList
 	fs.Reels = engine.Reels
@@ -1690,6 +1717,164 @@ func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams)
 	return gamestate
 }
 
+func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParams) Gamestate {
+	symbolGrid := make([][]int, len(engine.ViewSize))
+	stopList := make([]int, len(engine.ViewSize))
+	var cascadePositions []int
+	if parameters.Action == "cascade" {
+		previousGamestate := parameters.previousGamestate
+		// if previous gamestate contains a win, we need to cascade new tiles into the old space
+		previousGrid := previousGamestate.SymbolGrid
+		remainingGrid := [][]int{}
+		//determine map of symbols to disappear
+		for i := 0; i < len(previousGamestate.Prizes); i++ {
+			for j := 0; j < len(previousGamestate.Prizes[i].SymbolPositions); j++ {
+				// to avoid having to assume symbol grid is regular:
+				col := 0
+				row := 0
+
+				for ii := 0; ii < previousGamestate.Prizes[i].SymbolPositions[j]; ii++ {
+					row++
+					if row >= len(previousGamestate.SymbolGrid[col]) {
+						col++
+						row = 0
+					}
+				}
+				previousGrid[col][row] = -1
+			}
+		}
+
+		for i := 0; i < len(previousGrid); i++ {
+			remainingReel := []int{}
+			// remove winning symbols from the view
+			for j := 0; j < len(previousGrid[i]); j++ {
+				if previousGrid[i][j] >= 0 {
+					remainingReel = append(remainingReel, previousGrid[i][j])
+				}
+			}
+			remainingGrid = append(remainingGrid, remainingReel)
+		}
+
+		// adjust reels in case need to cascade symbols from the end of the strip
+		adjustedReels := make([][]int, len(engine.Reels))
+
+		for i := 0; i < len(engine.Reels); i++ {
+			adjustedReels[i] = append(engine.Reels[i], engine.Reels[i][:engine.ViewSize[i]]...)
+		}
+		// return grid to full size by filling in empty spaces
+		for i := 0; i < len(engine.ViewSize); i++ {
+			numToAdd := engine.ViewSize[i] - len(remainingGrid[i])
+			cascadePositions = append(cascadePositions, numToAdd)
+			stop := previousGamestate.StopList[i] - numToAdd
+			// get adjusted index if the previous win was at the top of the reel
+			if stop < 0 {
+				stop = len(engine.Reels[i]) + stop
+			}
+			symbolGrid[i] = append(adjustedReels[i][stop:stop+numToAdd], remainingGrid[i]...)
+			stopList[i] = stop
+		}
+
+	} else {
+		symbolGrid, stopList = engine.Spin()
+	}
+
+	featurestate := gen.TriggerFeatures(engine, symbolGrid, stopList, parameters)
+	logger.Debugf("symbolGrid= %v featureGrid= %v", symbolGrid, featurestate.SymbolGrid)
+
+	// calculate wins
+	wins, relativePayout := engine.DetermineWins(featurestate.SymbolGrid)
+	// calculate specialWin
+	var nextActions []string
+	cascade := false
+	// if any win is present, next action should be cascade
+	if len(wins) > 0 {
+		logger.Debugf("cascade is true")
+		cascade = true
+	} else {
+		// only check for special win after cascading has completed
+		logger.Debugf("determining special wins")
+		specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
+		if specialWin.Index != "" {
+			var specialPayout int
+			specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+			relativePayout += specialPayout
+			wins = append(wins, specialWin)
+		}
+	}
+	if cascade {
+		nextActions = append([]string{"cascade"}, nextActions...)
+	}
+
+	featurewins := []Prize{}
+	for _, w := range featurestate.Wins {
+		if w.Index == "" {
+			symbol := 0
+			index := "0:0"
+			if len(w.Symbols) > 0 {
+				index = fmt.Sprintf("%d:%d", w.Symbols[0], len(w.Symbols))
+			}
+			prize := Prize{
+				Payout: Payout{
+					Symbol:     symbol,
+					Count:      len(w.Symbols),
+					Multiplier: engine.StakeDivisor,
+				},
+				Index:           index,
+				Multiplier:      w.Multiplier,
+				SymbolPositions: w.SymbolPositions,
+				Winline:         -1, // until features have prizes associated with lines
+			}
+			featurewins = append(featurewins, prize)
+		} else {
+			prize := Prize{
+				Payout: Payout{
+					Symbol:     0,
+					Count:      len(w.Symbols),
+					Multiplier: engine.StakeDivisor,
+				},
+				Index:           w.Index,
+				Multiplier:      w.Multiplier,
+				SymbolPositions: w.SymbolPositions,
+				Winline:         -1, // until features have prizes associated with lines
+			}
+			sp, na := engine.CalculatePayoutSpecialWin(prize)
+			relativePayout += sp
+			nextActions = append(na, nextActions...)
+			logger.Debugf("Adding special payout: %v with actions: %v to final action list: %v", sp, na, nextActions)
+		}
+	}
+	relativePayout += calculatePayoutWins(featurewins)
+	wins = append(wins, featurewins...)
+
+	// get first Multiplier
+	multiplier := 1
+	if len(engine.Multiplier.Multipliers) > 0 {
+		//multiplier = SelectFromWeightedOptions(engine.Multiplier.Multipliers, engine.Multiplier.Probabilities)
+		multiplier = engine.Multiplier.Multipliers[0]
+	}
+	// for now, do a bit of a hack to get the cascade positions. as soon as we need to implement cascade with variable
+	// win lines, this will need to be adjusted to be added into a new field in the gamestate message
+
+	winlines := parameters.SelectedWinLines
+	if len(winlines) == 0 {
+		winlines = cascadePositions
+	}
+	// Build gamestate
+	gamestate := Gamestate{
+		DefID:            engine.Index,
+		Prizes:           wins,
+		SymbolGrid:       symbolGrid,
+		RelativePayout:   relativePayout,
+		Multiplier:       multiplier,
+		StopList:         stopList,
+		NextActions:      nextActions,
+		SelectedWinLines: winlines,
+		Features:         featurestate.Features,
+		FeatureView:      featurestate.SymbolGrid,
+	}
+	return gamestate
+}
+
 func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 	return GenerateFeatureRound{}.ForceRound(engine, parameters)
 }
@@ -1698,11 +1883,27 @@ func (engine EngineDef) StatefulRound(parameters GameParams) Gamestate {
 	return GenerateStatefulRound{}.ForceRound(engine, parameters)
 }
 
+func (engine EngineDef) StatefulCascade(parameters GameParams) Gamestate {
+	return GenerateStatefulCascade{}.ForceRound(engine, parameters)
+}
+
 func (engine EngineDef) InitRound(parameters GameParams) (state Gamestate) {
 	stopList := make([]int, len(engine.ViewSize))
 	for i := range stopList {
 		stopList[i] = rng.RandFromRange(len(engine.Reels[0]))
 	}
 	state.SymbolGrid = GetSymbolGridFromStopList(engine.Reels, engine.ViewSize, stopList)
+
+	//	featureparams := features.FeatureParams{
+	//		"Engine": engine.ID,
+	//	}
+	featuredef := features.FeatureDef{Features: engine.Features}
+	var fs features.FeatureState
+	fs.SetGrid(state.SymbolGrid)
+	fs.StopList = stopList
+	fs.Reels = engine.Reels
+	features.InitFeatures(featuredef, &fs)
+	state.Features = fs.Features
+
 	return
 }

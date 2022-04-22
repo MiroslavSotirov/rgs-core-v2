@@ -23,6 +23,9 @@ func (f *ExpandingWild) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *ExpandingWild) OnInit(state *FeatureState) {
+}
+
 func (f ExpandingWild) forceActivateFeature(featurestate *FeatureState) {
 	featurestate.SymbolGrid[0][0] = f.FeatureDef.Params.GetInt("TileId")
 }

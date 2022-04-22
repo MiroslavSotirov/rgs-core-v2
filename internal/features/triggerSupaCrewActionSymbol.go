@@ -23,6 +23,9 @@ func (f *TriggerSupaCrewActionSymbol) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *TriggerSupaCrewActionSymbol) OnInit(state *FeatureState) {
+}
+
 func (f TriggerSupaCrewActionSymbol) Trigger(state *FeatureState, params FeatureParams) {
 	if config.GlobalConfig.DevMode && params.HasKey("force") && strings.Contains(params.GetString("force"), "actionsymbol") {
 		f.ForceTrigger(state, params)

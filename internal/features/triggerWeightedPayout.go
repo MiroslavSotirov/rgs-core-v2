@@ -20,6 +20,9 @@ func (f *TriggerWeightedPayout) Init(def FeatureDef) error {
 	return deserializeFeatureDef(f, def)
 }
 
+func (f *TriggerWeightedPayout) OnInit(state *FeatureState) {
+}
+
 func (f TriggerWeightedPayout) Trigger(state *FeatureState, params FeatureParams) {
 	var weights []int
 	var payouts []int = params.GetIntSlice("Payouts")
