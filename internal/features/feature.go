@@ -67,6 +67,7 @@ type EnabledFeatureSet struct {
 	_ FatTile
 	_ InstaWin
 	_ ReplaceTile
+	_ SetReels
 	_ StatefulMap
 	_ TriggerFoxTale
 	_ TriggerFoxTaleBonus
@@ -175,7 +176,7 @@ func activateFilteredFeatures(def FeatureDef, state *FeatureState, params Featur
 			logger.Debugf("activate feature %s collated %v", featuredef.Type, collate)
 			feature := MakeFeature(featuredef.Type)
 			if feature == nil {
-				logger.Errorf("feature %s is not registred", featuredef.Type)
+				panic(fmt.Sprintf("feature %s is not registred", featuredef.Type))
 				continue
 			}
 			feature.Init(featuredef)

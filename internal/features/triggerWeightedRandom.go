@@ -2,7 +2,6 @@ package features
 
 import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 type TriggerWeightedRandom struct {
@@ -36,8 +35,6 @@ func (f TriggerWeightedRandom) Trigger(state *FeatureState, params FeatureParams
 		}
 	}
 	idx := WeightedRandomIndex(weights)
-	logger.Debugf("Weighted random index: %d", idx)
-
 	matchidx := func(i int, d FeatureDef, s *FeatureState, p FeatureParams) bool { return i == idx }
 	activateFilteredFeatures(f.FeatureDef, state, params, matchidx)
 }
