@@ -1656,6 +1656,10 @@ func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams)
 
 	featurestate := gen.TriggerFeatures(engine, symbolGrid, stopList, parameters)
 	logger.Debugf("symbolGrid= %v featureGrid= %v", symbolGrid, featurestate.SymbolGrid)
+	logger.Debugf("update reels after feature activation.")
+	logger.Debugf("from %v", engine.Reels)
+	logger.Debugf("to %v", featurestate.Reels)
+	engine.Reels = featurestate.Reels
 
 	wins, relativePayout := engine.DetermineWins(featurestate.SymbolGrid)
 	featurewins := []Prize{}
@@ -1723,6 +1727,12 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 	var cascadePositions []int
 	if parameters.Action == "cascade" {
 		previousGamestate := parameters.previousGamestate
+
+		featurestate := gen.TriggerFeatures(engine, previousGamestate.SymbolGrid, previousGamestate.StopList, parameters)
+		logger.Debugf("update reels after feature activation. from %v", engine.Reels)
+		logger.Debugf("to %v", featurestate.Reels)
+		engine.Reels = featurestate.Reels
+
 		// if previous gamestate contains a win, we need to cascade new tiles into the old space
 		previousGrid := previousGamestate.SymbolGrid
 		remainingGrid := [][]int{}
@@ -1779,8 +1789,13 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 	}
 
 	featurestate := gen.TriggerFeatures(engine, symbolGrid, stopList, parameters)
-	logger.Debugf("symbolGrid= %v featureGrid= %v", symbolGrid, featurestate.SymbolGrid)
-
+	/*
+		logger.Debugf("symbolGrid= %v featureGrid= %v", symbolGrid, featurestate.SymbolGrid)
+		logger.Debugf("update reels after feature activation.")
+		logger.Debugf("from %v", engine.Reels)
+		logger.Debugf("to %v", featurestate.Reels)
+		engine.Reels = featurestate.Reels
+	*/
 	// calculate wins
 	wins, relativePayout := engine.DetermineWins(featurestate.SymbolGrid)
 	// calculate specialWin
@@ -1793,7 +1808,7 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 	} else {
 		// only check for special win after cascading has completed
 		logger.Debugf("determining special wins")
-		specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
+		specialWin := DetermineSpecialWins(featurestate.SymbolGrid, engine.SpecialPayouts)
 		if specialWin.Index != "" {
 			var specialPayout int
 			specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
@@ -1890,13 +1905,25 @@ func (engine EngineDef) StatefulCascade(parameters GameParams) Gamestate {
 func (engine EngineDef) InitRound(parameters GameParams) (state Gamestate) {
 	stopList := make([]int, len(engine.ViewSize))
 	for i := range stopList {
-		stopList[i] = rng.RandFromRange(len(engine.Reels[0]))
+		stopList[i] = rng.RandFromRange(len(engine.Reels[i]))
 	}
 	state.SymbolGrid = GetSymbolGridFromStopList(engine.Reels, engine.ViewSize, stopList)
+	engine.InitRoundFeatures(parameters, stopList, &state)
 
-	//	featureparams := features.FeatureParams{
-	//		"Engine": engine.ID,
-	//	}
+	return
+}
+
+func (engine EngineDef) InitRoundNoSpin(parameters GameParams) (state Gamestate) {
+	stopList := make([]int, len(engine.ViewSize))
+	for i := range stopList {
+		stopList[i] = 0
+	}
+	state.SymbolGrid = GetSymbolGridFromStopList(engine.Reels, engine.ViewSize, stopList)
+	engine.InitRoundFeatures(parameters, stopList, &state)
+	return
+}
+
+func (engine EngineDef) InitRoundFeatures(parameters GameParams, stopList []int, state *Gamestate) {
 	featuredef := features.FeatureDef{Features: engine.Features}
 	var fs features.FeatureState
 	fs.SetGrid(state.SymbolGrid)
@@ -1904,6 +1931,5 @@ func (engine EngineDef) InitRound(parameters GameParams) (state Gamestate) {
 	fs.Reels = engine.Reels
 	features.InitFeatures(featuredef, &fs)
 	state.Features = fs.Features
-
 	return
 }
