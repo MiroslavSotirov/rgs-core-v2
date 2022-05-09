@@ -101,13 +101,12 @@ config:
     host: "0.0.0.0"
     port: 3000
     name: elysium
-#  storeurl: "http://gnrc-integ.dashur-integ/v1/gnrc/maverick"
-  storeurl: "https://gnrc-api.maverick-ops.com/v1/gnrc/maverick"
-  storeappid: "HAAJ6njttH"
-  storeapppass: "WKXUZWTzNzvmTqYxiHnH9hKc"
+  storeurl: "https://gnrc-api.stginservix.com/v1/gnrc/maverick"
+  storeappid: "VrCLq4UqYBf39rJt"
+  storeapppass: "V6Kg9muzJxsz3nWFvJeyccU7"
   defaultlanguage: "en"
   defaultplatform: "html5"
-  demotokenprefix: "demo-token-e6ENjpt76fe8gun9vccRpEP"
+  demotokenprefix: "demo-token-ezVVKaEv2nY7kP2gMCX7vfCH"
   democurrency: "USD"
   logaccount: "145472021_144443389"
   datalimit: 3200
@@ -117,142 +116,150 @@ gameConfig:
   - engineID: mvgEngineI
     games:
       - name: the-year-of-zhu
-        item: 5124
+        item: 12344
       - name: cat-thief
-        item: 5113
-      - name: lantern-festival
-        item: 5131
+        item: 12345
+      - name: lantern-festival        
+        item: 12346
       - name: crimson-masquerade
-        item: 5114
+        item: 12347
       - name: babaks-quest
-        item: 5110
+        item: 12348
       - name: astro-gems
-        item: 5109
+        item: 12349
       - name: jungle-saga
-        item: 5116
+        item: 12350
       - name: wukong-treasures
-        item: 5128
+        item: 12351
       - name: three-kingdom-shu
-        item: 5125
+        item: 12352
   - engineID: mvgEngineII
     games:
       - name: zodiac
-        item: 5129
+        item: 12343
       - name: street-racer
-        item: 5123
+        item: 12353
       - name: panda
-        item: 5118
+        item: 12354
       - name: three-kingdom-wu
-        item: 5127
+        item: 12355
       - name: candy-girls
-        item: 5112
+        item: 12356
       - name: bistro
-        item: 5130
+        item: 12357
   - engineID: mvgEngineIII
     games:
       - name: three-kingdom-wei
-        item: 5126      
+        item: 12358
       - name: king-of-gamblers
-        item: 5117
+        item: 12359
       - name: a-million-lights
-        item: 5134
+        item: 12360
   - engineID: mvgEngineV
     games:
       - name: a-fairy-tale
-        item: 5104
+        item: 12361
       - name: a-candy-girls-christmas
-        item: 5139
+        item: 12362
   - engineID: mvgEngineVII
     games:
       - name: art-of-the-fist
-        item: 5108
+        item: 12363
       - name: battlemech
-        item: 5111
+        item: 12364
       - name: a-year-of-laoshu
-        item: 5170
+        item: 12365
       - name: candy-smash
-        item: 5376
+        item: 26418
   - engineID: mvgEngineIX
     games:
       - name: fruity-verse
-        item: 5115
+        item: 12366
       - name: a-hidden-forest
-        item: 5106
+        item: 12367
       - name: daytona
-        item: 5171
+        item: 12368
       - name: crazy-easter-eggs
-        item: 5445
+        item: 26420
   - engineID: mvgEngineX
     games:
       - name: seasons-winter
-        item: 5122
+        item: 12369
       - name: seasons-spring
-        item: 5120
+        item: 12370
       - name: seasons-summer
-        item: 5121
+        item: 12371
       - name: seasons-autumn
-        item: 5119
+        item: 12372
       - name: seasons
   - engineID: mvgEngineXII
     games:
       - name: cloud9
-        item: 5132
+        item: 12374
       - name: pearl-fisher
-        item: 5136
+        item: 12375
       - name: dragon-myst
-        item: 5377
+        item: 12376
   - engineID: mvgEngineXIII
     games:
       - name: sky-jewels
-        item: 5135
+        item: 12377
       - name: goal
-        item: 5169
+        item: 12378
       - name: cookoff-champion
-        item: 5378
+        item: 12379
       - name: drift
-        item: 5471
+        item: 26419
+      - name: princess
   - engineID: mvgEngineXIV
     games:
       - name: valley-of-kings
-        item: 5494
+        item: 26717
       - name: bangkok-fighter
-        item: 5610
+        item: 27231
       - name: asuka-x-samurai
-        item: 5613
+        item: 27234
       - name: battlemech-mars
-        item: 5721
+        item: 28025
   - engineID: mvgEngineXI
     games:
       - name: mah-jong
-        item: 5612
+        item: 27233
   - engineID: mvgEngineXV
     games:
       - name: museum
-        item: 5611
+        item: 27232
   - engineID: mvgEngineXVI
     games:
       - name: sparta
-        item: 6199
+        item: 29913
+  - engineID: mvgEngineXVII
+    games:
+      - name: book-of-living
+        item: 29912
+  - engineID: mvgEngineXVIII
+    games:
+      - name: zodiac-elements
   - engineID: mvgEngineUnity1
     games:
       - name: supa-crew
-        item: 7523
+        item: 31962
   - engineID: mvgEngineGodot2
     games:
       - name: fox-tale
-        item: 7797
+        item: 33278
   - engineID: mvgEngineRoulette1
     games:
       - name: dragon-roulette
-        item: 7863
+        item: 33287
   - engineID: mvgEngineGodot3
     games:
       - name: spirit-hunters
-        item: 7985
+        item: 33315
   - engineID: mvgEngineGodot4
     games:
       - name: wizardz-world
-        item: 8243
+        item: 33542
       
 gamification:
   a-fairy-tale:
