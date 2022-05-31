@@ -40,7 +40,17 @@ func (f TriggerBattleOfMythsPrincess) Trigger(state *FeatureState, params Featur
 					for ry := fy + 1; ry < y; ry++ {
 						positions = append(positions, x*gridh+ry)
 					}
-					fy = -1
+					more := false
+					for yc := y + 1; !more && yc < len(r); yc++ {
+						if r[yc] == tileId {
+							more = true
+						}
+					}
+					if more {
+						fy = y
+					} else {
+						break
+					}
 				}
 			}
 		}
@@ -59,7 +69,17 @@ func (f TriggerBattleOfMythsPrincess) Trigger(state *FeatureState, params Featur
 					for rx := fx + 1; rx < x; rx++ {
 						positions = append(positions, rx*gridh+y)
 					}
-					fx = -1
+					more := false
+					for xc := x + 1; !more && xc < gridw; xc++ {
+						if state.SymbolGrid[xc][y] == tileId {
+							more = true
+						}
+					}
+					if more {
+						fx = x
+					} else {
+						break
+					}
 				}
 			}
 		}
