@@ -74,17 +74,18 @@ func (f TriggerBattleOfMythsFreespin) Trigger(state *FeatureState, params Featur
 	if counter >= scatterMax || counter <= scatterMin {
 		// add freespin win to state.Wins
 
-		fstype = "freespinE1"
-		if counter >= scatterMax {
-			fstype = "freespinE2"
+		if numFreespins > 0 {
+			fstype = "freespinE1"
+			if counter >= scatterMax {
+				fstype = "freespinE2"
+			}
+
+			state.Wins = append(state.Wins, FeatureWin{
+				Index:           fmt.Sprintf("%s:%d", fstype, numFreespins),
+				SymbolPositions: positions,
+			})
+			logger.Debugf("Trigger %d freespins of type %s", numFreespins, fstype)
 		}
-
-		state.Wins = append(state.Wins, FeatureWin{
-			Index:           fmt.Sprintf("%s:%d", fstype, numFreespins),
-			SymbolPositions: positions,
-		})
-
-		logger.Debugf("Trigger %d freespins of type %s", numFreespins, fstype)
 	}
 
 	SetStatefulStakeMap(*state, FeatureParams{

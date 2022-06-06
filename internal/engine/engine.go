@@ -1531,6 +1531,22 @@ func (gen GenerateStatefulCascade) TriggerFeatures(engine EngineDef, symbolGrid 
 	return triggerStatefulFeatures(engine, symbolGrid, stopList, parameters)
 }
 
+type GenerateStatefulCascadeMultiply struct {
+}
+
+func (gen GenerateStatefulCascadeMultiply) ForceRound(engine EngineDef, parameters GameParams) Gamestate {
+	return genForcedRound(gen, engine, parameters)
+}
+
+func (gen GenerateStatefulCascadeMultiply) FeatureRound(engine EngineDef, parameters GameParams) Gamestate {
+	return genFeatureCascadeMultiply(gen, engine, parameters)
+}
+
+func (gen GenerateStatefulCascadeMultiply) TriggerFeatures(
+	engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams) features.FeatureState {
+	return triggerStatefulFeatures(engine, symbolGrid, stopList, parameters)
+}
+
 func triggerFeatures(engine EngineDef, fs *features.FeatureState, parameters GameParams) error {
 	featureparams := features.FeatureParams{
 		"Engine": engine.ID,
@@ -1896,6 +1912,36 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 	return gamestate
 }
 
+func genFeatureCascadeMultiply(gen GenerateRound, engine EngineDef, parameters GameParams) Gamestate {
+	// multiplier increments for each cascade, up to the highest multiplier in the engine
+	gamestate := genFeatureCascade(gen, engine, parameters)
+	// get next multiplier
+	prevIndex := getIndex(parameters.previousGamestate.Multiplier, engine.Multiplier.Multipliers)
+	logger.Debugf("multiplier %v index %v in %v action %s",
+		parameters.previousGamestate.Multiplier, prevIndex, engine.Multiplier.Multipliers, parameters.Action)
+	if parameters.Action == "cascade" {
+		if prevIndex < 0 {
+			// fallback to first multiplier
+			gamestate.Multiplier = engine.Multiplier.Multipliers[0]
+		} else {
+
+			gamestate.Multiplier = engine.Multiplier.Multipliers[minInt(prevIndex+1, len(engine.Multiplier.Multipliers)-1)]
+		}
+	} else if strings.Contains(parameters.Action, "freespin") {
+		if prevIndex < 0 {
+			// fallback to first multiplier
+			gamestate.Multiplier = engine.Multiplier.Multipliers[0]
+		} else {
+			gamestate.Multiplier = engine.Multiplier.Multipliers[prevIndex]
+		}
+		logger.Debugf("freespin with same multiplier %v and index %v as last round", gamestate.Multiplier, prevIndex)
+	} else {
+		gamestate.Multiplier = engine.Multiplier.Multipliers[0]
+	}
+
+	return gamestate
+}
+
 func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 	return GenerateFeatureRound{}.ForceRound(engine, parameters)
 }
@@ -1906,6 +1952,10 @@ func (engine EngineDef) StatefulRound(parameters GameParams) Gamestate {
 
 func (engine EngineDef) StatefulCascade(parameters GameParams) Gamestate {
 	return GenerateStatefulCascade{}.ForceRound(engine, parameters)
+}
+
+func (engine EngineDef) StatefulCascadeMultiply(parameters GameParams) Gamestate {
+	return GenerateStatefulCascadeMultiply{}.ForceRound(engine, parameters)
 }
 
 func (engine EngineDef) InitRound(parameters GameParams) (state Gamestate) {
