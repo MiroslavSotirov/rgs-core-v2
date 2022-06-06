@@ -35,10 +35,12 @@ func (f TriggerBattleOfMythsFreespin) Trigger(state *FeatureState, params Featur
 		return
 	}
 
-	counter := 0
+	var counter int
+	var fstype string
 	statefulStake := GetStatefulStakeMap(*state)
 	if statefulStake.HasKey("counter") {
 		counter = statefulStake.GetInt("counter")
+		fstype = statefulStake.GetString("fstype")
 	}
 
 	scatterInc := params.GetInt("ScatterInc")
@@ -72,8 +74,8 @@ func (f TriggerBattleOfMythsFreespin) Trigger(state *FeatureState, params Featur
 	if counter >= scatterMax || counter <= scatterMin {
 		// add freespin win to state.Wins
 
-		fstype := "freespinE1"
-		if counter <= scatterMin {
+		fstype = "freespinE1"
+		if counter >= scatterMax {
 			fstype = "freespinE2"
 		}
 
@@ -82,11 +84,12 @@ func (f TriggerBattleOfMythsFreespin) Trigger(state *FeatureState, params Featur
 			SymbolPositions: positions,
 		})
 
-		logger.Debugf("Trigger %d freespins", numFreespins)
+		logger.Debugf("Trigger %d freespins of type %s", numFreespins, fstype)
 	}
 
 	SetStatefulStakeMap(*state, FeatureParams{
 		"counter": counter,
+		"fstype":  fstype,
 	}, params)
 
 	activateFeatures(f.FeatureDef, state, params)

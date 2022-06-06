@@ -42,6 +42,12 @@ const (
 	winconf_anchor_left_or_right = "anchor_left_or_right"
 )
 
+const (
+	inheritance_none  = "none"  // initialize enginedef to zero value
+	inheritance_first = "first" // initialize enginedef from first defined def
+	inheritance_prev  = "prev"  // initialize enginedef from previously defined def
+)
+
 type WinConfiguration struct {
 	Flags string `yaml:"Flags"` // concatenation of winconf_ flag strings, if empty string then configuration is ignored(set to none then)
 }
@@ -53,13 +59,14 @@ type RoulettePayout struct {
 
 // EngineDef ...
 type EngineDef struct {
-	ID       string `yaml:"name"`
-	Index    int
-	Function string   `yaml:"function"`                // determines what funciton is run with this enginedef
-	Reels    [][]int  `yaml:"Reels,flow" json:"reels"` // reel contents
-	ViewSize []int    `yaml:"ViewSize"`                // the number and shape of symbols to display in the client
-	Payouts  []Payout `yaml:"Payouts"`                 // the payouts for line wins (can be nil for ways games)
-	WinType  string   `yaml:"WinType"`                 // ways, lines, or barLines (specifying lines insteadof barLines saves comp. power)
+	ID          string `yaml:"name"`
+	Inheritance string `yaml:"inheritance"` // inherit for previous def if true, first def if false
+	Index       int
+	Function    string   `yaml:"function"`                // determines what funciton is run with this enginedef
+	Reels       [][]int  `yaml:"Reels,flow" json:"reels"` // reel contents
+	ViewSize    []int    `yaml:"ViewSize"`                // the number and shape of symbols to display in the client
+	Payouts     []Payout `yaml:"Payouts"`                 // the payouts for line wins (can be nil for ways games)
+	WinType     string   `yaml:"WinType"`                 // ways, lines, or barLines (specifying lines insteadof barLines saves comp. power)
 	// The string represents the method to be run. should be ordered by precedence
 	SpecialPayouts  []Prize                   `yaml:"SpecialPayouts"`
 	WinLines        [][]int                   `yaml:"WinLines,flow"`

@@ -673,6 +673,12 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 	//	// action must be performed on the gamble engine
 	//	method = reflect.ValueOf(engineConf.EngineDefs[previousGamestate.DefID]).MethodByName(engineConf.EngineDefs[previousGamestate.DefID].Function)
 	default:
+		var prevNextAction string
+		if len(parameters.previousGamestate.NextActions) >= 1 {
+			prevNextAction = parameters.previousGamestate.NextActions[0]
+		}
+		logger.Debugf("getting engine for method %s (prev.NextAction=%s)",
+			parameters.Action, prevNextAction)
 		method, err = engineConf.getEngineAndMethod(parameters.Action)
 	}
 
@@ -1914,6 +1920,7 @@ func (engine EngineDef) InitRound(parameters GameParams) (state Gamestate) {
 }
 
 func (engine EngineDef) InitRoundNoSpin(parameters GameParams) (state Gamestate) {
+	logger.Debugf("InitRoundNoSpin with ViewSize %v", engine.ViewSize)
 	stopList := make([]int, len(engine.ViewSize))
 	for i := range stopList {
 		stopList[i] = 0

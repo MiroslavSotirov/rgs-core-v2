@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -101,7 +102,7 @@ func ReadEngineDefs(engineID string) EngineConfig {
 	// takes an engineId string and parses the corresponding yaml file into an EngineConfig
 	currentDir, err := os.Getwd()
 	if err != nil {
-		logger.Fatalf("Failed opening current directory")
+		panic("Failed opening current directory")
 	}
 	engineDef := filepath.Join(currentDir, "internal/engine/engineConfigs", engineID+".yml")
 	yamlFile, err := ioutil.ReadFile(engineDef)
@@ -115,10 +116,24 @@ func ReadEngineDefs(engineID string) EngineConfig {
 	}
 	// take values from default wherever available
 	filledEngineDefs := []EngineDef{c.EngineDefs[0]}
+	completeDef := c.EngineDefs[0]
 	for i := 1; i < len(c.EngineDefs); i++ {
-		completeDef := c.EngineDefs[0]
+		if c.EngineDefs[i].Inheritance != "" {
+			switch c.EngineDefs[i].Inheritance {
+			case inheritance_none:
+				completeDef = EngineDef{}
+			case inheritance_first:
+				completeDef = c.EngineDefs[0]
+			case inheritance_prev:
+			default:
+				panic(fmt.Sprintf("Unrecognized inheritance mode: [%s]", c.EngineDefs[i].Inheritance))
+			}
+		} else {
+			completeDef = c.EngineDefs[0]
+		}
 		completeDef.ID = c.EngineDefs[i].ID
 		completeDef.Index = i
+
 		// NB: function is used to send information about win type to client
 		if c.EngineDefs[i].Function != "" {
 			completeDef.Function = c.EngineDefs[i].Function
@@ -177,6 +192,8 @@ func ReadEngineDefs(engineID string) EngineConfig {
 		filledEngineDefs = append(filledEngineDefs, completeDef)
 	}
 	c.EngineDefs = filledEngineDefs
+	jc, _ := json.Marshal(c)
+	logger.Debugf("engine def: %s", string(jc))
 	return c
 
 }
