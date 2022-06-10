@@ -24,6 +24,7 @@ type FeatureState struct {
 	Wins       []FeatureWin
 	TotalStake float64
 	Stateful   *FeatureState
+	Action     string
 }
 
 func (fs *FeatureState) SetGrid(symbolgrid [][]int) {

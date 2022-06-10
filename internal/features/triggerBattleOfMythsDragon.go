@@ -28,6 +28,9 @@ func (f TriggerBattleOfMythsDragon) Trigger(state *FeatureState, params FeatureP
 	if f.ForceTrigger(state, params) {
 		return
 	}
+	if state.Action == "cascade" {
+		return
+	}
 
 	number := params.GetIntSlice("Number")
 	numberProbs := params.GetIntSlice("NumberProbabilities")
