@@ -28,6 +28,9 @@ func (f TriggerBattleOfMythsTiger) Trigger(state *FeatureState, params FeaturePa
 	if f.ForceTrigger(state, params) {
 		return
 	}
+	if state.Action == "cascade" {
+		return
+	}
 
 	sizes := params.GetIntSlice("Sizes")
 	sizeProbs := params.GetIntSlice("SizeProbabilities")

@@ -1568,6 +1568,7 @@ func triggerConfiguredFeatures(engine EngineDef, symbolGrid [][]int, stopList []
 	fs.SetGrid(symbolGrid)
 	fs.StopList = stopList
 	fs.Reels = engine.Reels
+	fs.Action = parameters.Action
 	if err := triggerFeatures(engine, &fs, parameters); err != nil {
 		logger.Errorf("%v", err)
 		return features.FeatureState{}
@@ -1587,6 +1588,7 @@ func triggerStatefulFeatures(engine EngineDef, symbolGrid [][]int, stopList []in
 	fs.SetGrid(symbolGrid)
 	fs.StopList = stopList
 	fs.Reels = engine.Reels
+	fs.Action = parameters.Action
 	if err := triggerFeatures(engine, &fs, parameters); err != nil {
 		logger.Errorf("%v", err)
 		return features.FeatureState{}
@@ -1986,6 +1988,7 @@ func (engine EngineDef) InitRoundFeatures(parameters GameParams, stopList []int,
 	fs.SetGrid(state.SymbolGrid)
 	fs.StopList = stopList
 	fs.Reels = engine.Reels
+	fs.Action = parameters.Action
 	features.InitFeatures(featuredef, &fs)
 	state.Features = fs.Features
 	return
