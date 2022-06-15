@@ -360,6 +360,11 @@ EngineDefs:
   - Type: TriggerBattleOfMythsFreespin
     Params:
       Collated: true
+      ScatterDec: 11
+      ScatterInc: 12
+      ScatterMin: -10
+      ScatterMax: 10
+      NumFreespins: 0      
     Features:
     - Type: TriggerBattleOfMythsTiger
       Params:
@@ -564,6 +569,11 @@ EngineDefs:
   - Type: TriggerBattleOfMythsFreespin
     Params:
       Collated: true
+      ScatterDec: 11
+      ScatterInc: 12
+      ScatterMin: -10
+      ScatterMax: 10
+      NumFreespins: 0
     Features:
     - Type: TriggerBattleOfMythsDragon
       Params:
