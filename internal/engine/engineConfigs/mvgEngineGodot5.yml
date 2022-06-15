@@ -128,8 +128,8 @@ EngineDefs:
         Collated: true
         ScatterDec: 11
         ScatterInc: 12
-        ScatterMin: -9
-        ScatterMax: 9
+        ScatterMin: -10
+        ScatterMax: 10
         NumFreespins: 8
         ScatterProbability: 2757
         NumScatters: [1,2,3,4,5,6]
@@ -360,11 +360,6 @@ EngineDefs:
   - Type: TriggerBattleOfMythsFreespin
     Params:
       Collated: true
-      ScatterDec: 11
-      ScatterInc: 12
-      ScatterMin: -9
-      ScatterMax: 9
-      NumFreespins: 0
     Features:
     - Type: TriggerBattleOfMythsTiger
       Params:
@@ -569,11 +564,6 @@ EngineDefs:
   - Type: TriggerBattleOfMythsFreespin
     Params:
       Collated: true
-      ScatterInc: 11
-      ScatterDec: 12
-      ScatterMin: -9
-      ScatterMax: 9
-      NumFreespins: 0      
     Features:
     - Type: TriggerBattleOfMythsDragon
       Params:
@@ -763,6 +753,6 @@ EngineDefs:
   Features:
   - Type: TriggerBattleOfMythsFreespin
     Params:
-      ScatterMin: -9
-      ScatterMax: 9
+      ScatterMin: -10
+      ScatterMax: 10
       NumFreespins: 8
