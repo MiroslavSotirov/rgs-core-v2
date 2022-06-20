@@ -3,6 +3,8 @@ package rng
 import (
 	"encoding/base64"
 	"math/rand"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 var rngPool = Pool{}
@@ -26,6 +28,10 @@ func RandFromRange(n int) int {
 	rng := rngPool.Get()
 	defer rngPool.Put(rng)
 	return randFromRange(rng, n)
+}
+
+func Uuid() string {
+	return base64.StdEncoding.EncodeToString(uuid.NewV4().Bytes())
 }
 
 func randStringRunes(rng *rand.Rand, n int) string {

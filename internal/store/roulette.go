@@ -1,9 +1,9 @@
 package store
 
 import (
-	uuid "github.com/satori/go.uuid"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
@@ -43,8 +43,8 @@ func (g GameRouletteV3) DeserializeStateRoulette(serialized []byte) (state engin
 }
 
 func InitStateRoulette(game string, currency string) engine.GameStateRoulette {
-	id := uuid.NewV4().String()
-	nextid := uuid.NewV4().String()
+	id := rng.Uuid()
+	nextid := rng.Uuid()
 	gameState := engine.GameStateRoulette{
 		GameStateV3: engine.GameStateV3{
 			Id:            id,

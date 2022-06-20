@@ -14,11 +14,11 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/prometheus/client_golang/prometheus"
-	uuid "github.com/satori/go.uuid"
 	"github.com/travelaudience/go-promhttp"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
@@ -621,7 +621,7 @@ func (i *RemoteServiceImpl) httpClient() http.Client {
 }
 
 func (i *RemoteServiceImpl) demoToken() string {
-	return i.demoTokenPrefix + ":" + i.demoCurrency + ":" + uuid.NewV4().String()
+	return i.demoTokenPrefix + ":" + i.demoCurrency + ":" + rng.Uuid()
 }
 
 func (i *RemoteServiceImpl) errorJson(err error) rgse.RGSErr {
@@ -633,7 +633,6 @@ func (i *RemoteServiceImpl) errorJson(err error) rgse.RGSErr {
 
 func (i *RemoteServiceImpl) errorRest(err error) rgse.RGSErr {
 	if err != nil {
-		logger.Debugf("rest error: %v", err)
 		return rgse.Create(rgse.RestError)
 	}
 	return nil
@@ -685,7 +684,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 	}
 
 	authRq := restAuthenticateRequest{
-		ReqId:    uuid.NewV4().String(),
+		ReqId:    rng.Uuid(),
 		Token:    string(token),
 		Game:     gameId,
 		Platform: i.defaultPlatform,
@@ -892,7 +891,7 @@ func (i *LocalServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore,
 
 func (i *RemoteServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore, rgse.RGSErr) {
 	balRq := restBalanceRequest{
-		ReqId:    uuid.NewV4().String(),
+		ReqId:    rng.Uuid(),
 		Token:    string(token),
 		Platform: i.defaultPlatform,
 		Mode:     strings.ToLower(string(mode)),
@@ -1013,7 +1012,7 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 	}
 
 	txRq := restTransactionRequest{
-		ReqId:       uuid.NewV4().String(),
+		ReqId:       rng.Uuid(),
 		Token:       string(token),
 		Game:        transaction.GameId,
 		Platform:    i.defaultPlatform,
@@ -1138,7 +1137,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 	// Used at beginning of play() func to get previous gamestate, betlimit settings code, and free games info
 
 	queryRq := restQueryRequest{
-		ReqId:    uuid.NewV4().String(),
+		ReqId:    rng.Uuid(),
 		Token:    string(token),
 		Game:     gameId,
 		Platform: i.defaultPlatform,
@@ -1272,7 +1271,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 	player, _ := i.getPlayer(playerId)
 
 	balance, err := i.Transaction(token, mode, TransactionStore{
-		TransactionId: uuid.NewV4().String(),
+		TransactionId: rng.Uuid(),
 		Token:         token,
 		Mode:          mode,
 		Category:      CategoryClose,
@@ -1310,7 +1309,7 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 	}
 
 	txRq := restTransactionRequest{
-		ReqId:       uuid.NewV4().String(),
+		ReqId:       rng.Uuid(),
 		Token:       string(token),
 		Game:        gameId,
 		Platform:    i.defaultPlatform,
@@ -1745,7 +1744,7 @@ func (i *LocalServiceImpl) FeedRound(token Token, mode Mode, gameId string, tran
 
 func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) (rounds []FeedRound, nextPage int, finalErr rgse.RGSErr) {
 	feedRq := restFeedRequest{
-		ReqId:     uuid.NewV4().String(),
+		ReqId:     rng.Uuid(),
 		Token:     string(token),
 		Game:      gameId,
 		Platform:  i.defaultPlatform,
@@ -1800,7 +1799,7 @@ func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime strin
 
 func (i *RemoteServiceImpl) FeedRound(token Token, mode Mode, gameId string, roundId int64) (feeds []FeedTransaction, finalErr rgse.RGSErr) {
 	feedRq := restFeedRoundRequest{
-		ReqId:    uuid.NewV4().String(),
+		ReqId:    rng.Uuid(),
 		Token:    string(token),
 		Game:     gameId,
 		Platform: i.defaultPlatform,

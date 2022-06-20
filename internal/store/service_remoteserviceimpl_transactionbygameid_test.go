@@ -3,15 +3,16 @@ package store
 import (
 	"bytes"
 	"encoding/json"
-	uuid "github.com/satori/go.uuid"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"	
+	"time"
+
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 func testRemoteServiceForTransactionByGameId(url string) Service {
@@ -31,7 +32,7 @@ func testRemoteServiceForTransactionByGameId(url string) Service {
 
 func TestRemoteServiceImpl_TransactionByGameId_1(t *testing.T) {
 	logger.NewLogger(logger.Configuration{})
-	token := uuid.NewV4().String()
+	token := rng.Uuid()
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		if "/v1/gnrc/maverick/query" == req.URL.String() {
 			lastTx := restTransactionRequest{
@@ -58,7 +59,7 @@ func TestRemoteServiceImpl_TransactionByGameId_1(t *testing.T) {
 			}
 			rs := restQueryResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 					VendorInfo: restVendorResponse{
 						LastAttemptedTx: lastTx,
@@ -215,10 +216,10 @@ func TestRemoteServiceImpl_TransactionByGameId_6(t *testing.T) {
 		if "/v1/gnrc/maverick/query" == req.URL.String() {
 			rs := restBalanceResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        uuid.NewV4().String(),
+				Token:        rng.Uuid(),
 				ResponseCode: "1",
 				Message:      "",
 				Balance:      100,
@@ -253,10 +254,10 @@ func TestRemoteServiceImpl_TransactionByGameId_7(t *testing.T) {
 		if "/v1/gnrc/maverick/query" == req.URL.String() {
 			rs := restBalanceResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        uuid.NewV4().String(),
+				Token:        rng.Uuid(),
 				ResponseCode: "2",
 				Message:      "",
 				Balance:      100,
@@ -291,10 +292,10 @@ func TestRemoteServiceImpl_TransactionByGameId_8(t *testing.T) {
 		if "/v1/gnrc/maverick/query" == req.URL.String() {
 			rs := restBalanceResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        uuid.NewV4().String(),
+				Token:        rng.Uuid(),
 				ResponseCode: "3",
 				Message:      "",
 				Balance:      100,
@@ -329,10 +330,10 @@ func TestRemoteServiceImpl_TransactionByGameId_9(t *testing.T) {
 		if "/v1/gnrc/maverick/query" == req.URL.String() {
 			rs := restBalanceResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        uuid.NewV4().String(),
+				Token:        rng.Uuid(),
 				ResponseCode: "4",
 				Message:      "",
 				Balance:      100,

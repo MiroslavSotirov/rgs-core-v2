@@ -3,14 +3,15 @@ package store
 import (
 	"bytes"
 	"encoding/json"
-	uuid "github.com/satori/go.uuid"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 func testRemoteServiceForPlayerByToken(url string) Service {
@@ -30,19 +31,19 @@ func testRemoteServiceForPlayerByToken(url string) Service {
 
 func TestRemoteServiceImpl_PlayerByToken_1(t *testing.T) {
 	logger.NewLogger(logger.Configuration{})
-	token := uuid.NewV4().String()
+	token := rng.Uuid()
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		if "/v1/gnrc/maverick/auth" == req.URL.String() {
 			authRs := restAuthenticateResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
 				Token:        token,
 				ResponseCode: "0",
 				Message:      "",
-				Id:           uuid.NewV4().String(),
-				Username:     uuid.NewV4().String(),
+				Id:           rng.Uuid(),
+				Username:     rng.Uuid(),
 				BetLimit:     "",
 				FreeGames: restFreeGame{
 					NrGames:     0,
@@ -201,14 +202,14 @@ func TestRemoteServiceImpl_PlayerByToken_6(t *testing.T) {
 		if "/v1/gnrc/maverick/auth" == req.URL.String() {
 			authRs := restAuthenticateResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        uuid.NewV4().String(),
+				Token:        rng.Uuid(),
 				ResponseCode: "1",
 				Message:      "",
-				Id:           uuid.NewV4().String(),
-				Username:     uuid.NewV4().String(),
+				Id:           rng.Uuid(),
+				Username:     rng.Uuid(),
 				BetLimit:     "",
 				FreeGames: restFreeGame{
 					NrGames:     0,
@@ -252,14 +253,14 @@ func TestRemoteServiceImpl_PlayerByToken_7(t *testing.T) {
 		if "/v1/gnrc/maverick/auth" == req.URL.String() {
 			authRs := restAuthenticateResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        uuid.NewV4().String(),
+				Token:        rng.Uuid(),
 				ResponseCode: "2",
 				Message:      "",
-				Id:           uuid.NewV4().String(),
-				Username:     uuid.NewV4().String(),
+				Id:           rng.Uuid(),
+				Username:     rng.Uuid(),
 				BetLimit:     "",
 				FreeGames: restFreeGame{
 					NrGames:     0,
@@ -303,14 +304,14 @@ func TestRemoteServiceImpl_PlayerByToken_8(t *testing.T) {
 		if "/v1/gnrc/maverick/auth" == req.URL.String() {
 			authRs := restAuthenticateResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        uuid.NewV4().String(),
+				Token:        rng.Uuid(),
 				ResponseCode: "3",
 				Message:      "",
-				Id:           uuid.NewV4().String(),
-				Username:     uuid.NewV4().String(),
+				Id:           rng.Uuid(),
+				Username:     rng.Uuid(),
 				BetLimit:     "",
 				FreeGames: restFreeGame{
 					NrGames:     0,
@@ -354,14 +355,14 @@ func TestRemoteServiceImpl_PlayerByToken_9(t *testing.T) {
 		if "/v1/gnrc/maverick/auth" == req.URL.String() {
 			authRs := restAuthenticateResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        uuid.NewV4().String(),
+				Token:        rng.Uuid(),
 				ResponseCode: "4",
 				Message:      "",
-				Id:           uuid.NewV4().String(),
-				Username:     uuid.NewV4().String(),
+				Id:           rng.Uuid(),
+				Username:     rng.Uuid(),
 				BetLimit:     "",
 				FreeGames: restFreeGame{
 					NrGames:     0,

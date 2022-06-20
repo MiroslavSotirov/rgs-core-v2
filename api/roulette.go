@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
@@ -242,6 +241,10 @@ func validateRouletteBet(index string, bet engine.BetRoulette, payouts map[strin
 
 func validateRouletteStake(bet engine.BetRoulette, stakes []engine.Fixed) bool {
 	logger.Debugf("validating stake in bet %#v", bet)
+	if bet.Amount <= 0 {
+		logger.Warnf("bet is zero or negative")
+		return false
+	}
 	amount := bet.Amount
 	lastAmount := engine.Fixed(0)
 	numstakes := len(stakes)
@@ -304,7 +307,7 @@ func getRouletteResults(
 	gameState.Prizes = prizes
 	if len(prizes) > 0 {
 		gameState.GameStateV3.Transactions = append(gameState.GameStateV3.Transactions, engine.WalletTransaction{
-			Id:     uuid.NewV4().String(), // prevState.NextGamestate,
+			Id:     rng.Uuid(), // prevState.NextGamestate,
 			Amount: engine.Money{Amount: win, Currency: txStore.Amount.Currency},
 			Type:   "PAYOUT",
 		})
@@ -363,7 +366,7 @@ func rouletteRound(data playParamsRoulette, engineDef engine.EngineDef, prevStat
 
 	id := prevState.NextGamestate
 	roundId := id
-	nextid := uuid.NewV4().String()
+	nextid := rng.Uuid()
 	gameState := engine.GameStateRoulette{
 		GameStateV3: engine.GameStateV3{
 			Id:                prevState.NextGamestate,

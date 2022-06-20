@@ -3,11 +3,11 @@ package store
 import (
 	"strings"
 
-	uuid "github.com/satori/go.uuid"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
@@ -64,7 +64,18 @@ func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.G
 
 	gsID := player.PlayerId + gameName + "GSinit"
 	view, features := engine.GetDefaultView(gameName)
-	latestGamestate = engine.Gamestate{Game: gameName, DefID: 0, Id: gsID, BetPerLine: engine.Money{0, player.Balance.Currency}, NextActions: []string{"finish"}, Action: "init", Gamification: &engine.GamestatePB_Gamification{}, SymbolGrid: view, Features: features, NextGamestate: uuid.NewV4().String(), Closed: true}
+	latestGamestate = engine.Gamestate{
+		Game: gameName, DefID: 0,
+		Id:            gsID,
+		BetPerLine:    engine.Money{0, player.Balance.Currency},
+		NextActions:   []string{"finish"},
+		Action:        "init",
+		Gamification:  &engine.GamestatePB_Gamification{},
+		SymbolGrid:    view,
+		Features:      features,
+		NextGamestate: rng.Uuid(),
+		Closed:        true,
+	}
 	if strings.Contains(gameName, "seasons") {
 		latestGamestate.SelectedWinLines = []int{0, 1, 2}
 	}

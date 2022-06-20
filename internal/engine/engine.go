@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
@@ -729,7 +728,7 @@ func (gamestate *Gamestate) PostProcess(previousGamestate Gamestate, chargeWager
 	gamestate.Id = previousGamestate.NextGamestate
 	gamestate.PreviousGamestate = previousGamestate.Id
 
-	nextID := uuid.NewV4().String()
+	nextID := rng.Uuid()
 	gamestate.NextGamestate = nextID
 	gamestate.PrepareTransactions(previousGamestate)
 	logger.Debugf("gamestate: %#v", gamestate)
@@ -767,7 +766,7 @@ func (gamestate *Gamestate) PrepareTransactions(previousGamestate Gamestate) {
 	if relativePayout != 0 || gamestate.RoundID != gamestate.Id {
 		txID := gamestate.Id
 		if gamestate.RoundID == gamestate.Id {
-			txID = uuid.NewV4().String()
+			txID = rng.Uuid()
 		}
 		// add win transaction
 		gamestateWin = Money{Amount: relativePayout.Mul(gamestate.BetPerLine.Amount), Currency: gamestate.BetPerLine.Currency} // this is in fixed notation i.e. 1.00 == 1000000

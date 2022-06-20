@@ -7,10 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	uuid "github.com/satori/go.uuid"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
@@ -31,12 +31,12 @@ func testRemoteServiceForCloseRound(url string) Service {
 
 func TestRemoteServiceImpl_CloseRound_1(t *testing.T) {
 	logger.NewLogger(logger.Configuration{})
-	token := uuid.NewV4().String()
+	token := rng.Uuid()
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		if "/v1/gnrc/maverick/transaction" == req.URL.String() {
 			rs := restBalanceResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
 				Token:        token,
@@ -56,7 +56,7 @@ func TestRemoteServiceImpl_CloseRound_1(t *testing.T) {
 	mode := ModeDemo
 	tokenStr := "refresh-token"
 	gameIdStr := "MVRK-TEST-GAME-1"
-	roundIdStr := uuid.NewV4().String()
+	roundIdStr := rng.Uuid()
 
 	balance, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600, nil)
 
@@ -90,7 +90,7 @@ func TestRemoteServiceImpl_CloseRound_2(t *testing.T) {
 	mode := ModeDemo
 	tokenStr := "refresh-token"
 	gameIdStr := "MVRK-TEST-GAME-1"
-	roundIdStr := uuid.NewV4().String()
+	roundIdStr := rng.Uuid()
 
 	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600, nil)
 
@@ -117,7 +117,7 @@ func TestRemoteServiceImpl_CloseRound_3(t *testing.T) {
 	mode := ModeDemo
 	tokenStr := "refresh-token"
 	gameIdStr := "MVRK-TEST-GAME-1"
-	roundIdStr := uuid.NewV4().String()
+	roundIdStr := rng.Uuid()
 
 	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600, nil)
 
@@ -144,7 +144,7 @@ func TestRemoteServiceImpl_CloseRound_4(t *testing.T) {
 	mode := ModeDemo
 	tokenStr := "refresh-token"
 	gameIdStr := "MVRK-TEST-GAME-1"
-	roundIdStr := uuid.NewV4().String()
+	roundIdStr := rng.Uuid()
 
 	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600, nil)
 
@@ -171,7 +171,7 @@ func TestRemoteServiceImpl_CloseRound_5(t *testing.T) {
 	mode := ModeDemo
 	tokenStr := "refresh-token"
 	gameIdStr := "MVRK-TEST-GAME-1"
-	roundIdStr := uuid.NewV4().String()
+	roundIdStr := rng.Uuid()
 
 	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600, nil)
 
@@ -190,10 +190,10 @@ func TestRemoteServiceImpl_CloseRound_6(t *testing.T) {
 		if "/v1/gnrc/maverick/transaction" == req.URL.String() {
 			rs := restBalanceResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        uuid.NewV4().String(),
+				Token:        rng.Uuid(),
 				ResponseCode: "1",
 				Message:      "",
 				Balance:      100,
@@ -210,7 +210,7 @@ func TestRemoteServiceImpl_CloseRound_6(t *testing.T) {
 	mode := ModeDemo
 	tokenStr := "refresh-token"
 	gameIdStr := "MVRK-TEST-GAME-1"
-	roundIdStr := uuid.NewV4().String()
+	roundIdStr := rng.Uuid()
 
 	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600, nil)
 
@@ -229,10 +229,10 @@ func TestRemoteServiceImpl_CloseRound_7(t *testing.T) {
 		if "/v1/gnrc/maverick/transaction" == req.URL.String() {
 			rs := restBalanceResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        uuid.NewV4().String(),
+				Token:        rng.Uuid(),
 				ResponseCode: "2",
 				Message:      "",
 				Balance:      100,
@@ -249,7 +249,7 @@ func TestRemoteServiceImpl_CloseRound_7(t *testing.T) {
 	mode := ModeDemo
 	tokenStr := "refresh-token"
 	gameIdStr := "MVRK-TEST-GAME-1"
-	roundIdStr := uuid.NewV4().String()
+	roundIdStr := rng.Uuid()
 
 	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600, nil)
 
@@ -268,10 +268,10 @@ func TestRemoteServiceImpl_CloseRound_8(t *testing.T) {
 		if "/v1/gnrc/maverick/transaction" == req.URL.String() {
 			rs := restBalanceResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        uuid.NewV4().String(),
+				Token:        rng.Uuid(),
 				ResponseCode: "3",
 				Message:      "",
 				Balance:      100,
@@ -288,7 +288,7 @@ func TestRemoteServiceImpl_CloseRound_8(t *testing.T) {
 	mode := ModeDemo
 	tokenStr := "refresh-token"
 	gameIdStr := "MVRK-TEST-GAME-1"
-	roundIdStr := uuid.NewV4().String()
+	roundIdStr := rng.Uuid()
 
 	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600, nil)
 
@@ -307,10 +307,10 @@ func TestRemoteServiceImpl_CloseRound_9(t *testing.T) {
 		if "/v1/gnrc/maverick/transaction" == req.URL.String() {
 			rs := restBalanceResponse{
 				Metadata: restMetadata{
-					ReqId:          uuid.NewV4().String(),
+					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        uuid.NewV4().String(),
+				Token:        rng.Uuid(),
 				ResponseCode: "4",
 				Message:      "",
 				Balance:      100,
@@ -327,7 +327,7 @@ func TestRemoteServiceImpl_CloseRound_9(t *testing.T) {
 	mode := ModeDemo
 	tokenStr := "refresh-token"
 	gameIdStr := "MVRK-TEST-GAME-1"
-	roundIdStr := uuid.NewV4().String()
+	roundIdStr := rng.Uuid()
 
 	_, err := serv.CloseRound(Token(tokenStr), mode, gameIdStr, roundIdStr, []byte{}, 3600, nil)
 
