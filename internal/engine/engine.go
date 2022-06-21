@@ -1563,6 +1563,9 @@ func triggerConfiguredFeatures(engine EngineDef, symbolGrid [][]int, stopList []
 	logger.Debugf("Trigger configured features")
 	var fs features.FeatureState
 	//	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
+	if prizes, _ := engine.DetermineWins(symbolGrid); len(prizes) > 0 {
+		fs.PureWins = true
+	}
 	fs.TotalStake = float64(parameters.previousGamestate.BetPerLine.Amount.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
 	fs.SetGrid(symbolGrid)
 	fs.StopList = stopList
@@ -1580,6 +1583,9 @@ func triggerStatefulFeatures(engine EngineDef, symbolGrid [][]int, stopList []in
 	var fs, prevfs features.FeatureState
 	prevfs.Features = parameters.previousGamestate.Features
 	fs.Stateful = &prevfs
+	if prizes, _ := engine.DetermineWins(symbolGrid); len(prizes) > 0 {
+		fs.PureWins = true
+	}
 	//	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
 	fs.TotalStake = float64(parameters.previousGamestate.BetPerLine.Amount.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
 	logger.Debugf("total stake: %f previousGamestate.BetPerLine: %f engine.StakeDivisor: %d parameters.Stake: %f",
