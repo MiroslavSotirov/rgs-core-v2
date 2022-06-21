@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
@@ -729,7 +728,7 @@ func (gamestate *Gamestate) PostProcess(previousGamestate Gamestate, chargeWager
 	gamestate.Id = previousGamestate.NextGamestate
 	gamestate.PreviousGamestate = previousGamestate.Id
 
-	nextID := uuid.NewV4().String()
+	nextID := rng.Uuid()
 	gamestate.NextGamestate = nextID
 	gamestate.PrepareTransactions(previousGamestate)
 	logger.Debugf("gamestate: %#v", gamestate)
@@ -767,7 +766,7 @@ func (gamestate *Gamestate) PrepareTransactions(previousGamestate Gamestate) {
 	if relativePayout != 0 || gamestate.RoundID != gamestate.Id {
 		txID := gamestate.Id
 		if gamestate.RoundID == gamestate.Id {
-			txID = uuid.NewV4().String()
+			txID = rng.Uuid()
 		}
 		// add win transaction
 		gamestateWin = Money{Amount: relativePayout.Mul(gamestate.BetPerLine.Amount), Currency: gamestate.BetPerLine.Currency} // this is in fixed notation i.e. 1.00 == 1000000
@@ -1564,6 +1563,9 @@ func triggerConfiguredFeatures(engine EngineDef, symbolGrid [][]int, stopList []
 	logger.Debugf("Trigger configured features")
 	var fs features.FeatureState
 	//	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
+	if prizes, _ := engine.DetermineWins(symbolGrid); len(prizes) > 0 {
+		fs.PureWins = true
+	}
 	fs.TotalStake = float64(parameters.previousGamestate.BetPerLine.Amount.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
 	fs.SetGrid(symbolGrid)
 	fs.StopList = stopList
@@ -1581,6 +1583,9 @@ func triggerStatefulFeatures(engine EngineDef, symbolGrid [][]int, stopList []in
 	var fs, prevfs features.FeatureState
 	prevfs.Features = parameters.previousGamestate.Features
 	fs.Stateful = &prevfs
+	if prizes, _ := engine.DetermineWins(symbolGrid); len(prizes) > 0 {
+		fs.PureWins = true
+	}
 	//	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
 	fs.TotalStake = float64(parameters.previousGamestate.BetPerLine.Amount.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
 	logger.Debugf("total stake: %f previousGamestate.BetPerLine: %f engine.StakeDivisor: %d parameters.Stake: %f",

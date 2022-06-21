@@ -25,6 +25,7 @@ type FeatureState struct {
 	TotalStake float64
 	Stateful   *FeatureState
 	Action     string
+	PureWins   bool
 }
 
 func (fs *FeatureState) SetGrid(symbolgrid [][]int) {
@@ -70,6 +71,7 @@ type EnabledFeatureSet struct {
 	_ ReplaceTile
 	_ SetReels
 	_ StatefulMap
+	_ Princess
 	_ TriggerFoxTale
 	_ TriggerFoxTaleBonus
 	_ TriggerFoxTaleWild

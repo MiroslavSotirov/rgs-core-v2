@@ -57,6 +57,8 @@ func (f TriggerBattleOfMythsFreespin) Trigger(state *FeatureState, params Featur
 
 	if state.Action == "cascade" {
 		logger.Debugf("skipping placing scatters due to cascade action")
+	} else if state.PureWins {
+		logger.Debugf("skipping placing scatters due to wins")
 	} else {
 
 		if counter >= scatterMax || counter <= scatterMin {

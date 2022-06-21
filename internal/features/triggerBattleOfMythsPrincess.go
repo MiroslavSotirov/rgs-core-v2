@@ -46,6 +46,12 @@ func (f TriggerBattleOfMythsPrincess) Trigger(state *FeatureState, params Featur
 							more = true
 						}
 					}
+					if len(positions) > 0 {
+						params["Positions"] = positions
+						params["StartPos"] = x*gridh + fy
+						params["EndPos"] = x*gridh + y
+						activateFeatures(f.FeatureDef, state, params)
+					}
 					if more {
 						fy = y
 					} else {
@@ -75,6 +81,12 @@ func (f TriggerBattleOfMythsPrincess) Trigger(state *FeatureState, params Featur
 							more = true
 						}
 					}
+					if len(positions) > 0 {
+						params["Positions"] = positions
+						params["StartPos"] = fx*gridh + y
+						params["EndPos"] = x*gridh + y
+						activateFeatures(f.FeatureDef, state, params)
+					}
 					if more {
 						fx = x
 					} else {
@@ -83,10 +95,6 @@ func (f TriggerBattleOfMythsPrincess) Trigger(state *FeatureState, params Featur
 				}
 			}
 		}
-	}
-	if len(positions) > 0 {
-		params["Positions"] = positions
-		activateFeatures(f.FeatureDef, state, params)
 	}
 	return
 }

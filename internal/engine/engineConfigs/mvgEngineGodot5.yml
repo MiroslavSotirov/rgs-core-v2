@@ -114,7 +114,7 @@ EngineDefs:
     Params:
       TileId: 9
     Features:
-    - Type: ReplaceTile
+    - Type: Princess
       Id: 4
       Params:
         ReplaceWithId: 10
