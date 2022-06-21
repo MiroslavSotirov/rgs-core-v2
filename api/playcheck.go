@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
@@ -24,6 +25,17 @@ type PlaycheckFields struct {
 	OriginalGrid [][]int
 	ColSize      int
 	Json         string
+}
+
+type PlaycheckExtRequest struct {
+	Game      string    `json:"game"`
+	Id        string    `json:"id"`
+	Start     string    `json:"start"`
+	End       string    `json:"end"`
+	BetAmount float64   `json:"betamount"`
+	WinAmount float64   `json:"winamount"`
+	Currency  string    `json:"currency"`
+	Rounds    [][][]int `json:"rounds"`
 }
 
 func playcheck(request *http.Request, w http.ResponseWriter) {
@@ -197,4 +209,56 @@ func playcheckRoulette(istate engine.IGameStateV3, w http.ResponseWriter) {
 		fmt.Fprint(w, "<center><h1>Template Execution Error</h1></center>")
 		return
 	}
+}
+
+func playcheckExt(r *http.Request, w http.ResponseWriter, params PlayCheckExtParams) error {
+	if len(params.Feed.Feeds) == 0 {
+		return fmt.Errorf("empty feed")
+	}
+	var tx store.FeedTransaction = params.Feed.Feeds[0]
+
+	bet := 0.0
+	win := 0.0
+
+	for _, wt := range tx.Metadata.Vendor.State.Transactions {
+		amount := wt.Amount.Amount.ValueAsFloat64()
+		switch wt.Type {
+		case "WAGER":
+			bet += amount
+		case "PAYOUT":
+			win += amount
+		}
+	}
+
+	rounds := [][][]int{}
+	if len(tx.Metadata.Vendor.State.FeatureView) > 0 {
+		rounds = append(rounds, tx.Metadata.Vendor.State.FeatureView)
+	} else {
+		rounds = append(rounds, tx.Metadata.Vendor.State.SymbolGrid)
+	}
+
+	gameId := tx.Metadata.ExtItemId
+
+	req := PlaycheckExtRequest{
+		Game:      gameId,
+		Id:        tx.Metadata.RoundId,
+		Start:     tx.TxTime,
+		End:       tx.TxTime,
+		BetAmount: bet,
+		WinAmount: win,
+		Currency:  tx.CurrencyUnit,
+		Rounds:    rounds,
+	}
+
+	js, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+	data := base64.StdEncoding.EncodeToString(js)
+
+	url := fmt.Sprintf(config.GlobalConfig.ExtPlaycheck+"?game=%s&d=%s", gameId, data)
+
+	http.Redirect(w, r, url, 302)
+
+	return nil
 }

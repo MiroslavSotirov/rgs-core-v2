@@ -16,6 +16,10 @@ type SetBalanceParams struct {
 	Balance engine.Money `json:"balance"`
 }
 
+type PlayCheckExtParams struct {
+	Feed FeedRoundResponse `json:"feed"`
+}
+
 // TODO: move all common render codes here
 
 // Render Generic Balance Response

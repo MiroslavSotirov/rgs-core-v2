@@ -36,3 +36,4 @@ democurrency: USD
 logaccount: 145472021_144443389
 datalimit: 3200
 localdatattl: 60
+extplaycheck: "https://dev.elysiumstudios.se/game-history"

@@ -273,7 +273,7 @@ func Routes() *chi.Mux {
 				return
 			}
 		})
-		r.Get("/gameplay/{gameplayID:[A-Za-z-_+=/]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Get("/gameplay/{gameplayID:[A-Za-z-_+=/%]+}", func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, []byte("OK"))
 		})
 
@@ -422,7 +422,7 @@ func Routes() *chi.Mux {
 			w.WriteHeader(200)
 		})
 
-		r.Put("/clientstate/{token:[A-Za-z0-9-_+.:,=/]+}/{gameSlug:[A-Za-z0-9-]+}/{wallet:[A-Za-z0-9-_]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Put("/clientstate/{token:[A-Za-z0-9-_+.:,=/%]+}/{gameSlug:[A-Za-z0-9-]+}/{wallet:[A-Za-z0-9-_]+}", func(w http.ResponseWriter, r *http.Request) {
 			token := chi.URLParam(r, "token")
 			gameSlug := chi.URLParam(r, "gameSlug")
 			wallet := chi.URLParam(r, "wallet")
@@ -631,8 +631,20 @@ func Routes() *chi.Mux {
 				fmt.Fprint(w, "OK")
 			}
 		})
-		r.Get("/playcheck/{gameplayID:[A-Za-z0-9-_+:=/]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Get("/playcheck/{gameplayID:[A-Za-z0-9-_+:=/%]+}", func(w http.ResponseWriter, r *http.Request) {
 			playcheck(r, w)
+		})
+		r.Post("/playcheckext", func(w http.ResponseWriter, r *http.Request) {
+			var param PlayCheckExtParams
+			err := json.NewDecoder(r.Body).Decode(&param)
+			if err != nil {
+				_ = render.Render(w, r, ErrRender(err))
+				return
+			}
+			if err := playcheckExt(r, w, param); err != nil {
+				_ = render.Render(w, r, ErrRender(err))
+			}
+			return
 		})
 		r.Get("/balance/{wallet:[A-Za-z0-9-]+}", func(w http.ResponseWriter, r *http.Request) {
 			balResp, err := PlayerBalance(r)
