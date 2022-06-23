@@ -29,23 +29,26 @@ func (f TriggerBattleOfMyths) Trigger(state *FeatureState, params FeatureParams)
 		return
 	}
 
+	skip := false
 	for _, f := range state.Features {
 		if f.DefPtr().Type == "Princess" {
 			logger.Infof("Princess on board. Do not run tiger or dragon")
-			return
+			skip = true
 		}
 	}
 
-	featureProb := params.GetInt("FeatureProbability")
-	random := rng.RandFromRange(10000)
-	if random < featureProb {
-		random = rng.RandFromRange(2)
-		if random == 0 {
-			params["RunTiger"] = true
-			logger.Debugf("RunTiger is true")
-		} else {
-			params["RunDragon"] = true
-			logger.Debugf("RunDragon is true")
+	if !skip {
+		featureProb := params.GetInt("FeatureProbability")
+		random := rng.RandFromRange(10000)
+		if random < featureProb {
+			random = rng.RandFromRange(2)
+			if random == 0 {
+				params["RunTiger"] = true
+				logger.Debugf("RunTiger is true")
+			} else {
+				params["RunDragon"] = true
+				logger.Debugf("RunDragon is true")
+			}
 		}
 	}
 

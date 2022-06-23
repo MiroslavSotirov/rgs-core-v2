@@ -1836,7 +1836,7 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 		cascade = true
 	} else {
 		// only check for special win after cascading has completed
-		logger.Debugf("determining special wins")
+		logger.Debugf("determining special wins: %#v", engine.SpecialPayouts)
 		specialWin := DetermineSpecialWins(featurestate.SymbolGrid, engine.SpecialPayouts)
 		if specialWin.Index != "" {
 			var specialPayout int
@@ -1874,7 +1874,7 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 				Payout: Payout{
 					Symbol:     0,
 					Count:      len(w.Symbols),
-					Multiplier: engine.StakeDivisor,
+					Multiplier: w.Multiplier, // engine.StakeDivisor,
 				},
 				Index:           w.Index,
 				Multiplier:      w.Multiplier,
