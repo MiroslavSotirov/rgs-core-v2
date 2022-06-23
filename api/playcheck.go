@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
@@ -42,7 +43,8 @@ func playcheck(request *http.Request, w http.ResponseWriter) {
 	// gets state for a certain gameplay
 	w.Header().Set("Content-Type", "text/html")
 
-	gameplayID := chi.URLParam(request, "gameplayID")
+	gameplayID, _ := url.PathUnescape(chi.URLParam(request, "gameplayID"))
+	logger.Debugf("playcheck gamePlayID: \"%s\"", gameplayID)
 
 	gamestate := request.FormValue("state")
 	var gsbytes []byte
