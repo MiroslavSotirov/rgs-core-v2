@@ -95,7 +95,9 @@ config:
   devmode: false
   local: false
   logging: debug
-  environment: staging
+#  environment: staging
+  # temporarily use production settings
+  environment: production
   mcrouter: ""
   server:
     host: "0.0.0.0"
