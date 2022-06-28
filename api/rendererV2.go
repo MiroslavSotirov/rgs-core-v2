@@ -93,7 +93,8 @@ type GameplayResponseV2 struct {
 	Stake            engine.Fixed `json:"totalStake"`
 	LineBet          engine.Fixed `json:"lineBet,omitempty"` // line bet used in prize calculations
 	Win              engine.Fixed
-	RoundWin         engine.Fixed        `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
+	CumulativeWin    engine.Fixed        `json:"cumulativeWin,omitempty"` // used for freespins/bonus rounds
+	RoundWin         engine.Fixed        `json:"roundWin,omitempty"`      // used for freespins/bonus rounds
 	SpinWin          engine.Fixed        `json:"spinWin"`                 // total win only on this spin
 	FSRemaining      *int                `json:"freeSpinsRemaining,omitempty"`
 	Balance          BalanceResponseV2   `json:"balance"`
@@ -233,19 +234,20 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		nextAction = "freespin"
 	}
 	return GameplayResponseV2{
-		MetaData:    MetaResponse{OperatorRequests: OperatorResponse{StopAutoPlay: balance.Message == "stopAuto"}},
-		SessionID:   balance.Token,
-		Action:      gamestate.Action,
-		StateID:     gamestate.Id,
-		RoundID:     gamestate.RoundID,
-		ReelsetID:   gamestate.DefID,
-		Stake:       stake,
-		LineBet:     gamestate.BetPerLine.Amount,
-		Win:         win,
-		RoundWin:    roundWin,
-		SpinWin:     gamestate.SpinWin,
-		NextAction:  nextAction,
-		FSRemaining: fsRemaining,
+		MetaData:      MetaResponse{OperatorRequests: OperatorResponse{StopAutoPlay: balance.Message == "stopAuto"}},
+		SessionID:     balance.Token,
+		Action:        gamestate.Action,
+		StateID:       gamestate.Id,
+		RoundID:       gamestate.RoundID,
+		ReelsetID:     gamestate.DefID,
+		Stake:         stake,
+		LineBet:       gamestate.BetPerLine.Amount,
+		Win:           win,
+		CumulativeWin: roundWin,
+		RoundWin:      gamestate.CumulativeWin,
+		SpinWin:       gamestate.SpinWin,
+		NextAction:    nextAction,
+		FSRemaining:   fsRemaining,
 		Balance: BalanceResponseV2{
 			Amount:       balance.Balance,
 			FreeGames:    balance.FreeGames.NoOfFreeSpins, // todo: deprecate once moved over to new fw completely
