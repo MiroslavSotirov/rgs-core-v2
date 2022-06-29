@@ -43,7 +43,6 @@ func (f TriggerBattleOfMythsFreespin) Trigger(state *FeatureState, params Featur
 	if statefulStake.HasKey("counter") {
 		counter = statefulStake.GetInt("counter")
 		fstype = statefulStake.GetString("fstype")
-		scatterType = statefulStake.GetInt("scatterType")
 	}
 
 	scatterInc := params.GetInt("ScatterInc")
@@ -86,6 +85,12 @@ func (f TriggerBattleOfMythsFreespin) Trigger(state *FeatureState, params Featur
 							return -x
 						}
 						return x
+					}
+
+					if counter < 0 {
+						scatterType = 0
+					} else {
+						scatterType = 1
 					}
 
 					sameTypeProbs := params.GetIntSlice("SameTypeProbabilities")
@@ -166,9 +171,8 @@ func (f TriggerBattleOfMythsFreespin) Trigger(state *FeatureState, params Featur
 	}
 
 	SetStatefulStakeMap(*state, FeatureParams{
-		"counter":     counter,
-		"fstype":      fstype,
-		"scatterType": scatterType,
+		"counter": counter,
+		"fstype":  fstype,
 	}, params)
 
 	logger.Debugf("SetStatefulMap")

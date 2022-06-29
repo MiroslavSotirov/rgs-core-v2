@@ -1885,6 +1885,7 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 			relativePayout += sp
 			nextActions = append(na, nextActions...)
 			logger.Debugf("Adding special payout: %v with actions: %v to final action list: %v", sp, na, nextActions)
+			featurewins = append(featurewins, prize)
 		}
 	}
 	relativePayout += calculatePayoutWins(featurewins)
