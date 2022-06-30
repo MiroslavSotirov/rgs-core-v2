@@ -225,7 +225,32 @@ func playcheckExt(r *http.Request, w http.ResponseWriter, params PlayCheckExtPar
 	if len(params.Feeds) == 0 {
 		return PlaycheckExtResponse{}, fmt.Errorf("empty feeds")
 	}
-	var tx store.FeedTransaction = params.Feeds[0]
+
+	var txdata store.RestTransactiondata = params.Feeds[0]
+
+	gsbytes, err := base64.StdEncoding.DecodeString(txdata.Metadata.Vendor.State)
+	if err != nil {
+		logger.Errorf("Error base64 decoding gamestate: %v", err)
+		return PlaycheckExtResponse{}, nil
+	}
+	state := store.DeserializeGamestateFromBytes(gsbytes)
+	logger.Debugf("gamestate: %#v", state)
+
+	var tx store.FeedTransaction = store.FeedTransaction{
+		Id:           txdata.Id,
+		Category:     txdata.Category,
+		ExternalRef:  txdata.ExternalRef,
+		CurrencyUnit: txdata.CurrencyUnit,
+		Amount:       txdata.Amount,
+		Metadata: store.FeedRoundMetadata{
+			RoundId:   txdata.Metadata.RoundId,
+			ExtItemId: txdata.Metadata.ExtItemId,
+			ItemId:    txdata.Metadata.ItemId,
+			Vendor: store.FeedRoundVendordata{
+				State: state,
+			},
+		},
+	}
 
 	bet := 0.0
 	win := 0.0

@@ -114,7 +114,7 @@ func DeserializeGamestateFromBytesLegacy(serialized []byte) engine.Gamestate {
 	return deserializedGS.ConvertLegacy(deserializedTX)
 }
 
-func NewFeedRound(v restRounddata, gameId string) (FeedRound, rgse.RGSErr) {
+func NewFeedRound(v RestRounddata, gameId string) (FeedRound, rgse.RGSErr) {
 	gameState, errDecode := base64.StdEncoding.DecodeString(v.Metadata.Vendor.State)
 	if errDecode != nil {
 		return FeedRound{}, rgse.Create(rgse.B64Error)
@@ -148,7 +148,7 @@ func NewFeedRound(v restRounddata, gameId string) (FeedRound, rgse.RGSErr) {
 	}, nil
 }
 
-func NewFeedTransaction(v restTransactiondata, gameId string) (FeedTransaction, rgse.RGSErr) {
+func NewFeedTransaction(v RestTransactiondata, gameId string) (FeedTransaction, rgse.RGSErr) {
 	gameState, errDecode := base64.StdEncoding.DecodeString(v.Metadata.Vendor.State)
 	if errDecode != nil {
 		return FeedTransaction{}, rgse.Create(rgse.B64Error)
