@@ -641,9 +641,14 @@ func Routes() *chi.Mux {
 				_ = render.Render(w, r, ErrRender(err))
 				return
 			}
-			if err := playcheckExt(r, w, param); err != nil {
+			playcheckExtResp, err := playcheckExt(r, w, param)
+			if err != nil {
 				_ = render.Render(w, r, ErrRender(err))
 			}
+			if err := render.Render(w, r, playcheckExtResp); err != nil {
+				_ = render.Render(w, r, ErrRender(err))
+			}
+
 			return
 		})
 		r.Get("/balance/{wallet:[A-Za-z0-9-]+}", func(w http.ResponseWriter, r *http.Request) {

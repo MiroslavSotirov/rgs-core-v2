@@ -39,6 +39,14 @@ type PlaycheckExtRequest struct {
 	Rounds    [][][]int `json:"rounds"`
 }
 
+type PlaycheckExtResponse struct {
+	Url string `json:"url"`
+}
+
+func (gb PlaycheckExtResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
 func playcheck(request *http.Request, w http.ResponseWriter) {
 	// gets state for a certain gameplay
 	w.Header().Set("Content-Type", "text/html")
@@ -213,11 +221,11 @@ func playcheckRoulette(istate engine.IGameStateV3, w http.ResponseWriter) {
 	}
 }
 
-func playcheckExt(r *http.Request, w http.ResponseWriter, params PlayCheckExtParams) error {
-	if len(params.Feed.Feeds) == 0 {
-		return fmt.Errorf("empty feed")
+func playcheckExt(r *http.Request, w http.ResponseWriter, params PlayCheckExtParams) (PlaycheckExtResponse, error) {
+	if len(params.Feeds) == 0 {
+		return PlaycheckExtResponse{}, fmt.Errorf("empty feeds")
 	}
-	var tx store.FeedTransaction = params.Feed.Feeds[0]
+	var tx store.FeedTransaction = params.Feeds[0]
 
 	bet := 0.0
 	win := 0.0
@@ -254,13 +262,13 @@ func playcheckExt(r *http.Request, w http.ResponseWriter, params PlayCheckExtPar
 
 	js, err := json.Marshal(req)
 	if err != nil {
-		return err
+		return PlaycheckExtResponse{}, err
 	}
 	data := base64.StdEncoding.EncodeToString(js)
 
 	url := fmt.Sprintf(config.GlobalConfig.ExtPlaycheck+"?game=%s&d=%s", gameId, data)
 
-	http.Redirect(w, r, url, 302)
-
-	return nil
+	return PlaycheckExtResponse{
+		Url: url,
+	}, nil
 }
