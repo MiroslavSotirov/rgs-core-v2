@@ -430,7 +430,7 @@ type (
 		LastTx restTransactionRequest `json:"last_tx"`
 	}
 
-	restFeedRequest struct {
+	RestFeedRequest struct {
 		ReqId     string `json:"req_id"`
 		Token     string `json:"token"`
 		Game      string `json:"game"`
@@ -441,7 +441,7 @@ type (
 		Page      int    `json:"page"`
 	}
 
-	restFeedRoundRequest struct {
+	RestFeedRoundRequest struct {
 		ReqId    string `json:"req_id"`
 		Token    string `json:"token"`
 		Game     string `json:"game"`
@@ -449,33 +449,33 @@ type (
 		RoundId  int64  `json:"round_id"`
 	}
 
-	restFeedResponse struct {
+	RestFeedResponse struct {
 		Metadata restMetadata    `json:"metadata"`
 		Token    string          `json:"token"`
 		Code     string          `json:"code"`
-		Rounds   []restRounddata `json:"rounds"`
+		Rounds   []RestRounddata `json:"rounds"`
 		NextPage int             `json:"next_page"`
 	}
 
-	restFeedRoundResponse struct {
+	RestFeedRoundResponse struct {
 		Metadata restMetadata          `json:"metadata"`
 		Token    string                `json:"token"`
 		Code     string                `json:"code"`
-		Feeds    []restTransactiondata `json:"feeds"`
+		Feeds    []RestTransactiondata `json:"feeds"`
 	}
 
-	restRoundVendordata struct {
+	RestRoundVendordata struct {
 		State string `json:"state"`
 	}
 
-	restRoundMetadata struct {
+	RestRoundMetadata struct {
 		RoundId   string              `json:"round_id"`
 		ExtItemId string              `json:"ext_item_id"`
 		ItemId    int64               `json:"item_id"`
-		Vendor    restRoundVendordata `json:"vendor"`
+		Vendor    RestRoundVendordata `json:"vendor"`
 	}
 
-	restRounddata struct {
+	RestRounddata struct {
 		Id              int64             `json:"id"`
 		CurrencyUnit    string            `json:"currency_unit"`
 		ExternalRef     string            `json:"external_ref"`
@@ -490,16 +490,16 @@ type (
 		SumRefundDebit  float64           `json:"sum_of_refund_debit"`
 		StartTime       string            `json:"start_time"`
 		CloseTime       string            `json:"close_time"`
-		Metadata        restRoundMetadata `json:"meta_data"`
+		Metadata        RestRoundMetadata `json:"meta_data"`
 	}
 
-	restTransactiondata struct {
+	RestTransactiondata struct {
 		Id           int64             `json:"id"`
 		Category     string            `json:"category"`
 		ExternalRef  string            `json:"external_ref"`
 		CurrencyUnit string            `json:"currency_unit"`
 		Amount       float64           `json:"amount"`
-		Metadata     restRoundMetadata `json:"meta_data"`
+		Metadata     RestRoundMetadata `json:"meta_data"`
 		TxTime       string            `json:"transaction_time"`
 	}
 )
@@ -1247,20 +1247,20 @@ func (i *RemoteServiceImpl) restGameStateResponse(response *http.Response) restG
 	return data
 }
 
-func (i *RemoteServiceImpl) restFeedResponse(response *http.Response) restFeedResponse {
+func (i *RemoteServiceImpl) restFeedResponse(response *http.Response) RestFeedResponse {
 	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
 	logger.Debugf("feed response: %s", string(body))
-	var data restFeedResponse
+	var data RestFeedResponse
 	json.Unmarshal(body, &data)
 	return data
 }
 
-func (i *RemoteServiceImpl) restFeedRoundResponse(response *http.Response) restFeedRoundResponse {
+func (i *RemoteServiceImpl) restFeedRoundResponse(response *http.Response) RestFeedRoundResponse {
 	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
 	logger.Debugf("feed round response: %s", string(body))
-	var data restFeedRoundResponse
+	var data RestFeedRoundResponse
 	json.Unmarshal(body, &data)
 	return data
 }
@@ -1743,7 +1743,7 @@ func (i *LocalServiceImpl) FeedRound(token Token, mode Mode, gameId string, tran
 }
 
 func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime string, endTime string, pageSize int, page int) (rounds []FeedRound, nextPage int, finalErr rgse.RGSErr) {
-	feedRq := restFeedRequest{
+	feedRq := RestFeedRequest{
 		ReqId:     rng.Uuid(),
 		Token:     string(token),
 		Game:      gameId,
@@ -1798,7 +1798,7 @@ func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime strin
 }
 
 func (i *RemoteServiceImpl) FeedRound(token Token, mode Mode, gameId string, roundId int64) (feeds []FeedTransaction, finalErr rgse.RGSErr) {
-	feedRq := restFeedRoundRequest{
+	feedRq := RestFeedRoundRequest{
 		ReqId:    rng.Uuid(),
 		Token:    string(token),
 		Game:     gameId,

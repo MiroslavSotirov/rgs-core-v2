@@ -17,7 +17,7 @@ type SetBalanceParams struct {
 }
 
 type PlayCheckExtParams struct {
-	Feeds []store.FeedTransaction `json:"feeds"`
+	Feeds []store.RestTransactiondata `json:"feeds"`
 }
 
 // TODO: move all common render codes here
