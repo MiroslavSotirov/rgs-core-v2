@@ -254,6 +254,10 @@ gameConfig:
     games:
       - name: wizardz-world
         item: 8243
+  - engineID: mvgEngineGodot5
+    games:
+      - name: battle-of-myths
+        item: 8359
       
 gamification:
   a-fairy-tale:
