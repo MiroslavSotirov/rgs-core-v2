@@ -60,8 +60,8 @@ func NewGcTransactionStore(ts TransactionStore, ttl int64) gcTransactionStore {
 
 const gcKeepAmount int = 10000
 const gcReadAmount int = 10000
-const gcDeleteAmount int = 1000
-const gcSleepTime time.Duration = time.Duration(50000000)
+const gcDeleteAmount int = 2000
+const gcSleepTime time.Duration = time.Duration(10000000)
 
 var gcStartTime time.Time
 var gcNowTime time.Time
