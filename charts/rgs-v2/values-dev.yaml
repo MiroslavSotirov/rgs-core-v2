@@ -250,6 +250,7 @@ gameConfig:
       - name: fox-tale
         item: 36824
   - engineID: mvgEngineRoulette1
+    category: roulette
     games:
       - name: dragon-roulette
         item: 37069

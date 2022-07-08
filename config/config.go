@@ -62,6 +62,7 @@ type Config struct {
 // Game config structure
 type GameConfig struct {
 	EngineID string    `yaml:"engineID"`
+	Category string `yaml:"category"`	
 	Games    []GameDef `yaml:"games"`
 }
 type GameDef struct {

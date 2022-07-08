@@ -61,17 +61,44 @@ func getGameLink(request *http.Request) GameLinkResponse {
 
 func getGameHashes(request *http.Request) (GameHashResponse, rgse.RGSErr) {
 	response := GameHashResponse{}
+	params := request.URL.Query()
+	ccys := strings.Split(params.Get("currencies"), ",")
 	for _, c := range config.GlobalGameConfig {
 		cfg := c.EngineID + ".yml"
 		h, ok := config.GlobalHashes[cfg]
 		if ok {
+
+			EC := engine.BuildEngineDefs(c.EngineID)
+
 			for _, g := range c.Games {
+
+				var stakes map[string][]engine.Fixed = nil
+				if len(ccys) > 0 {
+					stakes = make(map[string][]engine.Fixed, len(ccys))
+					for _, ccy := range ccys {
+						stakeValues, _, _, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, ccy}, "", g.Name)
+						if err == nil {
+							for i, _ := range stakeValues {
+								stakeValues[i] = stakeValues[i].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor))
+							}
+							stakes[ccy] = stakeValues
+						}
+					}
+				}
+
+				category := c.Category
+				if category == "" {
+					category = "slot"
+				}
+
 				response = append(response, GameHashInfo{
-					ItemId: g.Item,
-					Name:   g.Name,
-					Config: cfg,
-					Md5:    h.MD5Digest,
-					Sha1:   h.SHA1Digest,
+					ItemId:   g.Item,
+					Name:     g.Name,
+					Config:   cfg,
+					Md5:      h.MD5Digest,
+					Sha1:     h.SHA1Digest,
+					Category: category,
+					Stakes:   stakes,
 				})
 			}
 		}
