@@ -29,7 +29,13 @@ import (
 )
 
 // APIVersion ...
-var APIVersion = "v2"
+const (
+	APIVersion    = "v2"
+	RegexGameSlug = "[A-Za-z0-9-]+"
+	RegexWallet   = "[A-Za-z0-9-]+"
+	RegexPlayerId = "[a-zA-Z0-9-_+]+"
+	RegexId       = "[A-Za-z0-9-_+=.,:;/%]+"
+)
 
 func Routes() *chi.Mux {
 	router := chi.NewRouter()
@@ -64,7 +70,7 @@ func Routes() *chi.Mux {
 	router.Route("/v2/rgs", func(r chi.Router) {
 
 		// TODO: These endpoints will be deprecated with new client release
-		r.Get("/init/{gameSlug:[0-9a-z-]+}/{wallet:[a-z-]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Get("/init/{gameSlug:"+RegexGameSlug+"}/{wallet:"+RegexWallet+"}", func(w http.ResponseWriter, r *http.Request) {
 
 			gameSlug := chi.URLParam(r, "gameSlug")
 			engineID, err := config.GetEngineFromGame(gameSlug)
@@ -241,7 +247,7 @@ func Routes() *chi.Mux {
 				return
 			}
 		})
-		r.Post("/play/{gameSlug:[A-Za-z0-9-]+}/{gamestateID:[A-Za-z0-9-_+=.,:;/]+}/{wallet:[A-Za-z0-9-]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Post("/play/{gameSlug:"+RegexGameSlug+"}/{gamestateID:[A-Za-z0-9-_+=.,:;/]+}/{wallet:"+RegexWallet+"}", func(w http.ResponseWriter, r *http.Request) {
 			gameplay, err := renderNextGamestate(r)
 
 			if err != nil {
@@ -273,7 +279,7 @@ func Routes() *chi.Mux {
 				return
 			}
 		})
-		r.Get("/gameplay/{gameplayID:[A-Za-z-_+=/%]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Get("/gameplay/{gameplayID:"+RegexId+"}", func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, []byte("OK"))
 		})
 
@@ -422,7 +428,7 @@ func Routes() *chi.Mux {
 			w.WriteHeader(200)
 		})
 
-		r.Put("/clientstate/{token:[A-Za-z0-9-_+.:,=/%]+}/{gameSlug:[A-Za-z0-9-]+}/{wallet:[A-Za-z0-9-_]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Put("/clientstate/{token:"+RegexId+"}/{gameSlug:"+RegexGameSlug+"}/{wallet:"+RegexWallet+"}", func(w http.ResponseWriter, r *http.Request) {
 			token := chi.URLParam(r, "token")
 			gameSlug := chi.URLParam(r, "gameSlug")
 			wallet := chi.URLParam(r, "wallet")
@@ -465,7 +471,7 @@ func Routes() *chi.Mux {
 			fmt.Fprint(w, []byte("OK"))
 		})
 
-		r.Get("/stopAuto/{playerId:[a-zA-Z0-9-_+]+}/{on:[a-z-_+]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Get("/stopAuto/{playerId:"+RegexPlayerId+"}/{on:[a-z-_+]+}", func(w http.ResponseWriter, r *http.Request) {
 			playerId := chi.URLParam(r, "playerId")
 			on := chi.URLParam(r, "on")
 			var err rgserror.RGSErr
@@ -621,7 +627,7 @@ func Routes() *chi.Mux {
 				return
 			}
 		})
-		r.Get("/clearforce/{gameSlug:[A-Za-z-]+}/{playerID:[A-Za-z0-9-_+]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Get("/clearforce/{gameSlug:"+RegexGameSlug+"}/{playerID:"+RegexPlayerId+"}", func(w http.ResponseWriter, r *http.Request) {
 			gameSlug := chi.URLParam(r, "gameSlug")
 			playerID := chi.URLParam(r, "playerID")
 			if err := forceTool.ClearForce(gameSlug, playerID); err != nil {
@@ -631,7 +637,7 @@ func Routes() *chi.Mux {
 				fmt.Fprint(w, "OK")
 			}
 		})
-		r.Get("/playcheck/{gameplayID:[A-Za-z0-9-_+:=/%]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Get("/playcheck/{gameplayID:"+RegexId+"}", func(w http.ResponseWriter, r *http.Request) {
 			playcheck(r, w)
 		})
 		r.Post("/playcheckext", func(w http.ResponseWriter, r *http.Request) {
@@ -648,10 +654,9 @@ func Routes() *chi.Mux {
 			if err := render.Render(w, r, playcheckExtResp); err != nil {
 				_ = render.Render(w, r, ErrRender(err))
 			}
-
 			return
 		})
-		r.Get("/balance/{wallet:[A-Za-z0-9-]+}", func(w http.ResponseWriter, r *http.Request) {
+		r.Get("/balance/{wallet:"+RegexWallet+"}", func(w http.ResponseWriter, r *http.Request) {
 			balResp, err := PlayerBalance(r)
 			if err != nil {
 				logger.Errorf("Error getting balance %s", err.Error())
