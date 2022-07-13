@@ -265,6 +265,9 @@ gameConfig:
   - engineID: mvgEngineGodot5
     games:
       - name: battle-of-myths
+  - engineID: mvgEngineGodot6
+    games:
+      - name: sword-king
 
 gamification:
   a-fairy-tale:
