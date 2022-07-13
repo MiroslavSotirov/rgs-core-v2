@@ -88,6 +88,7 @@ type EnabledFeatureSet struct {
 	_ TriggerBattleOfMythsPrincess
 	_ TriggerBattleOfMythsDragon
 	_ TriggerBattleOfMythsTiger
+	_ TriggerSwordKing
 	_ TriggerWeightedRandom
 	_ TriggerWeightedPayout
 	_ TriggerConditional
