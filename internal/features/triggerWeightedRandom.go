@@ -1,9 +1,5 @@
 package features
 
-import (
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
-)
-
 type TriggerWeightedRandom struct {
 	FeatureDef
 }
@@ -48,20 +44,4 @@ func (f *TriggerWeightedRandom) Serialize() ([]byte, error) {
 
 func (f *TriggerWeightedRandom) Deserialize(data []byte) (err error) {
 	return deserializeTriggerFromBytes(f, data)
-}
-
-func WeightedRandomIndex(weights []int) int {
-	var sum, i, w int
-	for _, w = range weights {
-		sum += w
-	}
-	r := rng.RandFromRange(sum)
-	sum = 0
-	for i, w = range weights {
-		sum += w
-		if r < sum {
-			break
-		}
-	}
-	return i
 }

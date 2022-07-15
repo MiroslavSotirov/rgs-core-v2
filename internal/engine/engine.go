@@ -1690,32 +1690,37 @@ func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams)
 	logger.Debugf("to %v", featurestate.Reels)
 	engine.Reels = featurestate.Reels
 
-	wins, relativePayout := engine.DetermineWins(featurestate.SymbolGrid)
-	featurewins := []Prize{}
-	for _, w := range featurestate.Wins {
-		symbol := 0
-		index := "0:0"
-		if len(w.Symbols) > 0 {
-			index = fmt.Sprintf("%d:%d", w.Symbols[0], len(w.Symbols))
-		}
-		prize := Prize{
-			Payout: Payout{
-				Symbol:     symbol,
-				Count:      len(w.Symbols),
-				Multiplier: engine.StakeDivisor,
-			},
-			Index:           index,
-			Multiplier:      w.Multiplier,
-			SymbolPositions: w.SymbolPositions,
-			Winline:         -1, // until features have prizes associated with lines
-		}
-		featurewins = append(featurewins, prize)
-	}
-	relativePayout += calculatePayoutWins(featurewins)
-	wins = append(wins, featurewins...)
-
-	// calculate specialWin
 	var nextActions []string
+	wins, relativePayout := engine.DetermineWins(featurestate.SymbolGrid)
+	featureWins, featureRelPayout, featureNextActions := engine.convertFeaturePrizes(featurestate.Wins)
+	relativePayout += featureRelPayout
+	wins = append(wins, featureWins...)
+	nextActions = append(featureNextActions, nextActions...)
+	/*
+		featurewins := []Prize{}
+		for _, w := range featurestate.Wins {
+			symbol := 0
+			index := "0:0"
+			if len(w.Symbols) > 0 {
+				index = fmt.Sprintf("%d:%d", w.Symbols[0], len(w.Symbols))
+			}
+			prize := Prize{
+				Payout: Payout{
+					Symbol:     symbol,
+					Count:      len(w.Symbols),
+					Multiplier: engine.StakeDivisor,
+				},
+				Index:           index,
+				Multiplier:      w.Multiplier,
+				SymbolPositions: w.SymbolPositions,
+				Winline:         -1, // until features have prizes associated with lines
+			}
+			featurewins = append(featurewins, prize)
+		}
+		relativePayout += calculatePayoutWins(featurewins)
+		wins = append(wins, featurewins...)
+	*/
+	// calculate specialWin
 	specialWin := DetermineSpecialWins(featurestate.SymbolGrid, engine.SpecialPayouts)
 	if specialWin.Index != "" {
 		var specialPayout int
@@ -1848,48 +1853,53 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 	if cascade {
 		nextActions = append([]string{"cascade"}, nextActions...)
 	}
-
-	featurewins := []Prize{}
-	for _, w := range featurestate.Wins {
-		if w.Index == "" {
-			symbol := 0
-			index := "0:0"
-			if len(w.Symbols) > 0 {
-				index = fmt.Sprintf("%d:%d", w.Symbols[0], len(w.Symbols))
+	/*
+		featurewins := []Prize{}
+		for _, w := range featurestate.Wins {
+			if w.Index == "" {
+				symbol := 0
+				index := "0:0"
+				if len(w.Symbols) > 0 {
+					index = fmt.Sprintf("%d:%d", w.Symbols[0], len(w.Symbols))
+				}
+				prize := Prize{
+					Payout: Payout{
+						Symbol:     symbol,
+						Count:      len(w.Symbols),
+						Multiplier: engine.StakeDivisor,
+					},
+					Index:           index,
+					Multiplier:      w.Multiplier,
+					SymbolPositions: w.SymbolPositions,
+					Winline:         -1, // until features have prizes associated with lines
+				}
+				featurewins = append(featurewins, prize)
+			} else {
+				prize := Prize{
+					Payout: Payout{
+						Symbol:     0,
+						Count:      len(w.Symbols),
+						Multiplier: w.Multiplier, // engine.StakeDivisor,
+					},
+					Index:           w.Index,
+					Multiplier:      w.Multiplier,
+					SymbolPositions: w.SymbolPositions,
+					Winline:         -1, // until features have prizes associated with lines
+				}
+				sp, na := engine.CalculatePayoutSpecialWin(prize)
+				relativePayout += sp
+				nextActions = append(na, nextActions...)
+				logger.Debugf("Adding special payout: %v with actions: %v to final action list: %v", sp, na, nextActions)
+				featurewins = append(featurewins, prize)
 			}
-			prize := Prize{
-				Payout: Payout{
-					Symbol:     symbol,
-					Count:      len(w.Symbols),
-					Multiplier: engine.StakeDivisor,
-				},
-				Index:           index,
-				Multiplier:      w.Multiplier,
-				SymbolPositions: w.SymbolPositions,
-				Winline:         -1, // until features have prizes associated with lines
-			}
-			featurewins = append(featurewins, prize)
-		} else {
-			prize := Prize{
-				Payout: Payout{
-					Symbol:     0,
-					Count:      len(w.Symbols),
-					Multiplier: w.Multiplier, // engine.StakeDivisor,
-				},
-				Index:           w.Index,
-				Multiplier:      w.Multiplier,
-				SymbolPositions: w.SymbolPositions,
-				Winline:         -1, // until features have prizes associated with lines
-			}
-			sp, na := engine.CalculatePayoutSpecialWin(prize)
-			relativePayout += sp
-			nextActions = append(na, nextActions...)
-			logger.Debugf("Adding special payout: %v with actions: %v to final action list: %v", sp, na, nextActions)
-			featurewins = append(featurewins, prize)
 		}
-	}
-	relativePayout += calculatePayoutWins(featurewins)
-	wins = append(wins, featurewins...)
+		relativePayout += calculatePayoutWins(featurewins)
+		wins = append(wins, featurewins...)
+	*/
+	featureWins, featureRelPayout, featureNextActions := engine.convertFeaturePrizes(featurestate.Wins)
+	relativePayout += featureRelPayout
+	wins = append(wins, featureWins...)
+	nextActions = append(nextActions, featureNextActions...)
 
 	// get first Multiplier
 	multiplier := 1
@@ -1997,5 +2007,51 @@ func (engine EngineDef) InitRoundFeatures(parameters GameParams, stopList []int,
 	fs.Action = parameters.Action
 	features.InitFeatures(featuredef, &fs)
 	state.Features = fs.Features
+	return
+}
+
+func (engine EngineDef) convertFeaturePrizes(featureWins []features.FeatureWin) (wins []Prize, relativePayout int, nextActions []string) {
+	wins = []Prize{}
+	relativePayout = 0
+	nextActions = []string{}
+	for _, w := range featureWins {
+		if w.Index == "" {
+			symbol := 0
+			index := "0:0"
+			if len(w.Symbols) > 0 {
+				index = fmt.Sprintf("%d:%d", w.Symbols[0], len(w.Symbols))
+			}
+			prize := Prize{
+				Payout: Payout{
+					Symbol:     symbol,
+					Count:      len(w.Symbols),
+					Multiplier: engine.StakeDivisor,
+				},
+				Index:           index,
+				Multiplier:      w.Multiplier,
+				SymbolPositions: w.SymbolPositions,
+				Winline:         -1, // until features have prizes associated with lines
+			}
+			wins = append(wins, prize)
+		} else {
+			prize := Prize{
+				Payout: Payout{
+					Symbol:     0,
+					Count:      len(w.Symbols),
+					Multiplier: w.Multiplier, // engine.StakeDivisor,
+				},
+				Index:           w.Index,
+				Multiplier:      w.Multiplier,
+				SymbolPositions: w.SymbolPositions,
+				Winline:         -1, // until features have prizes associated with lines
+			}
+			sp, na := engine.CalculatePayoutSpecialWin(prize)
+			relativePayout += sp
+			nextActions = append(na, nextActions...)
+			logger.Debugf("Adding special payout: %v with actions: %v to final action list: %v", sp, na, nextActions)
+			wins = append(wins, prize)
+		}
+	}
+	relativePayout += calculatePayoutWins(wins)
 	return
 }

@@ -65,6 +65,7 @@ type Feature interface {
 
 // features must be included here to make them deserializable by the engine
 type EnabledFeatureSet struct {
+	_ FeatureNull
 	_ ExpandingWild
 	_ FatTile
 	_ InstaWin
@@ -89,6 +90,11 @@ type EnabledFeatureSet struct {
 	_ TriggerBattleOfMythsDragon
 	_ TriggerBattleOfMythsTiger
 	_ TriggerSwordKing
+	_ TriggerSwordKingBonus
+	_ TriggerSwordKingBonusScatter
+	_ TriggerSwordKingFreespin
+	_ TriggerSwordKingRandomWilds
+	_ TriggerSwordKingRespin
 	_ TriggerWeightedRandom
 	_ TriggerWeightedPayout
 	_ TriggerConditional
