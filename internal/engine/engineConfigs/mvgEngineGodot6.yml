@@ -84,12 +84,12 @@ EngineDefs:
               NumProbabilities: [500,1400,1700,2000,1700,1100,900,700]
               ReelProbabilities: [1000,1500,2000,2500,3000]
               RowProbabilities: [2500,2500,2500,2500]
-              Features:
-                - Type: ReplaceTile
-                  Id: 1
-                  Params:
-                    TileId: 10
-                    ReplaceWithId: 10
+            Features:
+              - Type: ReplaceTile
+                Id: 1
+                Params:
+                  TileId: 10
+                  ReplaceWithId: 10
           - Type: TriggerSwordKingRespin
             Params:
               Probability: 1000
@@ -116,12 +116,12 @@ EngineDefs:
               NumFreespins: [0,0,0,9,12,15]
               NumProbabilities: [7200,2630,100,50,20]
               FSType: freespinE1
-              Features:
-                - Type: ReplaceTile
-                  Id: 3
-                  Params:
-                    TileId: 12
-                    ReplaceWithId: 12
+            Features:
+              - Type: ReplaceTile
+                Id: 3
+                Params:
+                  TileId: 12
+                  ReplaceWithId: 12
           - Type: StatefulMap
   - name: base
     Reels:
