@@ -9,7 +9,6 @@ import (
 	"net/url"
 
 	"github.com/go-chi/chi/v5"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
@@ -26,25 +25,6 @@ type PlaycheckFields struct {
 	OriginalGrid [][]int
 	ColSize      int
 	Json         string
-}
-
-type PlaycheckExtRequest struct {
-	Game      string    `json:"game"`
-	Id        string    `json:"id"`
-	Start     string    `json:"start"`
-	End       string    `json:"end"`
-	BetAmount float64   `json:"betamount"`
-	WinAmount float64   `json:"winamount"`
-	Currency  string    `json:"currency"`
-	Rounds    [][][]int `json:"rounds"`
-}
-
-type PlaycheckExtResponse struct {
-	Url string `json:"url"`
-}
-
-func (gb PlaycheckExtResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	return nil
 }
 
 func playcheck(request *http.Request, w http.ResponseWriter) {
@@ -219,81 +199,4 @@ func playcheckRoulette(istate engine.IGameStateV3, w http.ResponseWriter) {
 		fmt.Fprint(w, "<center><h1>Template Execution Error</h1></center>")
 		return
 	}
-}
-
-func playcheckExt(r *http.Request, w http.ResponseWriter, params PlayCheckExtParams) (PlaycheckExtResponse, error) {
-	if len(params.Feeds) == 0 {
-		return PlaycheckExtResponse{}, fmt.Errorf("empty feeds")
-	}
-
-	var txdata store.RestTransactiondata = params.Feeds[0]
-
-	gsbytes, err := base64.StdEncoding.DecodeString(txdata.Metadata.Vendor.State)
-	if err != nil {
-		logger.Errorf("Error base64 decoding gamestate: %v", err)
-		return PlaycheckExtResponse{}, nil
-	}
-	state := store.DeserializeGamestateFromBytes(gsbytes)
-	logger.Debugf("gamestate: %#v", state)
-
-	var tx store.FeedTransaction = store.FeedTransaction{
-		Id:           txdata.Id,
-		Category:     txdata.Category,
-		ExternalRef:  txdata.ExternalRef,
-		CurrencyUnit: txdata.CurrencyUnit,
-		Amount:       txdata.Amount,
-		Metadata: store.FeedRoundMetadata{
-			RoundId:   txdata.Metadata.RoundId,
-			ExtItemId: txdata.Metadata.ExtItemId,
-			ItemId:    txdata.Metadata.ItemId,
-			Vendor: store.FeedRoundVendordata{
-				State: state,
-			},
-		},
-	}
-
-	bet := 0.0
-	win := 0.0
-
-	for _, wt := range tx.Metadata.Vendor.State.Transactions {
-		amount := wt.Amount.Amount.ValueAsFloat64()
-		switch wt.Type {
-		case "WAGER":
-			bet += amount
-		case "PAYOUT":
-			win += amount
-		}
-	}
-
-	rounds := [][][]int{}
-	if len(tx.Metadata.Vendor.State.FeatureView) > 0 {
-		rounds = append(rounds, tx.Metadata.Vendor.State.FeatureView)
-	} else {
-		rounds = append(rounds, tx.Metadata.Vendor.State.SymbolGrid)
-	}
-
-	gameId := tx.Metadata.ExtItemId
-
-	req := PlaycheckExtRequest{
-		Game:      gameId,
-		Id:        tx.Metadata.RoundId,
-		Start:     tx.TxTime,
-		End:       tx.TxTime,
-		BetAmount: bet,
-		WinAmount: win,
-		Currency:  tx.CurrencyUnit,
-		Rounds:    rounds,
-	}
-
-	js, err := json.Marshal(req)
-	if err != nil {
-		return PlaycheckExtResponse{}, err
-	}
-	data := base64.StdEncoding.EncodeToString(js)
-
-	url := fmt.Sprintf(config.GlobalConfig.ExtPlaycheck+"?game=%s&d=%s", gameId, data)
-
-	return PlaycheckExtResponse{
-		Url: url,
-	}, nil
 }
