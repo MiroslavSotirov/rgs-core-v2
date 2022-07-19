@@ -118,7 +118,7 @@ func initRoulette(player store.PlayerStore, engineId string, wallet string, body
 		gameState.Id = string(token) + data.Game + "GSinit"
 	} else {
 		gameState, rgserr = game.DeserializeStateRoulette(state)
-		logger.Debugf("initRoulette state length:%s\ndeserialized:%#v", len(state), gameState)
+		logger.Debugf("initRoulette state length:%d\ndeserialized:%#v", len(state), gameState)
 	}
 
 	balance := store.BalanceStore{

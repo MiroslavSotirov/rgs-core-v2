@@ -789,7 +789,12 @@ func (i *RemoteServiceImpl) getLastGamestate(lastTx restTransactionRequest, last
 	if err != nil {
 		return
 	}
-	gsDeserialized := DeserializeGamestateFromBytes(gameState)
+
+	gsDeserialized, _, serializeErr := DeserializeGamestate(lastAttemptedTx.Game, gameState)
+	if serializeErr != nil {
+		logger.Debugf("failed to deserialize lastAttemptedTx")
+		return
+	}
 
 	if lastAttemptedTx.TxRef == gsDeserialized.Transactions[0].Id {
 		// this failed tx was the first tx of the round, so we return the previous successful gamestate which should be the gamestate attached to the previous round
@@ -1555,10 +1560,12 @@ func DeserializeGamestate(gameId string, serialized []byte) (state engine.Gamest
 	var gameV3 IGameV3
 	gameV3, rgserr = CreateGameV3(gameId)
 	if rgserr != nil {
+		logger.Debugf("deserialize V2 gamestate")
 		state = DeserializeGamestateFromBytes(serialized)
 		rgserr = nil
 		return
 	}
+	logger.Debugf("deserialize V3 gamestate")
 	stateV3, rgserr = gameV3.DeserializeState(serialized)
 	if rgserr != nil {
 		return
