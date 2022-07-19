@@ -273,7 +273,7 @@ gameConfig_old:
     games:
       - name: battle-of-myths
         item: 8359
-   - engineID: mvgEngineGodot6
+  - engineID: mvgEngineGodot6
     games:
       - name: sword-king
 
