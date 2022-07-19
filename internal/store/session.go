@@ -52,7 +52,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 
 	} else {
 		latestGamestate = DeserializeGamestateFromBytes(latestGamestateStore.GameState)
-		_, initFeatures = engine.GetDefaultView(gameName)
+		_, initFeatures, _, _ = engine.GetDefaultView(gameName)
 	}
 
 	return latestGamestate, newPlayer, initFeatures, nil
@@ -63,9 +63,11 @@ func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.G
 	logger.Debugf("First %v gameplay for player %v, creating sham gamestate", gameName, player)
 
 	gsID := player.PlayerId + gameName + "GSinit"
-	view, features := engine.GetDefaultView(gameName)
+	view, features, defId, reelsetId := engine.GetDefaultView(gameName)
 	latestGamestate = engine.Gamestate{
-		Game: gameName, DefID: 0,
+		Game:          gameName,
+		DefID:         defId,
+		ReelsetID:     reelsetId,
 		Id:            gsID,
 		BetPerLine:    engine.Money{0, player.Balance.Currency},
 		NextActions:   []string{"finish"},

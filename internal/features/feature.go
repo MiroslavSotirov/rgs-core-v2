@@ -26,6 +26,7 @@ type FeatureState struct {
 	Stateful   *FeatureState
 	Action     string
 	PureWins   bool
+	ReelsetId  string
 }
 
 func (fs *FeatureState) SetGrid(symbolgrid [][]int) {

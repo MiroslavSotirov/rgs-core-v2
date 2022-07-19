@@ -312,6 +312,38 @@ func (p FeatureParams) GetString(name string) string {
 	return convertString(p.Get(name))
 }
 
+func (p FeatureParams) AsString(name string) string {
+	defer paramconvertpanic(name)
+	v := p.Get(name)
+	var s string
+	switch v.(type) {
+	case string:
+		s = v.(string)
+	case int:
+		s = fmt.Sprintf("%d", v.(int))
+	case int8:
+		s = fmt.Sprintf("%d", v.(int8))
+	case int16:
+		s = fmt.Sprintf("%d", v.(int16))
+	case int32:
+		s = fmt.Sprintf("%d", v.(int32))
+	case int64:
+		s = fmt.Sprintf("%d", v.(int64))
+	case uint:
+		s = fmt.Sprintf("%d", v.(uint))
+	case uint8:
+		s = fmt.Sprintf("%d", v.(uint8))
+	case uint16:
+		s = fmt.Sprintf("%d", v.(uint16))
+	case uint32:
+		s = fmt.Sprintf("%d", v.(uint32))
+	case uint64:
+		s = fmt.Sprintf("%d", v.(uint64))
+	default:
+	}
+	return s
+}
+
 func (p FeatureParams) GetBool(name string) bool {
 	defer paramconvertpanic(name)
 	return convertBool(p.Get(name))

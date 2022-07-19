@@ -465,15 +465,17 @@ func GetMaxWin(e EngineConfig) {
 	}
 }
 
-func GetDefaultView(gameName string) (symbolGrid [][]int, features []features.Feature) {
+func GetDefaultView(gameName string) (symbolGrid [][]int, features []features.Feature, defId int, reelsetId string) {
 	logger.Debugf("GetDefaultView(%s)", gameName)
 	e, err := GetEngineDefFromGame(gameName)
 	if err != nil {
 		return
 	}
-	method, err := e.getEngineAndMethodInternal("init", false)
+	method, id, err := e.getEngineAndMethodInternal("init", false)
 	if err == nil {
-		return GetDefaultViewFromFunction(method)
+		symbolGrid, features = GetDefaultViewFromFunction(method)
+		defId, reelsetId = id, e.EngineDefs[id].ReelsetId
+		return
 	}
 	logger.Debugf("could not find a config for \"init\" use reels from first defined config")
 

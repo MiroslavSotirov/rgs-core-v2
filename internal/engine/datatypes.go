@@ -63,6 +63,7 @@ type EngineDef struct {
 	Inheritance string `yaml:"inheritance"` // inherit for previous def if true, first def if false
 	Index       int
 	Function    string   `yaml:"function"`                // determines what funciton is run with this enginedef
+	ReelsetId   string   `yaml:"ReelsetId"`               // unique identifier for the reels for certification
 	Reels       [][]int  `yaml:"Reels,flow" json:"reels"` // reel contents
 	ViewSize    []int    `yaml:"ViewSize"`                // the number and shape of symbols to display in the client
 	Payouts     []Payout `yaml:"Payouts"`                 // the payouts for line wins (can be nil for ways games)
@@ -186,6 +187,7 @@ type Gamestate struct {
 	Id                string                    `json:"id,omitempty"`
 	Game              string                    `json:"engine,omitempty"`
 	DefID             int                       `json:"reelset,omitempty"`
+	ReelsetID         string                    `json:"reelset_id,omitempty"`
 	BetPerLine        Money                     `json:"bet_per_line,omitempty"`
 	Transactions      []WalletTransaction       `json:"transactions,omitempty"`
 	PreviousGamestate string                    `json:"previous_gamestate,omitempty"`
@@ -453,6 +455,7 @@ func (gamestatePB GamestatePB) Convert() Gamestate {
 		RecoveryGrid:      convertSymbolGridFromPB(gamestatePB.RecoveryGrid),
 		Features:          convertFeaturesFromPB(gamestatePB.Features),
 		FeatureView:       convertSymbolGridFromPB(gamestatePB.FeatureView),
+		ReelsetID:         gamestatePB.ReelsetId,
 	}
 }
 
@@ -526,6 +529,7 @@ func (gamestate Gamestate) Convert() GamestatePB {
 		RoundId:           gamestate.RoundID,
 		Features:          convertFeaturesToPB(gamestate.Features),
 		FeatureView:       convertSymbolGridToPB(gamestate.FeatureView),
+		ReelsetId:         gamestate.ReelsetID,
 	}
 }
 

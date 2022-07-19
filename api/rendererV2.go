@@ -91,7 +91,8 @@ type GameplayResponseV2 struct {
 	SessionID        store.Token  `json:"host/verified-token"`
 	StateID          string       `json:"stateID"`
 	RoundID          string       `json:"roundID"`
-	ReelsetID        int          `json:"reelset"`
+	DefID            int          `json:"reelset"`
+	ReelsetID        string       `json:"reelsetId,omitempty"`
 	Stake            engine.Fixed `json:"totalStake"`
 	LineBet          engine.Fixed `json:"lineBet,omitempty"` // line bet used in prize calculations
 	Win              engine.Fixed
@@ -235,13 +236,15 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 	if strings.Contains(nextAction, "freespin") {
 		nextAction = "freespin"
 	}
+	logger.Debugf("Response ReelsetId: %s", gamestate.ReelsetID)
 	return GameplayResponseV2{
 		MetaData:      MetaResponse{OperatorRequests: OperatorResponse{StopAutoPlay: balance.Message == "stopAuto"}},
 		SessionID:     balance.Token,
 		Action:        gamestate.Action,
 		StateID:       gamestate.Id,
 		RoundID:       gamestate.RoundID,
-		ReelsetID:     gamestate.DefID,
+		DefID:         gamestate.DefID,
+		ReelsetID:     gamestate.ReelsetID,
 		Stake:         stake,
 		LineBet:       gamestate.BetPerLine.Amount,
 		Win:           win,
@@ -276,7 +279,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 
 func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance store.BalanceStore) (resp GameInitResponseV2) {
 
-	logger.Debugf("previousGamestate: %v; balance: %v;", previousGamestate, balance)
+	logger.Debugf("previousGamestate: %#v; balance: %#v;", previousGamestate, balance)
 
 	lastRound := make(map[string]GameplayResponseV2, 2)
 	// edit name of games with actions like "freespin3"

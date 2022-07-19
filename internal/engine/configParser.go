@@ -183,6 +183,9 @@ func ReadEngineDefs(engineID string) EngineConfig {
 		if c.EngineDefs[i].WinConfig.Flags != "" {
 			completeDef.WinConfig = c.EngineDefs[i].WinConfig
 		}
+		if c.EngineDefs[i].ReelsetId != "" {
+			completeDef.ReelsetId = c.EngineDefs[i].ReelsetId
+		}
 		// respin must be explicitly set to true if it is intended to be true, no inheritance from base
 		completeDef.RespinAllowed = c.EngineDefs[i].RespinAllowed
 		// same for variable winlines because it is a boolean and no way to tell if false or omitted
@@ -208,7 +211,7 @@ func (config EngineConfig) DefIdByName(action string) int {
 	return -1
 }
 
-func (config EngineConfig) getEngineAndMethodInternal(action string, exception bool) (reflect.Value, rgse.RGSErr) {
+func (config EngineConfig) getEngineAndMethodInternal(action string, exception bool) (reflect.Value, int, rgse.RGSErr) {
 	//log.Printf("Retrieving method: %v", action)
 	var matchedEngines []EngineDef
 	sumEngineProbabilities := 0
@@ -230,7 +233,7 @@ func (config EngineConfig) getEngineAndMethodInternal(action string, exception b
 			e = rgse.CreateWithoutException(rgse.EngineNotFoundError)
 		}
 		e.AppendErrorText(fmt.Sprintf("No engine matched action %v", action))
-		return reflect.Value{}, e
+		return reflect.Value{}, 0, e
 	}
 	if len(matchedEngines) == 1 {
 		selectedEngine = matchedEngines[0]
@@ -247,11 +250,11 @@ func (config EngineConfig) getEngineAndMethodInternal(action string, exception b
 			}
 		}
 	}
-	logger.Debugf("method selected: %s", selectedEngine.Function)
-	return reflect.ValueOf(selectedEngine).MethodByName(selectedEngine.Function), nil
+	logger.Debugf("method selected: %s engine index: %d", selectedEngine.Function, selectedEngine.Index)
+	return reflect.ValueOf(selectedEngine).MethodByName(selectedEngine.Function), selectedEngine.Index, nil
 }
 
-func (config EngineConfig) getEngineAndMethod(action string) (reflect.Value, rgse.RGSErr) {
+func (config EngineConfig) getEngineAndMethod(action string) (reflect.Value, int, rgse.RGSErr) {
 	return config.getEngineAndMethodInternal(action, true)
 }
 
