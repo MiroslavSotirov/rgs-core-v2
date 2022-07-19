@@ -21,6 +21,14 @@ func (f *SetReels) OnInit(state *FeatureState) {
 }
 
 func (f SetReels) Trigger(state *FeatureState, params FeatureParams) {
+	if params.HasKey("Action") {
+		if state.Action != params.GetString("Action") {
+			return
+		}
+	}
+	if params.HasKey("ReelsetId") {
+		state.ReelsetId = params.AsString("ReelsetId")
+	}
 	paramreels := params.GetSlice("Reels")
 	reels := make([][]int, len(paramreels))
 	for i, r := range paramreels {

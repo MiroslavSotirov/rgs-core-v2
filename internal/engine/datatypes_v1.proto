@@ -281,4 +281,5 @@ message GamestatePB {
   repeated Reel recovery_grid = 22;
   repeated FeaturePB features = 23;
   repeated Reel feature_view = 24;
+  string reelset_id=25;
 }

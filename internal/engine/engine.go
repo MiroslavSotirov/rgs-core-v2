@@ -678,7 +678,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 		}
 		logger.Debugf("getting engine for method %s (prev.NextAction=%s)",
 			parameters.Action, prevNextAction)
-		method, err = engineConf.getEngineAndMethod(parameters.Action)
+		method, _, err = engineConf.getEngineAndMethod(parameters.Action)
 	}
 
 	if err != nil {
@@ -1569,6 +1569,7 @@ func triggerConfiguredFeatures(engine EngineDef, symbolGrid [][]int, stopList []
 	fs.TotalStake = float64(parameters.previousGamestate.BetPerLine.Amount.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
 	fs.SetGrid(symbolGrid)
 	fs.StopList = stopList
+	fs.ReelsetId = engine.ReelsetId
 	fs.Reels = engine.Reels
 	fs.Action = parameters.Action
 	if err := triggerFeatures(engine, &fs, parameters); err != nil {
@@ -1592,6 +1593,7 @@ func triggerStatefulFeatures(engine EngineDef, symbolGrid [][]int, stopList []in
 		fs.TotalStake, parameters.previousGamestate.BetPerLine.Amount.ValueAsFloat(), engine.StakeDivisor, parameters.Stake.ValueAsFloat())
 	fs.SetGrid(symbolGrid)
 	fs.StopList = stopList
+	fs.ReelsetId = engine.ReelsetId
 	fs.Reels = engine.Reels
 	fs.Action = parameters.Action
 	if err := triggerFeatures(engine, &fs, parameters); err != nil {
@@ -1750,7 +1752,9 @@ func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams)
 		NextActions:      nextActions,
 		SelectedWinLines: wl,
 		Features:         featurestate.Features,
-		FeatureView:      featurestate.SymbolGrid}
+		FeatureView:      featurestate.SymbolGrid,
+		ReelsetID:        featurestate.ReelsetId,
+	}
 
 	return gamestate
 }
@@ -1926,6 +1930,7 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 		SelectedWinLines: winlines,
 		Features:         featurestate.Features,
 		FeatureView:      featurestate.SymbolGrid,
+		ReelsetID:        featurestate.ReelsetId,
 	}
 	return gamestate
 }
@@ -1984,6 +1989,7 @@ func (engine EngineDef) InitRound(parameters GameParams) (state Gamestate) {
 	state.SymbolGrid = GetSymbolGridFromStopList(engine.Reels, engine.ViewSize, stopList)
 	engine.InitRoundFeatures(parameters, stopList, &state)
 
+	logger.Debugf("Init state: %#v", state)
 	return
 }
 
@@ -2003,10 +2009,12 @@ func (engine EngineDef) InitRoundFeatures(parameters GameParams, stopList []int,
 	var fs features.FeatureState
 	fs.SetGrid(state.SymbolGrid)
 	fs.StopList = stopList
+	fs.ReelsetId = engine.ReelsetId
 	fs.Reels = engine.Reels
 	fs.Action = parameters.Action
 	features.InitFeatures(featuredef, &fs)
 	state.Features = fs.Features
+	state.ReelsetID = fs.ReelsetId
 	return
 }
 
