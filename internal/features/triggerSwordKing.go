@@ -24,7 +24,13 @@ func (f TriggerSwordKing) Trigger(state *FeatureState, params FeatureParams) {
 		return
 	}
 
-	SetStatefulStakeMap(*state, FeatureParams{},
+	counter := 0
+	statefulStake := GetStatefulStakeMap(*state)
+	if statefulStake.HasKey("counter") {
+		counter = statefulStake.GetInt("counter")
+	}
+
+	SetStatefulStakeMap(*state, FeatureParams{"counter": counter},
 		params)
 
 	activateFeatures(f.FeatureDef, state, params)

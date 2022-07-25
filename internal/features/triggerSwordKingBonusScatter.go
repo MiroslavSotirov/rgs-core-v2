@@ -41,48 +41,56 @@ func (f TriggerSwordKingBonusScatter) Trigger(state *FeatureState, params Featur
 	Probability := params.GetInt("Probability")
 	if rng.RandFromRange(10000) < Probability {
 
-		numScatters := params.GetIntSlice("NumScatters")[WeightedRandomIndex(params.GetIntSlice("NumProbabilities"))]
+		activate := false
 		positions := []int{}
-		gridh := len(state.SymbolGrid[0])
+		if !params.HasKey("NumScatters") {
+			activate = true
+		} else {
+			numScatters := params.GetIntSlice("NumScatters")[WeightedRandomIndex(params.GetIntSlice("NumProbabilities"))]
+			gridh := len(state.SymbolGrid[0])
 
-		logger.Debugf("placing %d bonus scatters", numScatters)
+			logger.Debugf("placing %d bonus scatters", numScatters)
 
-		reels := RandomPermutation([]int{0, 1, 2, 3, 4})
+			reels := RandomPermutation([]int{0, 1, 2, 3, 4})
 
-		for s := 0; s < numScatters; s++ {
-			reel := reels[s]
-			row := rng.RandFromRange(4)
-			pos := reel*gridh + row
-			positions = append(positions, pos)
+			for s := 0; s < numScatters; s++ {
+				reel := reels[s]
+				row := rng.RandFromRange(4)
+				pos := reel*gridh + row
+				positions = append(positions, pos)
+			}
+
+			if len(positions) > 0 {
+				params["RunBonusScatter"] = true
+				params["Positions"] = positions
+				logger.Debugf("positions: %v", positions)
+				activateFeatures(f.FeatureDef, state, params)
+
+				var counter int
+				statefulStake := GetStatefulStakeMap(*state)
+				if statefulStake.HasKey("counter") {
+					counter = statefulStake.GetInt("counter")
+				}
+				counter += len(positions)
+
+				counterMax := params.GetInt("CounterMax")
+				activate = counter >= counterMax
+				SetStatefulStakeMap(*state, FeatureParams{
+					"counter": counter,
+				}, params)
+			}
 		}
 
-		if len(positions) > 0 {
-			params["RunBonusScatter"] = true
-			params["Positions"] = positions
-			logger.Debugf("positions: %v", positions)
-			activateFeatures(f.FeatureDef, state, params)
+		if activate {
+			logger.Debugf("activate bonus")
+			params["RunBonus"] = true
+			fstype := params.GetString("FSType")
+			numFreespins := params.GetInt("NumFreespins")
 
-			var counter int
-			statefulStake := GetStatefulStakeMap(*state)
-			if statefulStake.HasKey("counter") {
-				counter = statefulStake.GetInt("counter")
-			}
-			counter += len(positions)
-
-			counterMax := params.GetInt("CounterMax")
-			if counter >= counterMax {
-				fstype := params.GetString("FSType")
-				numFreespins := params.GetInt("NumFreespins")
-
-				state.Wins = append(state.Wins, FeatureWin{
-					Index:           fmt.Sprintf("%s:%d", fstype, numFreespins),
-					SymbolPositions: positions,
-				})
-			}
-
-			SetStatefulStakeMap(*state, FeatureParams{
-				"counter": counter,
-			}, params)
+			state.Wins = append(state.Wins, FeatureWin{
+				Index:           fmt.Sprintf("%s:%d", fstype, numFreespins),
+				SymbolPositions: positions,
+			})
 		}
 	}
 

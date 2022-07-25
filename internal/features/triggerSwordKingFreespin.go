@@ -34,15 +34,16 @@ func (f TriggerSwordKingFreespin) Trigger(state *FeatureState, params FeaturePar
 	if state.PureWins ||
 		(params.HasKey("RunWilds") && params.GetBool("RunWilds")) ||
 		(params.HasKey("RunRespin") && params.GetBool("RunRespin")) ||
-		(params.HasKey("RunBonusScatter") && params.GetBool("RunBonusScatter")) {
+		(params.HasKey("RunBonusScatter") && params.GetBool("RunBonusScatter")) ||
+		(params.HasKey("RunBonus") && params.GetBool("RunBonus")) {
 		logger.Debugf("skipping freespin scatters")
 		return
 	}
 
 	Probability := params.GetInt("Probability")
 	if rng.RandFromRange(10000) < Probability {
-
-		numScatters := params.GetIntSlice("NumScatters")[WeightedRandomIndex(params.GetIntSlice("NumProbabilities"))]
+		numIdx := WeightedRandomIndex(params.GetIntSlice("NumProbabilities"))
+		numScatters := params.GetIntSlice("NumScatters")[numIdx]
 		positions := []int{}
 		gridh := len(state.SymbolGrid[0])
 
@@ -63,7 +64,7 @@ func (f TriggerSwordKingFreespin) Trigger(state *FeatureState, params FeaturePar
 			logger.Debugf("positions: %v", positions)
 			activateFeatures(f.FeatureDef, state, params)
 
-			numFreespins := params.GetIntSlice("NumFreespins")[len(positions)]
+			numFreespins := params.GetIntSlice("NumFreespins")[numIdx]
 			if numFreespins > 0 {
 				fstype := params.GetString("FSType")
 
