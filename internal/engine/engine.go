@@ -1065,6 +1065,9 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 	winlines := parameters.SelectedWinLines
 	if len(winlines) == 0 {
 		winlines = cascadePositions
+		logger.Debugf("NOT SELECTED WINLINES")
+	} else {
+		logger.Debugf("SELECTED WINLINES")
 	}
 	// Build gamestate
 	gamestate := Gamestate{DefID: engine.Index, Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: multiplier, StopList: stopList, NextActions: nextActions, SelectedWinLines: winlines}
@@ -1396,7 +1399,11 @@ func (engine EngineDef) ProcessWinLines(selectedWinLines []int) (wl []int, modif
 		}
 	}
 	engine.WinLines = winLines
-	engine.StakeDivisor = len(wl)
+	if !config.GlobalConfig.IsV3() || engine.StakeDivisor == 0 {
+		engine.StakeDivisor = len(wl)
+	} else {
+		logger.Debugf("DO NOT MODIFY STAKEDIVISOR")
+	}
 	modifiedengine = engine
 	return
 }
@@ -1760,16 +1767,16 @@ func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams)
 }
 
 func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParams) Gamestate {
-	symbolGrid := make([][]int, len(engine.ViewSize))
-	stopList := make([]int, len(engine.ViewSize))
+	var reelsetId string
 	var cascadePositions []int
+	symbolGrid, stopList := engine.Spin()
 	if parameters.Action == "cascade" {
 		previousGamestate := parameters.previousGamestate
 
 		featurestate := gen.TriggerFeatures(engine, previousGamestate.SymbolGrid, previousGamestate.StopList, parameters)
-		logger.Debugf("update reels after feature activation. from %v", engine.Reels)
-		logger.Debugf("to %v", featurestate.Reels)
+		logger.Debugf("update to reelset %s", featurestate.ReelsetId)
 		engine.Reels = featurestate.Reels
+		reelsetId = featurestate.ReelsetId
 
 		// if previous gamestate contains a win, we need to cascade new tiles into the old space
 		previousGrid := previousGamestate.SymbolGrid
@@ -1809,11 +1816,13 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 		for i := 0; i < len(engine.Reels); i++ {
 			adjustedReels[i] = append(engine.Reels[i], engine.Reels[i][:engine.ViewSize[i]]...)
 		}
+
+		_, stopList = engine.Spin()
 		// return grid to full size by filling in empty spaces
 		for i := 0; i < len(engine.ViewSize); i++ {
 			numToAdd := engine.ViewSize[i] - len(remainingGrid[i])
 			cascadePositions = append(cascadePositions, numToAdd)
-			stop := previousGamestate.StopList[i] - numToAdd
+			stop := stopList[i] - numToAdd
 			// get adjusted index if the previous win was at the top of the reel
 			if stop < 0 {
 				stop = len(engine.Reels[i]) + stop
@@ -1821,12 +1830,14 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 			symbolGrid[i] = append(adjustedReels[i][stop:stop+numToAdd], remainingGrid[i]...)
 			stopList[i] = stop
 		}
-
-	} else {
-		symbolGrid, stopList = engine.Spin()
 	}
 
 	featurestate := gen.TriggerFeatures(engine, symbolGrid, stopList, parameters)
+	if parameters.Action == "cascade" {
+		featurestate.Reels = engine.Reels
+		featurestate.ReelsetId = reelsetId
+	}
+
 	/*
 		logger.Debugf("symbolGrid= %v featureGrid= %v", symbolGrid, featurestate.SymbolGrid)
 		logger.Debugf("update reels after feature activation.")
@@ -1857,49 +1868,6 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 	if cascade {
 		nextActions = append([]string{"cascade"}, nextActions...)
 	}
-	/*
-		featurewins := []Prize{}
-		for _, w := range featurestate.Wins {
-			if w.Index == "" {
-				symbol := 0
-				index := "0:0"
-				if len(w.Symbols) > 0 {
-					index = fmt.Sprintf("%d:%d", w.Symbols[0], len(w.Symbols))
-				}
-				prize := Prize{
-					Payout: Payout{
-						Symbol:     symbol,
-						Count:      len(w.Symbols),
-						Multiplier: engine.StakeDivisor,
-					},
-					Index:           index,
-					Multiplier:      w.Multiplier,
-					SymbolPositions: w.SymbolPositions,
-					Winline:         -1, // until features have prizes associated with lines
-				}
-				featurewins = append(featurewins, prize)
-			} else {
-				prize := Prize{
-					Payout: Payout{
-						Symbol:     0,
-						Count:      len(w.Symbols),
-						Multiplier: w.Multiplier, // engine.StakeDivisor,
-					},
-					Index:           w.Index,
-					Multiplier:      w.Multiplier,
-					SymbolPositions: w.SymbolPositions,
-					Winline:         -1, // until features have prizes associated with lines
-				}
-				sp, na := engine.CalculatePayoutSpecialWin(prize)
-				relativePayout += sp
-				nextActions = append(na, nextActions...)
-				logger.Debugf("Adding special payout: %v with actions: %v to final action list: %v", sp, na, nextActions)
-				featurewins = append(featurewins, prize)
-			}
-		}
-		relativePayout += calculatePayoutWins(featurewins)
-		wins = append(wins, featurewins...)
-	*/
 	featureWins, featureRelPayout, featureNextActions := engine.convertFeaturePrizes(featurestate.Wins)
 	relativePayout += featureRelPayout
 	wins = append(wins, featureWins...)
@@ -1914,10 +1882,6 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 	// for now, do a bit of a hack to get the cascade positions. as soon as we need to implement cascade with variable
 	// win lines, this will need to be adjusted to be added into a new field in the gamestate message
 
-	winlines := parameters.SelectedWinLines
-	if len(winlines) == 0 {
-		winlines = cascadePositions
-	}
 	// Build gamestate
 	gamestate := Gamestate{
 		DefID:            engine.Index,
@@ -1927,7 +1891,7 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 		Multiplier:       multiplier,
 		StopList:         stopList,
 		NextActions:      nextActions,
-		SelectedWinLines: winlines,
+		SelectedWinLines: cascadePositions, // resuse hack from regular cascade to encode positions in winlines
 		Features:         featurestate.Features,
 		FeatureView:      featurestate.SymbolGrid,
 		ReelsetID:        featurestate.ReelsetId,
