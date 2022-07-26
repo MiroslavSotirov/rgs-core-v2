@@ -1,5 +1,7 @@
 package features
 
+import "gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
+
 type SetReels struct {
 	FeatureDef
 	Data FeatureParams `json:"data"`
@@ -26,10 +28,11 @@ func (f SetReels) Trigger(state *FeatureState, params FeatureParams) {
 			return
 		}
 	}
+	paramreels := params.GetSlice("Reels")
 	if params.HasKey("ReelsetId") {
 		state.ReelsetId = params.AsString("ReelsetId")
+		logger.Debugf("Set reels using ReelsetId %s", state.ReelsetId)
 	}
-	paramreels := params.GetSlice("Reels")
 	reels := make([][]int, len(paramreels))
 	for i, r := range paramreels {
 		reels[i] = convertIntSlice(r)

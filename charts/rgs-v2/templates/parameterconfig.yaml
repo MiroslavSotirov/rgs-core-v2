@@ -338,3 +338,17 @@ data:
             - 100
             - 200
             - 400
+      mvgEngineGodot6:
+        credits:
+          defaultBet: 10
+          stakeValues:
+            - 2
+            - 4
+            - 6
+            - 10
+            - 20
+            - 40
+            - 60
+            - 100
+            - 200
+            - 400

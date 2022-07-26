@@ -1769,14 +1769,15 @@ func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams)
 func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParams) Gamestate {
 	symbolGrid := make([][]int, len(engine.ViewSize))
 	stopList := make([]int, len(engine.ViewSize))
+	var reelsetId string
 	var cascadePositions []int
 	if parameters.Action == "cascade" {
 		previousGamestate := parameters.previousGamestate
 
 		featurestate := gen.TriggerFeatures(engine, previousGamestate.SymbolGrid, previousGamestate.StopList, parameters)
-		logger.Debugf("update reels after feature activation. from %v", engine.Reels)
-		logger.Debugf("to %v", featurestate.Reels)
+		logger.Debugf("update to reelset %s", featurestate.ReelsetId)
 		engine.Reels = featurestate.Reels
+		reelsetId = featurestate.ReelsetId
 
 		// if previous gamestate contains a win, we need to cascade new tiles into the old space
 		previousGrid := previousGamestate.SymbolGrid
@@ -1834,6 +1835,11 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 	}
 
 	featurestate := gen.TriggerFeatures(engine, symbolGrid, stopList, parameters)
+	if parameters.Action == "cascade" {
+		featurestate.Reels = engine.Reels
+		featurestate.ReelsetId = reelsetId
+	}
+
 	/*
 		logger.Debugf("symbolGrid= %v featureGrid= %v", symbolGrid, featurestate.SymbolGrid)
 		logger.Debugf("update reels after feature activation.")
