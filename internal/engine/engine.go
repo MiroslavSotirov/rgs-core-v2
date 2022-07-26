@@ -1767,10 +1767,9 @@ func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams)
 }
 
 func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParams) Gamestate {
-	symbolGrid := make([][]int, len(engine.ViewSize))
-	stopList := make([]int, len(engine.ViewSize))
 	var reelsetId string
 	var cascadePositions []int
+	symbolGrid, stopList := engine.Spin()
 	if parameters.Action == "cascade" {
 		previousGamestate := parameters.previousGamestate
 
@@ -1817,11 +1816,13 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 		for i := 0; i < len(engine.Reels); i++ {
 			adjustedReels[i] = append(engine.Reels[i], engine.Reels[i][:engine.ViewSize[i]]...)
 		}
+
+		_, stopList = engine.Spin()
 		// return grid to full size by filling in empty spaces
 		for i := 0; i < len(engine.ViewSize); i++ {
 			numToAdd := engine.ViewSize[i] - len(remainingGrid[i])
 			cascadePositions = append(cascadePositions, numToAdd)
-			stop := previousGamestate.StopList[i] - numToAdd
+			stop := stopList[i] - numToAdd
 			// get adjusted index if the previous win was at the top of the reel
 			if stop < 0 {
 				stop = len(engine.Reels[i]) + stop
@@ -1829,9 +1830,6 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 			symbolGrid[i] = append(adjustedReels[i][stop:stop+numToAdd], remainingGrid[i]...)
 			stopList[i] = stop
 		}
-
-	} else {
-		symbolGrid, stopList = engine.Spin()
 	}
 
 	featurestate := gen.TriggerFeatures(engine, symbolGrid, stopList, parameters)
