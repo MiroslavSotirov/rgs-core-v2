@@ -262,6 +262,7 @@ gameConfig:
   - engineID: mvgEngineGodot6
     games:
       - name: sword-king
+        item: 8451
       
 gamification:
   a-fairy-tale:
