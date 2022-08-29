@@ -148,7 +148,17 @@ func (num1 Fixed) Mul(num2 Fixed) Fixed {
 	// res = realres * 10^6
 	// realres = realnum1 * realnum2 = num1 / 10^6 * num2 / 10^6
 	// res = num1 / 10^6 * num2 / 10^6 * 10^6 = num1 * num2 / 10^6
-	return num1 * num2 / fixedExp
+	// return num1 * num2 / fixedExp
+
+	// E = 10^6
+	// num1 = aE + b
+	// num2 = cE + d
+	// num1*num2/E = (acE^2 + (ad + bc)E + bd) / E = acE + ad + bc + bd/E = a(cE + d) + bc + (bd)/E
+	var a = num1 / fixedExp
+	var b = num1 - a*fixedExp
+	var c = num2 / fixedExp
+	var d = num2 - c*fixedExp
+	return a*(c*fixedExp+d) + b*c + b*d/fixedExp
 }
 
 func (num1 Fixed) MulFloat(num2 Fixed) Fixed {
@@ -191,6 +201,10 @@ func (num Fixed) Pow(exp int) Fixed {
 
 func NewFixedFromFloat(num float32) Fixed {
 	return Fixed(math.Round(float64(num) * float64(fixedExp)))
+}
+
+func NewFixedFromFloat64(num float64) Fixed {
+	return Fixed(math.Round(num * float64(fixedExp)))
 }
 
 func NewFixedFromInt(num int) Fixed {

@@ -440,6 +440,17 @@ func TestFixed_Sub(t *testing.T) {
 	}
 }
 
+func testFixed_Mul(t *testing.T, f1 Fixed, f2 Fixed, prod Fixed, msg string) bool {
+	res := f1.Mul(f2)
+	if res != prod {
+		t.Errorf("%s, %d * %d expected %v, got %v (%.10f * %.10f = %.10f != %.10f)",
+			msg, f1, f2, prod, res, float64(f1)/float64(fixedExp), float64(f2)/float64(fixedExp),
+			float64(res)/float64(fixedExp), float64(prod)/float64(fixedExp))
+		return false
+	}
+	return true
+}
+
 func TestFixed_MulSimple(t *testing.T) {
 	fixed1 := NewFixedFromInt(1)
 	fixed2 := NewFixedFromInt(1)
@@ -470,6 +481,18 @@ func TestFixed_Mul(t *testing.T) {
 	if res2 != expected2 {
 		t.Errorf("Fixed negative multiplication failed, expected %v, got %v", expected2, res2)
 	}
+}
+
+func TestFixed_MulOverflow(t *testing.T) {
+	testFixed_Mul(t, NewFixedFromInt(50000), NewFixedFromInt(250), NewFixedFromInt(12500000), "Fixed multiplication failed due to overflow")
+	testFixed_Mul(t, NewFixedFromInt(500000), NewFixedFromInt(2500), NewFixedFromInt(1250000000), "Fixed multiplication failed due to overflow")
+	testFixed_Mul(t, NewFixedFromInt(5000001), NewFixedFromInt(25023), NewFixedFromInt(125115025023), "Fixed multiplication failed due to overflow")
+}
+
+func TestFixed_MulFraction(t *testing.T) {
+	testFixed_Mul(t, NewFixedFromFloat(0.123), NewFixedFromFloat(0.003), NewFixedFromFloat(0.000369), "Fixed multiplication decimal error")
+	testFixed_Mul(t, NewFixedFromFloat(50000), NewFixedFromFloat(250.5), NewFixedFromFloat(12525000), "Fixed multiplication decimal error")
+	testFixed_Mul(t, NewFixedFromFloat(500000), NewFixedFromFloat64(2500.123), NewFixedFromFloat64(1250061500), "Fixed multiplication decimal error")
 }
 
 func TestFixed_DivSimple(t *testing.T) {
