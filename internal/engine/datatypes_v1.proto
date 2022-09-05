@@ -250,6 +250,24 @@ message GamestatePB {
   freespinE8 = 26;
   freespinE0 = 27;
   gamble0 = 28;
+  bonus1 = 29;
+  bonus2 = 30;
+  bonus3 = 31;
+  bonus4 = 32;
+  bonus5 = 33;
+  bonus6 = 34;
+  bonus7 = 35;
+  bonus8 = 36;
+  bonus0 = 37;
+  respinall1 = 38;
+  respinall2 = 39;
+  respinall3 = 40;
+  respinall4 = 41;
+  respinall5 = 42;
+  respinall6 = 43;
+  respinall7 = 44;
+  respinall8 = 45;
+  respinall0 = 46;
   }
   Action action = 7;
 

@@ -232,10 +232,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 			fsresp.CtRemaining = 0
 		}
 	}
-	nextAction := gamestate.NextActions[0]
-	if strings.Contains(nextAction, "freespin") {
-		nextAction = "freespin"
-	}
+	nextAction := TranslateAction(gamestate.NextActions[0])
 	logger.Debugf("Response ReelsetId: %s", gamestate.ReelsetID)
 	return GameplayResponseV2{
 		MetaData:      MetaResponse{OperatorRequests: OperatorResponse{StopAutoPlay: balance.Message == "stopAuto"}},
@@ -283,10 +280,7 @@ func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance st
 
 	lastRound := make(map[string]GameplayResponseV2, 2)
 	// edit name of games with actions like "freespin3"
-	action := previousGamestate.Action
-	if strings.Contains(action, "freespin") {
-		action = "freespin"
-	}
+	action := TranslateAction(previousGamestate.Action)
 	lastRound[action] = fillGamestateResponseV2(previousGamestate, balance)
 
 	// if last round was not base round, get triggering round ( for now no dashur api support for this, so show default round)
@@ -383,4 +377,15 @@ func (initResp *GameInitResponseV2) FillEngineInfo(enginecfg engine.EngineConfig
 	}
 
 	return
+}
+
+func TranslateAction(action string) string {
+	if strings.Contains(action, "freespin") {
+		return "freespin"
+	} else if strings.Contains(action, "respinall") {
+		return "respinall"
+	} else if strings.Contains(action, "bonus") {
+		return "bonus"
+	}
+	return action
 }

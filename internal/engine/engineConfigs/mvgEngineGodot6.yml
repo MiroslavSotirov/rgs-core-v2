@@ -94,7 +94,7 @@ EngineDefs:
           - Type: TriggerSwordKingRespin
             Params:
               Probability: 800
-              FSType: freespinE2
+              FSType: respinall0
               NumFreespins: 1
           - Type: TriggerSwordKingBonusScatter
             Params:
@@ -102,7 +102,7 @@ EngineDefs:
               NumScatters: [1,2,3,4,5]
               NumProbabilities: [5000,4000,600,300,100]
               CounterMax: 5
-              FSType: freespinE4
+              FSType: bonus0
               NumFreespins: 1
             Features:
               - Type: ReplaceTile
@@ -166,12 +166,12 @@ EngineDefs:
           - Type: TriggerSwordKingRespin
             Params:
               Probability: 1500
-              FSType: freespinE3
+              FSType: respinall1
               NumFreespins: 1
           - Type: TriggerSwordKingBonusScatter
             Params:
               Probability: 2000
-              FSType: freespinE5
+              FSType: bonus1
               NumFreespins: 1
           - Type: StatefulMap
   - name: freespinE1
@@ -185,7 +185,7 @@ EngineDefs:
       - [6,3,6,1,7,3,7,7,7,6,6,6,3,3,7,7,1,1,6,3,7,1,3,3,7,1,3,6,3,1,7,1,7,1,6,3,6,7,7,7,6,1,1,3,3,1,3,3,6,3,1,1,3,3,7,3,6,6,7,6,6,6,7,6,1,1,1,7,7,6,3,6,6,3,1,1,7,6,7,1,1,6,3,3,6,1,7,7]
     Probability: 2000
   # respin from base spin
-  - name: freespinE2
+  - name: respinall0
     StakeDivisor: 10
     function: StatefulRound
     Reels:
@@ -199,7 +199,7 @@ EngineDefs:
       - Type: TriggerSwordKing
         Features:
           - Type: StatefulMap
-  - name: freespinE2
+  - name: respinall0
     inheritance: prev
     function: StatefulRound
     Reels:
@@ -209,7 +209,7 @@ EngineDefs:
       - [8,5,8,8,5,8,7,5,7,8,5,2,7,7,5,5,7,5,5,5,5,2,8,8,5,2,5,2,2,2,7,7,7,8,8,7,2,8,8,2,5,2,2,7,7,5,7,5,5,7,5,5,7,8,5,8,7,8,2,7,8,8,2,8,2,8,7,7,7,2,2,7,7,2,5,2,5,2,8,8,2,2,2,8,5,8,7,2]
       - [8,2,2,5,8,7,5,7,5,8,8,5,7,7,7,7,8,5,2,7,5,5,8,7,5,8,7,5,2,8,7,2,2,2,8,7,5,8,5,7,5,5,8,5,7,8,8,8,8,2,2,7,8,5,5,5,8,7,2,2,8,2,2,5,2,7,7,2,2,7,8,2,7,8,7,2,5,8,5,5,2,2,5,7,2,7,2,8]
     Probability: 3500
-  - name: freespinE2
+  - name: respinall0
     inheritance: prev
     function: StatefulRound
     Reels:
@@ -220,7 +220,7 @@ EngineDefs:
       - [8,5,5,8,3,5,6,6,3,8,5,5,3,3,8,6,3,3,8,6,3,6,6,6,3,5,8,3,6,6,5,8,5,8,5,8,6,5,3,8,3,6,5,6,3,8,5,6,6,6,8,5,5,8,8,8,3,8,8,3,8,8,3,8,3,3,5,6,8,3,5,6,3,5,3,3,6,8,6,5,6,6,5,5,5,5,3,6]
     Probability: 3000
   # respin from freespin
-  - name: freespinE3
+  - name: respinall1
     StakeDivisor: 10
     function: StatefulRound
     Reels:
@@ -234,7 +234,7 @@ EngineDefs:
       - Type: TriggerSwordKing
         Features:
           - Type: StatefulMap
-  - name: freespinE3
+  - name: respinall1
     inheritance: prev
     function: StatefulRound
     Reels:
@@ -244,7 +244,7 @@ EngineDefs:
       - [8,5,8,8,5,8,7,5,7,8,5,2,7,7,5,5,7,5,5,5,5,2,8,8,5,2,5,2,2,2,7,7,7,8,8,7,2,8,8,2,5,2,2,7,7,5,7,5,5,7,5,5,7,8,5,8,7,8,2,7,8,8,2,8,2,8,7,7,7,2,2,7,7,2,5,2,5,2,8,8,2,2,2,8,5,8,7,2]
       - [8,2,2,5,8,7,5,7,5,8,8,5,7,7,7,7,8,5,2,7,5,5,8,7,5,8,7,5,2,8,7,2,2,2,8,7,5,8,5,7,5,5,8,5,7,8,8,8,8,2,2,7,8,5,5,5,8,7,2,2,8,2,2,5,2,7,7,2,2,7,8,2,7,8,7,2,5,8,5,5,2,2,5,7,2,7,2,8]
     Probability: 4000
-  - name: freespinE3
+  - name: respinall1
     inheritance: prev
     function: StatefulRound
     Reels:
@@ -255,7 +255,7 @@ EngineDefs:
       - [8,5,5,8,3,5,6,6,3,8,5,5,3,3,8,6,3,3,8,6,3,6,6,6,3,5,8,3,6,6,5,8,5,8,5,8,6,5,3,8,3,6,5,6,3,8,5,6,6,6,8,5,5,8,8,8,3,8,8,3,8,8,3,8,3,3,5,6,8,3,5,6,3,5,3,3,6,8,6,5,6,6,5,5,5,5,3,6]
     Probability: 2000
   # bonus from regular spin
-  - name: freespinE4
+  - name: bonus0
     StakeDivisor: 10
     function: StatefulRound
     Reels:
@@ -290,7 +290,7 @@ EngineDefs:
                   TileId: 10
                   ReplaceWithId: 10
           - Type: StatefulMap
-  - name: freespinE4
+  - name: bonus0
     inheritance: prev
     function: StatefulRound
     Reels:
@@ -301,7 +301,7 @@ EngineDefs:
       - [6,3,6,1,7,3,7,7,7,6,6,6,3,3,7,7,1,1,6,3,7,1,3,3,7,1,3,6,3,1,7,1,7,1,6,3,6,7,7,7,6,1,1,3,3,1,3,3,6,3,1,1,3,3,7,3,6,6,7,6,6,6,7,6,1,1,1,7,7,6,3,6,6,3,1,1,7,6,7,1,1,6,3,3,6,1,7,7]
     Probability: 2000
   # bonus from freespin
-  - name: freespinE5
+  - name: bonus1
     StakeDivisor: 10
     function: StatefulRound
     Reels:
@@ -336,7 +336,7 @@ EngineDefs:
                   TileId: 10
                   ReplaceWithId: 10
           - Type: StatefulMap
-  - name: freespinE5
+  - name: bonus1
     inheritance: prev
     function: StatefulRound
     Reels:
