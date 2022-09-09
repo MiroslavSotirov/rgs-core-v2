@@ -983,6 +983,15 @@ func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction Trans
 		logger.Debugf("insufficient funds: %#v, %#v", transaction, player.Balance)
 		return BalanceStore{}, rgse.Create(rgse.InsufficientFundError)
 	}
+
+	if RoundStatusClose == transaction.RoundStatus {
+		logger.Debugf("close due to RoundStatusClose")
+		// HACK to keep token from updating as client currently cannot handle token update on clientstate save call
+		// i.setToken(token, playerId)
+		// balance.Token = token
+		//		return i.CloseRound(token, mode, transaction.GameId, transaction.RoundId, transaction.GameState, transaction.Ttl, &transaction.History)
+	}
+
 	i.setTransaction(transaction.TransactionId, transaction)
 	key := player.PlayerId + "::" + transaction.GameId
 	i.setTransactionByPlayerGame(key, transaction)
@@ -1007,6 +1016,7 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 
 	if RoundStatusClose == transaction.RoundStatus {
 		closeRound = true
+		logger.Debugf("close due to RoundStatusClose")
 	}
 
 	if transaction.GameState != nil {

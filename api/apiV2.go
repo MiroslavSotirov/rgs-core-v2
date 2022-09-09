@@ -347,19 +347,30 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 		logger.Infof("Campaign %v continues", freeGameRef)
 	}
 
+	autoClose := false
+	if data.AutoClose && len(gamestate.NextActions) > 0 && gamestate.NextActions[0] == "finish" {
+		autoClose = true
+		gamestate.Closed = true
+	}
+
 	// settle transactions
 	var balance store.BalanceStore
 	token := txStore.Token
 	logger.Debugf("%v txs", len(gamestate.Transactions))
-	for _, transaction := range gamestate.Transactions {
+	roundStatus := store.RoundStatusOpen
+	for txIdx, transaction := range gamestate.Transactions {
 		logger.Debugf("%#v", transaction)
 		AppendHistory(&txStore, transaction)
+		if autoClose && txIdx+1 == len(gamestate.Transactions) {
+			logger.Debugf("last transaction in the last spin of the round, set RoundStatusClose")
+			roundStatus = store.RoundStatusClose
+		}
 		gs := store.SerializeGamestateToBytes(gamestate)
 		tx := store.TransactionStore{
 			TransactionId:       transaction.Id,
 			Token:               token,
 			Category:            store.Category(transaction.Type),
-			RoundStatus:         store.RoundStatusOpen,
+			RoundStatus:         roundStatus, // store.RoundStatusOpen,
 			PlayerId:            txStore.PlayerId,
 			GameId:              data.Game,
 			RoundId:             gamestate.RoundID,

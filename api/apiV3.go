@@ -33,6 +33,7 @@ type playParamsV3 struct {
 	Game       string `json:"game"`
 	Wallet     string `json:"wallet"`
 	PreviousID string `json:"previousID"`
+	AutoClose  bool   `json:"autoClose"`
 }
 
 type closeParamsV3 struct {

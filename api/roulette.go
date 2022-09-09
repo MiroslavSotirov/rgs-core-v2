@@ -315,6 +315,12 @@ func getRouletteResults(
 	gameState.Bet = bet
 	gameState.Win = win
 
+	autoClose := false
+	if data.AutoClose {
+		autoClose = true
+		gameState.Closed = true
+	}
+
 	var balance store.BalanceStore
 	var freeGameRef string = "" // check apiV2 for how to determine if this is a free game, and set
 	/*
@@ -326,14 +332,19 @@ func getRouletteResults(
 	logger.Debugf("processing state: %#v", gameState)
 	stateBytes := game.SerializeState(&gameState) // gameState.Serialize()
 	token := txStore.Token
-	for _, transaction := range gameState.Transactions {
+	roundStatus := store.RoundStatusOpen
+	for txIdx, transaction := range gameState.Transactions {
 		logger.Debugf("performing transaction %#v", transaction)
 		AppendHistory(&txStore, transaction)
+		if autoClose && txIdx+1 == len(gameState.Transactions) {
+			logger.Debugf("last transaction in the last spin of the round, set RoundStatusClose")
+			roundStatus = store.RoundStatusClose
+		}
 		tx := store.TransactionStore{
 			TransactionId:       transaction.Id,
 			Token:               token,
 			Category:            store.Category(transaction.Type),
-			RoundStatus:         store.RoundStatusOpen,
+			RoundStatus:         roundStatus,
 			PlayerId:            txStore.PlayerId,
 			GameId:              data.Game,
 			RoundId:             gameState.RoundId,
@@ -393,8 +404,9 @@ func fillRoulettePlayResponse(gameState engine.GameStateRoulette, balance store.
 			Balance: BalanceResponseV3{
 				Amount: balance.Balance,
 			},
-			Bet: gameState.Bet,
-			Win: gameState.Win,
+			Bet:    gameState.Bet,
+			Win:    gameState.Win,
+			Closed: gameState.Closed,
 		},
 		Symbol:   gameState.Symbol,
 		Position: gameState.Position,

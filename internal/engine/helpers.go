@@ -222,6 +222,7 @@ type GameParams struct {
 	Wallet            string    `json:"wallet"`
 	PreviousID        string    `json:"previousID"`
 	Force             string    `json:"force"`
+	AutoClose         bool      `json:"autoClose"`
 	previousGamestate Gamestate // this cannot be passed in
 	//stopPostitions    []int     // this can also not be passed in from outside the package (only for testing)
 }
