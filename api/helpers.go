@@ -83,3 +83,11 @@ func AppendHistory(tx *store.TransactionStore, transaction engine.WalletTransact
 	}
 	return
 }
+
+func DefaultTitleName(name string) string {
+	parts := strings.Split(strings.ReplaceAll(name, "-", " "), " ")
+	for i, p := range parts {
+		parts[i] = strings.ToUpper(string(p[0])) + strings.TrimPrefix(p, string(p[0]))
+	}
+	return strings.Join(parts, " ")
+}

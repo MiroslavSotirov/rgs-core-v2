@@ -5,8 +5,14 @@ mvgEngineGodot3.yml:
   md5digest:  49ff11e9f2b4a30a1a3b77c8de3ca6c0
   sha1digest: 8914afaef6e17a9243dd806c95c6e5ceb8e93e0e
 mvgEngineGodot4.yml:
-  md5digest:  12c7a348f0253c7dbabcac67532ba2a8
-  sha1digest: 68c337d3f9681df643955ba11fa3aefd39738d3c
+  md5digest:  f45a76df43fb4c1c83647a1fdc75a575
+  sha1digest: 56dc5580703e13fe04e09809f1ce397d9a155b9e
+mvgEngineGodot5.yml:
+  md5digest:  24024b1b32c63a1c687d9e3adaa0d230
+  sha1digest: 41613b9abae9ee002759c2b8da5be35b1a1be2a8
+mvgEngineGodot6.yml:
+  md5digest:  420b1db052de8b1e30be42aae19557b7
+  sha1digest: b04d88799bf57de6eaa3b483c985b5ed513d3de2
 mvgEngineIII.yml:
   md5digest:  5c9cdf1c4ba2e677eddc0fb3544c08cb
   sha1digest: fdb2ca393bb9efcf2b985c48c0e36f33271e9ded

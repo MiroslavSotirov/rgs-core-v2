@@ -62,12 +62,13 @@ type Config struct {
 // Game config structure
 type GameConfig struct {
 	EngineID string    `yaml:"engineID"`
-	Category string `yaml:"category"`	
+	Category string    `yaml:"category"`
 	Games    []GameDef `yaml:"games"`
 }
 type GameDef struct {
-	Name string `yaml:"name"`
-	Item string `yaml:"item"`
+	Name  string `yaml:"name"`
+	Item  string `yaml:"item"`
+	Title string `yaml:"title"`
 }
 
 // ConfigError - forces server to exit for configuration error

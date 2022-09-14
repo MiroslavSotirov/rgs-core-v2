@@ -91,9 +91,15 @@ func getGameHashes(request *http.Request) (GameHashResponse, rgse.RGSErr) {
 					category = "slot"
 				}
 
+				title := g.Title
+				if title == "" {
+					title = DefaultTitleName(g.Name)
+				}
+
 				response = append(response, GameHashInfo{
 					ItemId:   g.Item,
 					Name:     g.Name,
+					Title:    title,
 					Config:   cfg,
 					Md5:      h.MD5Digest,
 					Sha1:     h.SHA1Digest,
