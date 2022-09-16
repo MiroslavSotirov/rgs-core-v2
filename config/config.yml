@@ -21,6 +21,8 @@ dashurconf:
   storeurl: https://gnrc-api.dashur.io/v1/gnrc/maverick
   storeappid: VrCLq4UqYBf39rJt
   storeapppass: V6Kg9muzJxsz3nWFvJeyccU7
+  storemaxretries: 2
+  storetimeoutms: 5000
 demotokenprefix: demo-token-ezVVKaEv2nY7kP2gMCX7vfCH
 sentryDsn: "https://b2727e77bbbd40909706b518cf244379:df61f5f384b947249e9e3361f5d2f7c6@sentry.maverick-ops.com/42"
 defaultlanguage: en

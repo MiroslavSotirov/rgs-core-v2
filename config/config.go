@@ -34,9 +34,11 @@ func (s Server) IsV3() bool {
 }
 
 type StoreConfig struct {
-	StoreRemoteUrl string `yaml:"storeurl" cfg:"storeurl" cfgDefault:"https://gnrc-api.dashur.io/v1/gnrc/maverick"`
-	StoreAppId     string `yaml:"storeappid" cfg:"storeappid" cfgDefault:"maverick_user"`
-	StoreAppPass   string `yaml:"storeapppass" cfg:"storeapppass" cfgDefault:"Passw0rd!"`
+	StoreRemoteUrl  string `yaml:"storeurl" cfg:"storeurl" cfgDefault:"https://gnrc-api.dashur.io/v1/gnrc/maverick"`
+	StoreAppId      string `yaml:"storeappid" cfg:"storeappid" cfgDefault:"maverick_user"`
+	StoreAppPass    string `yaml:"storeapppass" cfg:"storeapppass" cfgDefault:"Passw0rd!"`
+	StoreMaxRetries int    `yaml:"storemaxretries" cfg:"storemaxretries" cfgDefault:1`
+	StoreTimeoutMs  int64  `yaml:"storetimeoutms" cfg:"storetimeoutms" cfgDefault:3000`
 }
 
 // Config structure

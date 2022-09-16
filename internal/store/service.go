@@ -213,6 +213,8 @@ type (
 		demoCurrency    string
 		logAccount      string
 		dataLimit       int
+		maxRetries      int
+		timeoutMs       int64
 	}
 
 	// local service eq implemenation of service. so that unit test of services can be easily mocked.
@@ -645,36 +647,36 @@ func (i *RemoteServiceImpl) errorBase64(err error) rgse.RGSErr {
 	return nil
 }
 
-func (i *RemoteServiceImpl) errorHttpStatusCode(httpStatusCode int) rgse.RGSErr {
+func (i *RemoteServiceImpl) errorHttpStatusCode(httpStatusCode int) (rgse.RGSErr, bool) {
 	if httpStatusCode != 200 {
 		logger.Debugf("handling http status code %d", httpStatusCode)
 		if httpStatusCode == 403 || httpStatusCode == 401 {
-			return rgse.Create(rgse.TokenExpired)
+			return rgse.Create(rgse.TokenExpired), false
 		} else if httpStatusCode == 404 {
-			return rgse.Create(rgse.EntityNotFound)
+			return rgse.Create(rgse.EntityNotFound), false
 		} else if httpStatusCode == 402 {
-			return rgse.Create(rgse.InsufficientFundError)
+			return rgse.Create(rgse.InsufficientFundError), false
 		} else if httpStatusCode == 408 || httpStatusCode == 504 {
-			return rgse.Create(rgse.RequestTimeout)
+			return rgse.Create(rgse.RequestTimeout), true
 		}
-		return rgse.Create(rgse.GenericWalletError)
+		return rgse.Create(rgse.GenericWalletError), true
 	}
-	return nil
+	return nil, false
 }
 
-func (i *RemoteServiceImpl) errorResponseCode(responseCode string) rgse.RGSErr {
+func (i *RemoteServiceImpl) errorResponseCode(responseCode string) (rgse.RGSErr, bool) {
 	if responseCode != string(ResponseCodeOk) {
 		logger.Debugf("handling response code %s", responseCode)
 		if responseCode == string(ResponseCodeDataError) {
-			return rgse.Create(rgse.BadRequest)
+			return rgse.Create(rgse.BadRequest), false
 		} else if responseCode == string(ResponseCodeInsufficentBalance) {
-			return rgse.Create(rgse.InsufficientFundError)
+			return rgse.Create(rgse.InsufficientFundError), false
 		} else if responseCode == string(ResponseCodeSessionExpired) {
-			return rgse.Create(rgse.TokenExpired)
+			return rgse.Create(rgse.TokenExpired), false
 		}
-		return rgse.Create(rgse.GenericWalletError)
+		return rgse.Create(rgse.GenericWalletError), true
 	}
-	return nil
+	return nil, false
 }
 
 func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) (PlayerStore, GameStateStore, rgse.RGSErr) {
@@ -707,13 +709,13 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 		return PlayerStore{}, GameStateStore{}, finalErr
 	}
 
-	finalErr = i.errorHttpStatusCode(resp.StatusCode)
+	finalErr, _ = i.errorHttpStatusCode(resp.StatusCode)
 	if finalErr != nil {
 		return PlayerStore{}, GameStateStore{}, finalErr
 	}
 	var gameState []byte = nil
 	authResp := i.restAuthenticateResponse(resp)
-	finalErr = i.errorResponseCode(authResp.ResponseCode)
+	finalErr, _ = i.errorResponseCode(authResp.ResponseCode)
 	if finalErr != nil {
 		finalErr.AppendErrorText(authResp.Message)
 		return PlayerStore{}, GameStateStore{}, finalErr
@@ -917,14 +919,14 @@ func (i *RemoteServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore
 		return BalanceStore{}, finalErr
 	}
 
-	finalErr = i.errorHttpStatusCode(resp.StatusCode)
+	finalErr, _ = i.errorHttpStatusCode(resp.StatusCode)
 	if finalErr != nil {
 		return BalanceStore{}, finalErr
 	}
 
 	balResp := i.restBalanceResponse(resp)
 
-	finalErr = i.errorResponseCode(balResp.ResponseCode)
+	finalErr, _ = i.errorResponseCode(balResp.ResponseCode)
 	if finalErr != nil {
 		finalErr.AppendErrorText(balResp.Message)
 		return BalanceStore{}, finalErr
@@ -1059,36 +1061,58 @@ func (i *RemoteServiceImpl) txSend(txRq restTransactionRequest) (BalanceStore, r
 		return BalanceStore{}, finalErr
 	}
 	start := time.Now()
-	resp, err := i.request(ApiTypeTransaction, b)
-	finalErr = i.errorRest(err)
-	if finalErr != nil {
-		return BalanceStore{}, finalErr
-	}
+	now := start
+	var try int
+	var retry bool
+	for try = 0; try <= i.maxRetries; try, now = try+1, time.Now() {
+		if i.timeoutMs > 0 && now.Sub(start).Milliseconds() > i.timeoutMs {
+			logger.Errorf("%v transaction %v attempts exceeded timout after %v seconds", txRq.Category, txRq.ReqId, now.Sub(start).String())
+			break
+		}
+		resp, err := i.request(ApiTypeTransaction, b)
+		finalErr = i.errorRest(err)
+		if finalErr != nil {
+			continue
+		}
 
-	finalErr = i.errorHttpStatusCode(resp.StatusCode)
-	if finalErr != nil {
-		return BalanceStore{}, finalErr
-	}
+		finalErr, retry = i.errorHttpStatusCode(resp.StatusCode)
+		if finalErr != nil {
+			if retry {
+				continue
+			}
+			break
+		}
 
-	txResp := i.restTransactionResponse(resp)
+		txResp := i.restTransactionResponse(resp)
 
-	finalErr = i.errorResponseCode(txResp.ResponseCode)
+		finalErr, retry = i.errorResponseCode(txResp.ResponseCode)
+		if finalErr != nil {
+			if retry {
+				continue
+			}
+			finalErr.AppendErrorText(txResp.Message)
+			break
+		}
+		if txResp.PlayerId == i.logAccount {
+			logger.Infof("%v transaction %v try %v took %v for account %v", txRq.Category, txRq.ReqId, try, now.Sub(start).String(), txResp.PlayerId)
+		}
+		return BalanceStore{
+			PlayerId: txResp.PlayerId,
+			Token:    Token(txResp.Token),
+			Balance: engine.Money{
+				Currency: txResp.Currency,
+				Amount:   engine.Fixed(txResp.Balance * 10000),
+			},
+			FreeGames: FreeGamesStore{txResp.FreeGames.NrGames, txResp.FreeGames.CampaignRef, engine.Fixed(txResp.FreeGames.WagerAmt * 10000)},
+		}, nil
+	}
+	if try > i.maxRetries {
+		logger.Errorf("%v transaction %v exceeded retry limit of %v", txRq.Category, txRq.ReqId, i.maxRetries)
+	}
 	if finalErr != nil {
-		finalErr.AppendErrorText(txResp.Message)
-		return BalanceStore{}, finalErr
+		logger.Errorf("%v transaction %v failed with error %v after %v tries", txRq.Category, txRq.ReqId, finalErr.Error(), try)
 	}
-	if txResp.PlayerId == i.logAccount {
-		logger.Infof("%v request took %v for account %v", ApiTypeTransaction, time.Now().Sub(start).String(), txResp.PlayerId)
-	}
-	return BalanceStore{
-		PlayerId: txResp.PlayerId,
-		Token:    Token(txResp.Token),
-		Balance: engine.Money{
-			Currency: txResp.Currency,
-			Amount:   engine.Fixed(txResp.Balance * 10000),
-		},
-		FreeGames: FreeGamesStore{txResp.FreeGames.NrGames, txResp.FreeGames.CampaignRef, engine.Fixed(txResp.FreeGames.WagerAmt * 10000)},
-	}, nil
+	return BalanceStore{}, finalErr
 }
 
 func (i *RemoteServiceImpl) restTransactionResponse(response *http.Response) restTransactionResponse {
@@ -1174,7 +1198,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		return TransactionStore{}, finalErr
 	}
 
-	finalErr = i.errorHttpStatusCode(resp.StatusCode)
+	finalErr, _ = i.errorHttpStatusCode(resp.StatusCode)
 	if finalErr != nil {
 		return TransactionStore{}, finalErr
 	}
@@ -1182,7 +1206,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 	var gameState []byte = nil
 	queryResp := i.restQueryResponse(resp)
 
-	finalErr = i.errorResponseCode(queryResp.ResponseCode)
+	finalErr, _ = i.errorResponseCode(queryResp.ResponseCode)
 	if finalErr != nil {
 		// special handling for err does not exists
 		if queryResp.ResponseCode == ResponseCodeUnknownError && strings.Contains(queryResp.Message, "E-CODE: [004:1003]") {
@@ -1356,14 +1380,14 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 		return BalanceStore{}, finalErr
 	}
 
-	finalErr = i.errorHttpStatusCode(resp.StatusCode)
+	finalErr, _ = i.errorHttpStatusCode(resp.StatusCode)
 	if finalErr != nil {
 		return BalanceStore{}, finalErr
 	}
 
 	txResp := i.restTransactionResponse(resp)
 
-	finalErr = i.errorResponseCode(txResp.ResponseCode)
+	finalErr, _ = i.errorResponseCode(txResp.ResponseCode)
 	if finalErr != nil {
 		finalErr.AppendErrorText(txResp.Message)
 		return BalanceStore{}, finalErr
@@ -1788,7 +1812,7 @@ func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime strin
 		return
 	}
 
-	finalErr = i.errorHttpStatusCode(resp.StatusCode)
+	finalErr, _ = i.errorHttpStatusCode(resp.StatusCode)
 	if finalErr != nil {
 		return
 	}
@@ -1796,7 +1820,7 @@ func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime strin
 	feedResp := i.restFeedResponse(resp)
 	bfeedresp, _ := json.Marshal(feedResp)
 
-	finalErr = i.errorResponseCode(feedResp.Code)
+	finalErr, _ = i.errorResponseCode(feedResp.Code)
 	if finalErr != nil {
 		logger.Errorf("feed response error code. feedresponse: %s", bfeedresp)
 		return
@@ -1840,7 +1864,7 @@ func (i *RemoteServiceImpl) FeedRound(token Token, mode Mode, gameId string, rou
 		return
 	}
 
-	finalErr = i.errorHttpStatusCode(resp.StatusCode)
+	finalErr, _ = i.errorHttpStatusCode(resp.StatusCode)
 	if finalErr != nil {
 		return
 	}
@@ -1848,7 +1872,7 @@ func (i *RemoteServiceImpl) FeedRound(token Token, mode Mode, gameId string, rou
 	feedResp := i.restFeedRoundResponse(resp)
 	bfeedresp, _ := json.Marshal(feedResp)
 
-	finalErr = i.errorResponseCode(feedResp.Code)
+	finalErr, _ = i.errorResponseCode(feedResp.Code)
 	if finalErr != nil {
 		logger.Errorf("feed round response error code. feedresponse: %s", bfeedresp)
 		return
@@ -1912,6 +1936,8 @@ func New(c *config.Config) Service {
 		serverUrl:       c.DashurConfig.StoreRemoteUrl,
 		appId:           c.DashurConfig.StoreAppId,
 		appCredential:   c.DashurConfig.StoreAppPass,
+		maxRetries:      c.DashurConfig.StoreMaxRetries,
+		timeoutMs:       c.DashurConfig.StoreTimeoutMs,
 		defaultLanguage: c.DefaultLanguage,
 		defaultPlatform: c.DefaultPlatform,
 		demoTokenPrefix: c.DemoTokenPrefix,

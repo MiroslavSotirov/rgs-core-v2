@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
@@ -19,9 +20,11 @@ func testRemoteServiceForTransaction(url string) Service {
 	return New(&config.Config{
 		DevMode: false,
 		DashurConfig: config.StoreConfig{
-			StoreRemoteUrl: url + "/v1/gnrc/maverick",
-			StoreAppId:     "store-app-id",
-			StoreAppPass:   "P@ssw0rd^^",
+			StoreRemoteUrl:  url + "/v1/gnrc/maverick",
+			StoreAppId:      "store-app-id",
+			StoreAppPass:    "P@ssw0rd^^",
+			StoreMaxRetries: 2,
+			StoreTimeoutMs:  100,
 		},
 		DefaultPlatform: "html5",
 		DefaultLanguage: "en",
@@ -341,5 +344,82 @@ func TestRemoteServiceImpl_Transaction_9(t *testing.T) {
 
 	if err.(*rgserror.RGSError).ErrCode != rgserror.GenericWalletError {
 		t.Errorf("Error code not match [%v]", err)
+	}
+}
+
+func RemoteServiceImpl_Transaction_retry(failTries int, delayMs int64) rgse.RGSErr {
+	logger.NewLogger(logger.Configuration{})
+	try := 0
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if "/v1/gnrc/maverick/transaction" == req.URL.String() {
+			code := func() string {
+				try++
+				if try > failTries {
+					return "0"
+				}
+				return "4"
+			}
+			start := time.Now()
+			rs := restBalanceResponse{
+				Metadata: restMetadata{
+					ReqId:          rng.Uuid(),
+					ProcessingTime: 0,
+				},
+				Token:        rng.Uuid(),
+				ResponseCode: code(),
+				Message:      "",
+				Balance:      100,
+				Currency:     "USD",
+			}
+			for time.Now().Sub(start).Milliseconds() < delayMs {
+
+			}
+			b := new(bytes.Buffer)
+			json.NewEncoder(b).Encode(rs)
+			rw.Write(b.Bytes())
+		}
+	}))
+	defer server.Close()
+
+	serv := testRemoteServiceForTransaction(server.URL)
+	mode := ModeDemo
+	tokenStr := "refresh-token"
+
+	_, err := serv.Transaction(Token(tokenStr), mode, testTransactinoStoreRemoteServiceForTransaction("token"))
+
+	return err
+}
+
+func TestRemoteServiceImpl_Transaction_10(t *testing.T) {
+	err := RemoteServiceImpl_Transaction_retry(2, 0)
+	if err != nil {
+		t.Errorf("Found error, it shouldn't produce error [%v]", err)
+	}
+}
+
+func TestRemoteServiceImpl_Transaction_11(t *testing.T) {
+	err := RemoteServiceImpl_Transaction_retry(3, 0)
+	if err == nil {
+		t.Errorf("Error expected")
+		return
+	}
+	if err.(*rgserror.RGSError).ErrCode != rgserror.GenericWalletError {
+		t.Errorf("Error code not match [%v]", err)
+	}
+}
+
+func TestRemoteServiceImpl_Transaction_12(t *testing.T) {
+	err := RemoteServiceImpl_Transaction_retry(2, 80)
+	if err == nil {
+		t.Errorf("Error expected")
+		return
+	}
+}
+
+func TestRemoteServiceImpl_Transaction_13(t *testing.T) {
+	err := RemoteServiceImpl_Transaction_retry(2, 40)
+	if err != nil {
+		t.Errorf("Found error, it shouldn't produce error [%v]", err)
+		return
 	}
 }
