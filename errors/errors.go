@@ -62,11 +62,21 @@ const (
 	YamlError              = 463
 	RequestTimeout         = 464
 
+	// System Error
+	InternalServerError = 500
+
 	// Wallet & Operator
 	BadOperatorConfig = 600
 	BadFSWagerAmt     = 601
-	// System Error
-	InternalServerError = 500
+	// Reserved
+	CustomOperatorError    = 606
+	SpendingBudgetExceeded = 607
+	BlockedFromProduct     = 608
+	IpBlocked              = 609
+	MontlyTimeLimit        = 610
+	WeeklyTimeLimit        = 611
+	DailyTimeLimit         = 612
+
 	// Session Error
 	CreateSessionError  = 700
 	UpdateSessionError  = 701
@@ -151,6 +161,12 @@ var ErrMsg = map[int]string{
 	YamlError:                        "Error encoding/decoding yaml",
 	BadFSWagerAmt:                    "Bad freespin wager amount",
 	RequestTimeout:                   "Request took too long",
+	SpendingBudgetExceeded:           "Spending budged exceeded",
+	BlockedFromProduct:               "Player blocked",
+	IpBlocked:                        "IP Blocked",
+	MontlyTimeLimit:                  "Monthly time limit exceeded",
+	WeeklyTimeLimit:                  "Weekly time limit exceeded",
+	DailyTimeLimit:                   "Daily time limit exceeded",
 }
 
 type RGSErr interface {
