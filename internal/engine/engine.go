@@ -1486,6 +1486,57 @@ func (engine EngineDef) TwoStageExpand(parameters GameParams) Gamestate {
 	return gamestate
 }
 
+func (engine EngineDef) PushReels(parameters GameParams) Gamestate {
+	// move all reels to the right and respin leftmost reel
+	symbolGrid := make([][]int, len(engine.ViewSize))
+	stopList := make([]int, len(engine.ViewSize))
+
+	var previousSymbols [][]int
+	if len(parameters.previousGamestate.FeatureView) > 0 {
+		previousSymbols = parameters.previousGamestate.FeatureView
+	} else {
+		previousSymbols = parameters.previousGamestate.SymbolGrid
+	}
+	for reel := 1; reel < len(engine.ViewSize); reel++ {
+		symbolGrid[reel] = make([]int, engine.ViewSize[reel])
+		for symbol := 0; symbol < engine.ViewSize[reel]; symbol++ {
+			symbolGrid[reel][symbol] = previousSymbols[reel-1][symbol]
+		}
+		stopList[reel] = parameters.previousGamestate.StopList[reel-1]
+	}
+	respinGrid, respinStopList := engine.Spin()
+	symbolGrid[0] = make([]int, engine.ViewSize[0])
+	for symbol, s := range respinGrid[0] {
+		symbolGrid[0][symbol] = s
+	}
+	stopList[0] = respinStopList[0]
+
+	wins, relativePayout := engine.DetermineWins(symbolGrid)
+	// calculate specialWin
+	var nextActions []string
+	specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
+	if specialWin.Index != "" {
+		var specialPayout int
+		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+		relativePayout += specialPayout
+		wins = append(wins, specialWin)
+	}
+	// get Multiplier
+	multiplier := 1
+	if len(engine.Multiplier.Multipliers) > 0 {
+		multiplier = SelectFromWeightedOptions(engine.Multiplier.Multipliers, engine.Multiplier.Probabilities)
+	}
+	// same hack as cascade, use selectedWinLines to mark changed symbols
+	wl := make([]int, len(engine.ViewSize))
+	wl[0] = engine.ViewSize[0]
+
+	// Build gamestate
+	gamestate := Gamestate{DefID: engine.Index, Prizes: wins, SymbolGrid: symbolGrid, RelativePayout: relativePayout, Multiplier: multiplier, StopList: stopList, NextActions: nextActions, SelectedWinLines: wl}
+
+	return gamestate
+
+}
+
 type GenerateRound interface {
 	ForceRound(EngineDef, GameParams) Gamestate
 	FeatureRound(EngineDef, GameParams) Gamestate

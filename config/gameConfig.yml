@@ -157,3 +157,7 @@
 - engineID: mvgEngineGodot6
   games:
     - name: sword-king
+      item: 8451
+- engineID: mvgEngineGodot7
+  games:
+    - name: clash-of-heroes

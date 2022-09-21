@@ -72,8 +72,10 @@ type EnabledFeatureSet struct {
 	_ InstaWin
 	_ ReplaceTile
 	_ SetReels
+	_ SetConditional
 	_ StatefulMap
 	_ Princess
+	_ Respin
 	_ TriggerFoxTale
 	_ TriggerFoxTaleBonus
 	_ TriggerFoxTaleWild
@@ -96,10 +98,15 @@ type EnabledFeatureSet struct {
 	_ TriggerSwordKingFreespin
 	_ TriggerSwordKingRandomWilds
 	_ TriggerSwordKingRespin
+	_ TriggerClashOfHeroes
+	_ TriggerClashOfHeroesExpandingWilds
+	_ TriggerClashOfHeroesRandomWilds
+	_ TriggerClashOfHeroesSwapSymbols
 	_ TriggerWeightedRandom
 	_ TriggerWeightedPayout
 	_ TriggerConditional
 	_ TriggerFatTile
+	_ TriggerRandom
 }
 
 func MakeFeature(typename string) Feature {

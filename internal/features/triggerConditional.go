@@ -35,9 +35,9 @@ func (f TriggerConditional) Trigger(state *FeatureState, params FeatureParams) {
 	activate := false
 	switch {
 	case condition == "Set" || condition == "":
-		if params.HasKey(conditionalFlag) {
-			activate = true
-		}
+		activate = params.HasKey(conditionalFlag)
+	case condition == "Unset":
+		activate = !params.HasKey(conditionalFlag)
 	}
 	if activate {
 		logger.Debugf("Trigger %s with features %#v", conditionalFlag, f.FeatureDef)
