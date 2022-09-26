@@ -277,6 +277,9 @@ gameConfig:
     games:
       - name: sword-king
         item: 33583
+  - engineID: mvgEngineGodot7
+    games:
+      - name: clash-of-heroes
       
 gamification:
   a-fairy-tale:
