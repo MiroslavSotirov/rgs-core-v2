@@ -14,6 +14,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/api"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/featureProducts"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/featureTriggers"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/volumeTester"
@@ -51,6 +53,8 @@ func main() {
 	}
 
 	rng.Init()
+	featureProducts.Register()
+	featureTriggers.Register()
 	logger.Infof("API INIT: OK")
 	//
 	// initial serve web
@@ -99,9 +103,16 @@ func main() {
 	if gameState != "" {
 		urldec, _ := url.PathUnescape(gameState)
 		gsbytes, _ := base64.StdEncoding.DecodeString(urldec)
-		gameplay := store.DeserializeGamestateFromBytes(gsbytes)
-		jsgameplay, _ := json.Marshal(gameplay)
-		fmt.Println(string(jsgameplay))
+
+		istate, _ := api.DeserializeV3Gamestate(gsbytes)
+		if istate != nil {
+			jsgameplay, _ := json.Marshal(istate)
+			fmt.Println(string(jsgameplay))
+		} else {
+			gameplay := store.DeserializeGamestateFromBytes(gsbytes)
+			jsgameplay, _ := json.Marshal(gameplay)
+			fmt.Println(string(jsgameplay))
+		}
 		return
 	}
 

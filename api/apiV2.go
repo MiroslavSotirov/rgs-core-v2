@@ -11,7 +11,7 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
@@ -148,7 +148,7 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 	}
 	var player store.PlayerStore
 	var latestGamestate engine.Gamestate
-	var initFeatures []features.Feature
+	var initFeatures []feature.Feature
 
 	latestGamestate, player, initFeatures, err = store.InitPlayerGS(authToken, authToken, data.Game, data.Ccy, wallet)
 

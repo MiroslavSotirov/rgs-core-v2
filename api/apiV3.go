@@ -9,7 +9,7 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
@@ -68,14 +68,14 @@ type IGamePlayResponseV3 interface {
 }
 
 type GamePlayResponseV3 struct {
-	Token    store.Token        `json:"token`
-	StateId  string             `json:"stateId"`
-	RoundId  string             `json:"roundId"`
-	Bet      engine.Fixed       `json:"bet"`
-	Win      engine.Fixed       `json:"win"`
-	Balance  BalanceResponseV3  `json:"balance"`
-	Closed   bool               `json:"closed"`
-	Features []features.Feature `json:"features,omitempty"`
+	Token    store.Token       `json:"token`
+	StateId  string            `json:"stateId"`
+	RoundId  string            `json:"roundId"`
+	Bet      engine.Fixed      `json:"bet"`
+	Win      engine.Fixed      `json:"win"`
+	Balance  BalanceResponseV3 `json:"balance"`
+	Closed   bool              `json:"closed"`
+	Features []feature.Feature `json:"features,omitempty"`
 }
 
 func (resp GamePlayResponseV3) Base() GamePlayResponseV3 {

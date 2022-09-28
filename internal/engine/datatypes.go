@@ -9,7 +9,7 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"gopkg.in/yaml.v3"
 )
@@ -83,7 +83,7 @@ type EngineDef struct {
 	VariableWL      bool                      `yaml:"variableWinLines"` // will be false by default
 	Compounding     bool                      `yaml:"compoundingWilds"` // will be false by default
 	force           []int                     // may not be set via yaml
-	Features        []features.FeatureDef     `yaml:"Features"`
+	Features        []feature.FeatureDef      `yaml:"Features"`
 	RoulettePayouts map[string]RoulettePayout `yaml:"RoulettePayouts"`
 }
 
@@ -207,7 +207,7 @@ type Gamestate struct {
 	PlaySequence      int                       `json:"play_sequence,omitempty"`
 	Closed            bool                      `json:"closed"`
 	RoundID           string                    `json:"round_id"`
-	Features          []features.Feature        `json:"features,omitempty"`
+	Features          []feature.Feature         `json:"features,omitempty"`
 	FeatureView       [][]int                   `json:"feature_view,omitempty"`
 }
 
@@ -378,30 +378,30 @@ func convertPrizesToPB(unconverted []Prize) []*PrizePB {
 	return converted
 }
 
-func convertFeaturesFromPB(unconverted []*FeaturePB) []features.Feature {
-	converted := make([]features.Feature, len(unconverted))
+func convertFeaturesFromPB(unconverted []*FeaturePB) []feature.Feature {
+	converted := make([]feature.Feature, len(unconverted))
 	for i, featurepb := range unconverted {
-		feature := features.MakeFeature(featurepb.Type)
-		if feature != nil {
-			feature.DefPtr().Id = featurepb.Id
-			feature.DefPtr().Type = featurepb.Type
-			err := feature.Deserialize(featurepb.Data)
+		ft := feature.MakeFeature(featurepb.Type)
+		if ft != nil {
+			ft.DefPtr().Id = featurepb.Id
+			ft.DefPtr().Type = featurepb.Type
+			err := ft.Deserialize(featurepb.Data)
 			if err != nil {
 				logger.Errorf(err.Error())
-				return []features.Feature{}
+				return []feature.Feature{}
 			} else {
-				converted[i] = feature
+				converted[i] = ft
 			}
 		} else {
 			logger.Errorf("could not deserialize unknown feature %s"+
 				", check engine.EnabledFeatureSet", featurepb.Type)
-			return []features.Feature{}
+			return []feature.Feature{}
 		}
 	}
 	return converted
 }
 
-func convertFeaturesToPB(unconverted []features.Feature) []*FeaturePB {
+func convertFeaturesToPB(unconverted []feature.Feature) []*FeaturePB {
 	converted := make([]*FeaturePB, len(unconverted))
 	for i, feature := range unconverted {
 		var featurepb FeaturePB
@@ -579,7 +579,7 @@ type GameStateV3 struct {
 	NextGamestate     string              `json:"nextGamestate"`
 	Closed            bool                `json:"closed"`
 	RoundId           string              `json:"roundId"`
-	Features          []features.Feature  `json:"features"`
+	Features          []feature.Feature   `json:"features"`
 }
 
 func (s *GameStateV3) Base() *GameStateV3 {

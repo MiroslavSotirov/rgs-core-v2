@@ -5,17 +5,17 @@ import (
 
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
-func InitPlayerGS(refreshToken string, playerID string, gameName string, currency string, wallet string) (engine.Gamestate, PlayerStore, []features.Feature, rgse.RGSErr) {
+func InitPlayerGS(refreshToken string, playerID string, gameName string, currency string, wallet string) (engine.Gamestate, PlayerStore, []feature.Feature, rgse.RGSErr) {
 	logger.Debugf("init game %v for player %v", gameName, playerID)
 	var newPlayer PlayerStore
 	var latestGamestateStore GameStateStore
-	var initFeatures []features.Feature
+	var initFeatures []feature.Feature
 	var err rgse.RGSErr
 
 	switch wallet {
@@ -25,7 +25,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 		newPlayer, latestGamestateStore, err = ServLocal.PlayerByToken(Token(refreshToken), ModeDemo, gameName)
 	}
 	if err != nil && err.(*rgse.RGSError).ErrCode != rgse.NoSuchPlayer {
-		return engine.Gamestate{}, PlayerStore{}, []features.Feature{}, err
+		return engine.Gamestate{}, PlayerStore{}, []feature.Feature{}, err
 	}
 	var latestGamestate engine.Gamestate
 
@@ -36,7 +36,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 			balance, ctFS, waFS, err := parameterSelector.GetDemoWalletDefaults(currency, gameName, "", playerID)
 
 			if err != nil {
-				return engine.Gamestate{}, PlayerStore{}, []features.Feature{}, err
+				return engine.Gamestate{}, PlayerStore{}, []feature.Feature{}, err
 			}
 			logger.Debugf("balance: %v, freespins: %v, wageramt: %v", balance, ctFS, waFS)
 

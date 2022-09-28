@@ -8,7 +8,7 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
@@ -26,7 +26,7 @@ type GameInitResponseV2 struct {
 	LastRound    map[string]GameplayResponseV2 `json:"lastRound"`
 	ReelSets     map[string]ReelResponse       `json:"reelSets,omitempty"` // base, freeSpin, etc. as keys  might want to have this as ReelSetResponse
 	BetMult      int                           `json:"betMultiplier"`
-	Features     []features.Feature            `json:"featureConfigs,omitempty"`
+	Features     []feature.Feature             `json:"featureConfigs,omitempty"`
 }
 
 func (gi GameInitResponseV2) Render(w http.ResponseWriter, r *http.Request) error {
@@ -111,7 +111,7 @@ type GameplayResponseV2 struct {
 	CascadePositions []int               `json:"cascadePositions,omitempty"`
 	RespinPrices     []engine.Fixed      `json:"respinPrices,omitempty"`
 	Choices          []string            `json:"choices,omitempty"`
-	Features         []features.Feature  `json:"features,omitempty"`
+	Features         []feature.Feature   `json:"features,omitempty"`
 	FeatureView      [][]int             `json:"featureview,omitempty"`
 }
 
