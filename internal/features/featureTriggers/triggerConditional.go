@@ -36,7 +36,7 @@ func (f TriggerConditional) Trigger(state *feature.FeatureState, params feature.
 		activate = !params.HasKey(conditionalFlag)
 	}
 	if activate {
-		logger.Debugf("Trigger %s with features %#v", conditionalFlag, f.FeatureDef)
+		logger.Debugf("%s is %s", conditionalFlag, condition)
 		feature.ActivateFeatures(f.FeatureDef, state, params)
 	}
 	return

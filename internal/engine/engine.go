@@ -230,12 +230,12 @@ func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payou
 
 	// store wild multiplier selections if they are to be reused for future wilds
 	wildMultipliers := make(map[int]int)
-
-	gridw, gridh := len(symbolGrid), 0
-	if gridw > 0 {
-		gridh = len(symbolGrid[0])
-	}
-	logger.Debugf("Symbol grid: %d x %d", gridw, gridh)
+	/*
+		gridw, gridh := len(symbolGrid), 0
+		if gridw > 0 {
+			gridh = len(symbolGrid[0])
+		}
+	*/
 	for winLineIndex, winLine := range WinLines {
 		//		logger.Debugf("Checking winline %d / %d\n", winLineIndex, len(WinLines))
 		lineContent := make([]int, len(symbolGrid))
@@ -1605,6 +1605,16 @@ func (gen GenerateStatefulCascadeMultiply) TriggerFeatures(
 }
 
 func triggerFeatures(engine EngineDef, fs *feature.FeatureState, parameters GameParams) error {
+	fs.AnyWins = func(symbolGrid [][]int) bool {
+		prizes, _ := engine.DetermineWins(symbolGrid)
+		return len(prizes) > 0
+	}
+	fs.PureWins = fs.AnyWins(fs.SourceGrid)
+	fs.TotalStake = float64(parameters.previousGamestate.BetPerLine.Amount.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
+	fs.ReelsetId = engine.ReelsetId
+	fs.Reels = engine.Reels
+	fs.Action = parameters.Action
+
 	featureparams := feature.FeatureParams{
 		"Engine": engine.ID,
 	}
@@ -1620,16 +1630,8 @@ func triggerFeatures(engine EngineDef, fs *feature.FeatureState, parameters Game
 func triggerConfiguredFeatures(engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams) feature.FeatureState {
 	logger.Debugf("Trigger configured features")
 	var fs feature.FeatureState
-	//	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
-	if prizes, _ := engine.DetermineWins(symbolGrid); len(prizes) > 0 {
-		fs.PureWins = true
-	}
-	fs.TotalStake = float64(parameters.previousGamestate.BetPerLine.Amount.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
 	fs.SetGrid(symbolGrid)
 	fs.StopList = stopList
-	fs.ReelsetId = engine.ReelsetId
-	fs.Reels = engine.Reels
-	fs.Action = parameters.Action
 	if err := triggerFeatures(engine, &fs, parameters); err != nil {
 		logger.Errorf("%v", err)
 		return feature.FeatureState{}
@@ -1642,18 +1644,8 @@ func triggerStatefulFeatures(engine EngineDef, symbolGrid [][]int, stopList []in
 	var fs, prevfs feature.FeatureState
 	prevfs.Features = parameters.previousGamestate.Features
 	fs.Stateful = &prevfs
-	if prizes, _ := engine.DetermineWins(symbolGrid); len(prizes) > 0 {
-		fs.PureWins = true
-	}
-	//	fs.TotalStake = float64(parameters.Stake.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
-	fs.TotalStake = float64(parameters.previousGamestate.BetPerLine.Amount.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
-	logger.Debugf("total stake: %f previousGamestate.BetPerLine: %f engine.StakeDivisor: %d parameters.Stake: %f",
-		fs.TotalStake, parameters.previousGamestate.BetPerLine.Amount.ValueAsFloat(), engine.StakeDivisor, parameters.Stake.ValueAsFloat())
 	fs.SetGrid(symbolGrid)
 	fs.StopList = stopList
-	fs.ReelsetId = engine.ReelsetId
-	fs.Reels = engine.Reels
-	fs.Action = parameters.Action
 	if err := triggerFeatures(engine, &fs, parameters); err != nil {
 		logger.Errorf("%v", err)
 		return feature.FeatureState{}
@@ -1745,9 +1737,6 @@ func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams)
 
 	featurestate := gen.TriggerFeatures(engine, symbolGrid, stopList, parameters)
 	logger.Debugf("symbolGrid= %v featureGrid= %v", symbolGrid, featurestate.SymbolGrid)
-	logger.Debugf("update reels after feature activation.")
-	logger.Debugf("from %v", engine.Reels)
-	logger.Debugf("to %v", featurestate.Reels)
 	engine.Reels = featurestate.Reels
 
 	var nextActions []string

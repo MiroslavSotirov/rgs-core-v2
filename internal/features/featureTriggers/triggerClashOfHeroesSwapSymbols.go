@@ -23,50 +23,48 @@ func (f TriggerClashOfHeroesSwapSymbols) Trigger(state *feature.FeatureState, pa
 	replaceIds := params.GetIntSlice(PARAM_ID_TRIGGER_CLASH_OF_HEROES_SWAP_SYMBOLS_REPLACE_IDS)
 	replaceWithIds := params.GetIntSlice(PARAM_ID_TRIGGER_CLASH_OF_HEROES_SWAP_SYMBOLS_REPLACE_WITH_IDS)
 
-	seniors := []int{}
+	juniors := []int{}
 	for _, r := range state.SymbolGrid {
 		for _, s := range r {
-			if func() bool {
-				for _, rs := range replaceWithIds {
-					if rs == s {
-						return true
-					}
-				}
-				return false
-			}() {
-				seniors = append(seniors, s)
+			if containsInt(replaceIds, s) && !containsInt(juniors, s) {
+				juniors = append(juniors, s)
 			}
 		}
 	}
 
-	if len(seniors) > 0 {
+	if len(juniors) > 0 {
 
-		gridh := len(state.SymbolGrid[0])
-		positions := []int{}
+		junior := juniors[rng.RandFromRange(len(juniors))]
 
-		for reel, r := range state.SymbolGrid {
-			for symbol, s := range r {
-				if func() bool {
-					for _, rs := range replaceIds {
-						if rs == s {
-							return true
-						}
-					}
-					return false
-				}() {
-					positions = append(positions, reel*gridh+symbol)
+		seniors := []int{}
+		for _, r := range state.SymbolGrid {
+			for _, s := range r {
+				if containsInt(replaceWithIds, s) && !containsInt(seniors, s) {
+					seniors = append(seniors, s)
 				}
 			}
 		}
 
-		if len(positions) > 0 {
+		if len(seniors) > 0 {
+
+			gridh := len(state.SymbolGrid[0])
+			positions := []int{}
+
+			for reel, r := range state.SymbolGrid {
+				for symbol, s := range r {
+					if s == junior {
+						positions = append(positions, reel*gridh+symbol)
+					}
+				}
+			}
+
+			senior := seniors[rng.RandFromRange(len(seniors))]
 			params[featureProducts.PARAM_ID_REPLACE_TILE_POSITIONS] = positions
-			params[featureProducts.PARAM_ID_REPLACE_TILE_REPLACE_WITH_ID] = seniors[rng.RandFromRange(len(seniors))]
-			params[featureProducts.PARAM_ID_REPLACE_TILE_TILE_ID] = 10
+			params[featureProducts.PARAM_ID_REPLACE_TILE_REPLACE_WITH_ID] = senior
+			params[featureProducts.PARAM_ID_REPLACE_TILE_TILE_ID] = junior
 			feature.ActivateFeatures(f.FeatureDef, state, params)
 			return
 		}
-
 	}
 	return
 }

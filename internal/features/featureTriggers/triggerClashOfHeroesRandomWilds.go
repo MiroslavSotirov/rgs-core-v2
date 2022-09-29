@@ -23,7 +23,7 @@ type TriggerClashOfHeroesRandomWilds struct {
 }
 
 func (f TriggerClashOfHeroesRandomWilds) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
-	gridh := len(state.SourceGrid[0])
+	gridh := len(state.SymbolGrid[0])
 	wildId := params.GetInt(PARAM_ID_TRIGGER_CLASH_OF_HEROES_RANDOM_WILDS_TILE_ID)
 	numWilds := params.GetIntSlice(PARAM_ID_TRIGGER_CLASH_OF_HEROES_RANDOM_WILDS_NUM_WILDS)[feature.WeightedRandomIndex(
 		params.GetIntSlice(PARAM_ID_TRIGGER_CLASH_OF_HEROES_RANDOM_WILDS_NUM_PROBABILITIES))]
@@ -35,7 +35,7 @@ func (f TriggerClashOfHeroesRandomWilds) Trigger(state *feature.FeatureState, pa
 		rowidx := rng.RandFromRange(3)
 		pos := reelidx*gridh + rowidx
 		if func() bool {
-			if state.SourceGrid[reelidx][rowidx] == wildId {
+			if state.SymbolGrid[reelidx][rowidx] == wildId {
 				return false
 			}
 			for _, p := range positions {

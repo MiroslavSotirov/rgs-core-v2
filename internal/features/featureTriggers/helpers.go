@@ -6,3 +6,12 @@ import "gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 func Register() {
 	logger.Infof("Register feature triggers")
 }
+
+func containsInt(array []int, value int) bool {
+	for _, v := range array {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}

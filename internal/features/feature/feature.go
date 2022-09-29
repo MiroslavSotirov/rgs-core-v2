@@ -26,6 +26,7 @@ type FeatureState struct {
 	Stateful   *FeatureState
 	Action     string
 	PureWins   bool
+	AnyWins    func([][]int) bool
 	ReelsetId  string
 }
 
@@ -102,15 +103,12 @@ func RegisterFeature(typename string, factory Factory) Factory {
 }
 
 func MakeFeature(typename string) Feature {
-	logger.Debugf("MakeFeature(%s)", typename)
 	factory, ok := enabledFeatures[typename]
 	if !ok {
-		logger.Debugf("not ok 1")
 		return nil
 	}
 	feature := factory()
 	if !ok {
-		logger.Debugf("not ok 2")
 		return nil
 	}
 	return feature

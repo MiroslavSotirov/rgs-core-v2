@@ -1,7 +1,5 @@
 package feature
 
-import "gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
-
 type Base struct {
 	FeatureDef
 }
@@ -15,7 +13,6 @@ func (f *Base) DataPtr() interface{} {
 }
 
 func (f *Base) Init(def FeatureDef) error {
-	logger.Debugf("feature.Base init")
 	f.FeatureDef.Id = def.Id
 	f.FeatureDef.Type = def.Type
 	f.FeatureDef.Params = def.Params
@@ -24,7 +21,6 @@ func (f *Base) Init(def FeatureDef) error {
 }
 
 func (f *Base) OnInit(state *FeatureState) {
-	logger.Debugf("feature.Base OnInit")
 }
 
 func (f Base) Trigger(state *FeatureState, params FeatureParams) {

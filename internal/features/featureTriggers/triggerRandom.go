@@ -17,10 +17,6 @@ type TriggerRandom struct {
 	feature.Base
 }
 
-func (f *TriggerRandom) DataPtr() interface{} {
-	return nil
-}
-
 func (f TriggerRandom) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
 	probability := params.GetInt(PARAM_ID_TRIGGER_RANDOM_PROBABILITY)
 	rand := rng.RandFromRange(10000)
