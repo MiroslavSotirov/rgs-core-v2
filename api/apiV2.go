@@ -107,6 +107,7 @@ func getGameHashes(request *http.Request) (GameHashResponse, rgse.RGSErr) {
 					Flags:    g.Flags,
 					Stakes:   stakes,
 				})
+				logger.Debugf("config: %#v hashes: %#v", g, response[len(response)-1])
 			}
 		}
 	}

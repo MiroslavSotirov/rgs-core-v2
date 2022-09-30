@@ -116,6 +116,8 @@ func main() {
 		return
 	}
 
+	logger.Debugf("game config: %#v", config.GlobalGameConfig)
+
 	srv := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: router}
 	logger.Infof("Starting RGS Core on port: %d", port)
 	logger.Fatalf("%v", srv.ListenAndServe())
