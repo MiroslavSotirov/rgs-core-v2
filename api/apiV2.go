@@ -104,6 +104,7 @@ func getGameHashes(request *http.Request) (GameHashResponse, rgse.RGSErr) {
 					Md5:      h.MD5Digest,
 					Sha1:     h.SHA1Digest,
 					Category: category,
+					Flags:    g.Flags,
 					Stakes:   stakes,
 				})
 			}

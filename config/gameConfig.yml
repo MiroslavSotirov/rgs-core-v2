@@ -137,6 +137,7 @@
   games:
     - name: fox-tale
       item: 7797
+      flags: campaign
 - engineID: mvgEngineRoulette1
   category: roulette
   games:
@@ -146,18 +147,22 @@
   games:
     - name: spirit-hunters
       item: 7985
+      flags: campaign
 - engineID: mvgEngineGodot4
   games:
     - name: wizardz-world
       item: 8243
+      flags: campaign
 - engineID: mvgEngineGodot5
   games:
     - name: battle-of-myths
       item: 8359
+      flags: campaign
 - engineID: mvgEngineGodot6
   games:
     - name: sword-king
       item: 8451
+      flags: campaign
 - engineID: mvgEngineGodot7
   games:
     - name: clash-of-heroes

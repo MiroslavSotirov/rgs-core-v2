@@ -171,9 +171,11 @@ var ErrMsg = map[int]string{
 
 type RGSErr interface {
 	Error() string
+	GetDesc() string
 	//Init(int, ...string)
 	AppendErrorText(string)
 	//SetErrorTextByCode(int)
+	AppendErrorDesc(string)
 }
 
 // RGSError Generic RGS Error
@@ -181,6 +183,7 @@ type RGSError struct {
 	ErrCode          int    `json:"err_code"`          // numeric error code
 	DefaultErrorText string `json:"-"`                 // application-level error message
 	ErrorText        string `json:"err_msg,omitempty"` // application-level error message
+	ErrorDesc        string `json:"err_desc"`          // error description
 }
 
 func Create(code int) *RGSError {
@@ -207,6 +210,10 @@ func (e *RGSError) Error() (errorMsg string) {
 	return fmt.Sprintf("Error %d, %s - %s", e.ErrCode, e.DefaultErrorText, e.ErrorText)
 }
 
+func (e RGSError) GetDesc() string {
+	return e.ErrorDesc
+}
+
 //
 //func (e *RGSError) Init(code int, msgs ...string) {
 //	// this isn't actually used anywhere
@@ -218,6 +225,11 @@ func (e *RGSError) Error() (errorMsg string) {
 //AppendErrorText append custom error message
 func (e *RGSError) AppendErrorText(text string) {
 	e.ErrorText = text
+}
+
+//AppendErrorText append custom error message
+func (e *RGSError) AppendErrorDesc(desc string) {
+	e.ErrorDesc = desc
 }
 
 //

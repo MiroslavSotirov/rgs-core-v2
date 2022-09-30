@@ -74,6 +74,7 @@ type GameHashInfo struct {
 	Md5      string                    `json:"md5_digest"`
 	Sha1     string                    `json:"sha1_digest"`
 	Category string                    `json:"category,omitempty"`
+	Flags    string                    `json:"flags,omitempty"`
 	Stakes   map[string][]engine.Fixed `json:"stakes,omitempty"`
 }
 

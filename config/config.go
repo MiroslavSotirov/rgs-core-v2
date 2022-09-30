@@ -71,6 +71,7 @@ type GameDef struct {
 	Name  string `yaml:"name"`
 	Item  string `yaml:"item"`
 	Title string `yaml:"title"`
+	Flags string `taml:"flags"`
 }
 
 // ConfigError - forces server to exit for configuration error

@@ -65,9 +65,11 @@ func TestRemoteServiceImpl_TransactionByGameId_1(t *testing.T) {
 						LastAttemptedTx: lastTx,
 					},
 				},
-				ResponseCode: "0",
-				Message:      "",
-				ReqId:        "",
+				restErrorResponse: restErrorResponse{
+					ResponseCode: "0",
+					Message:      "",
+				},
+				ReqId: "",
 				//CampaignRef:  "",
 				FreeGames: restFreeGame{
 					CampaignRef: "",
@@ -219,11 +221,13 @@ func TestRemoteServiceImpl_TransactionByGameId_6(t *testing.T) {
 					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        rng.Uuid(),
-				ResponseCode: "1",
-				Message:      "",
-				Balance:      100,
-				Currency:     "USD",
+				restErrorResponse: restErrorResponse{
+					ResponseCode: "1",
+					Message:      "",
+				},
+				Token:    rng.Uuid(),
+				Balance:  100,
+				Currency: "USD",
 			}
 			b := new(bytes.Buffer)
 			json.NewEncoder(b).Encode(rs)
@@ -257,11 +261,13 @@ func TestRemoteServiceImpl_TransactionByGameId_7(t *testing.T) {
 					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        rng.Uuid(),
-				ResponseCode: "2",
-				Message:      "",
-				Balance:      100,
-				Currency:     "USD",
+				restErrorResponse: restErrorResponse{
+					ResponseCode: "2",
+					Message:      "",
+				},
+				Token:    rng.Uuid(),
+				Balance:  100,
+				Currency: "USD",
 			}
 			b := new(bytes.Buffer)
 			json.NewEncoder(b).Encode(rs)
@@ -295,11 +301,13 @@ func TestRemoteServiceImpl_TransactionByGameId_8(t *testing.T) {
 					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        rng.Uuid(),
-				ResponseCode: "3",
-				Message:      "",
-				Balance:      100,
-				Currency:     "USD",
+				restErrorResponse: restErrorResponse{
+					ResponseCode: "3",
+					Message:      "",
+				},
+				Token:    rng.Uuid(),
+				Balance:  100,
+				Currency: "USD",
 			}
 			b := new(bytes.Buffer)
 			json.NewEncoder(b).Encode(rs)
@@ -333,11 +341,13 @@ func TestRemoteServiceImpl_TransactionByGameId_9(t *testing.T) {
 					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        rng.Uuid(),
-				ResponseCode: "4",
-				Message:      "",
-				Balance:      100,
-				Currency:     "USD",
+				restErrorResponse: restErrorResponse{
+					ResponseCode: "4",
+					Message:      "",
+				},
+				Token:    rng.Uuid(),
+				Balance:  100,
+				Currency: "USD",
 			}
 			b := new(bytes.Buffer)
 			json.NewEncoder(b).Encode(rs)

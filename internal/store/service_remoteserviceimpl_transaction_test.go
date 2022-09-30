@@ -64,11 +64,13 @@ func TestRemoteServiceImpl_Transaction_1(t *testing.T) {
 					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        token,
-				ResponseCode: "0",
-				Message:      "",
-				Balance:      100,
-				Currency:     "USD",
+				restErrorResponse: restErrorResponse{
+					ResponseCode: "0",
+					Message:      "",
+				},
+				Token:    token,
+				Balance:  100,
+				Currency: "USD",
 			}
 			b := new(bytes.Buffer)
 			json.NewEncoder(b).Encode(rs)
@@ -208,11 +210,13 @@ func TestRemoteServiceImpl_Transaction_6(t *testing.T) {
 					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        rng.Uuid(),
-				ResponseCode: "1",
-				Message:      "",
-				Balance:      100,
-				Currency:     "USD",
+				restErrorResponse: restErrorResponse{
+					ResponseCode: "1",
+					Message:      "",
+				},
+				Token:    rng.Uuid(),
+				Balance:  100,
+				Currency: "USD",
 			}
 			b := new(bytes.Buffer)
 			json.NewEncoder(b).Encode(rs)
@@ -245,11 +249,13 @@ func TestRemoteServiceImpl_Transaction_7(t *testing.T) {
 					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        rng.Uuid(),
-				ResponseCode: "2",
-				Message:      "",
-				Balance:      100,
-				Currency:     "USD",
+				restErrorResponse: restErrorResponse{
+					ResponseCode: "2",
+					Message:      "",
+				},
+				Token:    rng.Uuid(),
+				Balance:  100,
+				Currency: "USD",
 			}
 			b := new(bytes.Buffer)
 			json.NewEncoder(b).Encode(rs)
@@ -282,11 +288,13 @@ func TestRemoteServiceImpl_Transaction_8(t *testing.T) {
 					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        rng.Uuid(),
-				ResponseCode: "3",
-				Message:      "",
-				Balance:      100,
-				Currency:     "USD",
+				restErrorResponse: restErrorResponse{
+					ResponseCode: "3",
+					Message:      "",
+				},
+				Token:    rng.Uuid(),
+				Balance:  100,
+				Currency: "USD",
 			}
 			b := new(bytes.Buffer)
 			json.NewEncoder(b).Encode(rs)
@@ -319,11 +327,13 @@ func TestRemoteServiceImpl_Transaction_9(t *testing.T) {
 					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        rng.Uuid(),
-				ResponseCode: "4",
-				Message:      "",
-				Balance:      100,
-				Currency:     "USD",
+				restErrorResponse: restErrorResponse{
+					ResponseCode: "4",
+					Message:      "",
+				},
+				Token:    rng.Uuid(),
+				Balance:  100,
+				Currency: "USD",
 			}
 			b := new(bytes.Buffer)
 			json.NewEncoder(b).Encode(rs)
@@ -365,11 +375,13 @@ func RemoteServiceImpl_Transaction_retry(failTries int, delayMs int64) rgse.RGSE
 					ReqId:          rng.Uuid(),
 					ProcessingTime: 0,
 				},
-				Token:        rng.Uuid(),
-				ResponseCode: code(),
-				Message:      "",
-				Balance:      100,
-				Currency:     "USD",
+				restErrorResponse: restErrorResponse{
+					ResponseCode: code(),
+					Message:      "",
+				},
+				Token:    rng.Uuid(),
+				Balance:  100,
+				Currency: "USD",
 			}
 			for time.Now().Sub(start).Milliseconds() < delayMs {
 
@@ -390,6 +402,8 @@ func RemoteServiceImpl_Transaction_retry(failTries int, delayMs int64) rgse.RGSE
 	return err
 }
 
+/*
+// disable retry until more testing
 func TestRemoteServiceImpl_Transaction_10(t *testing.T) {
 	err := RemoteServiceImpl_Transaction_retry(2, 0)
 	if err != nil {
@@ -423,3 +437,4 @@ func TestRemoteServiceImpl_Transaction_13(t *testing.T) {
 		return
 	}
 }
+*/

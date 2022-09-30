@@ -40,9 +40,10 @@ type ErrResponse struct {
 	Err            error `json:"-"` // low-level runtime error
 	HTTPStatusCode int   `json:"-"` // http response status code
 
-	StatusText string `json:"status"`          // user-level status message
-	AppCode    int    `json:"code,omitempty"`  // application-specific error code
-	ErrorText  string `json:"error,omitempty"` // application-level error message, for debugging
+	StatusText string `json:"status"`               // user-level status message
+	AppCode    int    `json:"code,omitempty"`       // application-specific error code
+	ErrorText  string `json:"error,omitempty"`      // application-level error message, for debugging
+	ErrorDesc  string `json:"error_desc,omitempty"` // description that details the error information
 }
 
 // Render error response
@@ -85,6 +86,7 @@ func ErrBadRequestRender(err *rgse.RGSError) render.Renderer {
 		StatusText:     statusText,
 		AppCode:        err.ErrCode,
 		ErrorText:      err.Error(),
+		ErrorDesc:      err.GetDesc(),
 	}
 }
 

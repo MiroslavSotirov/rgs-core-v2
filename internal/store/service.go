@@ -52,6 +52,15 @@ const (
 	ResponseCodeDataError          ResponseCode = "2"
 	ResponseCodeSessionExpired     ResponseCode = "3"
 	ResponseCodeUnknownError                    = "4"
+	ResponseCodeCustomError                     = "6"
+
+	ErrorCodeCustomError            = "CUSTOM_ERROR"
+	ErrorCodeSpendingBudgetExceeded = "SPENDING_BUDGET_EXCEEDED"
+	ErrorCodeBlockedFromProduct     = "BLOCKED_FROM_PRODUCT"
+	ErrorCodeIpBlocked              = "IP_BLOCKED"
+	ErrorCodeMonthlyTimeLimit       = "MONTHLY_TIME_LIMIT"
+	ErrorCodeWeeklyTimeLimit        = "WEEKLY_TIME_LIMIT"
+	ErrorCodeDailyTimeLimit         = "DAILY_TIME_LIMIT"
 )
 
 type (
@@ -242,6 +251,13 @@ type (
 		VendorInfo     restVendorResponse `json:"vendor"`
 	}
 
+	restErrorResponse struct {
+		ResponseCode string `json:"code"`
+		Message      string `json:"message"`
+		ErrorCode    string `json:"err_code"`
+		ErrorDesc    string `json:"err_desc"`
+	}
+
 	restAuthenticateRequest struct {
 		ReqId    string `json:"req_id"`
 		Token    string `json:"token"`
@@ -265,16 +281,17 @@ type (
 	}
 
 	restAuthenticateResponse struct {
-		Metadata     restMetadata `json:"metadata"`
-		Token        string       `json:"token"`
-		ResponseCode string       `json:"code"`
-		Message      string       `json:"message"`
-		Id           string       `json:"id"`
-		Username     string       `json:"username"`
-		BetLimit     string       `json:"bet_limit"`
-		FreeGames    restFreeGame `json:"free_games"`
-		Balance      int64        `json:"balance"`
-		Currency     string       `json:"currency"`
+		Metadata restMetadata `json:"metadata"`
+		restErrorResponse
+		Token string `json:"token"`
+		//		ResponseCode string       `json:"code"`
+		//		Message      string       `json:"message"`
+		Id        string       `json:"id"`
+		Username  string       `json:"username"`
+		BetLimit  string       `json:"bet_limit"`
+		FreeGames restFreeGame `json:"free_games"`
+		Balance   int64        `json:"balance"`
+		Currency  string       `json:"currency"`
 		//LastGameState   string            `json:"last_game_state"`
 		PlayerMessage restPlayerMessage `json:"player_message"`
 		Urls          map[string]string `json:"urls"`
@@ -317,10 +334,11 @@ type (
 	}
 
 	restBalanceResponse struct {
-		Metadata      restMetadata      `json:"metadata"`
-		Token         string            `json:"token"`
-		ResponseCode  string            `json:"code"`
-		Message       string            `json:"message"`
+		Metadata restMetadata `json:"metadata"`
+		restErrorResponse
+		Token string `json:"token"`
+		//		ResponseCode  string            `json:"code"`
+		//		Message       string            `json:"message"`
 		PlayerId      string            `json:"player_id"`
 		Balance       int64             `json:"balance"`
 		Currency      string            `json:"currency"`
@@ -337,12 +355,13 @@ type (
 	}
 
 	restGameStateResponse struct {
-		Metadata       restMetadata `json:"metadata"`
-		Token          string       `json:"token"`
-		ResponseCode   string       `json:"code"`
-		Message        string       `json:"message"`
-		GameState      string       `json:"game_state"`
-		InternalStatus int          `json:"internal_status"`
+		Metadata restMetadata `json:"metadata"`
+		restErrorResponse
+		Token string `json:"token"`
+		//		ResponseCode   string       `json:"code"`
+		//		Message        string       `json:"message"`
+		GameState      string `json:"game_state"`
+		InternalStatus int    `json:"internal_status"`
 	}
 
 	restVersionRequest struct {
@@ -354,11 +373,12 @@ type (
 	}
 
 	restVersionResponse struct {
-		Metadata     restMetadata `json:"metadata"`
-		Token        string       `json:"token"`
-		ResponseCode string       `json:"code"`
-		Message      string       `json:"message"`
-		Version      string       `json:"version"`
+		Metadata restMetadata `json:"metadata"`
+		restErrorResponse
+		Token string `json:"token"`
+		//		ResponseCode string       `json:"code"`
+		//		Message      string       `json:"message"`
+		Version string `json:"version"`
 	}
 
 	restTransactionRequest struct {
@@ -385,10 +405,11 @@ type (
 	}
 
 	restTransactionResponse struct {
-		Metadata      restMetadata      `json:"metadata"`
-		Token         string            `json:"token"`
-		ResponseCode  string            `json:"code"`
-		Message       string            `json:"message"`
+		Metadata restMetadata `json:"metadata"`
+		restErrorResponse
+		Token string `json:"token"`
+		//		ResponseCode  string            `json:"code"`
+		//		Message       string            `json:"message"`
 		PlayerId      string            `json:"player_id"`
 		Balance       int64             `json:"balance"`
 		Currency      string            `json:"currency"`
@@ -407,10 +428,11 @@ type (
 
 	restQueryResponse struct {
 		Metadata restMetadata `json:"metadata"`
+		restErrorResponse
 		//Token          string       `json:"token"`
-		ResponseCode string `json:"code"`
-		Message      string `json:"message"`
-		ReqId        string `json:"req_id"`
+		//		ResponseCode string `json:"code"`
+		//		Message      string `json:"message"`
+		ReqId string `json:"req_id"`
 		//Game           string       `json:"game"`
 		//Platform       string       `json:"platform"`
 		//Mode           string       `json:"mode"`
@@ -452,18 +474,20 @@ type (
 	}
 
 	RestFeedResponse struct {
-		Metadata restMetadata    `json:"metadata"`
-		Token    string          `json:"token"`
-		Code     string          `json:"code"`
+		Metadata restMetadata `json:"metadata"`
+		restErrorResponse
+		Token string `json:"token"`
+		//		Code     string          `json:"code"`
 		Rounds   []RestRounddata `json:"rounds"`
 		NextPage int             `json:"next_page"`
 	}
 
 	RestFeedRoundResponse struct {
-		Metadata restMetadata          `json:"metadata"`
-		Token    string                `json:"token"`
-		Code     string                `json:"code"`
-		Feeds    []RestTransactiondata `json:"feeds"`
+		Metadata restMetadata `json:"metadata"`
+		restErrorResponse
+		Token string `json:"token"`
+		//		Code     string                `json:"code"`
+		Feeds []RestTransactiondata `json:"feeds"`
 	}
 
 	RestRoundVendordata struct {
@@ -664,7 +688,8 @@ func (i *RemoteServiceImpl) errorHttpStatusCode(httpStatusCode int) (rgse.RGSErr
 	return nil, false
 }
 
-func (i *RemoteServiceImpl) errorResponseCode(responseCode string) (rgse.RGSErr, bool) {
+func (i *RemoteServiceImpl) errorResponseCode(errorResponse restErrorResponse) (rgse.RGSErr, bool) {
+	responseCode := errorResponse.ResponseCode
 	if responseCode != string(ResponseCodeOk) {
 		logger.Debugf("handling response code %s", responseCode)
 		if responseCode == string(ResponseCodeDataError) {
@@ -673,8 +698,29 @@ func (i *RemoteServiceImpl) errorResponseCode(responseCode string) (rgse.RGSErr,
 			return rgse.Create(rgse.InsufficientFundError), false
 		} else if responseCode == string(ResponseCodeSessionExpired) {
 			return rgse.Create(rgse.TokenExpired), false
+		} else if responseCode == string(ResponseCodeCustomError) {
+			var customErr rgse.RGSErr
+			switch errorResponse.ErrorCode {
+			case ErrorCodeCustomError:
+				customErr = rgse.Create(rgse.BlockedFromProduct)
+				customErr.AppendErrorDesc(errorResponse.ErrorDesc)
+			case ErrorCodeSpendingBudgetExceeded:
+				customErr = rgse.Create(rgse.SpendingBudgetExceeded)
+			case ErrorCodeBlockedFromProduct:
+				customErr = rgse.Create(rgse.BlockedFromProduct)
+			case ErrorCodeIpBlocked:
+				customErr = rgse.Create(rgse.IpBlocked)
+			case ErrorCodeMonthlyTimeLimit:
+				customErr = rgse.Create(rgse.MontlyTimeLimit)
+			case ErrorCodeWeeklyTimeLimit:
+				customErr = rgse.Create(rgse.WeeklyTimeLimit)
+			case ErrorCodeDailyTimeLimit:
+				customErr = rgse.Create(rgse.DailyTimeLimit)
+			}
+			return customErr, false
 		}
-		return rgse.Create(rgse.GenericWalletError), true
+		// (don't retry until tested)
+		return rgse.Create(rgse.GenericWalletError), false // true
 	}
 	return nil, false
 }
@@ -715,7 +761,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 	}
 	var gameState []byte = nil
 	authResp := i.restAuthenticateResponse(resp)
-	finalErr, _ = i.errorResponseCode(authResp.ResponseCode)
+	finalErr, _ = i.errorResponseCode(authResp.restErrorResponse)
 	if finalErr != nil {
 		finalErr.AppendErrorText(authResp.Message)
 		return PlayerStore{}, GameStateStore{}, finalErr
@@ -926,7 +972,7 @@ func (i *RemoteServiceImpl) BalanceByToken(token Token, mode Mode) (BalanceStore
 
 	balResp := i.restBalanceResponse(resp)
 
-	finalErr, _ = i.errorResponseCode(balResp.ResponseCode)
+	finalErr, _ = i.errorResponseCode(balResp.restErrorResponse)
 	if finalErr != nil {
 		finalErr.AppendErrorText(balResp.Message)
 		return BalanceStore{}, finalErr
@@ -1085,7 +1131,7 @@ func (i *RemoteServiceImpl) txSend(txRq restTransactionRequest) (BalanceStore, r
 
 		txResp := i.restTransactionResponse(resp)
 
-		finalErr, retry = i.errorResponseCode(txResp.ResponseCode)
+		finalErr, retry = i.errorResponseCode(txResp.restErrorResponse)
 		if finalErr != nil {
 			if retry {
 				continue
@@ -1206,7 +1252,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 	var gameState []byte = nil
 	queryResp := i.restQueryResponse(resp)
 
-	finalErr, _ = i.errorResponseCode(queryResp.ResponseCode)
+	finalErr, _ = i.errorResponseCode(queryResp.restErrorResponse)
 	if finalErr != nil {
 		// special handling for err does not exists
 		if queryResp.ResponseCode == ResponseCodeUnknownError && strings.Contains(queryResp.Message, "E-CODE: [004:1003]") {
@@ -1387,7 +1433,7 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 
 	txResp := i.restTransactionResponse(resp)
 
-	finalErr, _ = i.errorResponseCode(txResp.ResponseCode)
+	finalErr, _ = i.errorResponseCode(txResp.restErrorResponse)
 	if finalErr != nil {
 		finalErr.AppendErrorText(txResp.Message)
 		return BalanceStore{}, finalErr
@@ -1820,7 +1866,7 @@ func (i *RemoteServiceImpl) Feed(token Token, mode Mode, gameId, startTime strin
 	feedResp := i.restFeedResponse(resp)
 	bfeedresp, _ := json.Marshal(feedResp)
 
-	finalErr, _ = i.errorResponseCode(feedResp.Code)
+	finalErr, _ = i.errorResponseCode(feedResp.restErrorResponse)
 	if finalErr != nil {
 		logger.Errorf("feed response error code. feedresponse: %s", bfeedresp)
 		return
@@ -1872,7 +1918,7 @@ func (i *RemoteServiceImpl) FeedRound(token Token, mode Mode, gameId string, rou
 	feedResp := i.restFeedRoundResponse(resp)
 	bfeedresp, _ := json.Marshal(feedResp)
 
-	finalErr, _ = i.errorResponseCode(feedResp.Code)
+	finalErr, _ = i.errorResponseCode(feedResp.restErrorResponse)
 	if finalErr != nil {
 		logger.Errorf("feed round response error code. feedresponse: %s", bfeedresp)
 		return
