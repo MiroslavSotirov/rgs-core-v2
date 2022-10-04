@@ -702,7 +702,7 @@ func (i *RemoteServiceImpl) errorResponseCode(errorResponse restErrorResponse) (
 			var customErr rgse.RGSErr
 			switch errorResponse.ErrorCode {
 			case ErrorCodeCustomError:
-				customErr = rgse.Create(rgse.BlockedFromProduct)
+				customErr = rgse.Create(rgse.CustomOperatorError)
 				customErr.AppendErrorDesc(errorResponse.ErrorDesc)
 			case ErrorCodeSpendingBudgetExceeded:
 				customErr = rgse.Create(rgse.SpendingBudgetExceeded)
