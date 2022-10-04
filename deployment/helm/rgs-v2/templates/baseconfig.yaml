@@ -48,7 +48,8 @@ data:
       games:
       {{- range $i2, $game := $engine.games }}
         - name: {{ $game.name }}
-          item: {{ $game.item -}}
+          item: {{ $game.item }}
+          flags: {{ $game.flags }}
       {{- end }}
     {{- end }}
   gamification.yml: |

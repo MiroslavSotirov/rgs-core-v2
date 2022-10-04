@@ -161,6 +161,7 @@ var ErrMsg = map[int]string{
 	YamlError:                        "Error encoding/decoding yaml",
 	BadFSWagerAmt:                    "Bad freespin wager amount",
 	RequestTimeout:                   "Request took too long",
+	CustomOperatorError:              "Custom operator error",
 	SpendingBudgetExceeded:           "Spending budged exceeded",
 	BlockedFromProduct:               "Player blocked",
 	IpBlocked:                        "IP Blocked",
