@@ -16,18 +16,18 @@ type FeatureDef struct {
 }
 
 type FeatureState struct {
-	SourceGrid [][]int
-	SymbolGrid [][]int
-	Reels      [][]int
-	StopList   []int
-	Features   []Feature
-	Wins       []FeatureWin
-	TotalStake float64
-	Stateful   *FeatureState
-	Action     string
-	PureWins   bool
-	AnyWins    func([][]int) bool
-	ReelsetId  string
+	SourceGrid    [][]int
+	SymbolGrid    [][]int
+	Reels         [][]int
+	StopList      []int
+	Features      []Feature
+	Wins          []FeatureWin
+	TotalStake    float64
+	Stateful      *FeatureState
+	Action        string
+	PureWins      bool
+	CalculateWins func([][]int, []FeaturePayout) []FeatureWin
+	ReelsetId     string
 }
 
 func (fs *FeatureState) SetGrid(symbolgrid [][]int) {
@@ -48,6 +48,12 @@ type FeatureWin struct {
 	Multiplier      int
 	Symbols         []int
 	SymbolPositions []int
+}
+
+type FeaturePayout struct {
+	Symbol     int
+	Count      int
+	Multiplier int
 }
 
 type InitConfig struct {

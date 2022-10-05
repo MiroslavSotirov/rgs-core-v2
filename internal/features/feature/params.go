@@ -181,7 +181,7 @@ func ConvertIntSlice(in interface{}) []int {
 		var val2 []interface{}
 		val2, ok = in.([]interface{})
 		if !ok {
-			panic("not an int slize")
+			panic("not a slize")
 		}
 		val = make([]int, len(val2))
 		for i, av := range val2 {
@@ -204,18 +204,44 @@ func ConvertSlice(in interface{}) []interface{} {
 	return val
 }
 
-func ConvertMap(in interface{}) map[string]interface{} {
-	val, ok := in.(map[string]interface{})
+func ConvertParams(in interface{}) FeatureParams {
+	val, ok := in.(FeatureParams)
 	if !ok {
-		var tval FeatureParams
-		tval, ok = in.(FeatureParams)
-		if !ok {
-			logger.Debugf("type: %s", reflect.TypeOf(in).Name())
-			panic("not a map[string]interface{} type")
-		}
-		val = map[string]interface{}(tval)
+		logger.Debugf("type: %s", reflect.TypeOf(in).Name())
+		panic("not a map[string]interface{} type")
 	}
 	return val
+}
+
+func ConvertParamsSlice(in interface{}) []FeatureParams {
+	val, ok := in.([]FeatureParams)
+	if !ok {
+		var val2 []interface{}
+		val2, ok = in.([]interface{})
+		if !ok {
+			panic("not a slize")
+		}
+		val = make([]FeatureParams, len(val2))
+		for i, av := range val2 {
+			var vm map[interface{}]interface{}
+			vm, ok = av.(map[interface{}]interface{})
+			if !ok {
+				panic("not a map slize")
+			}
+			var fp FeatureParams = make(FeatureParams)
+			for k, v := range vm {
+				var kstr string
+				kstr, ok = k.(string)
+				if !ok {
+					panic("not a params slize. contanins a non string key")
+				}
+				fp[kstr] = v
+			}
+			val[i] = fp
+		}
+	}
+	return val
+
 }
 
 func paramconvertpanic(name string) {
@@ -227,6 +253,11 @@ func paramconvertpanic(name string) {
 func (p FeatureParams) HasKey(name string) bool {
 	_, ok := p[name]
 	return ok
+}
+
+func (p FeatureParams) HasValue(name string) bool {
+	val, ok := p[name]
+	return ok && val != nil
 }
 
 func (p FeatureParams) Get(name string) interface{} {
@@ -361,7 +392,12 @@ func (p FeatureParams) GetSlice(name string) []interface{} {
 
 func (p FeatureParams) GetParams(name string) FeatureParams {
 	defer paramconvertpanic(name)
-	return ConvertMap(p.Get(name))
+	return ConvertParams(p.Get(name))
+}
+
+func (p FeatureParams) GetParamsSlice(name string) []FeatureParams {
+	defer paramconvertpanic(name)
+	return ConvertParamsSlice(p.Get(name))
 }
 
 // get a specific force from a list of space separated forces [force:value] or [forceflag]

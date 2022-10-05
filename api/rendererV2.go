@@ -202,7 +202,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		roundWin = roundWin.Sub(gamestate.SpinWin)
 	}
 	var cascadePositions []int
-	if gamestate.Action == "cascade" {
+	if gamestate.Action == "cascade" || gamestate.Action == "pushreels" {
 		// this is a hack for now, needed for recovery. potentially in the future we add a proper cascade positions field to the gamestate message
 		cascadePositions = gamestate.SelectedWinLines
 	}

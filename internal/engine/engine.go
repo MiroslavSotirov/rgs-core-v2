@@ -1605,11 +1605,34 @@ func (gen GenerateStatefulCascadeMultiply) TriggerFeatures(
 }
 
 func triggerFeatures(engine EngineDef, fs *feature.FeatureState, parameters GameParams) error {
-	fs.AnyWins = func(symbolGrid [][]int) bool {
-		prizes, _ := engine.DetermineWins(symbolGrid)
-		return len(prizes) > 0
+	fs.CalculateWins = func(symbolGrid [][]int, payouts []feature.FeaturePayout) []feature.FeatureWin {
+		var wins []Prize
+		if len(payouts) == 0 {
+			wins, _ = engine.DetermineWins(symbolGrid)
+		} else {
+			modifiedEngine := engine
+			modifiedEngine.Payouts = make([]Payout, len(payouts))
+			for i, p := range payouts {
+				modifiedEngine.Payouts[i] = Payout{
+					Symbol:     p.Symbol,
+					Count:      p.Count,
+					Multiplier: p.Multiplier,
+				}
+			}
+			wins, _ = modifiedEngine.DetermineWins(symbolGrid)
+		}
+		featureWins := make([]feature.FeatureWin, len(wins))
+		for i, p := range wins {
+			featureWins[i] = feature.FeatureWin{
+				Index:           p.Index,
+				Multiplier:      p.Multiplier,
+				Symbols:         []int{},
+				SymbolPositions: p.SymbolPositions,
+			}
+		}
+		return featureWins
 	}
-	fs.PureWins = fs.AnyWins(fs.SourceGrid)
+	fs.PureWins = len(fs.CalculateWins(fs.SourceGrid, nil)) > 0
 	fs.TotalStake = float64(parameters.previousGamestate.BetPerLine.Amount.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
 	fs.ReelsetId = engine.ReelsetId
 	fs.Reels = engine.Reels
@@ -1745,30 +1768,6 @@ func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams)
 	relativePayout += featureRelPayout
 	wins = append(wins, featureWins...)
 	nextActions = append(featureNextActions, nextActions...)
-	/*
-		featurewins := []Prize{}
-		for _, w := range featurestate.Wins {
-			symbol := 0
-			index := "0:0"
-			if len(w.Symbols) > 0 {
-				index = fmt.Sprintf("%d:%d", w.Symbols[0], len(w.Symbols))
-			}
-			prize := Prize{
-				Payout: Payout{
-					Symbol:     symbol,
-					Count:      len(w.Symbols),
-					Multiplier: engine.StakeDivisor,
-				},
-				Index:           index,
-				Multiplier:      w.Multiplier,
-				SymbolPositions: w.SymbolPositions,
-				Winline:         -1, // until features have prizes associated with lines
-			}
-			featurewins = append(featurewins, prize)
-		}
-		relativePayout += calculatePayoutWins(featurewins)
-		wins = append(wins, featurewins...)
-	*/
 	// calculate specialWin
 	specialWin := DetermineSpecialWins(featurestate.SymbolGrid, engine.SpecialPayouts)
 	if specialWin.Index != "" {
