@@ -204,11 +204,16 @@ func ConvertSlice(in interface{}) []interface{} {
 	return val
 }
 
-func ConvertParams(in interface{}) FeatureParams {
-	val, ok := in.(FeatureParams)
+func ConvertParams(in interface{}) map[string]interface{} {
+	val, ok := in.(map[string]interface{})
 	if !ok {
-		logger.Debugf("type: %s", reflect.TypeOf(in).Name())
-		panic("not a map[string]interface{} type")
+		var tval FeatureParams
+		tval, ok = in.(FeatureParams)
+		if !ok {
+			logger.Debugf("type: %s", reflect.TypeOf(in).Name())
+			panic("not a map[string]interface{} type")
+		}
+		val = map[string]interface{}(tval)
 	}
 	return val
 }
