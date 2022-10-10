@@ -431,17 +431,17 @@ gameConfig:
     games:
       - name: wizardz-world
         item: 8243
-        flags: campaign
+#        flags: campaign
   - engineID: mvgEngineGodot5
     games:
       - name: battle-of-myths
         item: 8359
-        flags: campaign
+#        flags: campaign
   - engineID: mvgEngineGodot6
     games:
       - name: sword-king
         item: 8451
-        flags: campaign
+#        flags: campaign
   - engineID: mvgEngineGodot7
     games:
       - name: clash-of-heroes
