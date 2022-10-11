@@ -23,22 +23,45 @@ func (f TriggerClashOfHeroesSwapSymbols) Trigger(state *feature.FeatureState, pa
 	replaceIds := params.GetIntSlice(PARAM_ID_TRIGGER_CLASH_OF_HEROES_SWAP_SYMBOLS_REPLACE_IDS)
 	replaceWithIds := params.GetIntSlice(PARAM_ID_TRIGGER_CLASH_OF_HEROES_SWAP_SYMBOLS_REPLACE_WITH_IDS)
 
-	juniors := []int{}
+	juniorCounts := make(map[int]int)
 	for _, r := range state.SymbolGrid {
 		for _, s := range r {
-			if containsInt(replaceIds, s) && !containsInt(juniors, s) {
-				juniors = append(juniors, s)
+			if containsInt(replaceIds, s) {
+				count, ok := juniorCounts[s]
+				if !ok {
+					count = 0
+				}
+				juniorCounts[s] = count + 1
 			}
+		}
+	}
+	juniors := []int{}
+	for k, v := range juniorCounts {
+		if v >= 2 {
+			juniors = append(juniors, k)
 		}
 	}
 
 	if len(juniors) > 0 {
 
+		wildId := params.GetInt("WildId")
 		junior := juniors[rng.RandFromRange(len(juniors))]
 
+		symbols := make([][]int, len(state.SymbolGrid))
+		for ir, r := range state.SymbolGrid {
+			symbols[ir] = make([]int, len(r))
+			for is, s := range r {
+				if s == junior {
+					s = wildId
+				}
+				symbols[ir][is] = s
+			}
+		}
+		wins := state.CalculateWins(symbols, nil)
 		seniors := []int{}
-		for _, r := range state.SymbolGrid {
-			for _, s := range r {
+		for _, w := range wins {
+			if len(w.Symbols) > 0 {
+				s := w.Symbols[0]
 				if containsInt(replaceWithIds, s) && !containsInt(seniors, s) {
 					seniors = append(seniors, s)
 				}

@@ -1626,7 +1626,7 @@ func triggerFeatures(engine EngineDef, fs *feature.FeatureState, parameters Game
 			featureWins[i] = feature.FeatureWin{
 				Index:           p.Index,
 				Multiplier:      p.Multiplier,
-				Symbols:         []int{},
+				Symbols:         []int{p.Payout.Symbol},
 				SymbolPositions: p.SymbolPositions,
 			}
 		}
