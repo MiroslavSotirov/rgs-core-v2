@@ -1,0 +1,44 @@
+name: PRD - RGS Deploy from Staging
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test
+        run: |
+          make test
+  build:
+    runs-on: ubuntu-latest
+    env:
+      BUILDER_TOKEN: ${{ secrets.BUILDER_TOKEN  }}
+    needs: test
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: "0"
+
+      - name: Get version
+        id: tag
+        run: |
+          packageVersion=$(cat FoxTale/package.json | grep stg_version | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
+          echo "::set-output name=stg_ver::$packageVersion"
+
+      - uses: actions/checkout@v2
+        with:
+          repository: Elysium-Studios/infrastructure
+          token: ${{ env.BUILDER_TOKEN }}
+          path: infrastructure
+          
+      - name: Update RGS release in flux repo
+        run: |
+          cd infrastructure/
+          sed -i -e 's/version:.*/version: "${{ steps.tag.outputs.stg_ver }}"/g' prd/apps-infra/deployments/rgs-v2/release.yaml
+          git config --global user.email "workflow@elysiumstudios.se"
+          git config --global user.name "RGS-V2 Workflow"
+          git add prd/apps-infra/deployments/rgs-v2/release.yaml
+          git commit -m "Deploy RGS-v2 ${{ steps.tag.outputs.stg_ver }}"
+          git push

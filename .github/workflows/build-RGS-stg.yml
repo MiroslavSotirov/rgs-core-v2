@@ -25,6 +25,15 @@ jobs:
         id: currenttag
         uses: "WyriHaximus/github-action-get-previous-tag@v1"
 
+      - name: Update staging version in package.json
+        run: |
+          sed -i -e "s/stg_version\":.*/stg_version\": \"${{ steps.currenttag.outputs.tag }}\"/g" package.json
+          git config --global user.email "workflow@elysiumstudios.se"
+          git config --global user.name "RGS Workflow"
+          git add package.json
+          git commit -m "Update RGS staging version to ${{ steps.currenttag.outputs.tag }}"
+          git push
+
       - uses: actions/checkout@v2
         with:
           repository: Elysium-Studios/infrastructure
