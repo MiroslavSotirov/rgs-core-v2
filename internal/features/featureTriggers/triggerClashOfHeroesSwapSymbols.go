@@ -55,9 +55,8 @@ func (f TriggerClashOfHeroesSwapSymbols) Trigger(state *feature.FeatureState, pa
 			symbols[ir] = make([]int, len(r))
 			for is, s := range r {
 				if s == junior {
-					s = wildId
+					symbols[ir][is] = wildId
 				}
-				symbols[ir][is] = s
 			}
 		}
 		wins := state.CalculateWins(symbols, nil)
