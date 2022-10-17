@@ -36,8 +36,9 @@ func (f TriggerClashOfHeroesSwapSymbols) Trigger(state *feature.FeatureState, pa
 		}
 	}
 	juniors := []int{}
+	minWilds := params.GetInt("MinWilds")
 	for k, v := range juniorCounts {
-		if v >= 2 {
+		if v >= minWilds {
 			juniors = append(juniors, k)
 		}
 	}
