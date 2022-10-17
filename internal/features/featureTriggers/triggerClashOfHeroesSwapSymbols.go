@@ -11,6 +11,8 @@ const (
 
 	PARAM_ID_TRIGGER_CLASH_OF_HEROES_SWAP_SYMBOLS_REPLACE_IDS      = "ReplaceIds"
 	PARAM_ID_TRIGGER_CLASH_OF_HEROES_SWAP_SYMBOLS_REPLACE_WITH_IDS = "ReplaceWithIds"
+	PARAM_ID_TRIGGER_CLASH_OF_HEROES_SWAP_SYMBOLS_MIN_WILDS        = "MinWilds"
+	PARAM_ID_TRIGGER_CLASH_OF_HEROES_SWAP_SYMBOLS_WILD_ID          = "WildId"
 )
 
 var _ feature.Factory = feature.RegisterFeature(FEATURE_ID_TRIGGER_CLASH_OF_HEROES_SWAP_SYMBOLS, func() feature.Feature { return new(TriggerClashOfHeroesSwapSymbols) })
@@ -36,7 +38,7 @@ func (f TriggerClashOfHeroesSwapSymbols) Trigger(state *feature.FeatureState, pa
 		}
 	}
 	juniors := []int{}
-	minWilds := params.GetInt("MinWilds")
+	minWilds := params.GetInt(PARAM_ID_TRIGGER_CLASH_OF_HEROES_SWAP_SYMBOLS_MIN_WILDS)
 	for k, v := range juniorCounts {
 		if v >= minWilds {
 			juniors = append(juniors, k)
@@ -45,7 +47,7 @@ func (f TriggerClashOfHeroesSwapSymbols) Trigger(state *feature.FeatureState, pa
 
 	if len(juniors) > 0 {
 
-		wildId := params.GetInt("WildId")
+		wildId := params.GetInt(PARAM_ID_TRIGGER_CLASH_OF_HEROES_SWAP_SYMBOLS_WILD_ID)
 		junior := juniors[rng.RandFromRange(len(juniors))]
 
 		symbols := make([][]int, len(state.SymbolGrid))
