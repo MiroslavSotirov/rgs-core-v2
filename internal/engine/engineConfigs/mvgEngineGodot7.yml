@@ -1,6 +1,6 @@
 version: 2.0
-rtp: .966158
-volatility: 9.12
+rtp: .964660
+volatility: 9.10
 
 EngineDefs:
   - name: base
@@ -166,7 +166,7 @@ EngineDefs:
             Features:
               - Type: TriggerRandom
                 Params:
-                  Probability: 615
+                  Probability: 620
                 Features:
                   - Type: SetConditional
                     Params:
