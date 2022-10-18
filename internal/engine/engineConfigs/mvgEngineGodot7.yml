@@ -1,6 +1,6 @@
 version: 2.0
-rtp: .964660
-volatility: 9.10
+rtp: .961752
+volatility: 9.40
 
 EngineDefs:
   - name: base
@@ -80,7 +80,7 @@ EngineDefs:
         Features:
           - Type: TriggerRandom
             Params:
-              Probability: 183
+              Probability: 181
             Features:
               - Type: TriggerSymbolCount
                 Params:
@@ -109,7 +109,7 @@ EngineDefs:
             Features:
               - Type: TriggerRandom
                 Params:
-                  Probability: 445
+                  Probability: 441
                 Features:
                   - Type: TriggerClashOfHeroesExpandingWilds
                     Params:
@@ -130,7 +130,7 @@ EngineDefs:
             Features:
               - Type: TriggerRandom
                 Params:
-                  Probability: 770
+                  Probability: 760
                 Features:
                   - Type: TriggerWins
                     Params:
@@ -166,7 +166,7 @@ EngineDefs:
             Features:
               - Type: TriggerRandom
                 Params:
-                  Probability: 620
+                  Probability: 610
                 Features:
                   - Type: SetConditional
                     Params:
@@ -181,7 +181,7 @@ EngineDefs:
             Features:
               - Type: TriggerRandom
                 Params:
-                  Probability: 990
+                  Probability: 980
                 Features:
                   - Type: TriggerClashOfHeroesSwapSymbols
                     Params:

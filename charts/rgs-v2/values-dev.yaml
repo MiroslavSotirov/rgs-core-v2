@@ -276,6 +276,7 @@ gameConfig:
   - engineID: mvgEngineGodot7
     games:
       - name: clash-of-heroes
+        flags: campaign
 
 gamification:
   a-fairy-tale:
