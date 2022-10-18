@@ -27,9 +27,9 @@ func (f TriggerClashOfHeroesExpandingWilds) Trigger(state *feature.FeatureState,
 	_, gridh := len(state.SourceGrid), len(state.SourceGrid[0])
 
 	for idx, pat := range patterns {
-		positions := feature.ConvertIntSlice(pat)
+		patternpositions := feature.ConvertIntSlice(pat)
 		match := func() bool {
-			for _, pos := range positions {
+			for _, pos := range patternpositions {
 				if state.SourceGrid[pos/gridh][pos%gridh] != wildId {
 					return false
 				}
@@ -37,7 +37,7 @@ func (f TriggerClashOfHeroesExpandingWilds) Trigger(state *feature.FeatureState,
 			return true
 		}()
 		if match {
-			pos := positions[feature.WeightedRandomIndex(feature.ConvertIntSlice(probabilities[idx]))]
+			pos := patternpositions[feature.WeightedRandomIndex(feature.ConvertIntSlice(probabilities[idx]))]
 			positions := make([]int, 9)
 			pidx := 0
 			for x := -1; x <= 1; x++ {
