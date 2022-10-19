@@ -286,6 +286,8 @@ gameConfig_staging:
   - engineID: mvgEngineGodot7
     games:
       - name: clash-of-heroes
+        item: 33602
+        flags: campaign
 
 # poduction item_id while relax testing in staging      
 gameConfig:
@@ -445,6 +447,8 @@ gameConfig:
   - engineID: mvgEngineGodot7
     games:
       - name: clash-of-heroes
+        item: 8565
+        flags: campaign
 
 
 
