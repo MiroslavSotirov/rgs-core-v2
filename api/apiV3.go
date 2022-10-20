@@ -516,9 +516,9 @@ func CloseByWallet(token store.Token, wallet string, game string, roundId string
 	logger.Debugf("CloseByWallet token=%s, wallet=%s, game=%s, serializedState len=%d", string(token), wallet, game, len(serializedState))
 	switch wallet {
 	case "demo":
-		_, rgserr = store.ServLocal.CloseRound(token, store.ModeDemo, game, roundId, serializedState, 3600, history)
+		_, rgserr = store.ServLocal.CloseRound(token, store.ModeDemo, game, roundId, "", serializedState, 3600, history)
 	case "dashur":
-		_, rgserr = store.Serv.CloseRound(token, store.ModeReal, game, roundId, serializedState, 3600, nil)
+		_, rgserr = store.Serv.CloseRound(token, store.ModeReal, game, roundId, "", serializedState, 3600, nil)
 	}
 	logger.Debugf("CloseByWallet done")
 	return

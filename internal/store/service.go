@@ -200,7 +200,7 @@ type (
 		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgse.RGSErr)
 
 		// close round.
-		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64, history *TransactionHistory) (BalanceStore, rgse.RGSErr)
+		CloseRound(token Token, mode Mode, gameId string, roundId string, campaignRef string, gamestate []byte, ttl int64, history *TransactionHistory) (BalanceStore, rgse.RGSErr)
 
 		//// gamestate by id
 		//GamestateById(gamestateId string) (GameStateStore, *Error)
@@ -233,7 +233,7 @@ type (
 		BalanceByToken(token Token, mode Mode) (BalanceStore, rgse.RGSErr)
 		Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, rgse.RGSErr)
 		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgse.RGSErr)
-		CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64, history *TransactionHistory) (BalanceStore, rgse.RGSErr)
+		CloseRound(token Token, mode Mode, gameId string, roundId string, campaignRef string, gamestate []byte, ttl int64, history *TransactionHistory) (BalanceStore, rgse.RGSErr)
 		GamestateById(gamestateId string) (GameStateStore, rgse.RGSErr)
 		SetMessage(playerId string, message string) rgse.RGSErr
 		SetBalance(token Token, amount engine.Money) rgse.RGSErr
@@ -1350,7 +1350,7 @@ func (i *RemoteServiceImpl) restFeedRoundResponse(response *http.Response) RestF
 	return data
 }
 
-func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64, history *TransactionHistory) (BalanceStore, rgse.RGSErr) {
+func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, campaignRef string, gamestate []byte, ttl int64, history *TransactionHistory) (BalanceStore, rgse.RGSErr) {
 	// Used in clientstate call
 	playerId, _ := i.getToken(token)
 	player, _ := i.getPlayer(playerId)
@@ -1385,7 +1385,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 	return balance, nil
 }
 
-func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, gamestate []byte, ttl int64, _ *TransactionHistory) (BalanceStore, rgse.RGSErr) {
+func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, roundId string, campaignRef string, gamestate []byte, ttl int64, _ *TransactionHistory) (BalanceStore, rgse.RGSErr) {
 	// Used in clientstate call
 	closeRound := true
 
@@ -1403,6 +1403,7 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 		BonusAmount: 0,
 		JpAmount:    0,
 		Category:    string(CategoryClose),
+		CampaignRef: campaignRef,
 		CloseRound:  closeRound,
 		Round:       roundId,
 		TxRef:       roundId,

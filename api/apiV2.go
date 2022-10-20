@@ -107,7 +107,6 @@ func getGameHashes(request *http.Request) (GameHashResponse, rgse.RGSErr) {
 					Flags:    g.Flags,
 					Stakes:   stakes,
 				})
-				logger.Debugf("config: %#v hashes: %#v", g, response[len(response)-1])
 			}
 		}
 	}
@@ -469,9 +468,9 @@ func CloseGS(r *http.Request) (err rgse.RGSErr) {
 	ttl := gamestateUnmarshalled.GetTtl()
 	switch data.Wallet {
 	case "demo":
-		_, err = store.ServLocal.CloseRound(token, store.ModeDemo, data.Game, roundId, state, ttl, &txStore.History)
+		_, err = store.ServLocal.CloseRound(token, store.ModeDemo, data.Game, roundId, "", state, ttl, &txStore.History)
 	case "dashur":
-		_, err = store.Serv.CloseRound(token, store.ModeReal, data.Game, roundId, state, ttl, nil)
+		_, err = store.Serv.CloseRound(token, store.ModeReal, data.Game, roundId, txStore.FreeGames.CampaignRef, state, ttl, nil)
 	}
 	return
 }

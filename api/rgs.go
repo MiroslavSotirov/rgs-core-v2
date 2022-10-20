@@ -461,9 +461,9 @@ func Routes() *chi.Mux {
 			ttl := gamestateUnmarshalled.GetTtl()
 			switch wallet {
 			case "demo":
-				_, err = store.ServLocal.CloseRound(store.Token(token), store.ModeDemo, gameSlug, roundId, state, ttl, &store.TransactionHistory{})
+				_, err = store.ServLocal.CloseRound(store.Token(token), store.ModeDemo, gameSlug, roundId, "", state, ttl, &store.TransactionHistory{})
 			case "dashur":
-				_, err = store.Serv.CloseRound(store.Token(token), store.ModeReal, gameSlug, roundId, state, ttl, nil)
+				_, err = store.Serv.CloseRound(store.Token(token), store.ModeReal, gameSlug, roundId, txStore.FreeGames.CampaignRef, state, ttl, nil)
 			}
 			if err != nil {
 				fmt.Fprint(w, []byte("ERROR"))
