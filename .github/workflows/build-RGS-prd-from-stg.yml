@@ -24,7 +24,7 @@ jobs:
       - name: Get version
         id: tag
         run: |
-          packageVersion=$(cat FoxTale/package.json | grep stg_version | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
+          packageVersion=$(cat rgs-core-v2/package.json | grep stg_version | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
           echo "::set-output name=stg_ver::$packageVersion"
 
       - uses: actions/checkout@v2
