@@ -1,6 +1,6 @@
 version: 2.0
-rtp: .961282
-volatility: 9.28
+rtp: .954642
+volatility: 9.02
 
 EngineDefs:
   - name: base
