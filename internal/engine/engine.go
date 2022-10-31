@@ -1676,39 +1676,51 @@ func triggerStatefulFeatures(engine EngineDef, symbolGrid [][]int, stopList []in
 	return fs
 }
 
+type filterfunc func(state Gamestate) (bool, error)
+
 func genForcedRound(gen GenerateRound, engine EngineDef, parameters GameParams) Gamestate {
 	if parameters.Force != "" {
 		logger.Debugf("FeatureRound devmode: %v force: %s IsV3: %v", config.GlobalConfig.DevMode, parameters.Force, config.GlobalConfig.Server.IsV3())
 		if config.GlobalConfig.DevMode == true {
 			fp := feature.FeatureParams{"force": parameters.Force}
-			filter := fp.GetForce("filter")
-			stops := fp.GetForce("stops")
-			if filter != "" {
-				if config.GlobalConfig.Server.IsV3() {
-					logger.Infof("force play using filter: \"%s\"", filter)
-					startTime := time.Now()
-					for true {
-						state := gen.FeatureRound(engine, parameters) // engine.FeatureRoundGen(parameters)
-						js, err := json.Marshal(state)
-						elapsed := time.Now().Sub(startTime)
-						if err != nil {
-							logger.Errorf("filter halted due to error %v", err)
-							return state
-						}
-						if elapsed > 100000000 {
-							logger.Warnf("filter halted due to timeout")
-							return state
-						}
-						if strings.Contains(string(js), filter) {
-							logger.Infof("filter force was satisfied")
-							return state
-						}
+			if config.GlobalConfig.Server.IsV3() {
+				filter := fp.GetForce("filter")
+				if filter != "" {
+					state, err := genFilteredRound(gen, engine, parameters, 100000000*100,
+						func(s Gamestate) (bool, error) {
+							js, err := json.Marshal(s)
+							if err != nil {
+								return false, fmt.Errorf("could not marshal gamestate")
+							}
+							return strings.Contains(string(js), filter), nil
+						})
+					if err != nil {
+						rgse.Create(rgse.Forcing)
 					}
-				} else {
-					logger.Infof("attempted filter force on a non V3 server configuration")
-					rgse.Create(rgse.Forcing)
+					return state
 				}
-			} else if stops != "" {
+				minwin := fp.GetForce("minwin")
+				if minwin != "" {
+					minfp64, err := strconv.ParseFloat(minwin, 64)
+					minfixed := NewFixedFromFloat64(minfp64)
+					if err != nil {
+						rgse.Create(rgse.Forcing)
+					}
+					state, err := genFilteredRound(gen, engine, parameters, 100000000*100,
+						func(s Gamestate) (bool, error) {
+							relativePayout := NewFixedFromInt(s.RelativePayout * s.Multiplier)
+							win := relativePayout.Mul(parameters.Stake) // s.BetPerLine.Amount)
+							//							logger.Infof("win: %d minfixed: %d", win, minfixed)
+							return win >= minfixed, nil
+						})
+					if err != nil {
+						rgse.Create(rgse.Forcing)
+					}
+					return state
+				}
+			}
+			stops := fp.GetForce("stops")
+			if stops != "" {
 				logger.Infof("force play using stops: \"%s\"", stops)
 				stopStrs := strings.Split(stops, ",")
 				if len(stopStrs) == len(engine.Reels) {
@@ -1742,6 +1754,28 @@ func genForcedRound(gen GenerateRound, engine EngineDef, parameters GameParams) 
 		}
 	}
 	return gen.FeatureRound(engine, parameters) // engine.FeatureRoundGen(parameters)
+}
+
+func genFilteredRound(gen GenerateRound, engine EngineDef, parameters GameParams, timeout int64, filter filterfunc) (Gamestate, error) {
+	startTime := time.Now()
+	for true {
+		state := gen.FeatureRound(engine, parameters)
+		satisfied, err := filter(state)
+		if err != nil {
+			logger.Errorf("filter halted due to error %v", err)
+			return state, err
+		}
+		if satisfied {
+			logger.Infof("filter force was satisfied")
+			return state, nil
+		}
+		elapsed := time.Now().Sub(startTime)
+		if elapsed > time.Duration(timeout) {
+			logger.Warnf("filter halted due to timeout")
+			return state, nil
+		}
+	}
+	return Gamestate{}, nil
 }
 
 func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams) Gamestate {
