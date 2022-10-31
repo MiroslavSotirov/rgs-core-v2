@@ -1686,7 +1686,7 @@ func genForcedRound(gen GenerateRound, engine EngineDef, parameters GameParams) 
 			if config.GlobalConfig.Server.IsV3() {
 				filter := fp.GetForce("filter")
 				if filter != "" {
-					state, err := genFilteredRound(gen, engine, parameters, 100000000*100,
+					state, err := genFilteredRound(gen, engine, parameters, 100000000,
 						func(s Gamestate) (bool, error) {
 							js, err := json.Marshal(s)
 							if err != nil {
