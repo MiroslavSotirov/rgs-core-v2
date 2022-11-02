@@ -48,7 +48,7 @@ ccyMultipliers:
   COP: 50
   CRC: 5
   CZK: 0.2
-  DKK: 0.1 # 0.5
+  DKK: 0.07 # 0.5
   DOP: 0.5
   DZD: 1
   EGP: 0.25
@@ -86,7 +86,7 @@ ccyMultipliers:
   LTC: 0.001
   LYD: 0.03
   MAD: 0.1
-  MBC: 0.04
+#  MBC: 0.04   # CRYPTO mBTC. MBC removed. use UBC instead
   MDL: 0.1 # 0.15
   MGA: 30
   MKD: 0.5
@@ -123,7 +123,7 @@ ccyMultipliers:
   TRY: 0.18 # 0.05
   TZS: 10 # 50
   UAH: 0.1 #0.25
-  UBC: 1
+  UBC: 1  # CRYPTO uBTC
   UGX: 50
   USD: 0.01
   UST: 0.01
