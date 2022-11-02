@@ -37,7 +37,7 @@ ccyMultipliers:
   BND: 0.01
   BOB: 0.05
   BRL: 0.05 # 0.04
-  BTC: 0.01
+#  BTC: 0.01 # CRYPTO BTC. use UBC instead
   BWP: 0.05
   BYN: 0.02
   CAD: 0.01
