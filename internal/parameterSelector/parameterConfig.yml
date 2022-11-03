@@ -367,16 +367,16 @@ override:
     credits:
       defaultBet: 10
       stakeValues:
-        - 3
-        - 5
+        - 2
+        - 4
+        - 6
         - 10
         - 20
-        - 30
-        - 50
+        - 40
+        - 60
         - 100
         - 200
-        - 300
-        - 500
+        - 400
   mvgEngineRoulette1:
     credits:
       defaultBet: 50
