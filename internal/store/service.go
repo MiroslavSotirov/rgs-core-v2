@@ -1270,8 +1270,13 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		return TransactionStore{}, finalErr
 	}
 	if balance.Token == "" {
+		campaignRef := queryResp.FreeGames.CampaignRef
+		// FreeGames is not included after the last wager of a campaign
+		if campaignRef == "" {
+			campaignRef = lastTx.CampaignRef
+		}
 		balance.Token = Token(lastTx.Token)
-		balance.FreeGames = FreeGamesStore{queryResp.FreeGames.NrGames, queryResp.FreeGames.CampaignRef, engine.Fixed(queryResp.FreeGames.WagerAmt * 10000)}
+		balance.FreeGames = FreeGamesStore{queryResp.FreeGames.NrGames, campaignRef, engine.Fixed(queryResp.FreeGames.WagerAmt * 10000)}
 		balance.Balance = engine.Money{
 			Currency: lastTx.Currency,
 			Amount:   engine.Fixed(lastTx.Amount * 10000),
