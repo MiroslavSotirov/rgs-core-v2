@@ -279,6 +279,10 @@ gameConfig:
     games:
       - name: clash-of-heroes
         flags: campaign
+  - engineID: mvgEngineGodot8
+    games:
+      - name: elysium-vip
+        flags: campaign
 
 gamification:
   a-fairy-tale:

@@ -1665,6 +1665,7 @@ func triggerConfiguredFeatures(engine EngineDef, symbolGrid [][]int, stopList []
 func triggerStatefulFeatures(engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams) feature.FeatureState {
 	logger.Debugf("Trigger stateful from previous features %#v", parameters.previousGamestate.Features)
 	var fs, prevfs feature.FeatureState
+	prevfs.SymbolGrid = parameters.previousGamestate.FeatureView
 	prevfs.Features = parameters.previousGamestate.Features
 	fs.Stateful = &prevfs
 	fs.SetGrid(symbolGrid)
