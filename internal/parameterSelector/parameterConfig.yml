@@ -462,3 +462,17 @@ override:
         - 100
         - 200
         - 400
+  mvgEngineGodot8:
+    credits:
+      defaultBet: 10
+      stakeValues:
+        - 2
+        - 4
+        - 6
+        - 10
+        - 20
+        - 40
+        - 60
+        - 100
+        - 200
+        - 400
