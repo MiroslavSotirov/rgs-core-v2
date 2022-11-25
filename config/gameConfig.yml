@@ -133,6 +133,7 @@
   games:
     - name: supa-crew
       item: 7523
+#     flags: campaign
 - engineID: mvgEngineGodot2
   games:
     - name: fox-tale
@@ -161,8 +162,12 @@
 - engineID: mvgEngineGodot6
   games:
     - name: sword-king
-      item: 8451
       flags: campaign
 - engineID: mvgEngineGodot7
   games:
     - name: clash-of-heroes
+      item: 8565
+      flags: campaign
+- engineID: mvgEngineGodot8
+  games:
+    - name: elysium-vip

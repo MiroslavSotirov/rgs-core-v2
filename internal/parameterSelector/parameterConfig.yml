@@ -23,34 +23,35 @@ defaultBet: 5 # index of stakeValues
 ccyMultipliers:
   AED: 0.03
   ALL: 1
-  AMD: 2 # 5
+  AMD: 2
   AOA: 3
   ARS: 0.5
-  AUD: 0.01 # new
+  AUD: 0.01
   ARX: 1.25
   AZN: 0.01
   BAM: 0.01
   BCH: 0.001
-  BDT: 0.8 # 0.5
+  BDT: 0.8
   BGN: 0.01
   BHD: 0.01
   BND: 0.01
   BOB: 0.05
-  BRL: 0.05 # 0.04
+  BRL: 0.05
 #  BTC: 0.01 # CRYPTO BTC. use UBC instead
   BWP: 0.05
   BYN: 0.02
   CAD: 0.01
   CDF: 10
   CHF: 0.01
-  CLP: 8 # 5
-  CNY: 0.07 # 0.04
+  CLP: 8
+  CNY: 0.07
   COP: 50
   CRC: 5
+  CUP: 0.2
   CZK: 0.2
-  DKK: 0.07 # 0.5
+  DKK: 0.07
   DOP: 0.5
-  DZD: 1
+  DZD: 1.4
   EGP: 0.25
   ETB: 0.3
   ETH: 0.001
@@ -64,22 +65,22 @@ ccyMultipliers:
   HKD: 0.05
   HRK: 0.05
   HTG: 0.5
-  HUF: 4 # 5
+  HUF: 4
   IDR: 100
   ILS: 0.03
-  INR: 0.6 # 1
-  IQD: 14 # 25
+  INR: 0.6
+  IQD: 14
   IRR: 250
   IRT: 0.1
   ISK: 1
   JOD: 0.01
-  JPY: 1.4 # 1
+  JPY: 1.5
   KES: 1
   KGS: .8
-  KRW: 13 # 10
+  KRW: 13
   KWD: 0.01
   KHR: 40
-  KZT: 4 # 3.5
+  KZT: 4
   LBP: 25
   LKR: 1.5
   LSL: 0.1
@@ -87,57 +88,60 @@ ccyMultipliers:
   LYD: 0.03
   MAD: 0.1
 #  MBC: 0.04   # CRYPTO mBTC. MBC removed. use UBC instead
-  MDL: 0.1 # 0.15
+  MDL: 0.1
   MGA: 30
   MKD: 0.5
-  MMK: 20 # 10
+  MMK: 20
   MNT: 30
   MWK: 1
   MXN: 0.2
-  MYR: 0.04 # 0.02
+  MYR: 0.04
   MZN: 0.5
   NAD: 0.05
   NGN: 1
-  NOK: 0.1 # 0.01
+  NOK: 0.1
+  NPR: 1.3
   HNL: 0.1
-  NZD: 0.01 # 0.1
+  NZD: 0.01
   OMR: 0.01
   PAB: 0.01
   PEN: 0.02
-  PKR: 1.75
-  PLN: 0.04 # 0.3
-  PYG: 70 # 50
+  PKR: 2
+  PLN: 0.04
+  PYG: 70
   QAR: 0.03
   RON: 0.04
   RSD: 1
-  RUB: 0.6 # 0.5
+  RUB: 0.6
   RWF: 5
   SAR: 0.03
-  SEK: 0.1 # 0.01
+  SEK: 0.1
   SLL: 100
+  SOS: 5.5
   SSP: 1
-  THB: 0.36 # 0.2
+  THB: 0.36
   TJS: .1
   TMT: 0.03
   TND: 0.02
-  TRY: 0.18 # 0.05
-  TZS: 10 # 50
-  UAH: 0.1 #0.25
+  TRY: 0.18
+  TZS: 10
+  UAH: 0.1
   UBC: 1  # CRYPTO uBTC
   UGX: 50
   USD: 0.01
   UST: 0.01
   UYU: 0.4
-  UZS: 100 # 50
+  UZS: 100
   VES: 0.01
   VEX: 2000
-  VND: 200 # 100
+  VND: 200
   XAF: 5
   XBT: 0.001
+  XDR: 0.005
   XOF: 5
-  ZAR: 0.14 # 0.1
+  ZAR: 0.14
   ZMK: 0.1
-  ZMW: 0.15 # 0.1
+  ZMW: 0.15
 
 profiles:
   low:
@@ -158,211 +162,6 @@ hostProfiles:
   THB: highdefault
 
 override:
-#  mvgEngineII:
-#    TND:
-#      defaultBet: 0.03
-#      stakeValues:
-#        - 0.01
-#        - 0.02
-#        - 0.03
-#        - 0.05
-#        - 0.1
-#        - 0.2
-#        - 0.3
-#        - 0.5
-#        - 1
-#        - 2
-#  mvgEngineV:
-#    UZS:
-#      defaultBet: 120
-#      stakeValues:
-#        - 40  
-#        - 80  
-#        - 120 
-#        - 200 
-#        - 400 
-#        - 800 
-#        - 1200  
-#        - 2000  
-#        - 4000  
-#        - 8000
-#  mvgEngineIX:
-#    UZS:
-#      defaultBet: 3000
-#      stakeValues:
-#        - 1000
-#        - 2000
-#        - 3000
-#        - 5000
-#        - 10000
-#        - 20000
-#        - 30000
-#        - 50000
-#        - 100000
-#        - 200000
-#    TND:
-#      defaultBet: 0.6
-#      stakeValues:
-#        - 0.2
-#        - 0.4
-#        - 0.6
-#        - 1
-#        - 2
-#        - 4
-#        - 6
-#        - 10
-#        - 20
-#        - 40
-#  mvgEngineX:
-#    UZS:
-#      defaultBet: 1500
-#      stakeValues:
-#        - 1
-#        - 1
-#        - 1
-#        - 1
-#        - 1
-#        - 1
-#        - 1500
-#        - 1
-#        - 1
-#        - 1
-#  mvgEngineXI:
-#    UZS:
-#      defaultBet: 3000
-#      stakeValues:
-#        - 1000
-#        - 2000
-#        - 3000
-#        - 5000
-#        - 10000
-#        - 20000
-#        - 30000
-#        - 50000
-#        - 100000
-#        - 200000
-#  mvgEngineXII:
-#    UZS:
-#      defaultBet: 75
-#      stakeValues:
-#        - 25  
-#        - 50  
-#        - 75  
-#        - 125 
-#        - 250 
-#        - 500 
-#        - 750 
-#        - 1250  
-#        - 2500  
-#        - 5000
-#    TND:
-#      defaultBet: 0.03
-#      stakeValues:
-#        - 0.01
-#        - 0.02
-#        - 0.03
-#        - 0.05
-#        - 0.1
-#        - 0.2
-#        - 0.3
-#        - 0.5
-#        - 1
-#        - 2
-#  mvgEngineXIII:
-#    UZS:
-#      defaultBet: 60
-#      stakeValues:
-#        - 20  
-#        - 40  
-#        - 60  
-#        - 100 
-#        - 200 
-#        - 400 
-#        - 600 
-#        - 1000  
-#        - 2000  
-#        - 4000
-#    TND:
-#      defaultBet: 0.03
-#      stakeValues:
-#        - 0.01
-#        - 0.02
-#        - 0.03
-#        - 0.05
-#        - 0.1
-#        - 0.2
-#        - 0.3
-#        - 0.5
-#        - 1
-#        - 2
-#  mvgEngineXIV:
-#    UZS:
-#      defaultBet: 60
-#      stakeValues:
-#        - 20  
-#        - 40  
-#        - 60  
-#        - 100 
-#        - 200 
-#        - 400 
-#        - 600 
-#        - 1000  
-#        - 2000  
-#        - 4000
-#    TND:
-#      defaultBet: 0.03
-#      stakeValues:
-#        - 0.01
-#        - 0.02
-#        - 0.03
-#        - 0.05
-#        - 0.1
-#        - 0.2
-#        - 0.3
-#        - 0.5
-#        - 1
-#        - 2
-#  mvgEngineXV:
-#    UZS:
-#      defaultBet: 120
-#      stakeValues:
-#        - 40  
-#        - 80  
-#        - 120 
-#        - 200 
-#        - 400 
-#        - 800 
-#        - 1200  
-#        - 2000  
-#        - 4000  
-#        - 8000
-#  mvgEngineXVI:
-#    UZS:
-#      defaultBet: 75
-#      stakeValues:
-#        - 25  
-#        - 50  
-#        - 75  
-#        - 125 
-#        - 250 
-#        - 500 
-#        - 750 
-#        - 1250  
-#        - 2500  
-#        - 5000
-#    TND:
-#      defaultBet: 0.03
-#      stakeValues:
-#        - 0.01
-#        - 0.02
-#        - 0.03
-#        - 0.05
-#        - 0.1
-#        - 0.2
-#        - 0.3
-#        - 0.5
-#        - 1
-#        - 2
   mvgEngineUnity1:
     credits:
       defaultBet: 10
@@ -449,6 +248,20 @@ override:
         - 200
         - 400
   mvgEngineGodot7:
+    credits:
+      defaultBet: 10
+      stakeValues:
+        - 2
+        - 4
+        - 6
+        - 10
+        - 20
+        - 40
+        - 60
+        - 100
+        - 200
+        - 400
+  mvgEngineGodot8:
     credits:
       defaultBet: 10
       stakeValues:

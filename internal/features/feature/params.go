@@ -188,7 +188,12 @@ func ConvertIntSlice(in interface{}) []int {
 			var v int
 			v, ok = av.(int)
 			if !ok {
-				panic("not an int slize")
+				var vf float64
+				vf, ok = av.(float64)
+				if !ok {
+					panic("not an int slize")
+				}
+				v = int(vf)
 			}
 			val[i] = v
 		}

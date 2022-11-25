@@ -72,6 +72,18 @@ func SetStatefulMap(statefulMap FeatureParams, params FeatureParams) {
 	params["StatefulMap"] = statefulMap
 }
 
+func GetParamStakeMap(state FeatureState, params FeatureParams) (stakeMap FeatureParams) {
+	statefulMap := params.GetParams("StatefulMap")
+	stake := fmt.Sprintf("%.3f", state.TotalStake)
+	stakeMap = FeatureParams{}
+	if statefulMap.HasKey(stake) {
+		for k, v := range statefulMap.GetParams(stake) {
+			stakeMap[k] = v
+		}
+	}
+	return
+}
+
 func GetStatefulStakeMap(state FeatureState) (statefulStakeMap FeatureParams) {
 	statefulMap := GetStatefulMap(state)
 	stake := fmt.Sprintf("%.3f", state.TotalStake)
