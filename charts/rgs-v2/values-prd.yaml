@@ -276,6 +276,7 @@ gameConfig:
   - engineID: mvgEngineGodot8
     games:
       - name: elysium-vip
+        item: 8678
         flags: campaign
       
 gamification:

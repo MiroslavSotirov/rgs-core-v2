@@ -15,6 +15,7 @@ const (
 	STATEFUL_ID_TRIGGER_ELYSIUM_VIP_LEVEL     = "level"
 	STATEFUL_ID_TRIGGER_ELYSIUM_VIP_INSERTS   = "inserts"
 	STATEFUL_ID_TRIGGER_ELYSIUM_VIP_ORIGINALS = "originals"
+	STATEFUL_ID_TRIGGER_ELYSIUM_VIP_EMPLACED  = "emplaced"
 )
 
 var _ feature.Factory = feature.RegisterFeature(FEATURE_ID_TRIGGER_ELYSIUM_VIP, func() feature.Feature { return new(TriggerElysiumVip) })
@@ -28,6 +29,7 @@ func (f TriggerElysiumVip) Trigger(state *feature.FeatureState, params feature.F
 	level := 0
 	inserts := []int{}
 	originals := []int{0, 1, 2}
+	emplaced := []int{0, 1, 2}
 	if state.Action != "base" {
 		statefulStake := feature.GetStatefulStakeMap(*state)
 		logger.Debugf("statefulStake: %#v", statefulStake)
@@ -37,8 +39,12 @@ func (f TriggerElysiumVip) Trigger(state *feature.FeatureState, params feature.F
 		if statefulStake.HasKey(STATEFUL_ID_TRIGGER_ELYSIUM_VIP_INSERTS) {
 			inserts = feature.ConvertIntSlice(statefulStake.GetSlice(STATEFUL_ID_TRIGGER_ELYSIUM_VIP_INSERTS))
 		}
-		if statefulStake.HasKey(STATEFUL_ID_TRIGGER_ELYSIUM_VIP_ORIGINALS) {
-			originals = statefulStake.GetIntSlice(STATEFUL_ID_TRIGGER_ELYSIUM_VIP_ORIGINALS)
+		if statefulStake.HasKey(STATEFUL_ID_TRIGGER_ELYSIUM_VIP_EMPLACED) {
+			emplaced = statefulStake.GetIntSlice(STATEFUL_ID_TRIGGER_ELYSIUM_VIP_EMPLACED)
+			originals = make([]int, len(emplaced))
+			for i, v := range emplaced {
+				originals[i] = v
+			}
 		}
 		if len(state.SymbolGrid) != len(state.Stateful.SymbolGrid)+len(inserts) {
 			panic(fmt.Sprintf("number of reels %d is not last spin num %d plus num inserts %d",
@@ -74,7 +80,8 @@ func (f TriggerElysiumVip) Trigger(state *feature.FeatureState, params feature.F
 	feature.SetStatefulStakeMap(*state, feature.FeatureParams{
 		STATEFUL_ID_TRIGGER_ELYSIUM_VIP_LEVEL:     level,
 		STATEFUL_ID_TRIGGER_ELYSIUM_VIP_INSERTS:   inserts,
-		STATEFUL_ID_TRIGGER_ELYSIUM_VIP_ORIGINALS: originals},
+		STATEFUL_ID_TRIGGER_ELYSIUM_VIP_ORIGINALS: originals,
+		STATEFUL_ID_TRIGGER_ELYSIUM_VIP_EMPLACED:  emplaced},
 		params)
 
 	feature.ActivateFeatures(f.FeatureDef, state, params)

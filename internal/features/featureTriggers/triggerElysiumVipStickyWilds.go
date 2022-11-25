@@ -14,10 +14,9 @@ const (
 	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_TILE_ID                  = "TileId"
 	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_NUM_WILDS_LEVELS         = "NumWildsLevels"
 	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_NUM_PROBABILITIES_LEVELS = "NumProbabilitiesLevels"
-	//	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_REEL_PROBABILITIES_LEVELS = "ReelProbabilitiesLevels"
-	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_RETRY_FACTOR       = "RetryFactor"
-	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_PROBABILITY_LEVELS = "ProbabilityLevels"
-	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_REEL_PROBABILITIES = "ReelProbabilities"
+	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_RETRY_FACTOR             = "RetryFactor"
+	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_PROBABILITY_LEVELS       = "ProbabilityLevels"
+	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_REEL_PROBABILITIES       = "ReelProbabilities"
 )
 
 var _ feature.Factory = feature.RegisterFeature(FEATURE_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS, func() feature.Feature { return new(TriggerElysiumVipStickyWilds) })
@@ -31,6 +30,7 @@ func (f TriggerElysiumVipStickyWilds) Trigger(state *feature.FeatureState, param
 	level := 0
 	inserts := []int{}
 	originals := []int{0, 1, 2}
+	emplaced := []int{0, 1, 2}
 	stakeMap := feature.GetParamStakeMap(*state, params)
 	if stakeMap.HasKey(STATEFUL_ID_TRIGGER_ELYSIUM_VIP_LEVEL) {
 		level = stakeMap.GetInt(STATEFUL_ID_TRIGGER_ELYSIUM_VIP_LEVEL)
@@ -40,6 +40,13 @@ func (f TriggerElysiumVipStickyWilds) Trigger(state *feature.FeatureState, param
 	}
 	if stakeMap.HasKey(STATEFUL_ID_TRIGGER_ELYSIUM_VIP_ORIGINALS) {
 		originals = stakeMap.GetIntSlice(STATEFUL_ID_TRIGGER_ELYSIUM_VIP_ORIGINALS)
+	}
+	if stakeMap.HasKey(STATEFUL_ID_TRIGGER_ELYSIUM_VIP_EMPLACED) {
+		emplaced = stakeMap.GetIntSlice(STATEFUL_ID_TRIGGER_ELYSIUM_VIP_EMPLACED)
+		originals = make([]int, len(emplaced))
+		for i, v := range emplaced {
+			originals[i] = v
+		}
 	}
 	probabilityLevels := params.GetIntSlice(PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_PROBABILITY_LEVELS)
 	if rng.RandFromRange(10000) < probabilityLevels[level] {
@@ -81,6 +88,17 @@ func (f TriggerElysiumVipStickyWilds) Trigger(state *feature.FeatureState, param
 			return false
 		}
 
+		isAllWilds := func() bool {
+			for ireel, r := range state.SymbolGrid {
+				for irow, _ := range r {
+					if !isWild(ireel, irow) {
+						return false
+					}
+				}
+			}
+			return true
+		}
+
 		for try := 0; len(positions) < numWilds && try < numTries+1; try++ {
 			var reelidx int
 			if level == 0 {
@@ -120,28 +138,31 @@ func (f TriggerElysiumVipStickyWilds) Trigger(state *feature.FeatureState, param
 				}
 			}
 
-			params[featureProducts.PARAM_ID_RESPIN_AMOUNT] = 1
-			numreels := gridw + len(inserts)
-			action := ""
-			switch numreels {
-			case 3:
-				action = "respinall1"
-			case 4:
-				action = "respinall2"
-			case 5:
-				action = "respinall3"
-			}
-			params[featureProducts.PARAM_ID_RESPIN_ACTION] = action
+			if !isAllWilds() {
+				params[featureProducts.PARAM_ID_RESPIN_AMOUNT] = 1
+				numreels := gridw + len(inserts)
+				action := ""
+				switch numreels {
+				case 3:
+					action = "respinall1"
+				case 4:
+					action = "respinall2"
+				case 5:
+					action = "respinall3"
+				}
+				params[featureProducts.PARAM_ID_RESPIN_ACTION] = action
 
-			level++
-			if level >= len(numWildsLevels) {
-				level = len(numWildsLevels) - 1
+				level++
+				if level >= len(numWildsLevels) {
+					level = len(numWildsLevels) - 1
+				}
 			}
+
 			if len(inserts) > 0 {
 				sort.Slice(inserts, func(i, j int) bool { return i < j })
 
-				for im, m := range originals {
-					originals[im] = func() int {
+				for im, m := range emplaced {
+					emplaced[im] = func() int {
 						c := 0
 						for _, i := range inserts {
 							if i <= m {
@@ -158,7 +179,8 @@ func (f TriggerElysiumVipStickyWilds) Trigger(state *feature.FeatureState, param
 			feature.SetStatefulStakeMap(*state, feature.FeatureParams{
 				STATEFUL_ID_TRIGGER_ELYSIUM_VIP_LEVEL:     level,
 				STATEFUL_ID_TRIGGER_ELYSIUM_VIP_INSERTS:   inserts,
-				STATEFUL_ID_TRIGGER_ELYSIUM_VIP_ORIGINALS: originals},
+				STATEFUL_ID_TRIGGER_ELYSIUM_VIP_ORIGINALS: originals,
+				STATEFUL_ID_TRIGGER_ELYSIUM_VIP_EMPLACED:  emplaced},
 				params)
 
 			feature.ActivateFeatures(f.FeatureDef, state, params)
