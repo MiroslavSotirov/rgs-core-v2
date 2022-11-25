@@ -318,7 +318,6 @@ func GetHash(filePath string) (string, string, error) {
 	}
 	SHA1Hash, err := GetHashFile(filePath, GetHashSha1)
 
-	fmt.Println(MD5Hash, SHA1Hash)
 	return MD5Hash, SHA1Hash, err
 }
 
