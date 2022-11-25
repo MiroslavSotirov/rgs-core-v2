@@ -110,7 +110,7 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 	if config.GlobalConfig.DevMode {
 		walletamtmult = 10000
 	}
-	stakeValues, _, _, _, paramErr := GetGameplayParameters(engine.Money{0, currency}, betSettingsCode, gameID)
+	stakeValues, _, _, _, paramErr := GetGameplayParameters(engine.Money{Amount: 0, Currency: currency}, betSettingsCode, gameID)
 	if paramErr != nil {
 		err = paramErr
 		return
@@ -125,11 +125,11 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 		err = confErr
 		return
 	}
-	walletInitBal = engine.Money{stakeValues[len(stakeValues)-1].MulFloat(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).MulFloat(engine.NewFixedFromInt(walletamtmult)), currency}
+	walletInitBal = engine.Money{Amount: stakeValues[len(stakeValues)-1].MulFloat(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)).MulFloat(engine.NewFixedFromInt(walletamtmult)), Currency: currency}
 	logger.Debugf("wallet initial balance= %v", walletInitBal)
 	// solution for testing low balance
 	if playerID == "lowbalance" {
-		walletInitBal = engine.Money{0, currency}
+		walletInitBal = engine.Money{Amount: 0, Currency: currency}
 	} else if playerID == "" {
 		playerID = rng.RandStringRunes(8)
 	} else if strings.Contains(playerID, "campaign") {

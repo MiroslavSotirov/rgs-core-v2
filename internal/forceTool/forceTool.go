@@ -165,7 +165,7 @@ func smartForceFromID(params engine.GameParams, previousGamestate engine.Gamesta
 			currency := previousGamestate.BetPerLine.Currency
 			if force.Action == "respin" {
 				betPerLine = previousGamestate.BetPerLine.Amount
-				totalBet = engine.Money{previousGamestate.RespinPriceReel(params.RespinReel), currency}
+				totalBet = engine.Money{Amount: previousGamestate.RespinPriceReel(params.RespinReel), Currency: currency}
 			}
 			gamestate.PostProcess(previousGamestate, chargeWager, totalBet, engineConf, betPerLine, actions, currency)
 

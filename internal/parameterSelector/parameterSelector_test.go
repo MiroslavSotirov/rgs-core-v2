@@ -13,30 +13,30 @@ var testBetLimitCode = "maverick"
 var testCcy = "USD"
 
 func TestLowLastBet(t *testing.T) {
-	_, ds, _, _, _ := GetGameplayParameters(engine.Money{engine.Fixed(0), testCcy}, testBetLimitCode, testGameID)
+	_, ds, _, _, _ := GetGameplayParameters(engine.Money{Amount: engine.Fixed(0), Currency: testCcy}, testBetLimitCode, testGameID)
 	if ds == engine.Fixed(0) {
-		t.Error(fmt.Sprintf("Expected last bet to be overridden by default. defaultStake: %v", ds))
+		t.Errorf(fmt.Sprintf("Expected last bet to be overridden by default. defaultStake: %v", ds))
 	}
-	_, ds, _, _, _ = GetGameplayParameters(engine.Money{engine.Fixed(10000), testCcy}, testBetLimitCode, testGameID)
+	_, ds, _, _, _ = GetGameplayParameters(engine.Money{Amount: engine.Fixed(10000), Currency: testCcy}, testBetLimitCode, testGameID)
 	if ds != engine.Fixed(10000) {
-		t.Error(fmt.Sprintf("Expected last bet to be maintained. defaultStake: %v", ds))
+		t.Errorf(fmt.Sprintf("Expected last bet to be maintained. defaultStake: %v", ds))
 	}
 
 }
 
 func TestHighLastBet(t *testing.T) {
-	_, ds, _, _, _ := GetGameplayParameters(engine.Money{engine.Fixed(100000000), testCcy}, testBetLimitCode, testGameID)
+	_, ds, _, _, _ := GetGameplayParameters(engine.Money{Amount: engine.Fixed(100000000), Currency: testCcy}, testBetLimitCode, testGameID)
 	if ds == engine.Fixed(100000000) {
-		t.Error(fmt.Sprintf("Expected last bet to be overridden by default. defaultStake: %v", ds))
+		t.Errorf(fmt.Sprintf("Expected last bet to be overridden by default. defaultStake: %v", ds))
 	}
-	sv, ds, _, _, _ := GetGameplayParameters(engine.Money{engine.Fixed(500000), testCcy}, testBetLimitCode, testGameID)
+	sv, ds, _, _, _ := GetGameplayParameters(engine.Money{Amount: engine.Fixed(500000), Currency: testCcy}, testBetLimitCode, testGameID)
 	if ds != engine.Fixed(500000) {
-		t.Error(fmt.Sprintf("Expected last bet to be maintained. defaultStake: %v; stakeValues: %v", ds, sv))
+		t.Errorf(fmt.Sprintf("Expected last bet to be maintained. defaultStake: %v; stakeValues: %v", ds, sv))
 	}
 }
 
 func TestEngineXSetting(t *testing.T) {
-	sv, ds, _, _, err := GetGameplayParameters(engine.Money{engine.Fixed(0), testCcy}, testBetLimitCode, "seasons")
+	sv, ds, _, _, err := GetGameplayParameters(engine.Money{Amount: engine.Fixed(0), Currency: testCcy}, testBetLimitCode, "seasons")
 	// expect sv to be 0.01, 0.02, 0.03, ds to be max of these
 	if err != nil {
 		t.Error(err.Error())
@@ -50,8 +50,8 @@ func TestEngineXSetting(t *testing.T) {
 }
 
 func TestBadCcy(t *testing.T) {
-	sv, ds, _, _, err := GetGameplayParameters(engine.Money{engine.Fixed(0), "NIL"}, testBetLimitCode, testGameID)
+	sv, ds, _, _, err := GetGameplayParameters(engine.Money{Amount: engine.Fixed(0), Currency: "NIL"}, testBetLimitCode, testGameID)
 	if err == nil {
-		t.Error(fmt.Sprintf("Should have gotten error for nil currency. sv: %v; ds: %v", sv, ds))
+		t.Errorf(fmt.Sprintf("Should have gotten error for nil currency. sv: %v; ds: %v", sv, ds))
 	}
 }

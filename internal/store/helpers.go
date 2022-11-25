@@ -19,7 +19,7 @@ import (
 // set up local memcached server with:
 // memcached -l 127.0.0.1 -m 64 -vv
 
-//connect to memcache only for dev mode
+// connect to memcache only for dev mode
 var MC *memcache.Client
 var ServLocal LocalService
 var Serv Service

@@ -1,7 +1,6 @@
 package engine
 
 import (
-	// "crypto/md5"
 	"crypto/md5"
 	"crypto/sha1"
 	"encoding/hex"
@@ -318,6 +317,8 @@ func GetHash(filePath string) (string, string, error) {
 		return MD5Hash, "", err
 	}
 	SHA1Hash, err := GetHashFile(filePath, GetHashSha1)
+
+	fmt.Println(MD5Hash, SHA1Hash)
 	return MD5Hash, SHA1Hash, err
 }
 

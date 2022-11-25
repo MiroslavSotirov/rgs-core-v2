@@ -1,12 +1,13 @@
 package testing
 
 import (
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"log"
 	"os"
 	"path"
 	"runtime"
+
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 func init() {
@@ -17,7 +18,7 @@ func init() {
 		panic(err)
 	}
 	//config.InitConfig()
-	logConfig := logger.Configuration{false, logger.Debug}
+	logConfig := logger.Configuration{ConsoleJSONFormat: false, ConsoleLevel: logger.Debug}
 
 	err = logger.NewLogger(logConfig)
 	if err != nil {

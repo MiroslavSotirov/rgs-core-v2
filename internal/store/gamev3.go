@@ -39,7 +39,6 @@ func (g GameV3) InitState() engine.IGameStateV3 {
 
 func (g GameV3) SerializeState(_ engine.IGameStateV3) []byte {
 	panic("GameV3 SerializeState is stub. Use game specific implementation")
-	return []byte{}
 }
 
 func (g GameV3) DeserializeState(serialized []byte) (state engine.IGameStateV3, rgserr rgse.RGSErr) {

@@ -69,7 +69,7 @@ func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.G
 		DefID:         defId,
 		ReelsetID:     reelsetId,
 		Id:            gsID,
-		BetPerLine:    engine.Money{0, player.Balance.Currency},
+		BetPerLine:    engine.Money{Amount: 0, Currency: player.Balance.Currency},
 		NextActions:   []string{"finish"},
 		Action:        "init",
 		Gamification:  &engine.GamestatePB_Gamification{},
