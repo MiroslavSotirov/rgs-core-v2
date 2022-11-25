@@ -23,15 +23,14 @@ import (
 )
 
 var (
-	runVT      bool
-	engineID   string
-	spins      int
-	chunks     int
-	perSpin    bool
-	maxes      bool
-	getHashes  bool
-	memProfile string
-	gameState  string
+	runVT     bool
+	engineID  string
+	spins     int
+	chunks    int
+	perSpin   bool
+	maxes     bool
+	getHashes bool
+	gameState string
 )
 
 func main() {
@@ -58,10 +57,10 @@ func main() {
 	logger.Infof("API INIT: OK")
 	//
 	// initial serve web
-	if runVT == true {
+	if runVT {
 		logger.Errorf("Running VT : spins %v  chunks %v engine %v", spins, chunks, engineID)
 		failed := volumeTester.RunVT(engineID, spins, chunks, perSpin, maxes)
-		if failed == true {
+		if failed {
 			logger.Errorf("VT Failed, not starting server")
 			os.Exit(5)
 		}

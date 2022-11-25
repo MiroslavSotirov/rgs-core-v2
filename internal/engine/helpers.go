@@ -246,7 +246,7 @@ func (gp *GameParams) Decode(request *http.Request) (rgserr rgse.RGSErr) {
 }
 
 // if this is the action, a wager must be charged
-var paidActions = []string{"base", "maxBase", "respin", "gamble"}
+// var paidActions = []string{"base", "maxBase", "respin", "gamble"}
 
 func (p GameParams) Validate() (err rgse.RGSErr) {
 	if p.Game == "" || p.Action == "" {
@@ -314,6 +314,9 @@ func GetHashes() (IDStrings []string, MD5Strings []string, SHA1Strings []string,
 
 func GetHash(filePath string) (string, string, error) {
 	MD5Hash, err := GetHashFile(filePath, GetHashMd5)
+	if err != nil {
+		return MD5Hash, "", err
+	}
 	SHA1Hash, err := GetHashFile(filePath, GetHashSha1)
 	return MD5Hash, SHA1Hash, err
 }

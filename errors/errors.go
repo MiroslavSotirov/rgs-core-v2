@@ -223,12 +223,12 @@ func (e RGSError) GetDesc() string {
 //	e.ErrorText = fmt.Sprintf("%s %s", e.DefaultErrorText, strings.Join(msgs, " "))
 //}
 
-//AppendErrorText append custom error message
+// AppendErrorText append custom error message
 func (e *RGSError) AppendErrorText(text string) {
 	e.ErrorText = text
 }
 
-//AppendErrorText append custom error message
+// AppendErrorText append custom error message
 func (e *RGSError) AppendErrorDesc(desc string) {
 	e.ErrorDesc = desc
 }

@@ -16,7 +16,7 @@ import (
 func GetURLScheme(r *http.Request) string {
 	//return r.URL.Scheme+"//"
 	//todo: find another way to handle this because TLS is missing sometimes from request object when it shouldn't be
-	if config.GlobalConfig.Local == true {
+	if config.GlobalConfig.Local {
 		return "http://"
 	}
 	return "https://"
@@ -81,7 +81,6 @@ func AppendHistory(tx *store.TransactionStore, transaction engine.WalletTransact
 		tx.History.NumPayout++
 		tx.History.SumPayout += amount
 	}
-	return
 }
 
 func DefaultTitleName(name string) string {

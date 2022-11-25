@@ -36,9 +36,6 @@ type playParamsV3 struct {
 	AutoClose  bool   `json:"autoClose"`
 }
 
-type closeParamsV3 struct {
-}
-
 type IGameInitResponseV3 interface {
 	Base() *GameInitResponseV3
 	Render(http.ResponseWriter, *http.Request) error
@@ -176,7 +173,6 @@ func initGameV3(player store.PlayerStore, engineId string, wallet string, body [
 		return initRoulette(player, engineId, wallet, body, engineConf, token, state)
 	default:
 		logger.Errorf("v3 api has no support for engineId %s", engineId)
-		break
 	}
 	return nil, rgse.Create(rgse.EngineNotFoundError)
 }
@@ -227,7 +223,6 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 			txStore, rgserr = store.Serv.TransactionByGameId(token, store.ModeReal, data.Game)
 			logger.Debugf("store.Serv.TransactionByGameId done. txStore.TransactionId=%#v", txStore.TransactionId)
 		}
-		break
 	case "demo":
 		logger.Debugf("wallet is demo")
 		if bfirst {
@@ -240,7 +235,6 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 			txStore, rgserr = store.ServLocal.TransactionByGameId(token, store.ModeDemo, data.Game)
 			logger.Debugf("store.ServLocal.TransactionByGameId done. txStore.TransactionId=%#v", txStore.TransactionId)
 		}
-		break
 	default:
 		logger.Errorf("unknown wallet\n")
 		rgserr = rgse.Create(rgse.InvalidWallet)
@@ -277,12 +271,10 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 			PlayerId:            player.PlayerId,
 			FreeGames:           player.FreeGames,
 			Token:               player.Token,
-			Amount:              engine.Money{0, player.Balance.Currency},
+			Amount:              engine.Money{Amount: 0, Currency: player.Balance.Currency},
 			Ttl:                 3600,
 		}
 		logger.Debugf("first gameplay. transaction: %#v", txStore)
-
-		prevIState = gameV3.InitState()
 	} else {
 		logger.Debugf("not first gameplay")
 
@@ -346,10 +338,6 @@ func playV3(request *http.Request) (response IGamePlayResponseV3, rgserr rgse.RG
 	}
 
 	return playGameV3(engineId, data.Wallet, body, txStore)
-}
-
-func validateState(state engine.IGameStateV3) rgse.RGSErr {
-	return nil
 }
 
 func playGameV3(engineId string, wallet string, body []byte, txStore store.TransactionStore) (response IGamePlayResponseV3, rgserr rgse.RGSErr) {

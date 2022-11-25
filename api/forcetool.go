@@ -1,12 +1,13 @@
 package api
 
 import (
-	ft "gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 	"html/template"
 	"net/http"
 	"sort"
 	"strings"
+
+	ft "gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 type GameFields struct {
@@ -34,7 +35,7 @@ func removeDuplicates(elements []ForceValuesFields) []ForceValuesFields {
 	result := []ForceValuesFields{}
 
 	for v := range elements {
-		if encountered[elements[v]] == true {
+		if encountered[elements[v]] {
 			// Do not add duplicate.
 		} else {
 			// Record this element as an encountered element.

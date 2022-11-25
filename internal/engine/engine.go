@@ -32,7 +32,7 @@ func (engine EngineDef) Spin() ([][]int, []int) {
 		reelIndex := rng.RandFromRange(len(reel))
 		stopList[index] = reelIndex
 	}
-	if config.GlobalConfig.DevMode == true && len(engine.force) == len(engine.ViewSize) {
+	if config.GlobalConfig.DevMode && len(engine.force) == len(engine.ViewSize) {
 		logger.Infof("spin using forced stoplist: %v", engine.force)
 		stopList = engine.force
 		//rgse.Create(rgse.Forcing)
@@ -164,7 +164,7 @@ func GetWinInLine(lineContent []int, wilds []wild, linePayouts []Payout, compoun
 				}
 			}
 		}
-		if match == false {
+		if !match {
 			// stop checking the line once a non-matching symbol is found
 			break
 		}
@@ -211,9 +211,9 @@ func GetWinInLineKeepWilds(lineContent []int, wilds []wild, linePayouts []Payout
 }
 
 /*
-   The defauly way to handle wilds should be what this does: if there are defined payouts for wilds
-   then wilds should not be converted to regular symbols when it will generate a smaller win. To avoid changing the legacy
-   way to count, this function can be used with game requiering this.
+The defauly way to handle wilds should be what this does: if there are defined payouts for wilds
+then wilds should not be converted to regular symbols when it will generate a smaller win. To avoid changing the legacy
+way to count, this function can be used with game requiering this.
 */
 func GetHighestWinInLine(lineContent []int, wilds []wild, linePayouts []Payout, compounding bool, wildMultipliers map[int]int) (prize Prize) {
 	prize = GetWinInLine(lineContent, wilds, linePayouts, compounding, wildMultipliers)
@@ -344,7 +344,7 @@ func DetermineWaysWins(symbolGrid [][]int, waysPayouts []Payout, wilds []wild) [
 				break
 			}
 		}
-		if alreadyMatched == true {
+		if alreadyMatched {
 			continue
 		}
 		var variations []wayWin
@@ -394,7 +394,7 @@ func DetermineWaysWins(symbolGrid [][]int, waysPayouts []Payout, wilds []wild) [
 				}
 				symbolIndex++
 			}
-			if match == false {
+			if !match {
 				// when no matches on a reel, check variations against prize
 				break
 			} else {
@@ -405,7 +405,7 @@ func DetermineWaysWins(symbolGrid [][]int, waysPayouts []Payout, wilds []wild) [
 			variation := variations[i]
 			if len(variation.symbolPositions) == waysPayout.Count {
 				// ignore variations consisting of only wild symbols (isAllWild will be false if matching hard-coded win for 5 wilds)
-				if variation.isAllWild == true {
+				if variation.isAllWild {
 					continue
 				}
 				winIndex := strconv.Itoa(waysPayout.Symbol) + ":" + strconv.Itoa(waysPayout.Count)
@@ -959,7 +959,7 @@ func (engine EngineDef) GuaranteedWin(parameters GameParams) Gamestate {
 	var gamestate Gamestate
 	for len(gamestate.Prizes) == 0 {
 		gamestate = engine.BaseRound(parameters)
-		if config.GlobalConfig.DevMode == true && len(engine.force) > 0 {
+		if config.GlobalConfig.DevMode && len(engine.force) > 0 {
 			logger.Warnf("removing force to stop infinite iterations")
 			engine.SetForce([]int{})
 		}
@@ -1681,7 +1681,7 @@ type filterfunc func(state Gamestate) (bool, error)
 func genForcedRound(gen GenerateRound, engine EngineDef, parameters GameParams) Gamestate {
 	if parameters.Force != "" {
 		logger.Debugf("FeatureRound devmode: %v force: %s IsV3: %v", config.GlobalConfig.DevMode, parameters.Force, config.GlobalConfig.Server.IsV3())
-		if config.GlobalConfig.DevMode == true {
+		if config.GlobalConfig.DevMode {
 			fp := feature.FeatureParams{"force": parameters.Force}
 			if config.GlobalConfig.Server.IsV3() {
 				filter := fp.GetForce("filter")
@@ -1758,7 +1758,7 @@ func genForcedRound(gen GenerateRound, engine EngineDef, parameters GameParams) 
 
 func genFilteredRound(gen GenerateRound, engine EngineDef, parameters GameParams, timeout int64, filter filterfunc) (Gamestate, error) {
 	startTime := time.Now()
-	for true {
+	for {
 		state := gen.FeatureRound(engine, parameters)
 		satisfied, err := filter(state)
 		if err != nil {
@@ -1769,13 +1769,13 @@ func genFilteredRound(gen GenerateRound, engine EngineDef, parameters GameParams
 			logger.Infof("filter force was satisfied")
 			return state, nil
 		}
-		elapsed := time.Now().Sub(startTime)
+		elapsed := time.Since(startTime)
 		if elapsed > time.Duration(timeout) {
 			logger.Warnf("filter halted due to timeout")
 			return state, nil
 		}
 	}
-	return Gamestate{}, nil
+	// return Gamestate{}, nil
 }
 
 func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams) Gamestate {

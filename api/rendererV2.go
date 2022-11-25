@@ -377,8 +377,6 @@ func (initResp *GameInitResponseV2) FillEngineInfo(enginecfg engine.EngineConfig
 		initResp.BetMult = reelResp[k].BetMult
 		break
 	}
-
-	return
 }
 
 func TranslateAction(action string) string {

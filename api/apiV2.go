@@ -76,7 +76,7 @@ func getGameHashes(request *http.Request) (GameHashResponse, rgse.RGSErr) {
 				if len(ccys) > 0 {
 					stakes = make(map[string][]engine.Fixed, len(ccys))
 					for _, ccy := range ccys {
-						stakeValues, _, _, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, ccy}, "", g.Name)
+						stakeValues, _, _, _, err := parameterSelector.GetGameplayParameters(engine.Money{Amount: 0, Currency: ccy}, "", g.Name)
 						if err == nil {
 							for i, _ := range stakeValues {
 								stakeValues[i] = stakeValues[i].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor))
@@ -307,7 +307,7 @@ func playFirst(request *http.Request, data engine.GameParams) (GameplayResponseV
 		PlayerId:            player.PlayerId,
 		FreeGames:           player.FreeGames,
 		Token:               player.Token,
-		Amount:              engine.Money{0, player.Balance.Currency},
+		Amount:              engine.Money{Amount: 0, Currency: player.Balance.Currency},
 		Ttl:                 3600,
 	}
 
@@ -330,7 +330,7 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 	if err != nil {
 		return
 	}
-	if config.GlobalConfig.DevMode == true {
+	if config.GlobalConfig.DevMode {
 		forcedGamestate, err := forceTool.GetForceValues(data, previousGamestate, txStore.PlayerId)
 		if err == nil {
 			logger.Warnf("Forcing gamestate: %v", forcedGamestate)

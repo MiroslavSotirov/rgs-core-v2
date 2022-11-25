@@ -73,7 +73,7 @@ func Routes() *chi.Mux {
 		r.Get("/init/{gameSlug:"+RegexGameSlug+"}/{wallet:"+RegexWallet+"}", func(w http.ResponseWriter, r *http.Request) {
 
 			gameSlug := chi.URLParam(r, "gameSlug")
-			engineID, err := config.GetEngineFromGame(gameSlug)
+			engineID, _ := config.GetEngineFromGame(gameSlug)
 
 			player, engineConfig, previousGamestate, err := initGame(r)
 
@@ -100,8 +100,7 @@ func Routes() *chi.Mux {
 			}
 			logger.Debugf("previous Gamestate: %#v", previousGamestate)
 
-			var gamestateResponse GameplayResponse
-			gamestateResponse = renderGamestate(r, previousGamestate, balanceResponse, engineConfig, player)
+			gamestateResponse := renderGamestate(r, previousGamestate, balanceResponse, engineConfig, player)
 
 			engineDefs := engineConfig.EngineDefs
 			stakeValues, defaultBet, _, _, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine, player.BetLimitSettingCode, gameSlug)
@@ -215,7 +214,7 @@ func Routes() *chi.Mux {
 			// todo: send link for freeplay if recovering in fp mode
 
 			links := gamestateResponse.Links
-			if strings.Contains(previousGamestate.Id, "GSinit") == false {
+			if strings.Contains(previousGamestate.Id, "GSinit") {
 				logger.Infof("prev gamestate id: %v", previousGamestate.Id)
 				href := fmt.Sprintf("%s%s/%s/rgs/playcheck/%s", GetURLScheme(r), r.Host, APIVersion, previousGamestate.Id)
 				latestGameplayLink := LinkResponse{
@@ -487,11 +486,10 @@ func Routes() *chi.Mux {
 				return
 			}
 			w.WriteHeader(200)
-			return
 		})
 
 		r.Get("/force", func(w http.ResponseWriter, r *http.Request) {
-			if config.GlobalConfig.DevMode == true {
+			if config.GlobalConfig.DevMode {
 				listForceTools(r, w)
 			}
 		})
@@ -654,7 +652,6 @@ func Routes() *chi.Mux {
 			if err := render.Render(w, r, playcheckExtResp); err != nil {
 				_ = render.Render(w, r, ErrRender(err))
 			}
-			return
 		})
 		r.Get("/balance/{wallet:"+RegexWallet+"}", func(w http.ResponseWriter, r *http.Request) {
 			balResp, err := PlayerBalance(r)
@@ -674,7 +671,6 @@ func Routes() *chi.Mux {
 			if err := render.Render(w, r, balResp); err != nil {
 				_ = render.Render(w, r, ErrRender(err))
 			}
-			return
 		})
 		r.Post("/setbalance/demo", func(w http.ResponseWriter, r *http.Request) {
 			var param SetBalanceParams
@@ -715,7 +711,6 @@ func Routes() *chi.Mux {
 			if err := render.Render(w, r, feedResp); err != nil {
 				_ = render.Render(w, r, ErrRender(err))
 			}
-			return
 		})
 		r.Post("/feedround", func(w http.ResponseWriter, r *http.Request) {
 			feedResp, err := FeedRound(r)
@@ -734,7 +729,6 @@ func Routes() *chi.Mux {
 			if err := render.Render(w, r, feedResp); err != nil {
 				_ = render.Render(w, r, ErrRender(err))
 			}
-			return
 		})
 
 		if config.GlobalConfig.DevMode {
@@ -756,7 +750,6 @@ func Routes() *chi.Mux {
 			if err := render.Render(w, r, VersionResponse{Version: string(versionFile)}); err != nil {
 				_ = render.Render(w, r, ErrRender(err))
 			}
-			return
 		})
 	})
 

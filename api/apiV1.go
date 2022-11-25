@@ -60,7 +60,7 @@ func renderNextGamestate(request *http.Request) (GameplayResponse, rgse.RGSErr) 
 		// hack for engine III
 		request.Header.Set("Authorization", "\""+string(player.Token))
 		logger.Debugf("engine3, calculating next round: %#v", request.Body)
-		gamestate, player, balance, engineConf, err = play(request, data)
+		gamestate, player, balance, engineConf, _ = play(request, data)
 	}
 	return renderGamestate(request, gamestate, balance, engineConf, player), nil
 }
@@ -93,7 +93,7 @@ func getInitPlayValues(request *http.Request, clientID string, memID string, gam
 	ccy := request.FormValue("ccy")
 	playerID := request.FormValue("playerId")
 
-	previousGamestate = store.CreateInitGS(store.PlayerStore{PlayerId: playerID, Balance: engine.Money{0, ccy}}, gameSlug)
+	previousGamestate = store.CreateInitGS(store.PlayerStore{PlayerId: playerID, Balance: engine.Money{Amount: 0, Currency: ccy}}, gameSlug)
 	previousGamestate.Id = clientID
 	txStore.RoundStatus = store.RoundStatusClose
 	txStore.Token = store.Token(memID)
@@ -133,7 +133,7 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 			return data, rgse.Create(rgse.SpinSequenceError)
 		}
 
-		stakeValues, _, _, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, txStore.Amount.Currency}, txStore.BetLimitSettingCode, game)
+		stakeValues, _, _, _, err := parameterSelector.GetGameplayParameters(engine.Money{Amount: 0, Currency: txStore.Amount.Currency}, txStore.BetLimitSettingCode, game)
 		if err != nil {
 			return data, err
 		}
@@ -174,7 +174,7 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 				break
 			}
 		}
-		if valid == false {
+		if !valid {
 			logger.Debugf("invalid stake: %v (options: %v)", data.Stake, stakeValues)
 			return data, rgse.Create(rgse.InvalidStakeError)
 		}
@@ -189,7 +189,7 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 					}
 				}
 			}
-			if valid == false {
+			if !valid {
 				logger.Debugf("invalid selected winlines: %v engine lines for action %s: %v",
 					data.SelectedWinLines, data.Action, EC.EngineDefs[actionDef].WinLines)
 				rgserr := rgse.Create(rgse.InvalidParamsError)
@@ -284,7 +284,7 @@ func play(request *http.Request, data engine.GameParams) (engine.Gamestate, stor
 	if err != nil {
 		return engine.Gamestate{}, store.PlayerStore{}, BalanceResponse{}, engine.EngineConfig{}, err
 	}
-	if config.GlobalConfig.DevMode == true {
+	if config.GlobalConfig.DevMode {
 		forcedGamestate, err := forceTool.GetForceValues(data, previousGamestate, txStore.PlayerId)
 		if err == nil {
 			logger.Warnf("Forcing gamestate: %v", forcedGamestate)

@@ -91,7 +91,7 @@ func InitConfig() {
 	////prints configuration
 	glog.Infof("Config: %v", GlobalConfig)
 
-	logConfig := logger.Configuration{false, GlobalConfig.Logging}
+	logConfig := logger.Configuration{ConsoleJSONFormat: false, ConsoleLevel: GlobalConfig.Logging}
 
 	err = logger.NewLogger(logConfig)
 	if err != nil {

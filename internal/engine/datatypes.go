@@ -89,7 +89,7 @@ type EngineDef struct {
 
 func (engine EngineDef) SetForce(force []int) (forcedengine EngineDef, err rgserror.RGSErr) {
 	forcedengine = engine
-	if config.GlobalConfig.DevMode == true {
+	if config.GlobalConfig.DevMode {
 		forcedengine.force = force
 		return
 	}

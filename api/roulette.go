@@ -157,13 +157,13 @@ func initRoulette(player store.PlayerStore, engineId string, wallet string, body
 
 func playRoulette(engineId string, wallet string, body []byte, txStore store.TransactionStore) (response IGamePlayResponseV3, rgserr rgse.RGSErr) {
 	var data playParamsRoulette
-	rgserr = data.deserialize(body)
+	// rgserr = data.deserialize(body)
 
 	logger.Debugf("playRoulette %#v\n", data)
 
 	engineConf := engine.BuildEngineDefs(engineId)
 
-	stakeValues, _, minBet, maxBet, prmerr := parameterSelector.GetGameplayParameters(engine.Money{0, txStore.Amount.Currency}, txStore.BetLimitSettingCode, data.Game)
+	stakeValues, _, minBet, maxBet, prmerr := parameterSelector.GetGameplayParameters(engine.Money{Amount: 0, Currency: txStore.Amount.Currency}, txStore.BetLimitSettingCode, data.Game)
 	if prmerr != nil {
 		return nil, prmerr
 	}

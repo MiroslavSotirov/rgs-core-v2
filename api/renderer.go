@@ -610,7 +610,7 @@ type LinkResponse struct {
 	Type   string `json:"type"`
 }
 
-//FormResponse ...
+// FormResponse ...
 type FormResponse struct {
 	AcceptHeader  string                     `json:"application/octet-stream"`
 	FreeSpin      FreeSpinFormResponse       `json:"application/vnd.maverick.slots.freespin-v1+json"`
@@ -705,7 +705,7 @@ func renderGamestate(request *http.Request, gamestate engine.Gamestate, balance 
 
 	if gamestate.NextActions[0] != "finish" {
 		status = "OPEN"
-	} else if gamestate.Closed == true {
+	} else if gamestate.Closed {
 		status = "CLOSED"
 	}
 
