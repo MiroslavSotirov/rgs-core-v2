@@ -133,6 +133,7 @@ type BalanceResponseV2 struct {
 type FreespinResponse struct {
 	CtRemaining int          `json:"num_remaining"`
 	WagerAmt    engine.Fixed `json:"wager_amount"`
+	TotalWin    engine.Fixed `json:"total_win"`
 }
 
 // todo: incorporate this into gameplay response
@@ -234,6 +235,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 			fsresp.CtRemaining = 0
 		}
 	}
+	fsresp.TotalWin = gamestate.CampaignWin
 	nextAction := TranslateAction(gamestate.NextActions[0])
 	logger.Debugf("Response ReelsetId: %s", gamestate.ReelsetID)
 	return GameplayResponseV2{

@@ -304,4 +304,5 @@ message GamestatePB {
   repeated FeaturePB features = 23;
   repeated Reel feature_view = 24;
   string reelset_id=25;
+  int64 campaign_win = 26;
 }

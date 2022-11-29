@@ -204,6 +204,7 @@ type Gamestate struct {
 	Gamification      *GamestatePB_Gamification `json:"gamification,omitempty"`
 	CumulativeWin     Fixed                     `json:"cumulative_win,omitempty"`
 	SpinWin           Fixed                     `json:"spin_win,omitempty"`
+	CampaignWin       Fixed                     `json:"campaign_win,omitempty"`
 	PlaySequence      int                       `json:"play_sequence,omitempty"`
 	Closed            bool                      `json:"closed"`
 	RoundID           string                    `json:"round_id"`
@@ -449,6 +450,7 @@ func (gamestatePB GamestatePB) Convert() Gamestate {
 		Gamification:      gamestatePB.Gamification,
 		CumulativeWin:     Fixed(gamestatePB.CumulativeWin),
 		SpinWin:           Fixed(gamestatePB.SpinWin),
+		CampaignWin:       Fixed(gamestatePB.CampaignWin),
 		PlaySequence:      int(gamestatePB.PlaySequence),
 		Closed:            gamestatePB.Closed,
 		RoundID:           gamestatePB.RoundId,
@@ -523,6 +525,7 @@ func (gamestate Gamestate) Convert() GamestatePB {
 		Gamification:      gamestate.Gamification,
 		CumulativeWin:     gamestate.CumulativeWin.ValueRaw(),
 		SpinWin:           gamestate.SpinWin.ValueRaw(),
+		CampaignWin:       gamestate.CampaignWin.ValueRaw(),
 		PlaySequence:      int32(gamestate.PlaySequence),
 		Transactions:      convertTransactionsToPB(gamestate.Transactions),
 		Closed:            gamestate.Closed,
