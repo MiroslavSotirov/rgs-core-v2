@@ -99,6 +99,15 @@ func (f TriggerElysiumVipStickyWilds) Trigger(state *feature.FeatureState, param
 			return true
 		}
 
+		hasWild := func(reel int) bool {
+			for irow, _ := range state.SymbolGrid[reel] {
+				if isWild(reel, irow) {
+					return true
+				}
+			}
+			return false
+		}
+
 		for try := 0; len(positions) < numWilds && try < numTries+1; try++ {
 			var reelidx int
 			if level == 0 {
@@ -127,12 +136,11 @@ func (f TriggerElysiumVipStickyWilds) Trigger(state *feature.FeatureState, param
 
 			for _, p := range positions {
 				reelidx := p / gridh
-				rowidx := p % gridh
 				if isOriginal(reelidx) {
-					if reelidx > 0 && isOriginal(reelidx-1) && isWild(reelidx-1, rowidx) && !isInserted(reelidx) {
+					if reelidx > 0 && isOriginal(reelidx-1) && hasWild(reelidx-1) && !isInserted(reelidx) {
 						inserts = append(inserts, reelidx)
 					}
-					if reelidx < gridw-1 && isOriginal(reelidx+1) && isWild(reelidx+1, rowidx) && !isInserted(reelidx+1) {
+					if reelidx < gridw-1 && isOriginal(reelidx+1) && hasWild(reelidx+1) && !isInserted(reelidx+1) {
 						inserts = append(inserts, reelidx+1)
 					}
 				}
@@ -159,7 +167,7 @@ func (f TriggerElysiumVipStickyWilds) Trigger(state *feature.FeatureState, param
 			}
 
 			if len(inserts) > 0 {
-				sort.Slice(inserts, func(i, j int) bool { return i < j })
+				sort.Slice(inserts, func(i, j int) bool { return inserts[i] < inserts[j] })
 
 				for im, m := range emplaced {
 					emplaced[im] = func() int {
