@@ -6,17 +6,20 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/featureProducts"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 const (
 	FEATURE_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS = "TriggerElysiumVipStickyWilds"
 
-	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_TILE_ID                  = "TileId"
-	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_NUM_WILDS_LEVELS         = "NumWildsLevels"
-	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_NUM_PROBABILITIES_LEVELS = "NumProbabilitiesLevels"
-	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_RETRY_FACTOR             = "RetryFactor"
-	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_PROBABILITY_LEVELS       = "ProbabilityLevels"
-	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_REEL_PROBABILITIES       = "ReelProbabilities"
+	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_TILE_ID                    = "TileId"
+	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_NUM_WILDS_LEVELS           = "NumWildsLevels"
+	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_NUM_PROBABILITIES_LEVELS   = "NumProbabilitiesLevels"
+	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_RETRY_FACTOR               = "RetryFactor"
+	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_PROBABILITY_LEVELS         = "ProbabilityLevels"
+	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_REEL_PROBABILITIES_LEVELS3 = "ReelProbabilitiesLevels3"
+	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_REEL_PROBABILITIES_LEVELS4 = "ReelProbabilitiesLevels4"
+	PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_REEL_PROBABILITIES_LEVELS5 = "ReelProbabilitiesLevels5"
 )
 
 var _ feature.Factory = feature.RegisterFeature(FEATURE_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS, func() feature.Feature { return new(TriggerElysiumVipStickyWilds) })
@@ -49,6 +52,7 @@ func (f TriggerElysiumVipStickyWilds) Trigger(state *feature.FeatureState, param
 		}
 	}
 	probabilityLevels := params.GetIntSlice(PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_PROBABILITY_LEVELS)
+
 	if rng.RandFromRange(10000) < probabilityLevels[level] {
 
 		gridw := len(state.SymbolGrid)
@@ -60,7 +64,27 @@ func (f TriggerElysiumVipStickyWilds) Trigger(state *feature.FeatureState, param
 		numWildsLevel := feature.ConvertIntSlice(numWildsLevels[level])
 		numProbabilitiesLevel := feature.ConvertIntSlice(params.GetSlice(
 			PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_NUM_PROBABILITIES_LEVELS)[level])
-		reelProbabilities := params.GetIntSlice(PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_REEL_PROBABILITIES)
+
+		reelProbabilityLevels3 := params.GetSlice(PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_REEL_PROBABILITIES_LEVELS3)
+		reelProbabilityLevels4 := params.GetSlice(PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_REEL_PROBABILITIES_LEVELS4)
+		reelProbabilityLevels5 := params.GetSlice(PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_REEL_PROBABILITIES_LEVELS5)
+		var reelProbabilities []int
+		switch len(state.SymbolGrid) {
+		case 3:
+			reelProbabilities = feature.ConvertIntSlice(reelProbabilityLevels3[level])
+		case 4:
+			reelProbabilities = feature.ConvertIntSlice(reelProbabilityLevels4[level])
+		case 5:
+			reelProbabilities = feature.ConvertIntSlice(reelProbabilityLevels5[level])
+		default:
+			panic("symbol grid size is not 3,4 or 5")
+		}
+
+		logger.Debugf("reel probabilities: %v", reelProbabilities)
+
+		if len(state.SymbolGrid) > 3 && len(reelProbabilities) == 0 {
+			panic("no reel probabilites for this view size")
+		}
 
 		numWilds := numWildsLevel[feature.WeightedRandomIndex(numProbabilitiesLevel)]
 		numTries := params.GetInt(PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_RETRY_FACTOR) * numWilds
@@ -108,13 +132,8 @@ func (f TriggerElysiumVipStickyWilds) Trigger(state *feature.FeatureState, param
 			return false
 		}
 
-		for try := 0; len(positions) < numWilds && try < numTries+1; try++ {
-			var reelidx int
-			if level == 0 {
-				reelidx = feature.WeightedRandomIndex(reelProbabilities)
-			} else {
-				reelidx = rng.RandFromRange(gridw)
-			}
+		for try := 0; len(positions) < numWilds && try < numTries; try++ {
+			reelidx := feature.WeightedRandomIndex(reelProbabilities)
 			rowidx := rng.RandFromRange(3)
 			pos := reelidx*gridh + rowidx
 			if !isWild(reelidx, rowidx) {
