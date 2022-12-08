@@ -1,0 +1,42 @@
+name: PRD EU 1 - Deploy RGS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test
+        run: |
+          make test
+  build:
+    runs-on: ubuntu-latest
+    env:
+      BUILDER_TOKEN: ${{ secrets.BUILDER_TOKEN  }}
+    needs: test
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: "0"
+
+      - name: 'Get Current tag'
+        id: currenttag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+
+      - uses: actions/checkout@v2
+        with:
+          repository: Elysium-Studios/infrastructure
+          token: ${{ env.BUILDER_TOKEN }}
+          path: infrastructure
+          
+      - name: Update RGS release in flux repo
+        run: |
+          cd infrastructure/
+          sed -i -e 's/version:.*/version: "${{ steps.currenttag.outputs.tag }}"/g' prd-eu-1/apps-infra/deployments/rgs-v2/release.yaml
+          git config --global user.email "workflow@elysiumstudios.se"
+          git config --global user.name "RGS-V2 Workflow"
+          git add prd-eu-1/apps-infra/deployments/rgs-v2/release.yaml
+          git commit -m "Deploy RGS-v2 ${{ steps.currenttag.outputs.tag }}"
+          git push
