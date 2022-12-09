@@ -23,19 +23,21 @@ import (
 )
 
 var (
-	runVT      bool
-	engineID   string
-	spins      int
-	chunks     int
-	perSpin    bool
-	maxes      bool
-	getHashes  bool
-	memProfile string
-	gameState  string
+	runVT     bool
+	engineID  string
+	spins     int
+	chunks    int
+	perSpin   bool
+	maxes     bool
+	getHashes bool
+	gameState string
+	version   bool
+	gitCommit string
 )
 
 func main() {
 	// load configs (i.e. dashur api url, memcached address, etc.
+	flag.BoolVar(&version, "version", false, "print the current version and exit")
 	flag.BoolVar(&runVT, "vt", false, "Run volume tester? if true, will not start server unless all engines pass VT")
 	flag.StringVar(&engineID, "engine", "", "which engine to test (tests all if blank)")
 	flag.IntVar(&spins, "spins", 0, "number of spins to run, defaults to number to reach < 1% deviation from RTP based on engine volatility")
@@ -44,6 +46,12 @@ func main() {
 	flag.BoolVar(&maxes, "maxes", false, "get max theoretical values per engine")
 	flag.BoolVar(&getHashes, "gethashes", true, "get hashes of engine files")
 	flag.StringVar(&gameState, "decodestate", "", "decode the base64 encoded gamestate to json")
+
+	flag.Parse()
+	if version {
+		printVersion()
+		os.Exit(0)
+	}
 
 	config.InitConfig()
 	initerr := store.Init(getHashes)
@@ -58,10 +66,10 @@ func main() {
 	logger.Infof("API INIT: OK")
 	//
 	// initial serve web
-	if runVT == true {
+	if runVT {
 		logger.Errorf("Running VT : spins %v  chunks %v engine %v", spins, chunks, engineID)
 		failed := volumeTester.RunVT(engineID, spins, chunks, perSpin, maxes)
-		if failed == true {
+		if failed {
 			logger.Errorf("VT Failed, not starting server")
 			os.Exit(5)
 		}
@@ -121,4 +129,8 @@ func main() {
 	srv := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: router}
 	logger.Infof("Starting RGS Core on port: %d", port)
 	logger.Fatalf("%v", srv.ListenAndServe())
+}
+
+func printVersion() {
+	fmt.Printf("Current build version: %s\n", gitCommit)
 }
