@@ -26,16 +26,16 @@ import (
 )
 
 var (
-	runVT     bool
-	engineID  string
-	spins     int
-	chunks    int
-	perSpin   bool
-	maxes     bool
-	getHashes bool
-	gameState string
-	version   bool
-	gitCommit string
+	runVT      bool
+	engineID   string
+	spins      int
+	chunks     int
+	perSpin    bool
+	maxes      bool
+	getHashes  bool
+	gameState  string
+	version    bool
+	gitCommit  string
 )
 
 func main() {
@@ -141,7 +141,6 @@ func printVersion() {
 		fmt.Println(gitCommit)
 		return
 	}
-	fmt.Println(gitCommit)
 
 	fmt.Println(getBranchWithAddedVersion(currentBranch))
 }
@@ -150,6 +149,9 @@ func getCurrentBranch() string {
 	dir, _ := os.Getwd()
 	repo, _ := git.PlainOpen(dir)
 	head, _ := repo.Head()
+
+	fmt.Println(repo.CommitObjects())
+	fmt.Println(repo.Head())
 
 	headStr := fmt.Sprintf("%s", head)
 	headArr := strings.Fields(headStr)

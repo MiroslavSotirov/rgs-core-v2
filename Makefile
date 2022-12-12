@@ -1,5 +1,5 @@
 # Go parameters
-GIT_COMMIT=$$(shell git describe --tags)
+GIT_COMMIT=$(shell git describe --tags)
 GOCMD=go
 GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
