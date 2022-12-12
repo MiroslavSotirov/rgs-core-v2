@@ -1,6 +1,5 @@
 # Go parameters
-GIT_COMMIT := $(shell git describe --tags)
-GIT_CURRENT_BRANCH := $(shell git branch)
+GIT_COMMIT=$$(shell git describe --tags)
 GOCMD=go
 GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
@@ -56,7 +55,7 @@ stop:
 	docker rm "${CONTAINER_NAME}-$(BUILDVERSION)"
 
 build:
-	$(GOBUILD) -v -ldflags "-X 'main.gitCommit=$(GIT_COMMIT)' -X 'main.gitCurrentBranch=$(GIT_CURRENT_BRANCH)'" -o rgs cmd/main.go
+	$(GOBUILD) -v -ldflags "-X 'main.gitCommit=$(GIT_COMMIT)'" -o rgs cmd/main.go
 
 run:
 	./rgs

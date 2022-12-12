@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -23,20 +22,20 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/volumeTester"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
+	"gopkg.in/src-d/go-git.v4"
 )
 
 var (
-	runVT            bool
-	engineID         string
-	spins            int
-	chunks           int
-	perSpin          bool
-	maxes            bool
-	getHashes        bool
-	gameState        string
-	version          bool
-	gitCommit        string
-	gitCurrentBranch string
+	runVT     bool
+	engineID  string
+	spins     int
+	chunks    int
+	perSpin   bool
+	maxes     bool
+	getHashes bool
+	gameState string
+	version   bool
+	gitCommit string
 )
 
 func main() {
@@ -136,18 +135,31 @@ func main() {
 }
 
 func printVersion() {
-	if gitCurrentBranch == "* master" {
+	currentBranch := getCurrentBranch()
+
+	if currentBranch == "master" {
 		fmt.Println(gitCommit)
 		return
 	}
+	fmt.Println(gitCommit)
 
-	branches := strings.Fields(gitCurrentBranch)
+	fmt.Println(getBranchWithAddedVersion(currentBranch))
+}
 
-	reg, err := regexp.Compile("[^[:alnum:]]")
-	if err != nil {
-		log.Fatal(err)
-	}
-	gitCurrentBranch = reg.ReplaceAllString(branches[1], "_")
+func getCurrentBranch() string {
+	dir, _ := os.Getwd()
+	repo, _ := git.PlainOpen(dir)
+	head, _ := repo.Head()
 
-	fmt.Println(strings.ToLower(fmt.Sprintf("%s+branch.%s", gitCommit, gitCurrentBranch)))
+	headStr := fmt.Sprintf("%s", head)
+	headArr := strings.Fields(headStr)
+
+	return strings.Replace(headArr[1], "refs/heads/", "", -1)
+}
+
+func getBranchWithAddedVersion(currentBranch string) string {
+	reg, _ := regexp.Compile("[^[:alnum:]]")
+	currentBranch = reg.ReplaceAllString(currentBranch, "_")
+
+	return strings.ToLower(fmt.Sprintf("%s+branch.%s", gitCommit, currentBranch))
 }
