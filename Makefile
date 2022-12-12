@@ -46,6 +46,7 @@ docker:
 	docker build  \
 		--pull -t "$(IMAGE):$(BUILDVERSION)" \
 		--file Dockerfile .
+		
 rundocker:
 	@echo 'BUILDVERSION set to $(BUILDVERSION)'
 	docker run  --name "${CONTAINER_NAME}-$(BUILDVERSION)" -p 3000:3000 -d "$(IMAGE):$(BUILDVERSION)"

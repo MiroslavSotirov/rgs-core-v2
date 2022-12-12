@@ -150,9 +150,6 @@ func getCurrentBranch() string {
 	repo, _ := git.PlainOpen(dir)
 	head, _ := repo.Head()
 
-	fmt.Println(repo.CommitObjects())
-	fmt.Println(repo.Head())
-
 	headStr := fmt.Sprintf("%s", head)
 	headArr := strings.Fields(headStr)
 
