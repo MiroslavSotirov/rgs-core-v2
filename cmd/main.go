@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
@@ -23,16 +26,17 @@ import (
 )
 
 var (
-	runVT     bool
-	engineID  string
-	spins     int
-	chunks    int
-	perSpin   bool
-	maxes     bool
-	getHashes bool
-	gameState string
-	version   bool
-	gitCommit string
+	runVT            bool
+	engineID         string
+	spins            int
+	chunks           int
+	perSpin          bool
+	maxes            bool
+	getHashes        bool
+	gameState        string
+	version          bool
+	gitCommit        string
+	gitCurrentBranch string
 )
 
 func main() {
@@ -64,7 +68,7 @@ func main() {
 	featureProducts.Register()
 	featureTriggers.Register()
 	logger.Infof("API INIT: OK")
-	//
+
 	// initial serve web
 	if runVT {
 		logger.Errorf("Running VT : spins %v  chunks %v engine %v", spins, chunks, engineID)
@@ -132,5 +136,18 @@ func main() {
 }
 
 func printVersion() {
-	fmt.Printf("Current build version: %s\n", gitCommit)
+	if gitCurrentBranch == "* master" {
+		fmt.Println(gitCommit)
+		return
+	}
+
+	branches := strings.Fields(gitCurrentBranch)
+
+	reg, err := regexp.Compile("[^[:alnum:]]")
+	if err != nil {
+		log.Fatal(err)
+	}
+	gitCurrentBranch = reg.ReplaceAllString(branches[1], "_")
+
+	fmt.Println(strings.ToLower(fmt.Sprintf("%s+branch.%s", gitCommit, gitCurrentBranch)))
 }
