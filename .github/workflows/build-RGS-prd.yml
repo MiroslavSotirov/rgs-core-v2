@@ -35,8 +35,9 @@ jobs:
         run: |
           cd infrastructure/
           sed -i -e 's/version:.*/version: "${{ steps.currenttag.outputs.tag }}"/g' prd/apps-infra/deployments/rgs-v2/release.yaml
+          sed -i -e 's/version:.*/version: "${{ steps.currenttag.outputs.tag }}"/g' prd-eu-1/apps-infra/deployments/rgs-v2/release.yaml
           git config --global user.email "workflow@elysiumstudios.se"
           git config --global user.name "RGS-V2 Workflow"
-          git add prd/apps-infra/deployments/rgs-v2/release.yaml
+          git add prd/apps-infra/deployments/rgs-v2/release.yaml prd-eu-1/apps-infra/deployments/rgs-v2/release.yaml
           git commit -m "Deploy RGS-v2 ${{ steps.currenttag.outputs.tag }}"
           git push
