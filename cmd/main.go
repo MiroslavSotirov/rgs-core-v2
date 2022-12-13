@@ -33,6 +33,7 @@ var (
 	perSpin    bool
 	maxes      bool
 	getHashes  bool
+	memProfile string
 	gameState  string
 	version    bool
 	gitCommit  string
