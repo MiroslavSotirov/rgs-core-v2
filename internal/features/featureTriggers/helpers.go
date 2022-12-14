@@ -15,3 +15,11 @@ func containsInt(array []int, value int) bool {
 	}
 	return false
 }
+
+func setGrid(dst [][]int, src [][]int) {
+	for ir, r := range src {
+		for is, s := range r {
+			dst[ir][is] = s
+		}
+	}
+}

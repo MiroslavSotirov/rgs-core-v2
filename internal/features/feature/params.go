@@ -430,6 +430,18 @@ func (p FeatureParams) GetForce(force string) string {
 	return ""
 }
 
+func (p FeatureParams) HasForce(force string) bool {
+	if config.GlobalConfig.DevMode && p.HasKey("force") {
+		forces := strings.Split(p.GetString("force"), " ")
+		for _, f := range forces {
+			if f == force {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (p FeatureParams) GetForceFloat64(force string) (v float64, ok bool) {
 	ok = false
 	f := p.GetForce(force)
