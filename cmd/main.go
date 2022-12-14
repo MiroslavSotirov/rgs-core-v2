@@ -51,9 +51,11 @@ func main() {
 	flag.BoolVar(&getHashes, "gethashes", true, "get hashes of engine files")
 	flag.StringVar(&gameState, "decodestate", "", "decode the base64 encoded gamestate to json")
 
+	api.GitCommit = gitCommit
+
 	flag.Parse()
 	if version {
-		printVersion()
+		fmt.Println(api.PrintVersion())
 		os.Exit(0)
 	}
 
@@ -70,10 +72,10 @@ func main() {
 	logger.Infof("API INIT: OK")
 
 	// initial serve web
-	if runVT {
+	if runVT == true {
 		logger.Errorf("Running VT : spins %v  chunks %v engine %v", spins, chunks, engineID)
 		failed := volumeTester.RunVT(engineID, spins, chunks, perSpin, maxes)
-		if failed {
+		if failed == true {
 			logger.Errorf("VT Failed, not starting server")
 			os.Exit(5)
 		}
