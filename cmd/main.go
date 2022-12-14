@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
@@ -20,6 +22,7 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/volumeTester"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
+	"gopkg.in/src-d/go-git.v4"
 )
 
 var (
@@ -48,11 +51,9 @@ func main() {
 	flag.BoolVar(&getHashes, "gethashes", true, "get hashes of engine files")
 	flag.StringVar(&gameState, "decodestate", "", "decode the base64 encoded gamestate to json")
 
-	api.GitCommit = gitCommit
-
 	flag.Parse()
 	if version {
-		fmt.Println(api.PrintVersion())
+		printVersion()
 		os.Exit(0)
 	}
 
@@ -132,4 +133,33 @@ func main() {
 	srv := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: router}
 	logger.Infof("Starting RGS Core on port: %d", port)
 	logger.Fatalf("%v", srv.ListenAndServe())
+}
+
+func printVersion() {
+	currentBranch := getCurrentBranch()
+
+	if currentBranch == "master" {
+		fmt.Println(gitCommit)
+		return
+	}
+
+	fmt.Println(getBranchWithAddedVersion(currentBranch))
+}
+
+func getCurrentBranch() string {
+	dir, _ := os.Getwd()
+	repo, _ := git.PlainOpen(dir)
+	head, _ := repo.Head()
+
+	headStr := fmt.Sprintf("%s", head)
+	headArr := strings.Fields(headStr)
+
+	return strings.Replace(headArr[1], "refs/heads/", "", -1)
+}
+
+func getBranchWithAddedVersion(currentBranch string) string {
+	reg, _ := regexp.Compile("[^[:alnum:]]")
+	currentBranch = reg.ReplaceAllString(currentBranch, "_")
+
+	return strings.ToLower(fmt.Sprintf("%s+branch.%s", gitCommit, currentBranch))
 }

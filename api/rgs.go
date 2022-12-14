@@ -6,10 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/pprof"
-	"os"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -19,7 +18,6 @@ import (
 	"github.com/go-chi/render"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	"gopkg.in/src-d/go-git.v4"
 
 	//	"gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
@@ -38,8 +36,6 @@ const (
 	RegexPlayerId = "[a-zA-Z0-9-_+]+"
 	RegexId       = "[A-Za-z0-9-_+=.,:;/%]+"
 )
-
-var GitCommit string
 
 func Routes() *chi.Mux {
 	router := chi.NewRouter()
@@ -71,15 +67,13 @@ func Routes() *chi.Mux {
 	// Prometheus metrics endpoint
 	router.Handle("/metrics", promhttp.Handler())
 
-	// router.Handle("/version", cmd.PrintVersion())
-
 	router.Route("/v2/rgs", func(r chi.Router) {
 
 		// TODO: These endpoints will be deprecated with new client release
 		r.Get("/init/{gameSlug:"+RegexGameSlug+"}/{wallet:"+RegexWallet+"}", func(w http.ResponseWriter, r *http.Request) {
 
 			gameSlug := chi.URLParam(r, "gameSlug")
-			engineID, _ := config.GetEngineFromGame(gameSlug)
+			engineID, err := config.GetEngineFromGame(gameSlug)
 
 			player, engineConfig, previousGamestate, err := initGame(r)
 
@@ -106,7 +100,8 @@ func Routes() *chi.Mux {
 			}
 			logger.Debugf("previous Gamestate: %#v", previousGamestate)
 
-			gamestateResponse := renderGamestate(r, previousGamestate, balanceResponse, engineConfig, player)
+			var gamestateResponse GameplayResponse
+			gamestateResponse = renderGamestate(r, previousGamestate, balanceResponse, engineConfig, player)
 
 			engineDefs := engineConfig.EngineDefs
 			stakeValues, defaultBet, _, _, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine, player.BetLimitSettingCode, gameSlug)
@@ -220,7 +215,7 @@ func Routes() *chi.Mux {
 			// todo: send link for freeplay if recovering in fp mode
 
 			links := gamestateResponse.Links
-			if strings.Contains(previousGamestate.Id, "GSinit") {
+			if strings.Contains(previousGamestate.Id, "GSinit") == false {
 				logger.Infof("prev gamestate id: %v", previousGamestate.Id)
 				href := fmt.Sprintf("%s%s/%s/rgs/playcheck/%s", GetURLScheme(r), r.Host, APIVersion, previousGamestate.Id)
 				latestGameplayLink := LinkResponse{
@@ -492,10 +487,11 @@ func Routes() *chi.Mux {
 				return
 			}
 			w.WriteHeader(200)
+			return
 		})
 
 		r.Get("/force", func(w http.ResponseWriter, r *http.Request) {
-			if config.GlobalConfig.DevMode {
+			if config.GlobalConfig.DevMode == true {
 				listForceTools(r, w)
 			}
 		})
@@ -658,6 +654,7 @@ func Routes() *chi.Mux {
 			if err := render.Render(w, r, playcheckExtResp); err != nil {
 				_ = render.Render(w, r, ErrRender(err))
 			}
+			return
 		})
 		r.Get("/balance/{wallet:"+RegexWallet+"}", func(w http.ResponseWriter, r *http.Request) {
 			balResp, err := PlayerBalance(r)
@@ -677,6 +674,7 @@ func Routes() *chi.Mux {
 			if err := render.Render(w, r, balResp); err != nil {
 				_ = render.Render(w, r, ErrRender(err))
 			}
+			return
 		})
 		r.Post("/setbalance/demo", func(w http.ResponseWriter, r *http.Request) {
 			var param SetBalanceParams
@@ -717,6 +715,7 @@ func Routes() *chi.Mux {
 			if err := render.Render(w, r, feedResp); err != nil {
 				_ = render.Render(w, r, ErrRender(err))
 			}
+			return
 		})
 		r.Post("/feedround", func(w http.ResponseWriter, r *http.Request) {
 			feedResp, err := FeedRound(r)
@@ -735,6 +734,7 @@ func Routes() *chi.Mux {
 			if err := render.Render(w, r, feedResp); err != nil {
 				_ = render.Render(w, r, ErrRender(err))
 			}
+			return
 		})
 
 		if config.GlobalConfig.DevMode {
@@ -748,39 +748,17 @@ func Routes() *chi.Mux {
 		}
 
 		r.Get("/version", func(w http.ResponseWriter, r *http.Request) {
-			version := PrintVersion()
-
-			render.Render(w, r, VersionResponse{Version: string(version)})
+			versionFile, err := ioutil.ReadFile("version.txt")
+			if err != nil {
+				logger.Fatalf("Error reading version file: %v", err)
+				_ = render.Render(w, r, ErrRender(err))
+			}
+			if err := render.Render(w, r, VersionResponse{Version: string(versionFile)}); err != nil {
+				_ = render.Render(w, r, ErrRender(err))
+			}
+			return
 		})
 	})
 
 	return router
-}
-
-func PrintVersion() string {
-	currentBranch := getCurrentBranch()
-
-	if currentBranch == "master" {
-		return GitCommit
-	}
-
-	return getBranchWithAddedVersion(currentBranch)
-}
-
-func getCurrentBranch() string {
-	dir, _ := os.Getwd()
-	repo, _ := git.PlainOpen(dir)
-	head, _ := repo.Head()
-
-	headStr := fmt.Sprintf("%s", head)
-	headArr := strings.Fields(headStr)
-
-	return strings.Replace(headArr[1], "refs/heads/", "", -1)
-}
-
-func getBranchWithAddedVersion(currentBranch string) string {
-	reg, _ := regexp.Compile("[^[:alnum:]]")
-	currentBranch = reg.ReplaceAllString(currentBranch, "_")
-
-	return strings.ToLower(fmt.Sprintf("%s+branch.%s", GitCommit, currentBranch))
 }
