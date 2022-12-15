@@ -755,6 +755,7 @@ func Routes() *chi.Mux {
 			version := PrintVersion()
 
 			render.Render(w, r, VersionResponse{Version: string(version)})
+			return
 		})
 	})
 
