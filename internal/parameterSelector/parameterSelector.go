@@ -108,7 +108,7 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 	// default wallet amt is 100x the max bet amount for the game (except in local mode to enable long automated playtesting)
 	walletamtmult := 100
 	if config.GlobalConfig.DevMode {
-		walletamtmult = 10000
+		walletamtmult = 100000
 	}
 	stakeValues, _, _, _, paramErr := GetGameplayParameters(engine.Money{0, currency}, betSettingsCode, gameID)
 	if paramErr != nil {

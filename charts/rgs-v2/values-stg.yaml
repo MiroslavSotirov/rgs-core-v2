@@ -293,6 +293,11 @@ gameConfig_staging:
       - name: elysium-vip
         item: 33624
         flags: campaign
+  - engineID: mvgEngineGodot8_94
+    games:
+      - name: elysium-vip-94
+        item: 33645
+        flags: campaign
 
 # poduction item_id while relax testing in staging      
 gameConfig:
@@ -458,6 +463,11 @@ gameConfig:
     games:
       - name: elysium-vip
         item: 8678
+        flags: campaign
+  - engineID: mvgEngineGodot8_94
+    games:
+      - name: elysium-vip-94
+        item: 8744
         flags: campaign
 
 gamification:

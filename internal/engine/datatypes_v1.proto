@@ -215,6 +215,7 @@ message GamestatePB {
   SWORD_KING=57;
   CLASH_OF_HEROES=58;
   ELYSIUM_VIP=59;
+  ELYSIUM_VIP_94=60;
   }
   GameID game_id = 1;
   int32 engine_def = 2;

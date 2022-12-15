@@ -278,6 +278,11 @@ gameConfig:
       - name: elysium-vip
         item: 8678
         flags: campaign
+  - engineID: mvgEngineGodot8_94
+    games:
+      - name: elysium-vip-94
+        item: 8744
+        flags: campaign
       
 gamification:
   a-fairy-tale:
