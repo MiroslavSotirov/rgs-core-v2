@@ -160,7 +160,7 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 	// get stakevalues based on host config
 	baseStakeValues := betConf.StakeValues
 
-	ccyMult, ok := betConf.CcyMultipliers[lastBet.Currency]
+	ccyMult, ok := GetParameterService().CurrencyMultiplier(lastBet.Currency, "")
 	if !ok {
 		//		return []engine.Fixed{}, engine.Fixed(0), rgse.Create(rgse.BetConfigError)
 		rgserr = rgse.Create(rgse.BetConfigError)
