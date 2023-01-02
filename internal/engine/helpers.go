@@ -573,3 +573,11 @@ func (gamestate Gamestate) GetTtl() int64 {
 	}
 	return 3600
 }
+
+func (gamestate Gamestate) GetPrizeAmount() Fixed {
+	sum := Fixed(0)
+	for _, p := range gamestate.Prizes {
+		sum += p.Win.Mul(gamestate.BetPerLine.Amount)
+	}
+	return sum
+}

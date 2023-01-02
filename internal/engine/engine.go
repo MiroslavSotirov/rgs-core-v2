@@ -913,7 +913,7 @@ func (engine EngineDef) BaseRound(parameters GameParams) Gamestate {
 	specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
 	if specialWin.Index != "" {
 		var specialPayout int
-		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(&specialWin)
 		relativePayout += specialPayout
 		wins = append(wins, specialWin)
 	}
@@ -1044,7 +1044,7 @@ func (engine EngineDef) Cascade(parameters GameParams) Gamestate {
 		specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
 		if specialWin.Index != "" {
 			var specialPayout int
-			specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+			specialPayout, nextActions = engine.CalculatePayoutSpecialWin(&specialWin)
 			relativePayout += specialPayout
 			wins = append(wins, specialWin)
 		}
@@ -1128,7 +1128,7 @@ func (engine EngineDef) SelectPrize(parameters GameParams) Gamestate {
 		logger.Errorf("selection %v does not exist in prizes for engine %v", parameters.Selection, engine.ID)
 		return Gamestate{}
 	}
-	relativePayout, nextActions := engine.CalculatePayoutSpecialWin(specialWin)
+	relativePayout, nextActions := engine.CalculatePayoutSpecialWin(&specialWin)
 	// get Multiplier
 	multiplier := 1
 	if len(engine.Multiplier.Multipliers) > 0 {
@@ -1165,7 +1165,7 @@ func (engine EngineDef) Respin(parameters GameParams) Gamestate {
 	specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
 	if specialWin.Index != "" {
 		var specialPayout int
-		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(&specialWin)
 		relativePayout += specialPayout
 		wins = append(wins, specialWin)
 	}
@@ -1225,7 +1225,7 @@ func (engine EngineDef) ShuffleBase(parameters GameParams, shuffleID string) Gam
 	specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
 	if specialWin.Index != "" {
 		var addlPayout int
-		addlPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+		addlPayout, nextActions = engine.CalculatePayoutSpecialWin(&specialWin)
 		relativePayout += addlPayout
 		wins = append(wins, specialWin)
 	}
@@ -1238,14 +1238,15 @@ func (engine EngineDef) ShuffleBase(parameters GameParams, shuffleID string) Gam
 
 func calculatePayoutWins(wins []Prize) int {
 	var relativePayout int
-	for _, win := range wins {
-		// add win amount
-		relativePayout += win.Payout.Multiplier * win.Multiplier
+	for i, win := range wins {
+		relativeWin := win.Payout.Multiplier * win.Multiplier
+		relativePayout += relativeWin
+		wins[i].Win = NewFixedFromInt(relativeWin)
 	}
 	return relativePayout
 }
 
-func (engine EngineDef) CalculatePayoutSpecialWin(specialWin Prize) (int, []string) {
+func (engine EngineDef) CalculatePayoutSpecialWin(specialWin *Prize) (int, []string) {
 	var nextActions []string
 	var relativePayout int
 	if specialWin.Index != "" {
@@ -1256,6 +1257,7 @@ func (engine EngineDef) CalculatePayoutSpecialWin(specialWin Prize) (int, []stri
 		}
 		// special payout is not paid per line, it's a total stake multiplier
 		relativePayout = specialWin.Payout.Multiplier * engine.StakeDivisor
+		specialWin.Win = NewFixedFromInt(relativePayout)
 	}
 	logger.Debugf("Calculated payout for special win %v: %v", specialWin.Index, relativePayout)
 
@@ -1310,7 +1312,7 @@ func (engine EngineDef) MaxWildRound(parameters GameParams) Gamestate {
 	specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
 	if specialWin.Index != "" {
 		var specialPayout int
-		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(&specialWin)
 		relativePayout += specialPayout
 		wins = append(wins, specialWin)
 	}
@@ -1517,7 +1519,7 @@ func (engine EngineDef) PushReels(parameters GameParams) Gamestate {
 	specialWin := DetermineSpecialWins(symbolGrid, engine.SpecialPayouts)
 	if specialWin.Index != "" {
 		var specialPayout int
-		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(&specialWin)
 		relativePayout += specialPayout
 		wins = append(wins, specialWin)
 	}
@@ -1807,7 +1809,7 @@ func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams)
 	specialWin := DetermineSpecialWins(featurestate.SymbolGrid, engine.SpecialPayouts)
 	if specialWin.Index != "" {
 		var specialPayout int
-		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(&specialWin)
 		relativePayout += specialPayout
 		wins = append(wins, specialWin)
 	}
@@ -1934,7 +1936,7 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 		specialWin := DetermineSpecialWins(featurestate.SymbolGrid, engine.SpecialPayouts)
 		if specialWin.Index != "" {
 			var specialPayout int
-			specialPayout, nextActions = engine.CalculatePayoutSpecialWin(specialWin)
+			specialPayout, nextActions = engine.CalculatePayoutSpecialWin(&specialWin)
 			relativePayout += specialPayout
 			wins = append(wins, specialWin)
 		}
@@ -2091,7 +2093,10 @@ func (engine EngineDef) convertFeaturePrizes(featureWins []feature.FeatureWin) (
 				SymbolPositions: w.SymbolPositions,
 				Winline:         -1, // until features have prizes associated with lines
 			}
-			sp, na := engine.CalculatePayoutSpecialWin(prize)
+			sp, na := engine.CalculatePayoutSpecialWin(&prize)
+			if sp > 0 {
+				panic(fmt.Sprintf("feature prize is counted double %#v", prize))
+			}
 			relativePayout += sp
 			nextActions = append(na, nextActions...)
 			logger.Debugf("Adding special payout: %v with actions: %v to final action list: %v", sp, na, nextActions)

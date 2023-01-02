@@ -346,7 +346,7 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 	if txStore.FreeGames.NoOfFreeSpins > 0 && data.Stake.Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)) == txStore.FreeGames.TotalWagerAmt {
 		// this game qualifies as a free game!
 		freeGameRef = txStore.FreeGames.CampaignRef
-		gamestate.CampaignWin = previousGamestate.CampaignWin + gamestate.SpinWin
+		gamestate.CampaignWin = previousGamestate.CampaignWin + gamestate.GetPrizeAmount()
 		logger.Infof("Free game campaign %v", freeGameRef)
 	} else if previousGamestate.RoundID == gamestate.RoundID && gamestate.Transactions[0].Type != "WAGER" {
 		// if the game is a continuation of a round propogate the previous campaign ref to all txs linked to this round
