@@ -197,3 +197,4 @@ func (r restTransactionRequest) String() string {
 		r.ReqId, r.Token, r.Game, r.Platform, r.Mode, r.Session, r.Currency, r.Amount, r.BonusAmount, r.JpAmount, r.Category,
 		r.CampaignRef, r.CloseRound, r.Round, r.TxRef, r.Description, r.InternalStatus, r.Ttl, r.TtlStamp)
 }
+ 
