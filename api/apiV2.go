@@ -348,22 +348,24 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 
 	if txStore.FreeGames.NoOfFreeSpins > 0 && data.Stake.Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor)) == txStore.FreeGames.TotalWagerAmt {
 		// this game qualifies as a free game!
+		freeGameRef = txStore.FreeGames.CampaignRef
 		spinWin := gamestate.GetPrizeAmount()
-		if txStore.FreeGames.CampaignRef == previousGamestate.CampaignRef {
+		if freeGameRef == previousGamestate.CampaignRef {
 			gamestate.CampaignWin = previousGamestate.CampaignWin + spinWin
 		} else {
 			gamestate.CampaignWin = spinWin
 		}
-		gamestate.CampaignRef = txStore.FreeGames.CampaignRef
-		logger.Infof("Free game campaign %v total win %f", txStore.FreeGames.CampaignRef, gamestate.CampaignWin.ValueAsString())
+		gamestate.CampaignRef = freeGameRef
+		logger.Infof("Free game campaign %v total win %s", freeGameRef, gamestate.CampaignWin.ValueAsString())
 	} else if previousGamestate.RoundID == gamestate.RoundID && gamestate.Transactions[0].Type != "WAGER" {
 		// if the game is a continuation of a round propogate the previous campaign ref to all txs linked to this round
 		// except if there is a tx on this state that is a wager and it is not the first wager of  the round
-		if txStore.FreeGames.CampaignRef != "" {
+		freeGameRef = txStore.FreeGames.CampaignRef
+		if freeGameRef != "" {
 			gamestate.CampaignWin = previousGamestate.CampaignWin + gamestate.GetPrizeAmount()
-			gamestate.CampaignRef = txStore.FreeGames.CampaignRef
+			gamestate.CampaignRef = freeGameRef
 		}
-		logger.Infof("Campaign %v continues total win %f", txStore.FreeGames.CampaignRef, gamestate.CampaignWin.ValueAsString())
+		logger.Infof("Campaign %v continues total win %s", freeGameRef, gamestate.CampaignWin.ValueAsString())
 	}
 
 	autoClose := false
