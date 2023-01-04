@@ -45,8 +45,6 @@ func main() {
 	flag.BoolVar(&getHashes, "gethashes", true, "get hashes of engine files")
 	flag.StringVar(&gameState, "decodestate", "", "decode the base64 encoded gamestate to json")
 
-	flag.Parse()
-
 	config.InitConfig()
 	initerr := store.Init(getHashes)
 	if initerr != nil {
@@ -58,7 +56,7 @@ func main() {
 	featureProducts.Register()
 	featureTriggers.Register()
 	logger.Infof("API INIT: OK")
-
+	//
 	// initial serve web
 	if runVT == true {
 		logger.Errorf("Running VT : spins %v  chunks %v engine %v", spins, chunks, engineID)

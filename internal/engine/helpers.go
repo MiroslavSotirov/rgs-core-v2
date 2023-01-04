@@ -298,16 +298,6 @@ func GetHashes() (IDStrings []string, MD5Strings []string, SHA1Strings []string,
 		MD5Strings = append(MD5Strings, md5hash)
 		SHA1Strings = append(SHA1Strings, sha1hash)
 	}
-	// generate rng hashes
-	// if config.GlobalConfig.Local {
-	// 	logger.Infof("Generating checksums for rng")
-	// 	_, _, err = GetHash(filepath.Join(currentDir, "internal/rng/mt19937.go"))
-	// 	if err != nil {
-	// 		logger.Errorf("error generating checksum for rng: %v", err)
-	// 		rgserr = rgse.Create(rgse.EngineHashError)
-	// 		return
-	// 	}
-	// }
 	return
 }
 
