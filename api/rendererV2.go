@@ -175,7 +175,7 @@ type VersionResponse struct {
 	Version string `json:"version"`
 }
 
-func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceStore, campaignWin engine.Fixed) GameplayResponseV2 {
+func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceStore) GameplayResponseV2 {
 
 	var win engine.Fixed
 	roundWin := gamestate.CumulativeWin
@@ -235,7 +235,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 			fsresp.CtRemaining = 0
 		}
 	}
-	fsresp.TotalWin = campaignWin
+	fsresp.TotalWin = gamestate.CampaignWin
 	nextAction := TranslateAction(gamestate.NextActions[0])
 	logger.Debugf("Response ReelsetId: %s", gamestate.ReelsetID)
 	return GameplayResponseV2{
@@ -285,12 +285,12 @@ func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance st
 	lastRound := make(map[string]GameplayResponseV2, 2)
 	// edit name of games with actions like "freespin3"
 	action := TranslateAction(previousGamestate.Action)
-	lastRound[action] = fillGamestateResponseV2(previousGamestate, balance, previousGamestate.CampaignWin)
+	lastRound[action] = fillGamestateResponseV2(previousGamestate, balance)
 
 	// if last round was not base round, get triggering round ( for now no dashur api support for this, so show default round)
 	if !strings.Contains(previousGamestate.Action, "base") {
 		baseround := store.CreateInitGS(store.PlayerStore{PlayerId: balance.PlayerId, Balance: balance.Balance}, previousGamestate.Game)
-		lastRound["base"] = fillGamestateResponseV2(baseround, balance, previousGamestate.CampaignWin)
+		lastRound["base"] = fillGamestateResponseV2(baseround, balance)
 	}
 	resp.LastRound = lastRound
 	resp.Name = previousGamestate.Game

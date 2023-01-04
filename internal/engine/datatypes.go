@@ -205,6 +205,7 @@ type Gamestate struct {
 	CumulativeWin     Fixed                     `json:"cumulative_win,omitempty"`
 	SpinWin           Fixed                     `json:"spin_win,omitempty"`
 	CampaignWin       Fixed                     `json:"campaign_win,omitempty"`
+	CampaignRef       string                    `json:"campaign_ref,omitempty"`
 	PlaySequence      int                       `json:"play_sequence,omitempty"`
 	Closed            bool                      `json:"closed"`
 	RoundID           string                    `json:"round_id"`
