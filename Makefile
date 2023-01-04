@@ -1,5 +1,4 @@
 # Go parameters
-GIT_COMMIT=$(shell git describe --tags)
 GOCMD=go
 GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
@@ -46,7 +45,6 @@ docker:
 	docker build  \
 		--pull -t "$(IMAGE):$(BUILDVERSION)" \
 		--file Dockerfile .
-		
 rundocker:
 	@echo 'BUILDVERSION set to $(BUILDVERSION)'
 	docker run  --name "${CONTAINER_NAME}-$(BUILDVERSION)" -p 3000:3000 -d "$(IMAGE):$(BUILDVERSION)"
@@ -56,7 +54,7 @@ stop:
 	docker rm "${CONTAINER_NAME}-$(BUILDVERSION)"
 
 build:
-	$(GOBUILD) -v -ldflags "-X 'main.gitCommit=$(GIT_COMMIT)'" -o rgs cmd/main.go
+	$(GOBUILD) -o rgs cmd/main.go
 
 run:
 	./rgs

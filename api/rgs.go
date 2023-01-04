@@ -6,10 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/pprof"
-	"os"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -19,7 +18,6 @@ import (
 	"github.com/go-chi/render"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
-	"gopkg.in/src-d/go-git.v4"
 
 	//	"gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
@@ -38,8 +36,6 @@ const (
 	RegexPlayerId = "[a-zA-Z0-9-_+]+"
 	RegexId       = "[A-Za-z0-9-_+=.,:;/%]+"
 )
-
-var GitCommit string
 
 func Routes() *chi.Mux {
 	router := chi.NewRouter()
@@ -763,40 +759,17 @@ func Routes() *chi.Mux {
 		}
 
 		r.Get("/version", func(w http.ResponseWriter, r *http.Request) {
-			version := PrintVersion()
-
-			render.Render(w, r, VersionResponse{Version: string(version)})
+			versionFile, err := ioutil.ReadFile("version.txt")
+			if err != nil {
+				logger.Fatalf("Error reading version file: %v", err)
+				_ = render.Render(w, r, ErrRender(err))
+			}
+			if err := render.Render(w, r, VersionResponse{Version: string(versionFile)}); err != nil {
+				_ = render.Render(w, r, ErrRender(err))
+			}
 			return
 		})
 	})
 
 	return router
-}
-
-func PrintVersion() string {
-	currentBranch := getCurrentBranch()
-
-	if currentBranch == "master" {
-		return GitCommit
-	}
-
-	return getBranchWithAddedVersion(currentBranch)
-}
-
-func getCurrentBranch() string {
-	dir, _ := os.Getwd()
-	repo, _ := git.PlainOpen(dir)
-	head, _ := repo.Head()
-
-	headStr := fmt.Sprintf("%s", head)
-	headArr := strings.Fields(headStr)
-
-	return strings.Replace(headArr[1], "refs/heads/", "", -1)
-}
-
-func getBranchWithAddedVersion(currentBranch string) string {
-	reg, _ := regexp.Compile("[^[:alnum:]]")
-	currentBranch = reg.ReplaceAllString(currentBranch, "_")
-
-	return strings.ToLower(fmt.Sprintf("%s+branch.%s", GitCommit, currentBranch))
 }
