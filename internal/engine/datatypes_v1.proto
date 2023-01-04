@@ -306,5 +306,5 @@ message GamestatePB {
   repeated Reel feature_view = 24;
   string reelset_id=25;
   int64 campaign_win = 26;
-  string campaigne_ref = 27;
+  string campaign_ref = 27;
 }
