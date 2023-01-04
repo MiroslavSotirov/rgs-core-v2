@@ -353,9 +353,14 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 		// except if there is a tx on this state that is a wager and it is not the first wager of  the round
 		freeGameRef = txStore.FreeGames.CampaignRef
 		if txStore.FreeGames.CampaignRef != "" {
-			gamestate.CampaignWin = previousGamestate.CampaignWin + gamestate.SpinWin
+			gamestate.CampaignWin = previousGamestate.CampaignWin + gamestate.GetPrizeAmount()
 		}
 		logger.Infof("Campaign %v continues", freeGameRef)
+	}
+
+	campaignWin := gamestate.CampaignWin
+	if txStore.FreeGames.NoOfFreeSpins == 0 {
+		gamestate.CampaignWin = engine.Fixed(0)
 	}
 
 	autoClose := false
@@ -411,7 +416,7 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 		}
 		token = balance.Token
 	}
-	return fillGamestateResponseV2(gamestate, balance), nil
+	return fillGamestateResponseV2(gamestate, balance, campaignWin), nil
 }
 
 func (i *CloseRoundParams) decode(request *http.Request) rgse.RGSErr {
