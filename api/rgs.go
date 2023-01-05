@@ -63,17 +63,6 @@ func Routes() *chi.Mux {
 
 	m := metrics.NewHTTPMiddleware("RGS")
 	router.Use(m)
-	// Serve static contents
-	dist := http.FileServer(http.Dir("./dist"))
-	router.Handle("/", dist)
-	router.Handle("/{file:.*\\.(js|css|pck|ico|json|wasm)}", dist)
-	router.Handle("/audio/{file:.*\\.(json|mp3)}", dist)
-	router.Handle("/ui/static/{.*}/{file:.*\\.(css|js)}", dist)
-	router.Handle("/ui/audio/{file:.*\\.(json|mp3)}", dist)
-	router.Handle("/ui/{game-slug}/{lang}/{asset-type}/{file:.*\\.(webp|js)}", dist)
-	router.Handle("/packages/{file:.*\\.(pck)}", dist)
-	router.Handle("/enginev3/{file:.*\\.(js|wasm)}", dist)
-	router.Handle("/translations/{file:.*\\.(pck)}", dist)
 
 	// Prometheus metrics endpoint
 	router.Handle("/metrics", promhttp.Handler())

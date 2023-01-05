@@ -4,14 +4,14 @@ import (
 	cryptorand "crypto/rand"
 	"encoding/binary"
 	"log"
-	mrand "math/rand"
+	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
 )
 
 type Pool struct {
-	generators []*mrand.Rand
+	generators []*rand.Rand
 	available  []int32
 	lock       sync.Mutex
 }
@@ -32,21 +32,21 @@ func (s cryptoSource) Uint64() (v uint64) {
 	return v
 }
 
-func (pool *Pool) insert(rng *mrand.Rand) {
+func (pool *Pool) insert(rng *rand.Rand) {
 	pool.lock.Lock()
 	defer pool.lock.Unlock()
 	pool.generators = append(pool.generators, rng)
 	pool.available = append(pool.available, 0)
 }
 
-func (pool *Pool) New() *mrand.Rand {
+func (pool *Pool) New() *rand.Rand {
 	src := &cryptoSource{}
-	rng := mrand.New(src)
+	rng := rand.New(src)
 	pool.insert(rng)
 	return rng
 }
 
-func (pool *Pool) Get() *mrand.Rand {
+func (pool *Pool) Get() *rand.Rand {
 	for idx := range pool.available {
 		if atomic.CompareAndSwapInt32(&pool.available[idx], 1, 0) {
 			return pool.generators[idx]
@@ -55,7 +55,7 @@ func (pool *Pool) Get() *mrand.Rand {
 	return pool.New()
 }
 
-func (pool *Pool) Put(rng *mrand.Rand) {
+func (pool *Pool) Put(rng *rand.Rand) {
 	for idx, gen := range pool.generators {
 		if gen == rng {
 			pool.available[idx] = 1
@@ -67,7 +67,7 @@ func (pool *Pool) Put(rng *mrand.Rand) {
 
 func CyclePool(pool *Pool) {
 	var src cryptoSource
-	rng := mrand.New(src)
+	rng := rand.New(src)
 
 	for {
 		for idx := range pool.generators {
