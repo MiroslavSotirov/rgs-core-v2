@@ -287,6 +287,10 @@ gameConfig:
     games:
       - name: elysium-vip-94
         flags: campaign
+  - engineID: mvgEngineGodot9
+    games:
+      - name: law-of-gilgamesh
+        flags: campaign
 
 gamification:
   a-fairy-tale:

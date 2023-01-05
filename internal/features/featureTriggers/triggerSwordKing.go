@@ -30,6 +30,10 @@ func (f TriggerSwordKing) Trigger(state *feature.FeatureState, params feature.Fe
 	feature.SetStatefulStakeMap(*state, feature.FeatureParams{STATEFUL_ID_TRIGGER_SWORD_KING_COUNTER: counter},
 		params)
 
+	if len(state.CalculateWins(state.SourceGrid, nil)) > 0 {
+		params["PureWins"] = true
+	}
+
 	feature.ActivateFeatures(f.FeatureDef, state, params)
 	return
 }

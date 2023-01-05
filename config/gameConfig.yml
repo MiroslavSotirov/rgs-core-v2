@@ -178,3 +178,8 @@
     - name: elysium-vip-94
       item: 8744
       flags: campaign
+- engineID: mvgEngineGodot9
+  games:
+    - name: law-of-gilgamesh
+      item: 8767
+      flags: campaign

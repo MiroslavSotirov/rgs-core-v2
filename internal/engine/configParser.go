@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -100,6 +99,7 @@ func BuildEngineDefs(engineID string) EngineConfig {
 // BuildEngineDefs reads engine definition from yml
 func ReadEngineDefs(engineID string) EngineConfig {
 	// takes an engineId string and parses the corresponding yaml file into an EngineConfig
+	logger.Debugf("reading engine config %s", engineID)
 	currentDir, err := os.Getwd()
 	if err != nil {
 		panic("Failed opening current directory")
@@ -195,8 +195,6 @@ func ReadEngineDefs(engineID string) EngineConfig {
 		filledEngineDefs = append(filledEngineDefs, completeDef)
 	}
 	c.EngineDefs = filledEngineDefs
-	jc, _ := json.Marshal(c)
-	logger.Debugf("engine def: %s", string(jc))
 	return c
 
 }

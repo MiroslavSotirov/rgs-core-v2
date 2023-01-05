@@ -26,6 +26,10 @@ func (f TriggerBattleOfMyths) Trigger(state *feature.FeatureState, params featur
 		return
 	}
 
+	if len(state.CalculateWins(state.SourceGrid, nil)) > 0 {
+		params["PureWins"] = true
+	}
+
 	runPrincess := false
 	for _, f := range state.Features {
 		if f.DefPtr().Type == featureProducts.FEATURE_ID_PRINCESS {

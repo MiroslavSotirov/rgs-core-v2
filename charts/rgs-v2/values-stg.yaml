@@ -298,6 +298,11 @@ gameConfig_staging:
       - name: elysium-vip-94
         item: 33645
         flags: campaign
+  - engineID: mvgEngineGodot9
+    games:
+      - name: law-of-gilgamesh
+        item: 33649
+        flags: campaign
 
 # poduction item_id while relax testing in staging      
 gameConfig:
@@ -468,6 +473,11 @@ gameConfig:
     games:
       - name: elysium-vip-94
         item: 8744
+        flags: campaign
+  - engineID: mvgEngineGodot9
+    games:
+      - name: law-of-gilgamesh
+        item: 8767
         flags: campaign
 
 gamification:

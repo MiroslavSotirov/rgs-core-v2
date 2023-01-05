@@ -592,6 +592,111 @@ func DetermineElysiumLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts 
 	return wins
 }
 
+func DetermineClusterWins(symbolGrid [][]int, clusterPayouts []Payout, wilds []wild) []Prize {
+
+	logger.Debugf("DetermineClusterWins")
+
+	grid := make([][]int, len(symbolGrid))
+	for ir, r := range symbolGrid {
+		grid[ir] = make([]int, len(r))
+		for is, s := range r {
+			grid[ir][is] = s
+		}
+	}
+
+	type loc struct {
+		col int
+		row int
+		pos int
+	}
+
+	isWild := func(sym int) bool {
+		for _, s := range wilds {
+			if s.Symbol == sym {
+				return true
+			}
+		}
+		return false
+	}
+
+	fillChunk := func(l loc) []loc {
+		pos := []loc{}
+		sym := grid[l.col][l.row]
+		mem := []loc{l}
+		res := []loc{}
+		for len(mem) > 0 {
+			lc := mem[0]
+			mem = mem[1:]
+			s := grid[lc.col][lc.row]
+			iswild := isWild(s)
+			if s == sym || iswild {
+				pos = append(pos, lc)
+				if iswild {
+					res = append(res, lc)
+				}
+				grid[lc.col][lc.row] = -grid[lc.col][lc.row]
+				if lc.row > 0 {
+					mem = append(mem, loc{col: lc.col, row: lc.row - 1, pos: lc.pos - 1})
+				}
+				if lc.row < len(grid[lc.col])-1 {
+					mem = append(mem, loc{col: lc.col, row: lc.row + 1, pos: lc.pos + 1})
+				}
+				if lc.col > 0 {
+					mem = append(mem, loc{col: lc.col - 1, row: lc.row, pos: lc.pos - len(grid[lc.col-1])})
+				}
+				if lc.col < len(grid)-1 {
+					mem = append(mem, loc{col: lc.col + 1, row: lc.row, pos: lc.pos + len(grid[lc.col])})
+				}
+			}
+		}
+		for _, r := range res {
+			grid[r.col][r.row] = -grid[r.col][r.row]
+		}
+		return pos
+	}
+
+	prizes := []Prize{}
+
+	pos := 0
+	for ir, r := range grid {
+		for is, s := range r {
+			if s >= 0 && !isWild(s) {
+				positions := fillChunk(loc{col: ir, row: is, pos: pos})
+
+				logger.Debugf("symbol %d cluster size %d", s, len(positions))
+
+				clusterSize := len(positions)
+				payout := -1
+				for ipo, po := range clusterPayouts {
+					if po.Symbol == s && po.Count <= clusterSize {
+						logger.Debugf("checking payout %#v", po)
+						if payout < 0 || po.Count > clusterPayouts[payout].Count {
+							payout = ipo
+							logger.Debugf("using payout %d from %#v", payout, po)
+						}
+					}
+				}
+
+				if payout >= 0 {
+					logger.Debugf("payout %v:%v", clusterPayouts[payout].Symbol, clusterPayouts[payout].Count)
+					sympositions := make([]int, len(positions))
+					for ip, p := range positions {
+						sympositions[ip] = p.pos
+					}
+					prizes = append(prizes, Prize{
+						Payout:          clusterPayouts[payout],
+						Index:           fmt.Sprintf("%v:%v", clusterPayouts[payout].Symbol, clusterPayouts[payout].Count),
+						Multiplier:      1,
+						SymbolPositions: sympositions,
+						Winline:         -1})
+				}
+			}
+			pos++
+		}
+	}
+	return prizes
+}
+
 // Play ...
 func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parameters GameParams) (Gamestate, EngineConfig, rgserror.RGSErr) {
 	logger.Debugf("Playing round with parameters: %#v", parameters)
@@ -863,6 +968,8 @@ func (engine EngineDef) DetermineWins(symbolGrid [][]int) ([]Prize, int) {
 		wins = determinePrimeAndFlopWins(symbolGrid, engine.Payouts, engine.Wilds)
 	case "elysiumLines":
 		wins = DetermineElysiumLineWins(symbolGrid, engine.WinLines, engine.Payouts, engine.WinConfig)
+	case "cluster":
+		wins = DetermineClusterWins(symbolGrid, engine.Payouts, engine.Wilds)
 	}
 	relativePayout := calculatePayoutWins(wins)
 	return wins, relativePayout
@@ -1560,6 +1667,38 @@ func (gen GenerateFeatureRound) TriggerFeatures(engine EngineDef, symbolGrid [][
 	return triggerConfiguredFeatures(engine, symbolGrid, stopList, parameters)
 }
 
+type GenerateFeatureCascade struct {
+}
+
+func (gen GenerateFeatureCascade) ForceRound(engine EngineDef, parameters GameParams) Gamestate {
+	return genForcedRound(gen, engine, parameters)
+}
+
+func (gen GenerateFeatureCascade) FeatureRound(engine EngineDef, parameters GameParams) Gamestate {
+	return genFeatureCascade(gen, engine, parameters)
+}
+
+func (gen GenerateFeatureCascade) TriggerFeatures(
+	engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams) feature.FeatureState {
+	return triggerConfiguredFeatures(engine, symbolGrid, stopList, parameters)
+}
+
+type GenerateFeatureCascadeMultiply struct {
+}
+
+func (gen GenerateFeatureCascadeMultiply) ForceRound(engine EngineDef, parameters GameParams) Gamestate {
+	return genForcedRound(gen, engine, parameters)
+}
+
+func (gen GenerateFeatureCascadeMultiply) FeatureRound(engine EngineDef, parameters GameParams) Gamestate {
+	return genFeatureCascadeMultiply(gen, engine, parameters)
+}
+
+func (gen GenerateFeatureCascadeMultiply) TriggerFeatures(
+	engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams) feature.FeatureState {
+	return triggerConfiguredFeatures(engine, symbolGrid, stopList, parameters)
+}
+
 type GenerateStatefulRound struct {
 }
 
@@ -1634,7 +1773,6 @@ func triggerFeatures(engine EngineDef, fs *feature.FeatureState, parameters Game
 		}
 		return featureWins
 	}
-	fs.PureWins = len(fs.CalculateWins(fs.SourceGrid, nil)) > 0
 	fs.TotalStake = float64(parameters.previousGamestate.BetPerLine.Amount.Mul(NewFixedFromInt(engine.StakeDivisor)).ValueAsFloat())
 	fs.ReelsetId = engine.ReelsetId
 	fs.Reels = engine.Reels
@@ -1654,7 +1792,12 @@ func triggerFeatures(engine EngineDef, fs *feature.FeatureState, parameters Game
 
 func triggerConfiguredFeatures(engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams) feature.FeatureState {
 	logger.Debugf("Trigger configured features")
-	var fs feature.FeatureState
+	var fs, prevfs feature.FeatureState
+	prevfs.SymbolGrid = parameters.previousGamestate.FeatureView
+	prevfs.Features = parameters.previousGamestate.Features
+	if parameters.Action != "base" {
+		fs.Stateless = &prevfs
+	}
 	fs.SetGrid(symbolGrid)
 	fs.StopList = stopList
 	if err := triggerFeatures(engine, &fs, parameters); err != nil {
@@ -2007,6 +2150,14 @@ func genFeatureCascadeMultiply(gen GenerateRound, engine EngineDef, parameters G
 
 func (engine EngineDef) FeatureRound(parameters GameParams) Gamestate {
 	return GenerateFeatureRound{}.ForceRound(engine, parameters)
+}
+
+func (engine EngineDef) FeatureCascade(parameters GameParams) Gamestate {
+	return GenerateFeatureCascade{}.ForceRound(engine, parameters)
+}
+
+func (engine EngineDef) FeatureCascadeMultiply(parameters GameParams) Gamestate {
+	return GenerateFeatureCascadeMultiply{}.ForceRound(engine, parameters)
 }
 
 func (engine EngineDef) StatefulRound(parameters GameParams) Gamestate {

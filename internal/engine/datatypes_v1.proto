@@ -216,6 +216,7 @@ message GamestatePB {
   CLASH_OF_HEROES=58;
   ELYSIUM_VIP=59;
   ELYSIUM_VIP_94=60;
+  LAW_OF_GILGAMESH=61;
   }
   GameID game_id = 1;
   int32 engine_def = 2;

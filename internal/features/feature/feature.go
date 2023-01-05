@@ -24,8 +24,8 @@ type FeatureState struct {
 	Wins          []FeatureWin
 	TotalStake    float64
 	Stateful      *FeatureState
+	Stateless     *FeatureState
 	Action        string
-	PureWins      bool
 	CalculateWins func([][]int, []FeaturePayout) []FeatureWin
 	ReelsetId     string
 }

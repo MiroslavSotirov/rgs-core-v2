@@ -29,7 +29,7 @@ func (f *TriggerSwordKingFreespin) DataPtr() interface{} {
 }
 
 func (f TriggerSwordKingFreespin) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
-	if state.PureWins ||
+	if params.HasKey("PureWins") ||
 		(params.HasKey(PARAM_ID_TRIGGER_SWORD_KING_RUN_WILDS) && params.GetBool(PARAM_ID_TRIGGER_SWORD_KING_RUN_WILDS)) ||
 		(params.HasKey(PARAM_ID_TRIGGER_SWORD_KING_RUN_RESPIN) && params.GetBool(PARAM_ID_TRIGGER_SWORD_KING_RUN_RESPIN)) ||
 		(params.HasKey(PARAM_ID_TRIGGER_SWORD_KING_RUN_BONUS_SCATTER) && params.GetBool(PARAM_ID_TRIGGER_SWORD_KING_RUN_BONUS_SCATTER)) ||

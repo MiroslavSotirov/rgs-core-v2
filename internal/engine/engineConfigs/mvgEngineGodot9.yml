@@ -1,0 +1,196 @@
+version: 2.0
+# rtp: ??
+# volatility: ??
+
+EngineDefs:
+  - name: base
+    WinType: cluster
+    StakeDivisor: 10
+    function: FeatureCascadeMultiply
+    ViewSize: [6,6,6,6,6,6]
+    ReelsetId: 0 
+    Reels:
+      - [4,1,2,2,6,6,2,1,2,3,7,7,1,4,4,1,3,5,5,1,2,6,3,1,2,2,1,4,5,3,1,1,5,3,6,5,5,2,3,7,7,1,3,6,4,4,4,2,3]
+      - [3,1,1,1,4,3,1,5,4,2,1,1,1,3,3,4,2,5,5,7,7,1,4,6,2,2,4,1,1,3,2,2,2,3,5,4,7,6,5,5,6,6,6,7,2,2,3,4,3]
+      - [4,4,6,3,3,1,2,3,3,2,2,6,4,2,2,7,7,2,3,1,1,5,1,5,4,4,1,2,6,1,4,4,5,5,5,1,1,3,6,7,7,1,5,2,3,1,3,6,2]
+      - [7,7,1,2,2,3,1,1,4,1,3,2,3,2,6,2,1,1,1,3,3,3,4,4,4,6,2,2,5,7,7,2,2,5,1,1,5,6,6,4,5,5,3,3,1,4,4,6,5]
+      - [4,1,5,3,1,5,1,2,1,3,3,6,4,4,1,2,2,4,3,7,7,7,7,1,5,1,2,1,1,3,2,1,2,4,4,4,2,2,5,5,6,2,5,3,3,3,6,6,6]
+      - [3,7,7,5,1,1,4,4,3,3,3,6,6,4,1,1,2,2,2,1,3,3,1,5,2,2,4,4,4,1,2,5,6,2,5,5,5,1,1,6,6,1,2,4,2,7,7,3,3]
+    wilds:
+      - symbol: 8
+        multiplier: {multipliers: [1], probabilities: [1]}
+    Payouts:
+      - {Symbol: 1, Count: 5,  Multiplier: 1}
+      - {Symbol: 1, Count: 7,  Multiplier: 3}
+      - {Symbol: 1, Count: 9,  Multiplier: 7}
+      - {Symbol: 1, Count: 12, Multiplier: 18}
+      - {Symbol: 1, Count: 15, Multiplier: 45}
+      - {Symbol: 1, Count: 20, Multiplier: 100}
+      - {Symbol: 1, Count: 25, Multiplier: 250}
+      - {Symbol: 2, Count: 5,  Multiplier: 2}
+      - {Symbol: 2, Count: 7,  Multiplier: 5}
+      - {Symbol: 2, Count: 9,  Multiplier: 13}
+      - {Symbol: 2, Count: 12, Multiplier: 33}
+      - {Symbol: 2, Count: 15, Multiplier: 80}
+      - {Symbol: 2, Count: 20, Multiplier: 200}
+      - {Symbol: 2, Count: 25, Multiplier: 500}
+      - {Symbol: 3, Count: 5,  Multiplier: 3}
+      - {Symbol: 3, Count: 7,  Multiplier: 8}
+      - {Symbol: 3, Count: 9,  Multiplier: 20}
+      - {Symbol: 3, Count: 12, Multiplier: 50}
+      - {Symbol: 3, Count: 15, Multiplier: 125}
+      - {Symbol: 3, Count: 20, Multiplier: 300}
+      - {Symbol: 3, Count: 25, Multiplier: 750}
+      - {Symbol: 4, Count: 5,  Multiplier: 4}
+      - {Symbol: 4, Count: 7,  Multiplier: 10}
+      - {Symbol: 4, Count: 9,  Multiplier: 25}
+      - {Symbol: 4, Count: 12, Multiplier: 63}
+      - {Symbol: 4, Count: 15, Multiplier: 150}
+      - {Symbol: 4, Count: 20, Multiplier: 375}
+      - {Symbol: 4, Count: 25, Multiplier: 900}
+      - {Symbol: 5, Count: 5,  Multiplier: 5}
+      - {Symbol: 5, Count: 7,  Multiplier: 13}
+      - {Symbol: 5, Count: 9,  Multiplier: 30}
+      - {Symbol: 5, Count: 12, Multiplier: 75}
+      - {Symbol: 5, Count: 15, Multiplier: 200}
+      - {Symbol: 5, Count: 20, Multiplier: 500}
+      - {Symbol: 5, Count: 25, Multiplier: 1250}
+      - {Symbol: 6, Count: 5,  Multiplier: 6}
+      - {Symbol: 6, Count: 7,  Multiplier: 15}
+      - {Symbol: 6, Count: 9,  Multiplier: 35}
+      - {Symbol: 6, Count: 12, Multiplier: 90}
+      - {Symbol: 6, Count: 15, Multiplier: 250}
+      - {Symbol: 6, Count: 20, Multiplier: 650}
+      - {Symbol: 6, Count: 25, Multiplier: 1500}
+      - {Symbol: 7, Count: 5,  Multiplier: 20}
+      - {Symbol: 7, Count: 7,  Multiplier: 40}
+      - {Symbol: 7, Count: 9,  Multiplier: 80}
+      - {Symbol: 7, Count: 12, Multiplier: 150}
+      - {Symbol: 7, Count: 15, Multiplier: 300}
+      - {Symbol: 7, Count: 20, Multiplier: 900}
+      - {Symbol: 7, Count: 25, Multiplier: 2000}
+    multiplier: 
+      multipliers: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+      probabilities: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    Features:
+      - Type: SetReels
+        Params:
+          Action: cascade
+          ReelsetId: 1
+          Reels:
+            - [4,1,2,2,6,6,2,1,2,3,7,7,1,4,4,1,3,5,5,1,2,6,3,1,2,2,1,4,5,3,1,1,5,3,6,5,5,2,3,7,7,1,3,6,4,4,4,2,3]
+            - [3,1,1,1,4,3,1,5,4,2,1,1,1,3,3,4,2,5,5,7,7,1,4,6,2,2,4,1,1,3,2,2,2,3,5,4,7,6,5,5,6,6,6,7,2,2,3,4,3]
+            - [4,4,6,3,3,1,2,3,3,2,2,6,4,2,2,7,7,2,3,1,1,5,1,5,4,4,1,2,6,1,4,4,5,5,5,1,1,3,6,7,7,1,5,2,3,1,3,6,2]
+            - [7,7,1,2,2,3,1,1,4,1,3,2,3,2,6,2,1,1,1,3,3,3,4,4,4,6,2,2,5,7,7,2,2,5,1,1,5,6,6,4,5,5,3,3,1,4,4,6,5]
+            - [4,1,5,3,1,5,1,2,1,3,3,6,4,4,1,2,2,4,3,7,7,7,7,1,5,1,2,1,1,3,2,1,2,4,4,4,2,2,5,5,6,2,5,3,3,3,6,6,6]
+            - [3,7,7,5,1,1,4,4,3,3,3,6,6,4,1,1,2,2,2,1,3,3,1,5,2,2,4,4,4,1,2,5,6,2,5,5,5,1,1,6,6,1,2,4,2,7,7,3,3]
+      - Type: TriggerLawOfGilgamesh
+        Params:
+          Levels: [20, 35, 42]
+        Features:
+          - Type: TriggerConditional
+            Params:
+              ConditionalFlag: Bonus
+              Condition: Equals
+              ConditionalValue: "1"
+            Features:
+              - Type: TriggerLawOfGilgameshGilgamesh
+                Params:
+                  WildId: 8
+                  KeepIds: [8,9,10]
+                  NumWilds: [1,2,3,4,5,6,7,8,9,10]
+                  NumProbabilities: [50,300,1000,1900,1900,1800,1200,1000,500,350]
+                  RetryFactor: 3
+                  ReelProbabilities: [1666,1666,1667,1667,1667,1667]
+                  RowProbabilities: [1666,1666,1667,1667,1667,1667]
+                Features:
+                  - Type: Activation
+                    Id: 1
+                    Params:
+                      ActivationParams:
+                        Feature: "gilgamesh"
+          - Type: TriggerConditional
+            Params:
+              ConditionalFlag: Bonus
+              Condition: Equals
+              ConditionalValue: "2"
+            Features:
+              - Type: TriggerLawOfGilgameshIshtar
+                Params:
+                  RemoveIds: [1,2,3,4]
+                Features:
+                  - Type: Activation
+                    Id: 2
+                    Params:
+                      ActivationParams:
+                        Feature: "ishtar"
+          - Type: TriggerConditional
+            Params:
+              ConditionalFlag: Bonus
+              Condition: Equals
+              ConditionalValue: "3"
+            Features:
+              - Type: TriggerLawOfGilgameshEnkidu
+                Params:
+                  RemovePositions: [0, 30, 7, 25, 14, 20, 15, 21, 10, 28, 5, 35]
+                Features:
+                  - Type: Activation
+                    Id: 3
+                    Params:
+                      ActivationParams:
+                        Feature: "enkidu"
+          - Type: TriggerConditional
+            Params:
+              ConditionalFlag: Bonus
+              Condition: Unset
+            Features:
+              - Type: TriggerWeightedRandom
+                Params:
+                  Weights: [500, 350, 9250]
+                Features:
+                  - Type: TriggerLawOfGilgameshTowerScatter
+                    Id: 4
+                    Params:
+                      TileId: 9
+                      NumScatters: [1,2,3]
+                      NumProbabilities: [6000,3500,500]
+                      ReelProbabilities: [1666,1666,1667,1667,1667,1667]
+                      RowProbabilities: [1666,1666,1667,1667,1667,1667]
+                      KeepIds: [8, 9]
+                      RetryFactor: 3
+                      BonusThreshold: 3
+                      WinsLevels:
+                        - [50,-1,70,-1,100,-1,70,-1,50,-1]
+                        - [150,-1,200,-1,250,-1,200,-1,150,-1]
+                        - [500,-1,750,-1,1000,-1]
+                        - [1500,2000,2500,3000,4000,5000]
+                      ProbabilitiesLevels:
+                        - [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
+                        - [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
+                        - [1666,1666,1667,1667,1667,1667]
+                        - [1666,1666,1667,1667,1667,1667]
+                    Features:
+                      - Type: TriggerInstaWin
+                  - Type: TriggerLawOfGilgameshFreespinScatter
+                    Params:
+                      TileId: 10
+                      NumScatters: [1,2,3]
+                      NumProbabilities: [6800,3000,200]
+                      ReelProbabilities: [1666,1666,1667,1667,1667,1667]
+                      RowProbabilities: [1666,1666,1667,1667,1667,1667]
+                      KeepIds: [8, 9]
+                      RetryFactor: 3
+                      BonusThreshold: 3
+                      Freespins: 10
+                      Additional: 2
+                  - Type: FeatureNull
+          - Type: StatelessMap
+  - name: freespin 
+    ReelsetId: 0 
+    Reels:
+      - [4,1,2,2,6,6,2,1,2,3,7,7,1,4,4,1,3,5,5,1,2,6,3,1,2,2,1,4,5,3,1,1,5,3,6,5,5,2,3,7,7,1,3,6,4,4,4,2,3]
+      - [3,1,1,1,4,3,1,5,4,2,1,1,1,3,3,4,2,5,5,7,7,1,4,6,2,2,4,1,1,3,2,2,2,3,5,4,7,6,5,5,6,6,6,7,2,2,3,4,3]
+      - [4,4,6,3,3,1,2,3,3,2,2,6,4,2,2,7,7,2,3,1,1,5,1,5,4,4,1,2,6,1,4,4,5,5,5,1,1,3,6,7,7,1,5,2,3,1,3,6,2]
+      - [7,7,1,2,2,3,1,1,4,1,3,2,3,2,6,2,1,1,1,3,3,3,4,4,4,6,2,2,5,7,7,2,2,5,1,1,5,6,6,4,5,5,3,3,1,4,4,6,5]
+      - [4,1,5,3,1,5,1,2,1,3,3,6,4,4,1,2,2,4,3,7,7,7,7,1,5,1,2,1,1,3,2,1,2,4,4,4,2,2,5,5,6,2,5,3,3,3,6,6,6]
+      - [3,7,7,5,1,1,4,4,3,3,3,6,6,4,1,1,2,2,2,1,3,3,1,5,2,2,4,4,4,1,2,5,6,2,5,5,5,1,1,6,6,1,2,4,2,7,7,3,3]

@@ -22,7 +22,7 @@ type TriggerSwordKingRespin struct {
 }
 
 func (f TriggerSwordKingRespin) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
-	if state.PureWins {
+	if params.HasKey("PureWins") {
 		// logger.Debugf("skipping respin due to wins")
 		return
 	} else if params.HasKey(PARAM_ID_TRIGGER_SWORD_KING_RUN_WILDS) && params.GetBool(PARAM_ID_TRIGGER_SWORD_KING_RUN_WILDS) {
