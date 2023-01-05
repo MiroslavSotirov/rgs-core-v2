@@ -69,7 +69,7 @@ func CyclePool(pool *Pool) {
 	var src cryptoSource
 	rng := rand.New(src)
 
-	for {
+	for true {
 		for idx := range pool.generators {
 			if atomic.CompareAndSwapInt32(&pool.available[idx], 1, 0) {
 				_ = pool.generators[idx].Uint64()
