@@ -31,9 +31,10 @@ jobs:
         with:
           fetch-depth: "0"
       - name: Bump version and push tag
-        uses: anothrNick/github-tag-action@11ca9400dccfc808a84c96f9068bc58731336ac3
+        uses: anothrNick/github-tag-action@master
         id: tag
         env:
+          DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ env.BUILDER_TOKEN }}
           WITH_V: true
           DEFAULT_BUMP: patch
