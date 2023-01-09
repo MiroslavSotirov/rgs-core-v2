@@ -507,6 +507,7 @@ func GetDefaultView(gameName string) (symbolGrid [][]int, features []feature.Fea
 func GetDefaultViewFromFunction(method reflect.Value) (symbolGrid [][]int, features []feature.Feature) {
 	logger.Debugf("call configured init function to generate default view")
 	var params GameParams
+	params.Action = "init"
 	objs := method.Call([]reflect.Value{reflect.ValueOf(params)})
 	gamestate, ok := objs[0].Interface().(Gamestate)
 	if !ok {
