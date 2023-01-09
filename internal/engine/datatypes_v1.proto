@@ -132,6 +132,13 @@ enum Ccy {
   SSP = 113;
   SLL = 114;
   MNT = 115;
+  AUD = 116;
+  CUP = 117;
+  KHR = 118;
+  NPR = 119;
+  PKR = 120;
+  SOS = 121;
+  XDR = 122;
 }
 
 message WalletTransactionPB {

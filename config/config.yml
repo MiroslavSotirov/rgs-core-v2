@@ -39,4 +39,4 @@ logaccount: 145472021_144443389
 datalimit: 3200
 localdatattl: 90
 extplaycheck: "https://dev.elysiumstudios.se/game-history"
-extparamservice: "http://172.17.0.3/api"
+#extparamservice: "http://172.17.0.3/api"

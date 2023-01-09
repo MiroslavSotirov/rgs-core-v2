@@ -20,6 +20,7 @@ const (
 	CCY_MULTIPLIER_MIN     = 0.001
 	CCY_MULTIPLIER_MAX     = 10000
 	CCY_MULTIPLIER_EPS     = 0.001
+	LOCAL_DEFAULT_COMPANY  = "default"
 	REMOTE_DEFAULT_COMPANY = "default"
 )
 
@@ -84,10 +85,11 @@ func CreateLocalParameterService() *LocalParameterService {
 		logger.Errorf("could not parse bet config")
 		return nil
 	}
-	company := ""
 	multipliers := make(map[ccyKey]ccyValue, len(betConf.CcyMultipliers))
-	for k, v := range betConf.CcyMultipliers {
-		multipliers[ccyKey{Ccy: k, Company: company}] = ccyValue(v)
+	for c, m := range betConf.CcyMultipliers {
+		for k, v := range m {
+			multipliers[ccyKey{Ccy: k, Company: c}] = ccyValue(v)
+		}
 	}
 	return &LocalParameterService{
 		ccyMultipliers: multipliers,
@@ -106,7 +108,13 @@ func CreateRemoteParameterService(url string) *RemoteParameterService {
 }
 
 func (i *LocalParameterService) CurrencyMultiplier(ccy string, company string) (float32, bool) {
+	if company == "" {
+		company = LOCAL_DEFAULT_COMPANY
+	}
 	value, ok := i.ccyMultipliers[ccyKey{Ccy: ccy, Company: company}]
+	if !ok && company != LOCAL_DEFAULT_COMPANY {
+		value, ok = i.ccyMultipliers[ccyKey{Ccy: ccy, Company: LOCAL_DEFAULT_COMPANY}]
+	}
 	if !ok {
 		logger.Errorf("unknown currency and company pair [%s]-[%s]", ccy, company)
 		return 0.0, false

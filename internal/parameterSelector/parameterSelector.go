@@ -20,12 +20,13 @@ import (
 // Module for selecting stakeValue and defaultBet parameters given currency, operator-specific settings, and player history and classification
 
 type betConfig struct {
-	StakeValues    []int                     `yaml:"stakeValues"`
-	DefaultBet     int                       `yaml:"defaultBet"`
-	CcyMultipliers map[string]float32        `yaml:"ccyMultipliers"`
-	Profiles       map[string]map[string]int `yaml:"profiles"`
-	HostProfiles   map[string]string         `yaml:"hostProfiles"`
-	Override       map[string]stakeConfigs   `yaml:"override`
+	StakeValues []int `yaml:"stakeValues"`
+	DefaultBet  int   `yaml:"defaultBet"`
+	//	CcyMultipliers map[string]float32        `yaml:"ccyMultipliers"`
+	CcyMultipliers map[string]map[string]float32 `yaml:"ccyMultipliers"`
+	Profiles       map[string]map[string]int     `yaml:"profiles"`
+	HostProfiles   map[string]string             `yaml:"hostProfiles"`
+	Override       map[string]stakeConfigs       `yaml:"override`
 }
 
 type stakeConfigs map[string]stakeConfig
@@ -102,15 +103,15 @@ func readBetConfig() (betConfig, rgse.RGSErr) {
 	return conf, nil
 }
 
-func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode string, playerID string) (walletInitBal engine.Money, ctFS int, waFS engine.Fixed, err rgse.RGSErr) {
-	logger.Debugf("getting demo wallet defaults for player %v, ccy %v", playerID, currency)
+func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode string, playerID string, companyId string) (walletInitBal engine.Money, ctFS int, waFS engine.Fixed, err rgse.RGSErr) {
+	logger.Debugf("getting demo wallet defaults for player %v, ccy %v, companyId", playerID, currency, companyId)
 
 	// default wallet amt is 100x the max bet amount for the game (except in local mode to enable long automated playtesting)
 	walletamtmult := 100
 	if config.GlobalConfig.DevMode {
 		walletamtmult = 100000
 	}
-	stakeValues, _, _, _, paramErr := GetGameplayParameters(engine.Money{0, currency}, betSettingsCode, gameID)
+	stakeValues, _, _, _, paramErr := GetGameplayParameters(engine.Money{0, currency}, betSettingsCode, gameID, companyId)
 	if paramErr != nil {
 		err = paramErr
 		return
@@ -146,10 +147,10 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 	return
 }
 
-func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string) (
+func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string, companyId string) (
 	stakeValues []engine.Fixed, defaultBet engine.Fixed, minBet engine.Fixed, maxBet engine.Fixed, rgserr rgse.RGSErr) { // ([]engine.Fixed, engine.Fixed, rgse.RGSErr) {
 	// returns stakeValues and defaultBet based on host and player configuration
-	logger.Debugf("getting %v stake params for config %v (lastbet %#v)", gameID, betSettingsCode, lastBet)
+	logger.Debugf("getting %v stake params for company %v and config %v (lastbet %#v)", gameID, companyId, betSettingsCode, lastBet)
 	betConf, err := parseBetConfig()
 	//logger.Debugf("Bet Configuration: %#v", betConf)
 	if err != nil {
@@ -160,7 +161,7 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 	// get stakevalues based on host config
 	baseStakeValues := betConf.StakeValues
 
-	ccyMult, ok := GetParameterService().CurrencyMultiplier(lastBet.Currency, "")
+	ccyMult, ok := GetParameterService().CurrencyMultiplier(lastBet.Currency, companyId)
 	if !ok {
 		//		return []engine.Fixed{}, engine.Fixed(0), rgse.Create(rgse.BetConfigError)
 		rgserr = rgse.Create(rgse.BetConfigError)

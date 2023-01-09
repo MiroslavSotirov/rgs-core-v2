@@ -140,7 +140,7 @@ func initV3(request *http.Request) (response IGameInitResponseV3, rgserr rgse.RG
 			var balance engine.Money
 			var ctFS int
 			var waFS engine.Fixed
-			balance, ctFS, waFS, rgserr = parameterSelector.GetDemoWalletDefaults(data.Ccy, data.Game, "", authToken)
+			balance, ctFS, waFS, rgserr = parameterSelector.GetDemoWalletDefaults(data.Ccy, data.Game, "", authToken, player.CompanyId)
 			if rgserr != nil {
 				return
 			}

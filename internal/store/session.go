@@ -33,18 +33,26 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 		logger.Debugf("latest gamestate had length zero")
 		if wallet == "demo" {
 			// todo : allow setting of betlimitsettignscode
-			balance, ctFS, waFS, err := parameterSelector.GetDemoWalletDefaults(currency, gameName, "", playerID)
+			balance, ctFS, waFS, err := parameterSelector.GetDemoWalletDefaults(currency, gameName, "", playerID, newPlayer.CompanyId)
 
 			if err != nil {
 				return engine.Gamestate{}, PlayerStore{}, []feature.Feature{}, err
 			}
 			logger.Debugf("balance: %v, freespins: %v, wageramt: %v", balance, ctFS, waFS)
 
-			newPlayer = PlayerStore{playerID, Token(refreshToken), ModeDemo, playerID, balance, "", FreeGamesStore{
-				NoOfFreeSpins: ctFS,
-				CampaignRef:   playerID,
-				TotalWagerAmt: waFS,
-			}}
+			newPlayer = PlayerStore{
+				PlayerId:            playerID,
+				Token:               Token(refreshToken),
+				Mode:                ModeDemo,
+				Username:            playerID,
+				Balance:             balance,
+				BetLimitSettingCode: "",
+				CompanyId:           newPlayer.CompanyId,
+				FreeGames: FreeGamesStore{
+					NoOfFreeSpins: ctFS,
+					CampaignRef:   playerID,
+					TotalWagerAmt: waFS,
+				}}
 			newPlayer, err = ServLocal.PlayerSave(newPlayer.Token, ModeDemo, newPlayer)
 		}
 		latestGamestate = CreateInitGS(newPlayer, gameName)
