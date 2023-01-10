@@ -104,13 +104,13 @@ config:
     port: 3000
     name: elysium
   # staging gnrc settings
-  #storeurl: "https://gnrc-api.stginservix.com/v1/gnrc/maverick"
-  #storeappid: "VrCLq4UqYBf39rJt"
-  #storeapppass: "V6Kg9muzJxsz3nWFvJeyccU7"
+  storeurl: "https://gnrc-api.stginservix.com/v1/gnrc/maverick"
+  storeappid: "VrCLq4UqYBf39rJt"
+  storeapppass: "V6Kg9muzJxsz3nWFvJeyccU7"
   # production gnrc settings
-  storeurl: "https://gnrc-api.maverick-ops.com/v1/gnrc/maverick"
-  storeappid: "HAAJ6njttH"
-  storeapppass: "WKXUZWTzNzvmTqYxiHnH9hKc"  
+  #storeurl: "https://gnrc-api.maverick-ops.com/v1/gnrc/maverick"
+  #storeappid: "HAAJ6njttH"
+  #storeapppass: "WKXUZWTzNzvmTqYxiHnH9hKc"  
   defaultlanguage: "en"
   defaultplatform: "html5"
   demotokenprefix: "demo-token-ezVVKaEv2nY7kP2gMCX7vfCH"
@@ -121,7 +121,7 @@ config:
   extplaycheck: "https://dev.elysiumstudios.se/game-history"
 
 # staging config disable while relax is using staging env with production item ids
-gameConfig_staging:
+gameConfig:
   - engineID: mvgEngineI
     games:
       - name: the-year-of-zhu
@@ -304,8 +304,8 @@ gameConfig_staging:
         item: 33649
         flags: campaign
 
-# poduction item_id while relax testing in staging      
-gameConfig:
+# production item_id while relax testing in staging. remove
+gameConfig_prod:
   - engineID: mvgEngineI
     games:
       - name: the-year-of-zhu
