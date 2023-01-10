@@ -59,6 +59,7 @@ type Config struct {
 	DataLimit       int         `yaml:"datalimit" cfg:"datalimit" cfgDefault:"800"`
 	LocalDataTtl    int64       `yaml:"localdatattl" cfg:"localdatattl" cfgDefault:"0"`
 	ExtPlaycheck    string      `yaml:"extplaycheck" cfg:"extplaycheck" cfgDefault:"https://dev.elysiumstudios.se/game-history"`
+	ExtParamService string      `yaml:"extparamservice" ctg:"extparamservice" cfgDefault:""`
 }
 
 // Game config structure

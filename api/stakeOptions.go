@@ -40,6 +40,7 @@ func stakeInfo(request *http.Request, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "info/json")
 
 	gameSlug := request.FormValue("game")
+	companyId := request.FormValue("companyId")
 	var err error
 	var stakeInfo GameStakeInfo
 	stakeInfo.GameID = gameSlug
@@ -56,7 +57,7 @@ func stakeInfo(request *http.Request, w http.ResponseWriter) {
 		if i == 0 {
 			continue
 		}
-		stakeValues, _, _, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, ccy}, "", gameSlug)
+		stakeValues, _, _, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, ccy}, "", gameSlug, companyId)
 		if err != nil {
 			logger.Errorf("Error getting stake values with ccy %v: %v", ccy, err)
 			continue

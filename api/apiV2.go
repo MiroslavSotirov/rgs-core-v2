@@ -63,6 +63,7 @@ func getGameHashes(request *http.Request) (GameHashResponse, rgse.RGSErr) {
 	response := GameHashResponse{}
 	params := request.URL.Query()
 	ccys := strings.Split(params.Get("currencies"), ",")
+	companyId := params.Get("companyId")
 	for _, c := range config.GlobalGameConfig {
 		cfg := c.EngineID + ".yml"
 		h, ok := config.GlobalHashes[cfg]
@@ -76,7 +77,7 @@ func getGameHashes(request *http.Request) (GameHashResponse, rgse.RGSErr) {
 				if len(ccys) > 0 {
 					stakes = make(map[string][]engine.Fixed, len(ccys))
 					for _, ccy := range ccys {
-						stakeValues, _, _, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, ccy}, "", g.Name)
+						stakeValues, _, _, _, err := parameterSelector.GetGameplayParameters(engine.Money{0, ccy}, "", g.Name, companyId)
 						if err == nil {
 							for i, _ := range stakeValues {
 								stakeValues[i] = stakeValues[i].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor))
@@ -164,7 +165,7 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 	// set stakevalues, links,
 	giResp.Features = initFeatures
 
-	stakeValues, defaultBet, _, _, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine, player.BetLimitSettingCode, data.Game)
+	stakeValues, defaultBet, _, _, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine, player.BetLimitSettingCode, data.Game, player.CompanyId)
 	if err != nil {
 		return GameInitResponseV2{}, err
 	}

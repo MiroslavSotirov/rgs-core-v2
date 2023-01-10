@@ -79,6 +79,7 @@ type (
 		Username            string
 		Balance             engine.Money
 		BetLimitSettingCode string
+		CompanyId           string
 		FreeGames           FreeGamesStore
 	}
 
@@ -109,6 +110,7 @@ type (
 		ParentTransactionId string
 		TxTime              time.Time
 		BetLimitSettingCode string
+		CompanyId           string
 		GameState           []byte
 		FreeGames           FreeGamesStore
 		WalletStatus        int
@@ -289,6 +291,7 @@ type (
 		Id        string       `json:"id"`
 		Username  string       `json:"username"`
 		BetLimit  string       `json:"bet_limit"`
+		CompanyId string       `json:"company_id"`
 		FreeGames restFreeGame `json:"free_games"`
 		Balance   int64        `json:"balance"`
 		Currency  string       `json:"currency"`
@@ -410,6 +413,8 @@ type (
 		Token string `json:"token"`
 		//		ResponseCode  string            `json:"code"`
 		//		Message       string            `json:"message"`
+		BetLimit      string            `json:"bet_limit"`
+		CompanyId     string            `json:"company_id"`
 		PlayerId      string            `json:"player_id"`
 		Balance       int64             `json:"balance"`
 		Currency      string            `json:"currency"`
@@ -449,6 +454,7 @@ type (
 		//TxRef          string       `json:"tx_ref"`
 		//Description    string       `json:"description"`
 		BetLimit  string       `json:"bet_limit"`
+		CompanyId string       `json:"company_id"`
 		FreeGames restFreeGame `json:"free_games"`
 		//InternalStatus int          `json:"internal_status"`
 		LastTx restTransactionRequest `json:"last_tx"`
@@ -601,6 +607,7 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 				},
 				FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef, player.FreeGames.TotalWagerAmt},
 				BetLimitSettingCode: player.BetLimitSettingCode,
+				CompanyId:           player.CompanyId,
 			}
 			gs = GameStateStore{GameState: tx.GameState, WalletInternalStatus: 1}
 			return
@@ -618,6 +625,7 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 				},
 				FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef, player.FreeGames.TotalWagerAmt},
 				BetLimitSettingCode: player.BetLimitSettingCode,
+				CompanyId:           player.CompanyId,
 			}
 			return
 		}
@@ -800,6 +808,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 			Balance:             balance.Balance,
 			FreeGames:           balance.FreeGames,
 			BetLimitSettingCode: authResp.BetLimit,
+			CompanyId:           authResp.CompanyId,
 		},
 		GameStateStore{GameState: gameState, WalletInternalStatus: lastTransaction.InternalStatus},
 		nil
@@ -912,6 +921,7 @@ func (i *LocalServiceImpl) PlayerSave(token Token, mode Mode, player PlayerStore
 		},
 		FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef, player.FreeGames.TotalWagerAmt},
 		BetLimitSettingCode: player.BetLimitSettingCode,
+		CompanyId:           player.CompanyId,
 	}, nil
 }
 
@@ -1211,6 +1221,7 @@ func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId st
 		TxTime:              transaction.TxTime,
 		GameState:           transaction.GameState,
 		BetLimitSettingCode: player.BetLimitSettingCode,
+		CompanyId:           player.CompanyId,
 		FreeGames:           player.FreeGames,
 		WalletStatus:        1,
 		Ttl:                 transaction.Ttl,
@@ -1313,6 +1324,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		TxTime:              time.Now(), //TODO: fix this
 		GameState:           gameState,
 		BetLimitSettingCode: queryResp.BetLimit,
+		CompanyId:           queryResp.CompanyId,
 		FreeGames:           balance.FreeGames,
 		WalletStatus:        lastTx.InternalStatus,
 		Ttl:                 lastTx.Ttl,
@@ -1376,6 +1388,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 		ParentTransactionId: "",
 		TxTime:              time.Now(),
 		GameState:           gamestate,
+		CompanyId:           player.CompanyId,
 		FreeGames:           player.FreeGames,
 		Ttl:                 ttl,
 		History:             *history,
