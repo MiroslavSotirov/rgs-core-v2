@@ -51,7 +51,7 @@ ingress:
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/affinity-mode: "persistent"
   hosts:
-    - host: dev.elysiumstudios.se
+    - host: devdeployment.elysiumstudios.se
       paths:
         - path: /v2
           pathType: Prefix
@@ -113,7 +113,7 @@ config:
   logaccount: "145472021_144443389"
   datalimit: 3200
   localdatattl: 60
-  extplaycheck: "https://dev.elysiumstudios.se/game-history"
+  extplaycheck: "https://devdeployment.elysiumstudios.se/game-history"
 
 gameConfig:
   - engineID: mvgEngineI
