@@ -2,32 +2,29 @@ package store
 
 import (
 	"strings"
+	"time"
 
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
-func InitPlayerGS(refreshToken string, playerID string, gameName string, currency string, wallet string) (engine.Gamestate, PlayerStore, []feature.Feature, rgse.RGSErr) {
+func InitPlayerGS(refreshToken string, playerID string, gameName string, currency string, wallet string) (latestGamestate engine.Gamestate, newPlayer PlayerStore, err rgse.RGSErr) {
 	logger.Debugf("init game %v for player %v", gameName, playerID)
-	var newPlayer PlayerStore
-	var latestGamestateStore GameStateStore
-	var initFeatures []feature.Feature
-	var err rgse.RGSErr
 
-	switch wallet {
-	case "dashur":
-		newPlayer, latestGamestateStore, err = Serv.PlayerByToken(Token(refreshToken), ModeReal, gameName)
-	case "demo":
-		newPlayer, latestGamestateStore, err = ServLocal.PlayerByToken(Token(refreshToken), ModeDemo, gameName)
+	err = ValidateWallet(wallet)
+	if err != nil {
+		return
 	}
+
+	var latestGamestateStore GameStateStore
+	mode := WalletMode(wallet)
+	newPlayer, latestGamestateStore, err = GetService(mode).PlayerByToken(Token(refreshToken), mode, gameName)
 	if err != nil && err.(*rgse.RGSError).ErrCode != rgse.NoSuchPlayer {
-		return engine.Gamestate{}, PlayerStore{}, []feature.Feature{}, err
+		return
 	}
-	var latestGamestate engine.Gamestate
 
 	if len(latestGamestateStore.GameState) == 0 {
 		logger.Debugf("latest gamestate had length zero")
@@ -36,7 +33,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 			balance, ctFS, waFS, err := parameterSelector.GetDemoWalletDefaults(currency, gameName, "", playerID, newPlayer.CompanyId)
 
 			if err != nil {
-				return engine.Gamestate{}, PlayerStore{}, []feature.Feature{}, err
+				return engine.Gamestate{}, PlayerStore{}, err
 			}
 			logger.Debugf("balance: %v, freespins: %v, wageramt: %v", balance, ctFS, waFS)
 
@@ -56,21 +53,57 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 			newPlayer, err = ServLocal.PlayerSave(newPlayer.Token, ModeDemo, newPlayer)
 		}
 		latestGamestate = CreateInitGS(newPlayer, gameName)
-		initFeatures = latestGamestate.Features
+		txamount := engine.Money{0, newPlayer.Balance.Currency}
+		txtype := CategoryWager
+		latestGamestate.Transactions = []engine.WalletTransaction{
+			engine.WalletTransaction{
+				Id:     latestGamestate.Id,
+				Amount: txamount,
+				Type:   string(txtype),
+			},
+		}
+		transaction := TransactionStore{
+			TransactionId: latestGamestate.Id,
+			Token:         newPlayer.Token,
+			Mode:          mode,
+			Category:      txtype,
+			RoundStatus:   RoundStatusClose,
+			PlayerId:      playerID,
+			GameId:        gameName,
+			RoundId:       latestGamestate.Id,
+			Amount:        txamount,
+			TxTime:        time.Now(),
+			GameState:     SerializeGamestateToBytes(latestGamestate),
+			FreeGames:     newPlayer.FreeGames,
+			Ttl:           latestGamestate.GetTtl(),
+		}
+		logger.Debugf("initial gamestate: %#v", latestGamestate)
+
+		// store the initial gamestate
+		var balanceStore BalanceStore
+		balanceStore, err = GetService(mode).Transaction(newPlayer.Token, mode, transaction)
+
+		if err != nil {
+			logger.Debugf("initial gamestate transaction failed")
+			return
+		}
+		newPlayer.Token = balanceStore.Token
+		newPlayer.Balance = balanceStore.Balance
 
 	} else {
 		latestGamestate = DeserializeGamestateFromBytes(latestGamestateStore.GameState)
-		_, initFeatures, _, _ = engine.GetDefaultView(gameName)
+		//		_, initFeatures, _, _ = engine.GetDefaultView(gameName)
 	}
 
-	return latestGamestate, newPlayer, initFeatures, nil
+	return
 }
 
 func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.Gamestate) {
 	// from player we use balance currency and id
 	logger.Debugf("First %v gameplay for player %v, creating sham gamestate", gameName, player)
 
-	gsID := player.PlayerId + gameName + "GSinit"
+	//	gsID := player.PlayerId + gameName + "GSinit"
+	gsID := string(rng.Uuid())
 	view, features, defId, reelsetId := engine.GetDefaultView(gameName)
 	latestGamestate = engine.Gamestate{
 		Game:          gameName,
@@ -79,7 +112,7 @@ func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.G
 		Id:            gsID,
 		BetPerLine:    engine.Money{0, player.Balance.Currency},
 		NextActions:   []string{"finish"},
-		Action:        "init",
+		Action:        "base",
 		Gamification:  &engine.GamestatePB_Gamification{},
 		SymbolGrid:    view,
 		Features:      features,

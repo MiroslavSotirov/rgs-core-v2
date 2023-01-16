@@ -11,7 +11,6 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
@@ -150,23 +149,25 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 	}
 	var player store.PlayerStore
 	var latestGamestate engine.Gamestate
-	var initFeatures []feature.Feature
 
-	latestGamestate, player, initFeatures, err = store.InitPlayerGS(authToken, authToken, data.Game, data.Ccy, wallet)
+	latestGamestate, player, err = store.InitPlayerGS(authToken, authToken, data.Game, data.Ccy, wallet)
 
 	if err != nil {
+		logger.Debugf("error: %v", err)
 		return GameInitResponseV2{}, err
 	}
 
 	giResp := fillGameInitPreviousGameplay(latestGamestate, store.BalanceStore{Balance: player.Balance, Token: player.Token, FreeGames: player.FreeGames})
+	logger.Debugf("fillGameInitPreviousGameplay")
 	giResp.FillEngineInfo(engineConfig)
+	logger.Debugf("fillEngineInfo")
 	//logger.Debugf("reel response: %v", giResp.ReelSets)
 	giResp.Wallet = wallet
 	// set stakevalues, links,
-	giResp.Features = initFeatures
 
 	stakeValues, defaultBet, _, _, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine, player.BetLimitSettingCode, data.Game, player.CompanyId)
 	if err != nil {
+		logger.Debugf("error: %v", err)
 		return GameInitResponseV2{}, err
 	}
 	sd := engine.NewFixedFromInt(engineConfig.EngineDefs[0].StakeDivisor)
@@ -185,6 +186,7 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 		}
 	}
 
+	logger.Debugf("initV2 done")
 	return giResp, nil
 }
 
@@ -193,10 +195,11 @@ func playV2(request *http.Request) (GameplayResponseV2, rgse.RGSErr) {
 	if err := data.Decode(request); err != nil {
 		return GameplayResponseV2{}, err
 	}
-
-	if strings.Contains(data.PreviousID, "GSinit") {
-		return playFirst(request, data)
-	}
+	/*
+		if strings.Contains(data.PreviousID, "GSinit") {
+			return playFirst(request, data)
+		}
+	*/
 	token, autherr := handleAuth(request)
 	if autherr != nil {
 		return GameplayResponseV2{}, autherr
@@ -225,6 +228,7 @@ func playV2(request *http.Request) (GameplayResponseV2, rgse.RGSErr) {
 		logger.Debugf("Previous ID doesn't match: %v, %v", data.PreviousID, previousGamestate.Id)
 		return GameplayResponseV2{}, rgse.Create(rgse.SpinSequenceError)
 	}
+	logger.Debugf("Previous gamestate: %#v", previousGamestate)
 
 	// add suffix to gamestate in case this is a retry attempt
 	switch txStore.WalletStatus {
@@ -244,6 +248,211 @@ func playV2(request *http.Request) (GameplayResponseV2, rgse.RGSErr) {
 	}
 
 	return getRoundResults(data, previousGamestate, txStore)
+}
+
+func lastTransaction(token store.Token, wallet string, game string) (store.TransactionStore, rgse.RGSErr) {
+	switch wallet {
+	case "demo":
+		return store.ServLocal.TransactionByGameId(token, store.ModeDemo, game)
+	case "dashur":
+		return store.Serv.TransactionByGameId(token, store.ModeReal, game)
+	}
+	logger.Debugf("No such wallet '%v'", wallet)
+	return store.TransactionStore{}, rgse.Create(rgse.InvalidWallet)
+}
+
+func playRound(request *http.Request) (RoundResponse, rgse.RGSErr) {
+	token, autherr := handleAuth(request)
+	if autherr != nil {
+		return RoundResponse{}, autherr
+	}
+
+	var data engine.GameParams
+	if err := data.Decode(request); err != nil {
+		return RoundResponse{}, err
+	}
+
+	var mode store.Mode
+	switch data.Wallet {
+	case "demo":
+		mode = store.ModeDemo
+	case "dashur":
+		mode = store.ModeReal
+	default:
+		return RoundResponse{}, rgse.Create(rgse.InvalidWallet)
+	}
+
+	txStore, err := lastTransaction(token, data.Wallet, data.Game)
+	if err != nil {
+		return RoundResponse{}, err
+	}
+
+	data, betValidationErr := validateBet(data, txStore, data.Game)
+	if betValidationErr != nil {
+		return RoundResponse{}, betValidationErr
+	}
+
+	previousGamestate := store.DeserializeGamestateFromBytes(txStore.GameState)
+	// check if the gsID passed in by the client matches that retrieved from the wallet
+	if data.PreviousID != previousGamestate.Id {
+		logger.Debugf("Previous ID doesn't match: %v, %v", data.PreviousID, previousGamestate.Id)
+		return RoundResponse{}, rgse.Create(rgse.SpinSequenceError)
+	}
+
+	nextAction := "base"
+	if len(previousGamestate.NextActions) > 0 && previousGamestate.NextActions[0] != "finish" {
+		logger.Debugf("completing unfinished round actions [%#v]", previousGamestate.NextActions)
+		nextAction = previousGamestate.NextActions[0]
+	}
+
+	var stake, roundWin, campaignWin, lineBet engine.Fixed
+	var roundId, freeGameRef string
+	var stakeDivisor int
+	var ttl int64
+
+	if txStore.FreeGames.NoOfFreeSpins > 0 && data.Stake.Mul(engine.NewFixedFromInt(stakeDivisor)) == txStore.FreeGames.TotalWagerAmt {
+		freeGameRef = txStore.FreeGames.CampaignRef
+		if txStore.FreeGames.CampaignRef == previousGamestate.CampaignRef {
+			campaignWin = previousGamestate.CampaignWin
+		}
+	}
+
+	spins := []SpinResponse{}
+	transactions := []store.TransactionStore{}
+	var gamestate engine.Gamestate
+	for nextAction != "finish" {
+
+		//		var EC engine.EngineConfig
+		data.Action = nextAction
+		gamestate, _, err = engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
+		if err != nil {
+			return RoundResponse{}, err
+		}
+
+		for p := 0; p < len(gamestate.Prizes); p++ {
+			gamestate.Prizes[p].Win = engine.NewFixedFromInt(gamestate.Prizes[p].Payout.Multiplier * gamestate.Prizes[p].Multiplier * gamestate.Multiplier).Mul(gamestate.BetPerLine.Amount)
+		}
+
+		if len(transactions) == 0 {
+			lineBet = gamestate.BetPerLine.Amount
+			roundId = gamestate.RoundID
+			ttl = gamestate.GetTtl()
+			ED, _ := gamestate.EngineDef()
+			stakeDivisor = ED.StakeDivisor
+		}
+
+		var win engine.Fixed
+		for _, transaction := range gamestate.Transactions {
+			AppendHistory(&txStore, transaction)
+
+			switch transaction.Type {
+			case "WAGER":
+				stake += transaction.Amount.Amount
+			case "PAYOUT":
+				win += transaction.Amount.Amount
+				roundWin += transaction.Amount.Amount
+				if freeGameRef != "" {
+					campaignWin += transaction.Amount.Amount
+				}
+			}
+
+			gamestate.CampaignRef = freeGameRef
+			gamestate.CampaignWin = campaignWin
+
+			gs := store.SerializeGamestateToBytes(gamestate)
+			tx := store.TransactionStore{
+				TransactionId:       transaction.Id,
+				Token:               token,
+				Mode:                mode,
+				Category:            store.Category(transaction.Type),
+				RoundStatus:         store.RoundStatusOpen,
+				PlayerId:            txStore.PlayerId,
+				GameId:              data.Game,
+				RoundId:             gamestate.RoundID,
+				Amount:              transaction.Amount,
+				ParentTransactionId: "",
+				TxTime:              time.Now(),
+				GameState:           gs,
+				BetLimitSettingCode: txStore.BetLimitSettingCode,
+				FreeGames:           store.FreeGamesStore{NoOfFreeSpins: 0, CampaignRef: freeGameRef},
+				Ttl:                 gamestate.GetTtl(),
+				History:             txStore.History,
+			}
+			transactions = append(transactions, tx)
+		}
+
+		spins = append(spins, SpinResponse{
+			Action:           gamestate.Action,
+			StateID:          gamestate.Id,
+			DefID:            gamestate.DefID,
+			ReelsetID:        gamestate.ReelsetID,
+			Win:              win,
+			View:             gamestate.SymbolGrid,
+			Prizes:           gamestate.Prizes,
+			CascadePositions: getCascadePositions(gamestate),
+			Features:         gamestate.Features,
+			FeatureView:      gamestate.FeatureView,
+		})
+
+		previousGamestate = gamestate
+		nextAction = gamestate.NextActions[0]
+	}
+
+	//	gamestate.NextActions = []string{"base"}
+	gamestate.Closed = true
+	transactions = append(transactions, store.TransactionStore{
+		TransactionId: rng.Uuid(),
+		Token:         token,
+		Mode:          mode,
+		Category:      store.CategoryClose,
+		RoundStatus:   store.RoundStatusClose,
+		PlayerId:      txStore.PlayerId,
+		GameId:        data.Game,
+		RoundId:       roundId,
+		Amount: engine.Money{
+			Currency: txStore.Amount.Currency,
+			Amount:   0,
+		},
+		ParentTransactionId: "",
+		TxTime:              time.Now(),
+		GameState:           store.SerializeGamestateToBytes(gamestate),
+		BetLimitSettingCode: txStore.BetLimitSettingCode,
+		FreeGames:           store.FreeGamesStore{NoOfFreeSpins: 0, CampaignRef: freeGameRef},
+		Ttl:                 ttl,
+		History:             txStore.History,
+	})
+
+	logger.Debugf("playround spins: %#v", spins)
+
+	balance, err := store.GetService(mode).MultiTransaction(token, mode, transactions)
+
+	if err != nil {
+		return RoundResponse{}, err
+	}
+
+	var fsresp FreespinResponse
+	if balance.FreeGames.NoOfFreeSpins > 0 {
+		fsresp.CtRemaining = balance.FreeGames.NoOfFreeSpins
+		if stakeDivisor != 0 {
+			fsresp.WagerAmt = balance.FreeGames.TotalWagerAmt.Div(engine.NewFixedFromInt(stakeDivisor))
+		}
+	}
+	fsresp.TotalWin = campaignWin
+
+	return RoundResponse{
+		MetaData:  MetaResponse{},
+		SessionID: balance.Token,
+		RoundID:   roundId,
+		Stake:     stake,
+		LineBet:   lineBet,
+		Win:       roundWin,
+		Balance: BalanceResponseV2{
+			Amount:       balance.Balance,
+			FreeGames:    balance.FreeGames.NoOfFreeSpins,
+			FreeSpinInfo: &fsresp,
+		},
+		Spins: spins,
+	}, nil
 }
 
 func getAuth(r *http.Request) (token string, err rgse.RGSErr) {

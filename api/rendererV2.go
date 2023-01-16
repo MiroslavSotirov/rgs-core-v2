@@ -61,6 +61,10 @@ func (gi GameHashResponse) Render(w http.ResponseWriter, r *http.Request) error 
 	return nil
 }
 
+func (gi RoundResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
 // GameLinkResponse ...
 type GameLinkResponse struct {
 	Results []LinkResponse `json:"results"`
@@ -114,6 +118,30 @@ type GameplayResponseV2 struct {
 	Choices          []string            `json:"choices,omitempty"`
 	Features         []feature.Feature   `json:"features,omitempty"`
 	FeatureView      [][]int             `json:"featureview,omitempty"`
+}
+
+type RoundResponse struct {
+	MetaData  MetaResponse      `json:"meta"'`
+	SessionID store.Token       `json:"host/verified-token"`
+	RoundID   string            `json:"roundID"`
+	Stake     engine.Fixed      `json:"totalStake"`
+	LineBet   engine.Fixed      `json:"lineBet,omitempty"`
+	Win       engine.Fixed      `json:"win"`
+	Balance   BalanceResponseV2 `json:"balance"`
+	Spins     []SpinResponse    `json:"spins"`
+}
+
+type SpinResponse struct {
+	Action           string            `json:"action"`
+	StateID          string            `json:"stateID"`
+	DefID            int               `json:"reelset"`
+	ReelsetID        string            `json:"reelsetId,omitempty"`
+	Win              engine.Fixed      `json:"win"`
+	View             [][]int           `json:"view"`
+	Prizes           []engine.Prize    `json:"wins"`
+	CascadePositions []int             `json:"cascadePositions,omitempty"`
+	Features         []feature.Feature `json:"features,omitempty"`
+	FeatureView      [][]int           `json:"featureview,omitempty"`
 }
 
 type GamificationRespV2 struct {
@@ -202,11 +230,8 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 	if gamestate.NextActions[0] == "cascade" {
 		roundWin = roundWin.Sub(gamestate.SpinWin)
 	}
-	var cascadePositions []int
-	if gamestate.Action == "cascade" || gamestate.Action == "pushreels" {
-		// this is a hack for now, needed for recovery. potentially in the future we add a proper cascade positions field to the gamestate message
-		cascadePositions = gamestate.SelectedWinLines
-	}
+	cascadePositions := getCascadePositions(gamestate)
+
 	var respinPrices []engine.Fixed
 	ED, err := gamestate.EngineDef()
 	if err == nil && ED.RespinAllowed {
@@ -295,6 +320,7 @@ func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance st
 	resp.LastRound = lastRound
 	resp.Name = previousGamestate.Game
 	resp.Version = "2.0" // this is hardcoded for now
+	resp.Features = previousGamestate.Features
 	return resp
 }
 

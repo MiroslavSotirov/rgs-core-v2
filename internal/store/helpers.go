@@ -197,3 +197,33 @@ func (r restTransactionRequest) String() string {
 		r.ReqId, r.Token, r.Game, r.Platform, r.Mode, r.Session, r.Currency, r.Amount, r.BonusAmount, r.JpAmount, r.Category,
 		r.CampaignRef, r.CloseRound, r.Round, r.TxRef, r.Description, r.InternalStatus, r.Ttl, r.TtlStamp)
 }
+
+func GetService(mode Mode) Service {
+	switch mode {
+	case ModeDemo:
+		return ServLocal
+	case ModeReal:
+		return Serv
+	}
+	panic("unknown store service mode")
+}
+
+func WalletMode(wallet string) Mode {
+	switch wallet {
+	case "demo":
+		return ModeDemo
+	case "dashur":
+		return ModeReal
+	}
+	panic(fmt.Sprintf("unknown wallet mode [%s]", wallet))
+}
+
+func ValidateWallet(wallet string) rgse.RGSErr {
+	switch wallet {
+	case "demo":
+		return nil
+	case "dashur":
+		return nil
+	}
+	return rgse.Create(rgse.InvalidWallet)
+}

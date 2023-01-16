@@ -34,7 +34,7 @@ func initGame(request *http.Request) (store.PlayerStore, engine.EngineConfig, en
 		return store.PlayerStore{}, engine.EngineConfig{}, engine.Gamestate{}, err
 	}
 	wallet := chi.URLParam(request, "wallet")
-	latestGamestate, player, _, err := store.InitPlayerGS(authToken, authToken, gameSlug, currency, wallet)
+	latestGamestate, player, err := store.InitPlayerGS(authToken, authToken, gameSlug, currency, wallet)
 	if err != nil {
 		return store.PlayerStore{}, engine.EngineConfig{}, engine.Gamestate{}, err
 	}
@@ -119,7 +119,7 @@ func validateBet(data engine.GameParams, txStore store.TransactionStore, game st
 		// stake value must be zero
 		// check that the round is open
 		if txStore.RoundStatus != store.RoundStatusOpen {
-			logger.Warnf("last TX should be open: %#v", txStore)
+			logger.Warnf("last TX should be open when action is [%v]", data.Action)
 			return data, rgse.Create(rgse.SpinSequenceError)
 		}
 		logger.Debugf("setting zero stake value for %v round", data.Action)
