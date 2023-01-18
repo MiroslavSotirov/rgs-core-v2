@@ -389,6 +389,22 @@ type (
 	}
 
 	restTransactionRequest struct {
+		ReqId          string `json:"req_id"`
+		Token          string `json:"token"`
+		Game           string `json:"game"`
+		Platform       string `json:"platform"`
+		Mode           string `json:"mode"`
+		Session        string `json:"session"`
+		Currency       string `json:"currency"`
+		Round          string `json:"round"`
+		Description    string `json:"description"`
+		InternalStatus int    `json:"internal_status"`
+		Ttl            int64  `json:"ttl"`
+		TtlStamp       int64  `json:"ttlstamp"`
+		restTransactionDesc
+	}
+
+	restMultiTransactionRequest struct {
 		ReqId          string                `json:"req_id"`
 		Token          string                `json:"token"`
 		Game           string                `json:"game"`
@@ -402,7 +418,6 @@ type (
 		Ttl            int64                 `json:"ttl"`
 		TtlStamp       int64                 `json:"ttlstamp"`
 		MultiTxes      []restTransactionDesc `json:"multi_txes,omitempty"`
-		restTransactionDesc
 	}
 
 	restTransactionDesc struct {
@@ -1159,7 +1174,7 @@ func (i *RemoteServiceImpl) MultiTransaction(token Token, mode Mode, transaction
 		}
 	}
 
-	txRq := restTransactionRequest{
+	txRq := restMultiTransactionRequest{
 		ReqId:     rng.Uuid(),
 		Token:     string(token),
 		Game:      transactions[0].GameId,
@@ -1173,24 +1188,38 @@ func (i *RemoteServiceImpl) MultiTransaction(token Token, mode Mode, transaction
 		TtlStamp:  transactions[0].TxTime.Unix() + transactions[0].Ttl,
 	}
 
-	return i.txSend(txRq)
+	return i.txSendMulti(txRq)
 }
 
 func (i *RemoteServiceImpl) txSend(txRq restTransactionRequest) (BalanceStore, rgse.RGSErr) {
 	b := new(bytes.Buffer)
 	err := json.NewEncoder(b).Encode(txRq)
-
-	finalErr := i.errorJson(err)
-	if finalErr != nil {
-		return BalanceStore{}, finalErr
+	jsonErr := i.errorJson(err)
+	if err != nil {
+		return BalanceStore{}, jsonErr
 	}
+	return i.Send(b)
+}
+
+func (i *RemoteServiceImpl) txSendMulti(txRq restMultiTransactionRequest) (BalanceStore, rgse.RGSErr) {
+	b := new(bytes.Buffer)
+	err := json.NewEncoder(b).Encode(txRq)
+	jsonErr := i.errorJson(err)
+	if err != nil {
+		return BalanceStore{}, jsonErr
+	}
+	return i.Send(b)
+}
+
+func (i *RemoteServiceImpl) Send(b *bytes.Buffer) (BalanceStore, rgse.RGSErr) {
 	start := time.Now()
 	now := start
 	var try int
 	var retry bool
+	var finalErr rgse.RGSErr
 	for try = 0; try <= i.maxRetries; try, now = try+1, time.Now() {
 		if i.timeoutMs > 0 && now.Sub(start).Milliseconds() > i.timeoutMs {
-			logger.Errorf("%v transaction %v attempts exceeded timout after %v seconds", txRq.Category, txRq.ReqId, now.Sub(start).String())
+			logger.Errorf("transaction attempts exceeded timout after %v seconds: %s", now.Sub(start).String(), b.String())
 			break
 		}
 		resp, err := i.request(ApiTypeTransaction, b)
@@ -1218,7 +1247,7 @@ func (i *RemoteServiceImpl) txSend(txRq restTransactionRequest) (BalanceStore, r
 			break
 		}
 		if txResp.PlayerId == i.logAccount {
-			logger.Infof("%v transaction %v try %v took %v for account %v", txRq.Category, txRq.ReqId, try, now.Sub(start).String(), txResp.PlayerId)
+			logger.Infof("transaction try %v took %v for account %v: %s", try, now.Sub(start).String(), txResp.PlayerId, b.String())
 		}
 		return BalanceStore{
 			PlayerId: txResp.PlayerId,
@@ -1231,10 +1260,10 @@ func (i *RemoteServiceImpl) txSend(txRq restTransactionRequest) (BalanceStore, r
 		}, nil
 	}
 	if try > i.maxRetries {
-		logger.Errorf("%v transaction %v exceeded retry limit of %v", txRq.Category, txRq.ReqId, i.maxRetries)
+		logger.Errorf("transaction exceeded retry limit of %v: %s", i.maxRetries, b.String())
 	}
 	if finalErr != nil {
-		logger.Errorf("%v transaction %v failed with error %v after %v tries", txRq.Category, txRq.ReqId, finalErr.Error(), try)
+		logger.Errorf("transaction failed with error %v after %v tries: %s", finalErr.Error(), try, b.String())
 	}
 	return BalanceStore{}, finalErr
 }
