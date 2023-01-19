@@ -100,7 +100,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 
 func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.Gamestate) {
 	// from player we use balance currency and id
-	logger.Debugf("First %v gameplay for player %v, creating sham gamestate", gameName, player)
+	logger.Debugf("Creating sham gamestate. First %v gameplay for player %#v, ", gameName, player)
 
 	//	gsID := player.PlayerId + gameName + "GSinit"
 	gsID := string(rng.Uuid())

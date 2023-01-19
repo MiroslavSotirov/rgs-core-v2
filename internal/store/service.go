@@ -295,7 +295,7 @@ type (
 		Id        string       `json:"id"`
 		Username  string       `json:"username"`
 		BetLimit  string       `json:"bet_limit"`
-		CompanyId string       `json:"company_id"`
+		CompanyId int64        `json:"company_id"`
 		FreeGames restFreeGame `json:"free_games"`
 		Balance   int64        `json:"balance"`
 		Currency  string       `json:"currency"`
@@ -438,7 +438,7 @@ type (
 		//		ResponseCode  string            `json:"code"`
 		//		Message       string            `json:"message"`
 		BetLimit      string            `json:"bet_limit"`
-		CompanyId     string            `json:"company_id"`
+		CompanyId     int64             `json:"company_id"`
 		PlayerId      string            `json:"player_id"`
 		Balance       int64             `json:"balance"`
 		Currency      string            `json:"currency"`
@@ -478,7 +478,7 @@ type (
 		//TxRef          string       `json:"tx_ref"`
 		//Description    string       `json:"description"`
 		BetLimit  string       `json:"bet_limit"`
-		CompanyId string       `json:"company_id"`
+		CompanyId int64        `json:"company_id"`
 		FreeGames restFreeGame `json:"free_games"`
 		//InternalStatus int          `json:"internal_status"`
 		LastTx restTransactionRequest `json:"last_tx"`
@@ -832,7 +832,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 			Balance:             balance.Balance,
 			FreeGames:           balance.FreeGames,
 			BetLimitSettingCode: authResp.BetLimit,
-			CompanyId:           authResp.CompanyId,
+			CompanyId:           fmt.Sprintf("%v", authResp.CompanyId),
 		},
 		GameStateStore{GameState: gameState, WalletInternalStatus: lastTransaction.InternalStatus},
 		nil
@@ -1421,7 +1421,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		TxTime:              time.Now(), //TODO: fix this
 		GameState:           gameState,
 		BetLimitSettingCode: queryResp.BetLimit,
-		CompanyId:           queryResp.CompanyId,
+		CompanyId:           fmt.Sprintf("%v", queryResp.CompanyId),
 		FreeGames:           balance.FreeGames,
 		WalletStatus:        lastTx.InternalStatus,
 		Ttl:                 lastTx.Ttl,
