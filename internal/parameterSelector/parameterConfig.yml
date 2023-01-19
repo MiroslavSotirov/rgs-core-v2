@@ -148,7 +148,6 @@ ccyMultipliers:
   2625894:
     CNY: 0.14
 
-
 profiles:
   low:
     max: 11
