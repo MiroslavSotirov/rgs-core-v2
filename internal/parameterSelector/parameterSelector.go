@@ -150,7 +150,7 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string, companyId string) (
 	stakeValues []engine.Fixed, defaultBet engine.Fixed, minBet engine.Fixed, maxBet engine.Fixed, rgserr rgse.RGSErr) { // ([]engine.Fixed, engine.Fixed, rgse.RGSErr) {
 	// returns stakeValues and defaultBet based on host and player configuration
-	logger.Debugf("getting %v stake params for company %v and config %v (lastbet %#v)", gameID, companyId, betSettingsCode, lastBet)
+	logger.Debugf("getting %v stake params for company [%v] and config [%v] (lastbet %#v)", gameID, companyId, betSettingsCode, lastBet)
 	betConf, err := parseBetConfig()
 	//logger.Debugf("Bet Configuration: %#v", betConf)
 	if err != nil {

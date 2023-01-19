@@ -198,6 +198,9 @@ type (
 		// create transaction.
 		Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, rgse.RGSErr)
 
+		// request multiple transactions
+		MultiTransaction(token Token, mode Mode, transaction []TransactionStore) (BalanceStore, rgse.RGSErr)
+
 		// retrieve latest transcation by player and by game id
 		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgse.RGSErr)
 
@@ -234,6 +237,7 @@ type (
 		PlayerSave(token Token, mode Mode, player PlayerStore) (PlayerStore, rgse.RGSErr)
 		BalanceByToken(token Token, mode Mode) (BalanceStore, rgse.RGSErr)
 		Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, rgse.RGSErr)
+		MultiTransaction(token Token, mode Mode, transaction []TransactionStore) (BalanceStore, rgse.RGSErr)
 		TransactionByGameId(token Token, mode Mode, gameId string) (TransactionStore, rgse.RGSErr)
 		CloseRound(token Token, mode Mode, gameId string, roundId string, campaignRef string, gamestate []byte, ttl int64, history *TransactionHistory) (BalanceStore, rgse.RGSErr)
 		GamestateById(gamestateId string) (GameStateStore, rgse.RGSErr)
@@ -291,7 +295,7 @@ type (
 		Id        string       `json:"id"`
 		Username  string       `json:"username"`
 		BetLimit  string       `json:"bet_limit"`
-		CompanyId string       `json:"company_id"`
+		CompanyId int64        `json:"company_id"`
 		FreeGames restFreeGame `json:"free_games"`
 		Balance   int64        `json:"balance"`
 		Currency  string       `json:"currency"`
@@ -392,19 +396,39 @@ type (
 		Mode           string `json:"mode"`
 		Session        string `json:"session"`
 		Currency       string `json:"currency"`
-		Amount         int64  `json:"amount"`
-		BonusAmount    int64  `json:"bonus_amount"`
-		JpAmount       int64  `json:"jp_amount"`
-		Category       string `json:"category"`
-		CampaignRef    string `json:"campaign_ref"`
-		CloseRound     bool   `json:"close_round"`
-		GameState      string `json:"game_state"`
 		Round          string `json:"round"`
-		TxRef          string `json:"tx_ref"`
 		Description    string `json:"description"`
 		InternalStatus int    `json:"internal_status"`
 		Ttl            int64  `json:"ttl"`
 		TtlStamp       int64  `json:"ttlstamp"`
+		restTransactionDesc
+	}
+
+	restMultiTransactionRequest struct {
+		ReqId          string                `json:"req_id"`
+		Token          string                `json:"token"`
+		Game           string                `json:"game"`
+		Platform       string                `json:"platform"`
+		Mode           string                `json:"mode"`
+		Session        string                `json:"session"`
+		Currency       string                `json:"currency"`
+		Round          string                `json:"round"`
+		Description    string                `json:"description"`
+		InternalStatus int                   `json:"internal_status"`
+		Ttl            int64                 `json:"ttl"`
+		TtlStamp       int64                 `json:"ttlstamp"`
+		MultiTxes      []restTransactionDesc `json:"multi_txes,omitempty"`
+	}
+
+	restTransactionDesc struct {
+		Amount      int64  `json:"amount"`
+		BonusAmount int64  `json:"bonus_amount"`
+		JpAmount    int64  `json:"jp_amount"`
+		Category    string `json:"category"`
+		CampaignRef string `json:"campaign_ref"`
+		CloseRound  bool   `json:"close_round"`
+		TxRef       string `json:"tx_ref"`
+		GameState   string `json:"game_state"`
 	}
 
 	restTransactionResponse struct {
@@ -414,7 +438,7 @@ type (
 		//		ResponseCode  string            `json:"code"`
 		//		Message       string            `json:"message"`
 		BetLimit      string            `json:"bet_limit"`
-		CompanyId     string            `json:"company_id"`
+		CompanyId     int64             `json:"company_id"`
 		PlayerId      string            `json:"player_id"`
 		Balance       int64             `json:"balance"`
 		Currency      string            `json:"currency"`
@@ -454,7 +478,7 @@ type (
 		//TxRef          string       `json:"tx_ref"`
 		//Description    string       `json:"description"`
 		BetLimit  string       `json:"bet_limit"`
-		CompanyId string       `json:"company_id"`
+		CompanyId int64        `json:"company_id"`
 		FreeGames restFreeGame `json:"free_games"`
 		//InternalStatus int          `json:"internal_status"`
 		LastTx restTransactionRequest `json:"last_tx"`
@@ -808,7 +832,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 			Balance:             balance.Balance,
 			FreeGames:           balance.FreeGames,
 			BetLimitSettingCode: authResp.BetLimit,
-			CompanyId:           authResp.CompanyId,
+			CompanyId:           fmt.Sprintf("%v", authResp.CompanyId),
 		},
 		GameStateStore{GameState: gameState, WalletInternalStatus: lastTransaction.InternalStatus},
 		nil
@@ -1068,6 +1092,20 @@ func (i *LocalServiceImpl) Transaction(token Token, mode Mode, transaction Trans
 	}, nil
 }
 
+func (i *LocalServiceImpl) MultiTransaction(token Token, mode Mode, transactions []TransactionStore) (BalanceStore, rgse.RGSErr) {
+	logger.Debugf("LocalServiceImpl.MultiTransactions([%v], [%v], [%v])", token, mode, len(transactions))
+	var balance BalanceStore
+	for _, t := range transactions {
+		bs, err := i.Transaction(token, mode, t)
+		if err != nil {
+			return balance, err
+		}
+		token = bs.Token
+		balance = bs
+	}
+	return balance, nil
+}
+
 func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction TransactionStore) (BalanceStore, rgse.RGSErr) {
 	closeRound := false
 	gameState := ""
@@ -1085,44 +1123,103 @@ func (i *RemoteServiceImpl) Transaction(token Token, mode Mode, transaction Tran
 	}
 
 	txRq := restTransactionRequest{
-		ReqId:       rng.Uuid(),
-		Token:       string(token),
-		Game:        transaction.GameId,
-		Platform:    i.defaultPlatform,
-		Mode:        strings.ToLower(string(mode)),
-		Session:     transaction.RoundId,
-		Currency:    transaction.Amount.Currency,
-		Amount:      int64(transaction.Amount.Amount / 10000), // Dashur expects amount in cents, transaction.Amount.Amount is type fixed (6decimals)
-		BonusAmount: 0,
-		JpAmount:    0,
-		Category:    string(transaction.Category),
-		CloseRound:  closeRound,
-		GameState:   gameState,
-		Round:       transaction.RoundId,
-		TxRef:       transaction.TransactionId,
-		CampaignRef: transaction.FreeGames.CampaignRef,
-		Ttl:         transaction.Ttl,
-		TtlStamp:    transaction.TxTime.Unix() + transaction.Ttl,
+		ReqId:    rng.Uuid(),
+		Token:    string(token),
+		Game:     transaction.GameId,
+		Platform: i.defaultPlatform,
+		Mode:     strings.ToLower(string(mode)),
+		Session:  transaction.RoundId,
+		Currency: transaction.Amount.Currency,
+		restTransactionDesc: restTransactionDesc{
+			Amount:      int64(transaction.Amount.Amount / 10000), // Dashur expects amount in cents, transaction.Amount.Amount is type fixed (6decimals)
+			BonusAmount: 0,
+			JpAmount:    0,
+			Category:    string(transaction.Category),
+			CampaignRef: transaction.FreeGames.CampaignRef,
+			CloseRound:  closeRound,
+			TxRef:       transaction.TransactionId,
+			GameState:   gameState,
+		},
+		Round:    transaction.RoundId,
+		Ttl:      transaction.Ttl,
+		TtlStamp: transaction.TxTime.Unix() + transaction.Ttl,
 	}
 
 	return i.txSend(txRq)
 }
 
+func (i *RemoteServiceImpl) MultiTransaction(token Token, mode Mode, transactions []TransactionStore) (BalanceStore, rgse.RGSErr) {
+	if len(transactions) == 0 {
+		panic("no transaction to send")
+	}
+
+	descs := make([]restTransactionDesc, len(transactions))
+	for i_tx, transaction := range transactions {
+		gamestate := ""
+		if transaction.GameState != nil {
+			if len(transaction.GameState) > i.dataLimit {
+				sentry.CaptureMessage(fmt.Sprintf("gamestate size exceeds store data limit of %d bytes", i.dataLimit))
+			}
+			gamestate = base64.StdEncoding.EncodeToString(transaction.GameState)
+		}
+		descs[i_tx] = restTransactionDesc{
+			Amount:      int64(transaction.Amount.Amount / 10000), // Dashur expects amount in cents, transaction.Amount.Amount is type fixed (6decimals)
+			BonusAmount: 0,
+			JpAmount:    0,
+			Category:    string(transaction.Category),
+			CampaignRef: transaction.FreeGames.CampaignRef,
+			CloseRound:  RoundStatusClose == transaction.RoundStatus,
+			TxRef:       transaction.TransactionId,
+			GameState:   gamestate,
+		}
+	}
+
+	txRq := restMultiTransactionRequest{
+		ReqId:     rng.Uuid(),
+		Token:     string(token),
+		Game:      transactions[0].GameId,
+		Platform:  i.defaultPlatform,
+		Mode:      strings.ToLower(string(mode)),
+		MultiTxes: descs,
+		Session:   transactions[0].RoundId,
+		Currency:  transactions[0].Amount.Currency,
+		Round:     transactions[0].RoundId,
+		Ttl:       transactions[0].Ttl,
+		TtlStamp:  transactions[0].TxTime.Unix() + transactions[0].Ttl,
+	}
+
+	return i.txSendMulti(txRq)
+}
+
 func (i *RemoteServiceImpl) txSend(txRq restTransactionRequest) (BalanceStore, rgse.RGSErr) {
 	b := new(bytes.Buffer)
 	err := json.NewEncoder(b).Encode(txRq)
-
-	finalErr := i.errorJson(err)
-	if finalErr != nil {
-		return BalanceStore{}, finalErr
+	jsonErr := i.errorJson(err)
+	if err != nil {
+		return BalanceStore{}, jsonErr
 	}
+	return i.Send(b)
+}
+
+func (i *RemoteServiceImpl) txSendMulti(txRq restMultiTransactionRequest) (BalanceStore, rgse.RGSErr) {
+	b := new(bytes.Buffer)
+	err := json.NewEncoder(b).Encode(txRq)
+	jsonErr := i.errorJson(err)
+	if err != nil {
+		return BalanceStore{}, jsonErr
+	}
+	return i.Send(b)
+}
+
+func (i *RemoteServiceImpl) Send(b *bytes.Buffer) (BalanceStore, rgse.RGSErr) {
 	start := time.Now()
 	now := start
 	var try int
 	var retry bool
+	var finalErr rgse.RGSErr
 	for try = 0; try <= i.maxRetries; try, now = try+1, time.Now() {
 		if i.timeoutMs > 0 && now.Sub(start).Milliseconds() > i.timeoutMs {
-			logger.Errorf("%v transaction %v attempts exceeded timout after %v seconds", txRq.Category, txRq.ReqId, now.Sub(start).String())
+			logger.Errorf("transaction attempts exceeded timout after %v seconds: %s", now.Sub(start).String(), b.String())
 			break
 		}
 		resp, err := i.request(ApiTypeTransaction, b)
@@ -1150,7 +1247,7 @@ func (i *RemoteServiceImpl) txSend(txRq restTransactionRequest) (BalanceStore, r
 			break
 		}
 		if txResp.PlayerId == i.logAccount {
-			logger.Infof("%v transaction %v try %v took %v for account %v", txRq.Category, txRq.ReqId, try, now.Sub(start).String(), txResp.PlayerId)
+			logger.Infof("transaction try %v took %v for account %v: %s", try, now.Sub(start).String(), txResp.PlayerId, b.String())
 		}
 		return BalanceStore{
 			PlayerId: txResp.PlayerId,
@@ -1163,10 +1260,10 @@ func (i *RemoteServiceImpl) txSend(txRq restTransactionRequest) (BalanceStore, r
 		}, nil
 	}
 	if try > i.maxRetries {
-		logger.Errorf("%v transaction %v exceeded retry limit of %v", txRq.Category, txRq.ReqId, i.maxRetries)
+		logger.Errorf("transaction exceeded retry limit of %v: %s", i.maxRetries, b.String())
 	}
 	if finalErr != nil {
-		logger.Errorf("%v transaction %v failed with error %v after %v tries", txRq.Category, txRq.ReqId, finalErr.Error(), try)
+		logger.Errorf("transaction failed with error %v after %v tries: %s", finalErr.Error(), try, b.String())
 	}
 	return BalanceStore{}, finalErr
 }
@@ -1324,7 +1421,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		TxTime:              time.Now(), //TODO: fix this
 		GameState:           gameState,
 		BetLimitSettingCode: queryResp.BetLimit,
-		CompanyId:           queryResp.CompanyId,
+		CompanyId:           fmt.Sprintf("%v", queryResp.CompanyId),
 		FreeGames:           balance.FreeGames,
 		WalletStatus:        lastTx.InternalStatus,
 		Ttl:                 lastTx.Ttl,
@@ -1412,22 +1509,24 @@ func (i *RemoteServiceImpl) CloseRound(token Token, mode Mode, gameId string, ro
 	}
 
 	txRq := restTransactionRequest{
-		ReqId:       rng.Uuid(),
-		Token:       string(token),
-		Game:        gameId,
-		Platform:    i.defaultPlatform,
-		Mode:        strings.ToLower(string(mode)),
-		Session:     roundId,
-		BonusAmount: 0,
-		JpAmount:    0,
-		Category:    string(CategoryClose),
-		CampaignRef: campaignRef,
-		CloseRound:  closeRound,
-		Round:       roundId,
-		TxRef:       roundId,
-		GameState:   base64.StdEncoding.EncodeToString(gamestate),
-		Ttl:         ttl,
-		TtlStamp:    time.Now().Unix() + ttl,
+		ReqId:    rng.Uuid(),
+		Token:    string(token),
+		Game:     gameId,
+		Platform: i.defaultPlatform,
+		Mode:     strings.ToLower(string(mode)),
+		Session:  roundId,
+		restTransactionDesc: restTransactionDesc{
+			BonusAmount: 0,
+			JpAmount:    0,
+			Category:    string(CategoryClose),
+			CampaignRef: campaignRef,
+			CloseRound:  closeRound,
+			TxRef:       roundId,
+			GameState:   base64.StdEncoding.EncodeToString(gamestate),
+		},
+		Round:    roundId,
+		Ttl:      ttl,
+		TtlStamp: time.Now().Unix() + ttl,
 	}
 
 	b := new(bytes.Buffer)
