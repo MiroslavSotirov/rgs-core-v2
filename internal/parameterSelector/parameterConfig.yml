@@ -143,10 +143,6 @@ ccyMultipliers:
     ZAR: 0.14
     ZMK: 0.1
     ZMW: 0.15
-  254709057:
-    CNY: 0.14
-  2625894:
-    CNY: 0.14
 
 profiles:
   low:
