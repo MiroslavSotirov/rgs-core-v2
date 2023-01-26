@@ -37,8 +37,8 @@ type TriggerLawOfGilgameshFreespinScatter struct {
 func (f TriggerLawOfGilgameshFreespinScatter) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
 
 	if params.HasKey(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_TOWER_SCATTERS) {
-		panic("skipping")
-		logger.Debugf("skippuing freespin scatter due to tower scatters")
+		logger.Debugf("skipping freespin scatter due to tower scatters")
+		return
 	}
 
 	tileId := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_TILE_ID)

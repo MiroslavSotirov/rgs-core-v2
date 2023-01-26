@@ -113,6 +113,11 @@ func (f TriggerLawOfGilgameshTowerScatter) Trigger(state *feature.FeatureState, 
 		}
 	}
 
+	if len(newPositions) > 0 {
+		params[PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_TOWER_SCATTERS] = true
+		params[featureProducts.PARAM_ID_REPLACE_TILE_POSITIONS] = newPositions
+	}
+
 	if len(positions) >= bonusThreshold {
 		winsLevels := params.GetSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_WINS_LEVELS)
 		probLevels := params.GetSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_PROB_LEVELS)
@@ -123,10 +128,11 @@ func (f TriggerLawOfGilgameshTowerScatter) Trigger(state *feature.FeatureState, 
 		for level < len(winsLevels) {
 			win := feature.WeightedRandomIndex(feature.ConvertIntSlice(probLevels[level]))
 			amount = feature.ConvertIntSlice(winsLevels[level])[win]
-			payouts = append(payouts, amount)
 			if amount < 0 {
+				payouts = append(payouts, 0)
 				level++
 			} else {
+				payouts = append(payouts, amount)
 				break
 			}
 		}
@@ -142,12 +148,12 @@ func (f TriggerLawOfGilgameshTowerScatter) Trigger(state *feature.FeatureState, 
 			params[PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_TRIGGER_TOWER] = true
 			feature.ActivateFeatures(f.FeatureDef, state, params)
 			delete(params, PARAM_ID_TRIGGER_WINS_PAYOUTS)
-		} else if len(newPositions) > 0 {
-			params[PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_TOWER_SCATTERS] = true
-			params[featureProducts.PARAM_ID_REPLACE_TILE_POSITIONS] = newPositions
-			feature.ActivateFeatures(f.FeatureDef, state, params)
 		}
+	} else if len(newPositions) > 0 {
+
+		feature.ActivateFeatures(f.FeatureDef, state, params)
 	}
+
 	return
 }
 
