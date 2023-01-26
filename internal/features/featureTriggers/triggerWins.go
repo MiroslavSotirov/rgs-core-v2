@@ -36,6 +36,12 @@ func (f TriggerWins) Trigger(state *feature.FeatureState, params feature.Feature
 	condition := PARAM_VALUE_TRIGGER_WINS_ANY
 	if params.HasKey(PARAM_ID_TRIGGER_WINS_CONDITION) {
 		condition = params.GetString(PARAM_ID_TRIGGER_WINS_CONDITION)
+
+		if condition != PARAM_VALUE_TRIGGER_WINS_ANY &&
+			condition != PARAM_VALUE_TRIGGER_WINS_NONE {
+			// compatibility with clash of heroes
+			condition = PARAM_VALUE_TRIGGER_WINS_ANY
+		}
 	}
 
 	wins := state.CalculateWins(state.SymbolGrid, payouts)

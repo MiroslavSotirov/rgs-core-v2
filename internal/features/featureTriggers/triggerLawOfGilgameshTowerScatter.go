@@ -23,6 +23,8 @@ const (
 	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_WINS_LEVELS        = "WinsLevels"
 	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_PROB_LEVELS        = "ProbabilitiesLevels"
 	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_BONUS_THRESHOLD    = "BonusThreshold"
+	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_TRIGGER_TOWER      = "TriggerTower"
+	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_TOWER_SCATTERS     = "TowerScatters"
 )
 
 var _ feature.Factory = feature.RegisterFeature(FEATURE_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER, func() feature.Feature { return new(TriggerLawOfGilgameshTowerScatter) })
@@ -60,6 +62,7 @@ func (f TriggerLawOfGilgameshTowerScatter) Trigger(state *feature.FeatureState, 
 		}
 	}
 
+	newPositions := []int{}
 	numScatters := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_NUM_SCATTERS)
 	numProbs := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_NUM_PROBABILITIES)
 	ns := numScatters[feature.WeightedRandomIndex(numProbs)]
@@ -75,9 +78,10 @@ func (f TriggerLawOfGilgameshTowerScatter) Trigger(state *feature.FeatureState, 
 
 				reel := p / gridh
 				row := p % gridh
-				state.SourceGrid[reel][row] = tileId
+				//				state.SourceGrid[reel][row] = tileId
 				state.SymbolGrid[reel][row] = tileId
 				positions = append(positions, p)
+				newPositions = append(newPositions, p)
 			}
 		}
 
@@ -98,10 +102,12 @@ func (f TriggerLawOfGilgameshTowerScatter) Trigger(state *feature.FeatureState, 
 					}
 				}
 				return true
-			}(state.SourceGrid[reel][row]) {
-				state.SourceGrid[reel][row] = tileId
+			}(state.SymbolGrid[reel][row]) {
+				//				state.SourceGrid[reel][row] = tileId
+				pos := reel*gridh + row
 				state.SymbolGrid[reel][row] = tileId
-				positions = append(positions, reel*gridh+row)
+				positions = append(positions, pos)
+				newPositions = append(newPositions, pos)
 				ns--
 			}
 		}
@@ -133,8 +139,13 @@ func (f TriggerLawOfGilgameshTowerScatter) Trigger(state *feature.FeatureState, 
 			params[featureProducts.PARAM_ID_INSTA_WIN_TILE_ID] = tileId
 			params[featureProducts.PARAM_ID_INSTA_WIN_POSITIONS] = positions
 			params[featureProducts.PARAM_ID_INSTA_WIN_INDEX] = "finish:1"
+			params[PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_TRIGGER_TOWER] = true
 			feature.ActivateFeatures(f.FeatureDef, state, params)
 			delete(params, PARAM_ID_TRIGGER_WINS_PAYOUTS)
+		} else if len(newPositions) > 0 {
+			params[PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_TOWER_SCATTERS] = true
+			params[featureProducts.PARAM_ID_REPLACE_TILE_POSITIONS] = newPositions
+			feature.ActivateFeatures(f.FeatureDef, state, params)
 		}
 	}
 	return

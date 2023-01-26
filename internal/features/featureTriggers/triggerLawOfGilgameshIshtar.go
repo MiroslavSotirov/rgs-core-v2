@@ -49,12 +49,6 @@ func (f TriggerLawOfGilgameshIshtar) Trigger(state *feature.FeatureState, params
 		incLawOfGilgameshLevel(state, params)
 		params[featureProducts.PARAM_ID_RESPIN_POSITIONS] = positions
 		feature.ActivateFeatures(f.FeatureDef, state, params)
-		/*
-			state.Wins = append(state.Wins, feature.FeatureWin{
-				Index:           "cascade1:1",
-				SymbolPositions: positions,
-			})
-		*/
 	}
 
 	return

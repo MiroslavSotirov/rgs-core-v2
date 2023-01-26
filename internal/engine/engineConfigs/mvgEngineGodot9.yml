@@ -111,7 +111,15 @@ EngineDefs:
                     - [1666,1666,1667,1667,1667,1667]
                     - [1666,1666,1667,1667,1667,1667]
                 Features:
-                  - Type: InstaWin
+                  - Type: TriggerConditional
+                    Params:
+                      ConditionalFlag: TriggerTower
+                    Features:
+                      - Type: InstaWin
+                  - Type: ReplaceTile
+                    Id: 2
+                    Params:
+                      ReplaceWithId: 9
           - Type: TriggerRandom
             Params:
               Probability: 1900
@@ -129,9 +137,17 @@ EngineDefs:
                   Freespins: 7
                   Additional: 2
                 Features:
-                  - Type: Respin
+                  - Type: TriggerConditional
                     Params:
-                      Action: freespin
+                      ConditionalFlag: TriggerFreespins
+                    Features:
+                      - Type: Respin
+                        Params:
+                          Action: freespin
+                  - Type: ReplaceTile
+                    Id: 3
+                    Params:
+                      ReplaceWithId: 10
           - Type: TriggerOrdered
             Features:
               - Type: TriggerWins
@@ -154,6 +170,10 @@ EngineDefs:
                           ActivationParams:
                             Feature: "gilgamesh"
                           MultiplierIncrement: 1
+                      - Type: ReplaceTile
+                        Id: 1
+                        Params:
+                          ReplaceWithId: 8
               - Type: TriggerWins
                 Params:
                   Condition: none
@@ -179,6 +199,7 @@ EngineDefs:
                   - Type: TriggerLawOfGilgameshEnkidu
                     Params:
                       RemovePositions: [0, 30, 7, 25, 14, 20, 15, 21, 10, 28, 5, 35]
+                      KeepIds: [8,9,10]
                     Features:
                       - Type: Respin
                         Params:
@@ -296,7 +317,15 @@ EngineDefs:
                     - [1666,1666,1667,1667,1667,1667]
                     - [1666,1666,1667,1667,1667,1667]
                 Features:
-                  - Type: InstaWin
+                  - Type: TriggerConditional
+                    Params:
+                      ConditionalFlag: TriggerTower
+                    Features:
+                      - Type: InstaWin
+                  - Type: ReplaceTile
+                    Id: 2
+                    Params:
+                      ReplaceWithId: 9
           - Type: TriggerRandom
             Params:
               Probability: 1000
@@ -313,9 +342,17 @@ EngineDefs:
                   Freespins: 10
                   Additional: 2
                 Features:
-                  - Type: Respin
+                  - Type: TriggerConditional
                     Params:
-                      Action: freespin
+                      ConditionalFlag: TriggerFreespins
+                    Features:
+                      - Type: Respin
+                        Params:
+                          Action: freespin
+                  - Type: ReplaceTile
+                    Id: 3
+                    Params:
+                      ReplaceWithId: 10
           - Type: TriggerOrdered
             Features:
               - Type: TriggerWins
@@ -338,6 +375,10 @@ EngineDefs:
                           ActivationParams:
                             Feature: "gilgamesh"
                           MultiplierIncrement: 1
+                      - Type: ReplaceTile
+                        Id: 1
+                        Params:
+                          ReplaceWithId: 8
               - Type: TriggerWins
                 Params:
                   Condition: none
@@ -363,6 +404,7 @@ EngineDefs:
                   - Type: TriggerLawOfGilgameshEnkidu
                     Params:
                       RemovePositions: [0, 30, 7, 25, 14, 20, 15, 21, 10, 28, 5, 35]
+                      KeepIds: [8,9,10]
                     Features:
                       - Type: Respin
                         Params:
@@ -504,9 +546,17 @@ EngineDefs:
                   Freespins: 7
                   Additional: 2
                 Features:
-                  - Type: Respin
+                  - Type: TriggerConditional
                     Params:
-                      Action: freespin
+                      ConditionalFlag: TriggerFreespins
+                    Features:
+                      - Type: Respin
+                        Params:
+                          Action: freespin
+                  - Type: ReplaceTile
+                    Id: 3
+                    Params:
+                      ReplaceWithId: 10
           - Type: TriggerOrdered
             Features:
               - Type: TriggerWins
@@ -529,6 +579,10 @@ EngineDefs:
                           ActivationParams:
                             Feature: "gilgamesh"
                           MultiplierIncrement: 1
+                      - Type: ReplaceTile
+                        Id: 1
+                        Params:
+                          ReplaceWithId: 8
               - Type: TriggerWins
                 Params:
                   Condition: none
@@ -554,6 +608,7 @@ EngineDefs:
                   - Type: TriggerLawOfGilgameshEnkidu
                     Params:
                       RemovePositions: [0, 30, 7, 25, 14, 20, 15, 21, 10, 28, 5, 35]
+                      KeepIds: [8,9,10]
                     Features:
                       - Type: Respin
                         Params:
@@ -679,9 +734,17 @@ EngineDefs:
                   Freespins: 10
                   Additional: 2
                 Features:
-                  - Type: Respin
+                  - Type: TriggerConditional
                     Params:
-                      Action: freespin
+                      ConditionalFlag: TriggerFreespins
+                    Features:
+                      - Type: Respin
+                        Params:
+                          Action: freespin
+                  - Type: ReplaceTile
+                    Id: 3
+                    Params:
+                      ReplaceWithId: 10
           - Type: TriggerOrdered
             Features:
               - Type: TriggerWins
@@ -704,6 +767,10 @@ EngineDefs:
                           ActivationParams:
                             Feature: "gilgamesh"
                           MultiplierIncrement: 1
+                      - Type: ReplaceTile
+                        Id: 1
+                        Params:
+                          ReplaceWithId: 8
               - Type: TriggerWins
                 Params:
                   Condition: none
@@ -729,6 +796,7 @@ EngineDefs:
                   - Type: TriggerLawOfGilgameshEnkidu
                     Params:
                       RemovePositions: [0, 30, 7, 25, 14, 20, 15, 21, 10, 28, 5, 35]
+                      KeepIds: [8,9,10]
                     Features:
                       - Type: Respin
                         Params:

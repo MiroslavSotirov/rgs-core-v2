@@ -282,6 +282,15 @@ message GamestatePB {
   respinall  = 47;
   pushreels  = 48;
   init = 50;
+  cascade1 = 51;
+  cascade2 = 52;
+  cascade3 = 53;
+  cascade4 = 54;
+  cascade5 = 55;
+  cascade6 = 56;
+  cascade7 = 57;
+  cascade8 = 58;
+  cascade0 = 59;
   }
   Action action = 7;
 

@@ -90,53 +90,6 @@ func (f TriggerLawOfGilgamesh) Trigger(state *feature.FeatureState, params featu
 		logger.Debugf("increased counter by %d to %d", len(w.SymbolPositions), counter)
 	}
 
-	/*
-		if len(wins) == 0 {
-			//		counter = 20
-			b1 := ord % 4
-			b2 := (ord / 4) % 4
-			b3 := ord / 16
-			logger.Debugf("ord: %d b1: %d b2: %d b3: %d", ord, b1, b2, b3)
-			order := []string{}
-			if counter >= levels[0] && level < 1 {
-				order = append(order, triggers[b1-1])
-			}
-			if counter >= levels[1] && level < 2 {
-				order = append(order, triggers[b2-1])
-			}
-			if counter >= levels[2] && level < 3 {
-				order = append(order, triggers[b3-1])
-			}
-			if len(order) > 0 {
-				params[PARAM_ID_TRIGGER_ORDERED_ORDER] = order
-				logger.Debugf("activation order is %v", order)
-			}
-
-			stateless[STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_COUNTER] = counter
-			stateless[STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_ORDER] = ord
-			stateless[STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_LEVEL] = level
-
-			feature.SetStatelessMap(stateless, params)
-			feature.ActivateFeatures(f.FeatureDef, state, params)
-
-			wins = state.CalculateWins(state.SymbolGrid, nil)
-			if len(wins) > 0 {
-
-				for _, w := range wins {
-					counter += len(w.SymbolPositions)
-					logger.Debugf("increased counter by %d to %d", len(w.SymbolPositions), counter)
-				}
-				stateless[STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_COUNTER] = counter
-				feature.SetStatelessMap(stateless, params)
-			}
-		} else {
-			stateless[STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_COUNTER] = counter
-
-			feature.SetStatelessMap(stateless, params)
-			feature.ActivateFeatures(f.FeatureDef, state, params)
-		}
-	*/
-
 	b1 := ord % 4
 	b2 := (ord / 4) % 4
 	b3 := ord / 16

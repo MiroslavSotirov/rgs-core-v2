@@ -2,6 +2,7 @@ package featureTriggers
 
 import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/featureProducts"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
@@ -9,6 +10,7 @@ const (
 	FEATURE_ID_TRIGGER_LAW_OF_GILGAMESH_ENKIDU = "TriggerLawOfGilgameshEnkidu"
 
 	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_ENKIDU_POSITIONS = "RemovePositions"
+	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_ENKIDU_KEEP_IDS  = "KeepIds"
 )
 
 var _ feature.Factory = feature.RegisterFeature(FEATURE_ID_TRIGGER_LAW_OF_GILGAMESH_ENKIDU, func() feature.Feature { return new(TriggerLawOfGilgameshEnkidu) })
@@ -23,16 +25,28 @@ func (f TriggerLawOfGilgameshEnkidu) Trigger(state *feature.FeatureState, params
 		logger.Debugf("postponing feature due to wins")
 	}
 
-	positions := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_ENKIDU_POSITIONS)
+	gridh := len(state.SymbolGrid[0])
+	remove := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_ENKIDU_POSITIONS)
+	keep := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_ENKIDU_KEEP_IDS)
+	positions := []int{}
+	for _, pos := range remove {
+		reel := pos / gridh
+		slot := pos % gridh
+		if func(sym int) bool {
+			for _, k := range keep {
+				if k == sym {
+					return false
+				}
+			}
+			return true
+		}(state.SymbolGrid[reel][slot]) {
+			positions = append(positions, pos)
+		}
+	}
 	if len(positions) > 0 {
 		incLawOfGilgameshLevel(state, params)
+		params[featureProducts.PARAM_ID_RESPIN_POSITIONS] = positions
 		feature.ActivateFeatures(f.FeatureDef, state, params)
-		/*
-			state.Wins = append(state.Wins, feature.FeatureWin{
-				Index:           "cascade:1", // fmt.Sprintf("enkido", len(positions)),
-				SymbolPositions: positions,
-			})
-		*/
 	}
 
 	return

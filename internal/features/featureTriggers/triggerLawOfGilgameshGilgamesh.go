@@ -66,7 +66,7 @@ func (f TriggerLawOfGilgameshGilgamesh) Trigger(state *feature.FeatureState, par
 			*/
 			return true
 		}(state.SymbolGrid[reel][row]) {
-			state.SourceGrid[reel][row] = wildId
+			//			state.SourceGrid[reel][row] = wildId
 			state.SymbolGrid[reel][row] = wildId
 			positions = append(positions, pos)
 		}

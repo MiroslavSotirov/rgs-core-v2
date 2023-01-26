@@ -25,6 +25,7 @@ const (
 	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_BONUS_THRESHOLD    = "BonusThreshold"
 	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_FREESPINS          = "Freespins"
 	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_ADDITIONAL         = "Additional"
+	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_FLAG               = "TriggerFreespins"
 )
 
 var _ feature.Factory = feature.RegisterFeature(FEATURE_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER, func() feature.Feature { return new(TriggerLawOfGilgameshFreespinScatter) })
@@ -34,6 +35,11 @@ type TriggerLawOfGilgameshFreespinScatter struct {
 }
 
 func (f TriggerLawOfGilgameshFreespinScatter) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
+
+	if params.HasKey(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_TOWER_SCATTERS) {
+		panic("skipping")
+		logger.Debugf("skippuing freespin scatter due to tower scatters")
+	}
 
 	tileId := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_TILE_ID)
 	retryFactor := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_RETRY_FACTOR)
@@ -63,10 +69,11 @@ func (f TriggerLawOfGilgameshFreespinScatter) Trigger(state *feature.FeatureStat
 		}
 	}
 
+	newPositions := []int{}
 	numScatters := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_NUM_SCATTERS)
 	numProbs := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_NUM_PROBABILITIES)
 	ns := numScatters[feature.WeightedRandomIndex(numProbs)]
-	numFreespins, numPlaced := 0, 0
+	numFreespins := 0
 	logger.Debugf("placing %d freespin scatters", ns)
 
 	if isRespin {
@@ -81,10 +88,10 @@ func (f TriggerLawOfGilgameshFreespinScatter) Trigger(state *feature.FeatureStat
 
 				reel := p / gridh
 				row := p % gridh
-				state.SourceGrid[reel][row] = tileId
+				//				state.SourceGrid[reel][row] = tileId
 				state.SymbolGrid[reel][row] = tileId
 				positions = append(positions, p)
-				numPlaced++
+				newPositions = append(newPositions, p)
 			}
 		}
 
@@ -105,11 +112,12 @@ func (f TriggerLawOfGilgameshFreespinScatter) Trigger(state *feature.FeatureStat
 					}
 				}
 				return true
-			}(state.SourceGrid[reel][row]) {
-				state.SourceGrid[reel][row] = tileId
+			}(state.SymbolGrid[reel][row]) {
+				//				state.SourceGrid[reel][row] = tileId
+				pos := reel*gridh + row
 				state.SymbolGrid[reel][row] = tileId
-				positions = append(positions, reel*gridh+row)
-				numPlaced++
+				positions = append(positions, pos)
+				newPositions = append(newPositions, pos)
 				ns--
 			}
 		}
@@ -128,13 +136,19 @@ func (f TriggerLawOfGilgameshFreespinScatter) Trigger(state *feature.FeatureStat
 
 	}
 
+	numPlaced := len(newPositions)
 	if numPlaced > 0 && state.Action == "freespin" {
 		numFreespins = numPlaced
 	}
 
 	if numFreespins > 0 {
 		logger.Debugf("award %d freespins", numPlaced)
+		params[PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_FLAG] = true
 		params[featureProducts.PARAM_ID_RESPIN_AMOUNT] = numFreespins
+	}
+
+	if numPlaced > 0 {
+		params[featureProducts.PARAM_ID_REPLACE_TILE_POSITIONS] = newPositions
 		feature.ActivateFeatures(f.FeatureDef, state, params)
 	}
 

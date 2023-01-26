@@ -379,7 +379,7 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 		}
 
 		// if previous gamestate contains a win, we need to cascade new tiles into the old space
-		previousGrid := previousGamestate.SymbolGrid
+		previousGrid := previousGamestate.FeatureView // previousGamestate.SymbolGrid
 		remainingGrid := [][]int{}
 		//determine map of symbols to disappear
 		for i := 0; i < len(previousGamestate.Prizes); i++ {
