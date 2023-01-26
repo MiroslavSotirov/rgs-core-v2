@@ -329,10 +329,11 @@ func playRound(request *http.Request) (RoundResponse, rgse.RGSErr) {
 			return RoundResponse{}, err
 		}
 
-		for p := 0; p < len(gamestate.Prizes); p++ {
-			gamestate.Prizes[p].Win = engine.NewFixedFromInt(gamestate.Prizes[p].Payout.Multiplier * gamestate.Prizes[p].Multiplier * gamestate.Multiplier).Mul(gamestate.BetPerLine.Amount)
-		}
-
+		/*	TODO: remove the campaign accumulator that required this
+			for p := 0; p < len(gamestate.Prizes); p++ {
+				gamestate.Prizes[p].Win = engine.NewFixedFromInt(gamestate.Prizes[p].Payout.Multiplier * gamestate.Prizes[p].Multiplier * gamestate.Multiplier).Mul(gamestate.BetPerLine.Amount)
+			}
+		*/
 		if len(transactions) == 0 {
 			lineBet = gamestate.BetPerLine.Amount
 			roundId = gamestate.RoundID

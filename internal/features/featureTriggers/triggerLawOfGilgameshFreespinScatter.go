@@ -1,9 +1,12 @@
 package featureTriggers
 
 import (
-	"fmt"
+	"strings"
 
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/featureProducts"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 const (
@@ -11,6 +14,7 @@ const (
 
 	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_TILE_ID            = "TileId"
 	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_KEEP_IDS           = "KeepIds"
+	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_UNTRIGGER_IDS      = "UntriggerIds"
 	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_RETRY_FACTOR       = "RetryFactor"
 	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_NUM_SCATTERS       = "NumScatters"
 	PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_NUM_PROBABILITIES  = "NumProbabilities"
@@ -34,31 +38,68 @@ func (f TriggerLawOfGilgameshFreespinScatter) Trigger(state *feature.FeatureStat
 	tileId := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_TILE_ID)
 	retryFactor := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_RETRY_FACTOR)
 	bonusThreshold := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_BONUS_THRESHOLD)
+	var untriggerIds []int
+	if params.HasKey(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_UNTRIGGER_IDS) {
+		untriggerIds = params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_UNTRIGGER_IDS)
+	}
+	isRespin := strings.Contains(state.Action, "cascade")
 
 	gridh := len(state.SourceGrid[0])
 	positions := []int{}
+	isFreespin := state.Action == "freespin"
 	for reel, r := range state.SymbolGrid {
 		for row, s := range r {
 			if s == tileId {
 				positions = append(positions, reel*gridh+row)
 			}
+			if !isFreespin {
+				for _, u := range untriggerIds {
+					if s == u {
+						logger.Debugf("untrigger freespin scatters due to tower scatters in base or respin")
+						return
+					}
+				}
+			}
 		}
 	}
 
-	if len(positions) < bonusThreshold {
+	numScatters := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_NUM_SCATTERS)
+	numProbs := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_NUM_PROBABILITIES)
+	ns := numScatters[feature.WeightedRandomIndex(numProbs)]
+	numFreespins, numPlaced := 0, 0
+	logger.Debugf("placing %d freespin scatters", ns)
+
+	if isRespin {
+
+		candidates := state.GetCandidatePositions()
+
+		if len(positions) < bonusThreshold {
+			for i := 0; i < ns && len(candidates) > 0; i++ {
+				ic := rng.RandFromRange(len(candidates))
+				p := candidates[ic]
+				candidates = append(candidates[:ic], candidates[ic+1:]...)
+
+				reel := p / gridh
+				row := p % gridh
+				state.SourceGrid[reel][row] = tileId
+				state.SymbolGrid[reel][row] = tileId
+				positions = append(positions, p)
+				numPlaced++
+			}
+		}
+
+	} else {
+
 		keepIds := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_KEEP_IDS)
-		numScatters := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_NUM_SCATTERS)
-		numProbs := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_NUM_PROBABILITIES)
 		reelProbs := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_REEL_PROBABILITIES)
 		rowProbs := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_ROW_PROBABILITIES)
 
-		ns := numScatters[feature.WeightedRandomIndex(numProbs)]
 		tries := ns * retryFactor
 		for i := 0; i < tries && ns > 0; i++ {
 			reel := feature.WeightedRandomIndex(reelProbs)
 			row := feature.WeightedRandomIndex(rowProbs)
 			if func(sym int) bool {
-				for s := range keepIds {
+				for _, s := range keepIds {
 					if s == sym {
 						return false
 					}
@@ -66,28 +107,37 @@ func (f TriggerLawOfGilgameshFreespinScatter) Trigger(state *feature.FeatureStat
 				return true
 			}(state.SourceGrid[reel][row]) {
 				state.SourceGrid[reel][row] = tileId
+				state.SymbolGrid[reel][row] = tileId
 				positions = append(positions, reel*gridh+row)
+				numPlaced++
+				ns--
 			}
 		}
-	}
 
-	if len(positions) >= bonusThreshold {
+		if len(positions) >= bonusThreshold {
 
-		freespins := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_FREESPINS)
-		additional := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_ADDITIONAL)
+			freespins := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_FREESPINS)
+			additional := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_ADDITIONAL)
 
-		numFreespins := freespins
-		if len(positions) > bonusThreshold {
-			numFreespins += len(positions) * additional
+			numFreespins = freespins
+			if len(positions) > bonusThreshold {
+				numFreespins += len(positions) * additional
+			}
+
 		}
 
-		if numFreespins > 0 {
-			state.Wins = append(state.Wins, feature.FeatureWin{
-				Index:           fmt.Sprintf("%s:%d", "freespin", numFreespins),
-				SymbolPositions: positions,
-			})
-		}
 	}
+
+	if numPlaced > 0 && state.Action == "freespin" {
+		numFreespins = numPlaced
+	}
+
+	if numFreespins > 0 {
+		logger.Debugf("award %d freespins", numPlaced)
+		params[featureProducts.PARAM_ID_RESPIN_AMOUNT] = numFreespins
+		feature.ActivateFeatures(f.FeatureDef, state, params)
+	}
+
 	return
 }
 

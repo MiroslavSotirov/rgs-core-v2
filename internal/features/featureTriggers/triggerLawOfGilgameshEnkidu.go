@@ -2,6 +2,7 @@ package featureTriggers
 
 import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 const (
@@ -18,15 +19,22 @@ type TriggerLawOfGilgameshEnkidu struct {
 
 func (f TriggerLawOfGilgameshEnkidu) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
 
-	positions := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_ENKIDU_POSITIONS)
-	if len(positions) > 0 {
-		state.Wins = append(state.Wins, feature.FeatureWin{
-			Index:           "cascade:1", // fmt.Sprintf("enkido", len(positions)),
-			SymbolPositions: positions,
-		})
+	if len(state.CalculateWins(state.SymbolGrid, nil)) != 0 {
+		logger.Debugf("postponing feature due to wins")
 	}
 
-	feature.ActivateFeatures(f.FeatureDef, state, params)
+	positions := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_ENKIDU_POSITIONS)
+	if len(positions) > 0 {
+		incLawOfGilgameshLevel(state, params)
+		feature.ActivateFeatures(f.FeatureDef, state, params)
+		/*
+			state.Wins = append(state.Wins, feature.FeatureWin{
+				Index:           "cascade:1", // fmt.Sprintf("enkido", len(positions)),
+				SymbolPositions: positions,
+			})
+		*/
+	}
+
 	return
 }
 

@@ -582,3 +582,13 @@ func (gamestate Gamestate) GetPrizeAmount() Fixed {
 	}
 	return sum
 }
+
+func ContainsString(l []string, e string) bool {
+	for i := range l {
+		// not strict due to compatibility
+		if strings.Contains(e, l[i]) {
+			return true
+		}
+	}
+	return false
+}

@@ -10,8 +10,9 @@ import (
 const (
 	FEATURE_ID_RESPIN = "Respin"
 
-	PARAM_ID_RESPIN_ACTION = "Action"
-	PARAM_ID_RESPIN_AMOUNT = "Amount"
+	PARAM_ID_RESPIN_ACTION    = "Action"
+	PARAM_ID_RESPIN_AMOUNT    = "Amount"
+	PARAM_ID_RESPIN_POSITIONS = "SymbolPositions"
 )
 
 var _ feature.Factory = feature.RegisterFeature(FEATURE_ID_RESPIN, func() feature.Feature { return new(Respin) })
@@ -28,13 +29,18 @@ func (f *Respin) DataPtr() interface{} {
 func (f Respin) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
 
 	if params.HasKey(PARAM_ID_RESPIN_ACTION) {
+		var positions []int
 		action := params.GetString(PARAM_ID_RESPIN_ACTION)
 		amount := 1
 		if params.HasKey(PARAM_ID_RESPIN_AMOUNT) {
 			amount = params.GetInt(PARAM_ID_RESPIN_AMOUNT)
 		}
+		if params.HasKey(PARAM_ID_RESPIN_POSITIONS) {
+			positions = params.GetIntSlice(PARAM_ID_RESPIN_POSITIONS)
+		}
 		state.Wins = append(state.Wins, feature.FeatureWin{
-			Index: fmt.Sprintf("%s:%d", action, amount),
+			Index:           fmt.Sprintf("%s:%d", action, amount),
+			SymbolPositions: positions,
 		})
 		feature.ActivateFeatures(f.FeatureDef, state, params)
 	} else {

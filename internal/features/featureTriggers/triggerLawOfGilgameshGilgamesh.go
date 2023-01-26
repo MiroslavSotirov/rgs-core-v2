@@ -3,6 +3,7 @@ package featureTriggers
 import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/featureProducts"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 const (
@@ -29,6 +30,10 @@ func (f *TriggerLawOfGilgameshGilgamesh) DataPtr() interface{} {
 }
 func (f TriggerLawOfGilgameshGilgamesh) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
 
+	if len(state.CalculateWins(state.SymbolGrid, nil)) != 0 {
+		logger.Debugf("postponing feature due to wins")
+	}
+
 	wildId := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_GILGAMESH_WILD_ID)
 	numWilds := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_GILGAMESH_NUM_WILDS)
 	numProbs := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_GILGAMESH_NUM_PROBABILITIES)
@@ -40,7 +45,9 @@ func (f TriggerLawOfGilgameshGilgamesh) Trigger(state *feature.FeatureState, par
 	positions := []int{}
 	gridh := len(state.SymbolGrid[0])
 	nw := numWilds[feature.WeightedRandomIndex(numProbs)]
-	for i := 0; i < nw*retryFactor && len(positions) < nw; i++ {
+	tries := nw * retryFactor
+	logger.Debugf("gilgamesh feature placing %d wilds", nw)
+	for i := 0; i < tries && len(positions) < nw; i++ {
 		reel := feature.WeightedRandomIndex(reelProbs)
 		row := feature.WeightedRandomIndex(rowProbs)
 		pos := reel*gridh + row
@@ -50,19 +57,23 @@ func (f TriggerLawOfGilgameshGilgamesh) Trigger(state *feature.FeatureState, par
 					return false
 				}
 			}
-			for _, p := range positions {
-				if p == pos {
-					return false
+			/*
+				for _, p := range positions {
+					if p == pos {
+						return false
+					}
 				}
-			}
+			*/
 			return true
 		}(state.SymbolGrid[reel][row]) {
-			positions = append(positions, pos)
 			state.SourceGrid[reel][row] = wildId
+			state.SymbolGrid[reel][row] = wildId
+			positions = append(positions, pos)
 		}
 	}
 
 	if len(positions) > 0 {
+		incLawOfGilgameshLevel(state, params)
 		params[featureProducts.PARAM_ID_REPLACE_TILE_TILE_ID] = wildId
 		params[featureProducts.PARAM_ID_REPLACE_TILE_REPLACE_WITH_ID] = wildId
 		params[featureProducts.PARAM_ID_REPLACE_TILE_POSITIONS] = positions

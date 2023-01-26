@@ -11,6 +11,7 @@ const (
 	PARAM_ID_INSTA_WIN_SOURCE_ID = "InstaWinSourceId"
 	PARAM_ID_INSTA_WIN_TILE_ID   = "TileId"
 	PARAM_ID_INSTA_WIN_POSITIONS = "Positions"
+	PARAM_ID_INSTA_WIN_INDEX     = "PayoutIndex"
 
 	PARAM_VALUE_INSTA_WIN_BONUS = "bonus"
 )
@@ -36,8 +37,12 @@ func (f *InstaWin) DataPtr() interface{} {
 func (f InstaWin) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
 	multiplier := params.GetInt(PARAM_ID_INSTA_WIN_AMOUNT)
 	var payouts []int
+	var index string
 	if params.HasKey(PARAM_ID_INSTA_WIN_PAYOUTS) {
 		payouts = params.GetIntSlice(PARAM_ID_INSTA_WIN_PAYOUTS)
+	}
+	if params.HasKey(PARAM_ID_INSTA_WIN_INDEX) {
+		index = params.GetString(PARAM_ID_INSTA_WIN_INDEX)
 	}
 	state.Features = append(state.Features,
 		&InstaWin{
@@ -51,6 +56,7 @@ func (f InstaWin) Trigger(state *feature.FeatureState, params feature.FeaturePar
 		})
 	state.Wins = append(state.Wins,
 		feature.FeatureWin{
+			Index:           index,
 			Multiplier:      multiplier,
 			Symbols:         []int{params.GetInt(PARAM_ID_INSTA_WIN_TILE_ID)},
 			SymbolPositions: params.GetIntSlice(PARAM_ID_INSTA_WIN_POSITIONS),

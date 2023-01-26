@@ -201,6 +201,27 @@ func ConvertIntSlice(in interface{}) []int {
 	return val
 }
 
+func ConvertStringSlice(in interface{}) []string {
+	val, ok := in.([]string)
+	if !ok {
+		var val2 []interface{}
+		val2, ok = in.([]interface{})
+		if !ok {
+			panic("not a slize")
+		}
+		val = make([]string, len(val2))
+		for i, av := range val2 {
+			var v string
+			v, ok = av.(string)
+			if !ok {
+				panic("not an string slize")
+			}
+			val[i] = v
+		}
+	}
+	return val
+}
+
 func ConvertSlice(in interface{}) []interface{} {
 	val, ok := in.([]interface{})
 	if !ok {
@@ -393,6 +414,11 @@ func (p FeatureParams) GetBool(name string) bool {
 func (p FeatureParams) GetIntSlice(name string) []int {
 	defer paramconvertpanic(name)
 	return ConvertIntSlice(p.Get(name))
+}
+
+func (p FeatureParams) GetStringSlice(name string) []string {
+	defer paramconvertpanic(name)
+	return ConvertStringSlice(p.Get(name))
 }
 
 func (p FeatureParams) GetSlice(name string) []interface{} {
