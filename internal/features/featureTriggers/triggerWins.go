@@ -8,10 +8,11 @@ import (
 const (
 	FEATURE_ID_TRIGGER_WINS = "TriggerWins"
 
-	PARAM_ID_TRIGGER_WINS_CONDITION = "Condition"
-	PARAM_ID_TRIGGER_WINS_PAYOUTS   = "Payouts"
-	PARAM_VALUE_TRIGGER_WINS_ANY    = "any"
-	PARAM_VALUE_TRIGGER_WINS_NONE   = "none"
+	PARAM_ID_TRIGGER_WINS_CONDITION       = "Condition"
+	PARAM_ID_TRIGGER_WINS_PAYOUTS         = "Payouts"
+	PARAM_VALUE_TRIGGER_WINS_ANY          = "any"
+	PARAM_VALUE_TRIGGER_WINS_NONE         = "none"
+	PARAM_VALUE_TRIGGER_WINS_NONE_FEATURE = "noneFeature"
 )
 
 var _ feature.Factory = feature.RegisterFeature(FEATURE_ID_TRIGGER_WINS, func() feature.Feature { return new(TriggerWins) })
@@ -38,7 +39,8 @@ func (f TriggerWins) Trigger(state *feature.FeatureState, params feature.Feature
 		condition = params.GetString(PARAM_ID_TRIGGER_WINS_CONDITION)
 
 		if condition != PARAM_VALUE_TRIGGER_WINS_ANY &&
-			condition != PARAM_VALUE_TRIGGER_WINS_NONE {
+			condition != PARAM_VALUE_TRIGGER_WINS_NONE &&
+			condition != PARAM_VALUE_TRIGGER_WINS_NONE_FEATURE {
 			// compatibility with clash of heroes
 			condition = PARAM_VALUE_TRIGGER_WINS_ANY
 		}
@@ -54,6 +56,11 @@ func (f TriggerWins) Trigger(state *feature.FeatureState, params feature.Feature
 	case PARAM_VALUE_TRIGGER_WINS_NONE:
 		if len(wins) == 0 {
 			logger.Debugf("Trigger on no wins (use engine payouts: %t)", len(payouts) > 0)
+			feature.ActivateFeatures(f.FeatureDef, state, params)
+		}
+	case PARAM_VALUE_TRIGGER_WINS_NONE_FEATURE:
+		if len(wins) == 0 && len(state.Wins) == 0 {
+			logger.Debugf("Trigger on no wins feature (use engine payouts: %t)", len(payouts) > 0)
 			feature.ActivateFeatures(f.FeatureDef, state, params)
 		}
 	default:

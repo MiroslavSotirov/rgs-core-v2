@@ -83,13 +83,13 @@ func (f TriggerLawOfGilgamesh) Trigger(state *feature.FeatureState, params featu
 	level := stateless.GetInt(STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_LEVEL)
 
 	logger.Debugf("gilgamesh counter %d ord %d level %d", counter, ord, level)
-
-	wins := state.CalculateWins(state.SourceGrid, nil)
-	for _, w := range wins {
-		counter += len(w.SymbolPositions)
-		logger.Debugf("increased counter by %d to %d", len(w.SymbolPositions), counter)
-	}
-
+	/*
+		wins := state.CalculateWins(state.SourceGrid, nil)
+		for _, w := range wins {
+			counter += len(w.SymbolPositions)
+			logger.Debugf("increased counter by %d to %d", len(w.SymbolPositions), counter)
+		}
+	*/
 	b1 := ord % 4
 	b2 := (ord / 4) % 4
 	b3 := ord / 16
@@ -116,7 +116,7 @@ func (f TriggerLawOfGilgamesh) Trigger(state *feature.FeatureState, params featu
 	feature.SetStatelessMap(stateless, params)
 	feature.ActivateFeatures(f.FeatureDef, state, params)
 
-	wins = state.CalculateWins(state.SymbolGrid, nil)
+	wins := state.CalculateWins(state.SymbolGrid, nil)
 	if len(wins) > 0 {
 
 		for _, w := range wins {

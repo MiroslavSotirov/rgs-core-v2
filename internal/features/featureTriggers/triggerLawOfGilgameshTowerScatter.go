@@ -1,6 +1,7 @@
 package featureTriggers
 
 import (
+	"fmt"
 	"strings"
 
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
@@ -119,25 +120,18 @@ func (f TriggerLawOfGilgameshTowerScatter) Trigger(state *feature.FeatureState, 
 	}
 
 	if len(positions) >= bonusThreshold {
+
 		winsLevels := params.GetSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_WINS_LEVELS)
 		probLevels := params.GetSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_PROB_LEVELS)
 
-		level := 0
-		amount := 0
-		payouts := []int{}
-		for level < len(winsLevels) {
-			win := feature.WeightedRandomIndex(feature.ConvertIntSlice(probLevels[level]))
-			amount = feature.ConvertIntSlice(winsLevels[level])[win]
-			if amount < 0 {
-				payouts = append(payouts, 0)
-				level++
-			} else {
-				payouts = append(payouts, amount)
-				break
-			}
-		}
+		amount, payouts := f.towerBonus(winsLevels, probLevels)
 
 		if amount > 0 {
+
+			if state.Multiplier > 1 {
+				panic(fmt.Sprintf("tower bonus with multiplier %d and amount %d", state.Multiplier, amount))
+			}
+
 			params[featureProducts.PARAM_ID_INSTA_WIN_AMOUNT] = amount
 			params[featureProducts.PARAM_ID_INSTA_WIN_PAYOUTS] = payouts
 			params[featureProducts.PARAM_ID_INSTA_WIN_TYPE] = "tower"
@@ -155,6 +149,45 @@ func (f TriggerLawOfGilgameshTowerScatter) Trigger(state *feature.FeatureState, 
 	}
 
 	return
+}
+
+func (f TriggerLawOfGilgameshTowerScatter) towerBonus(winsLevels []interface{}, probLevels []interface{}) (int, []int) {
+	level := 0
+	amount := 0
+	payouts := []int{}
+	for level < len(winsLevels) {
+		win := feature.WeightedRandomIndex(feature.ConvertIntSlice(probLevels[level]))
+		amount = feature.ConvertIntSlice(winsLevels[level])[win]
+		if amount < 0 {
+			payouts = append(payouts, 0)
+			level++
+		} else {
+			payouts = append(payouts, amount)
+			break
+		}
+	}
+	return amount, payouts
+}
+
+func (f TriggerLawOfGilgameshTowerScatter) testBonusProbabilites(winsLevels []interface{}, probLevels []interface{}) {
+	stats := make(map[int]int)
+	num := 100000
+	tot := 0
+	for i := 0; i < num; i++ {
+		a, _ := f.towerBonus(winsLevels, probLevels)
+		tot += a
+		n, ok := stats[a]
+		if !ok {
+			n = 0
+		}
+		stats[a] = n + 1
+	}
+	logger.Debugf("tower payout probabilities")
+	logger.Debugf("--------------------------")
+	for k, v := range stats {
+		logger.Debugf("%d: %f", k, float32(v)/float32(num))
+	}
+	logger.Debugf("mean: %f", float32(tot)/float32(num))
 }
 
 func (f *TriggerLawOfGilgameshTowerScatter) Serialize() ([]byte, error) {

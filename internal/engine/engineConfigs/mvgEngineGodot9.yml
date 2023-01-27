@@ -152,7 +152,7 @@ EngineDefs:
             Features:
               - Type: TriggerWins
                 Params:
-                  Condition: none
+                  Condition: noneFeature
                 Features:
                   - Type: TriggerLawOfGilgameshGilgamesh
                     Params:
@@ -169,14 +169,13 @@ EngineDefs:
                         Params:
                           ActivationParams:
                             Feature: "gilgamesh"
-                          MultiplierIncrement: 1
                       - Type: ReplaceTile
                         Id: 1
                         Params:
                           ReplaceWithId: 8
               - Type: TriggerWins
                 Params:
-                  Condition: none
+                  Condition: noneFeature
                 Features:
                   - Type: TriggerLawOfGilgameshIshtar
                     Params:
@@ -191,10 +190,9 @@ EngineDefs:
                         Params:
                           ActivationParams:
                             Feature: "ishtar"
-                          MultiplierIncrement: 1
               - Type: TriggerWins
                 Params:
-                  Condition: none
+                  Condition: noneFeature
                 Features:
                   - Type: TriggerLawOfGilgameshEnkidu
                     Params:
@@ -210,7 +208,6 @@ EngineDefs:
                         Params:
                           ActivationParams:
                             Feature: "enkidu"
-                          MultiplierIncrement: 1
   - name: base
     Probability: 1300
     ReelsetId: 1
@@ -357,7 +354,7 @@ EngineDefs:
             Features:
               - Type: TriggerWins
                 Params:
-                  Condition: none
+                  Condition: noneFeature
                 Features:
                   - Type: TriggerLawOfGilgameshGilgamesh
                     Params:
@@ -374,14 +371,13 @@ EngineDefs:
                         Params:
                           ActivationParams:
                             Feature: "gilgamesh"
-                          MultiplierIncrement: 1
                       - Type: ReplaceTile
                         Id: 1
                         Params:
                           ReplaceWithId: 8
               - Type: TriggerWins
                 Params:
-                  Condition: none
+                  Condition: noneFeature
                 Features:
                   - Type: TriggerLawOfGilgameshIshtar
                     Params:
@@ -396,10 +392,9 @@ EngineDefs:
                         Params:
                           ActivationParams:
                             Feature: "ishtar"
-                          MultiplierIncrement: 1
               - Type: TriggerWins
                 Params:
-                  Condition: none
+                  Condition: noneFeature
                 Features:
                   - Type: TriggerLawOfGilgameshEnkidu
                     Params:
@@ -415,7 +410,6 @@ EngineDefs:
                         Params:
                           ActivationParams:
                             Feature: "enkidu"
-                          MultiplierIncrement: 1
   - name: cascade1
     inheritance: prev
     RespinAction: cascade
@@ -498,6 +492,63 @@ EngineDefs:
       - [5,7,7,6,7,5,7,5,7,5,7,5,7,6,6,7,6,6,5,5,6,7,7,5,5,5,6,6,6,5,5,6,7,6,5,6,7,5,6,5,7,6,5,7,7,7,5,6,6]
       - [6,5,6,6,6,5,5,5,5,6,7,5,6,5,6,7,7,7,5,6,6,7,5,7,7,7,7,5,6,7,6,7,5,5,5,5,5,6,5,7,6,6,7,6,6,7,7,5,7]
       - [6,7,7,6,7,6,5,6,7,5,7,7,5,5,6,7,5,7,6,6,5,6,7,6,5,5,5,6,6,5,6,5,5,7,7,7,5,6,7,7,5,5,6,5,5,6,7,6,7]
+    Features:
+      - Type: TriggerLawOfGilgamesh
+        Params:
+          Collated: true
+          Levels: [20, 40, 60]
+          Triggers:
+             - gilgamesh
+             - ishtar
+             - enkidu
+        Features:
+          - Type: TriggerOrdered
+            params:
+              Triggers:
+                 - gilgamesh
+                 - enkidu              
+            Features:
+              - Type: TriggerWins
+                Params:
+                  Condition: noneFeature
+                Features:
+                  - Type: TriggerLawOfGilgameshGilgamesh
+                    Params:
+                      WildId: 8
+                      KeepIds: [8,9,10]
+                      NumWilds: [2,3,4,5,6,7,8,9,10]
+                      NumProbabilities: [100,1600,2200,2200,1700,900,700,400,200]
+                      RetryFactor: 3
+                      ReelProbabilities: [1666,1666,1667,1667,1667,1667]
+                      RowProbabilities: [1666,1666,1667,1667,1667,1667]
+                    Features:
+                      - Type: Activation
+                        Id: 1
+                        Params:
+                          ActivationParams:
+                            Feature: "gilgamesh"
+                      - Type: ReplaceTile
+                        Id: 1
+                        Params:
+                          ReplaceWithId: 8
+              - Type: TriggerWins
+                Params:
+                  Condition: noneFeature
+                Features:
+                  - Type: TriggerLawOfGilgameshEnkidu
+                    Params:
+                      RemovePositions: [0, 30, 7, 25, 14, 20, 15, 21, 10, 28, 5, 35]
+                      KeepIds: [8,9,10]
+                    Features:
+                      - Type: Respin
+                        Params:
+                          Action: cascade
+                          Amount: 1
+                      - Type: Activation
+                        Id: 3
+                        Params:
+                          ActivationParams:
+                            Feature: "enkidu"
   - name: cascade2
     Probability: 50000
     ReelsetId: 15
@@ -561,7 +612,7 @@ EngineDefs:
             Features:
               - Type: TriggerWins
                 Params:
-                  Condition: none
+                  Condition: noneFeature
                 Features:
                   - Type: TriggerLawOfGilgameshGilgamesh
                     Params:
@@ -585,7 +636,7 @@ EngineDefs:
                           ReplaceWithId: 8
               - Type: TriggerWins
                 Params:
-                  Condition: none
+                  Condition: noneFeature
                 Features:
                   - Type: TriggerLawOfGilgameshIshtar
                     Params:
@@ -603,7 +654,7 @@ EngineDefs:
                           MultiplierIncrement: 1
               - Type: TriggerWins
                 Params:
-                  Condition: none
+                  Condition: noneFeature
                 Features:
                   - Type: TriggerLawOfGilgameshEnkidu
                     Params:
@@ -749,7 +800,7 @@ EngineDefs:
             Features:
               - Type: TriggerWins
                 Params:
-                  Condition: none
+                  Condition: noneFeature
                 Features:
                   - Type: TriggerLawOfGilgameshGilgamesh
                     Params:
@@ -773,7 +824,7 @@ EngineDefs:
                           ReplaceWithId: 8
               - Type: TriggerWins
                 Params:
-                  Condition: none
+                  Condition: noneFeature
                 Features:
                   - Type: TriggerLawOfGilgameshIshtar
                     Params:
@@ -791,7 +842,7 @@ EngineDefs:
                           MultiplierIncrement: 1
               - Type: TriggerWins
                 Params:
-                  Condition: none
+                  Condition: noneFeature
                 Features:
                   - Type: TriggerLawOfGilgameshEnkidu
                     Params:
@@ -881,7 +932,6 @@ EngineDefs:
       - [1,1,1,6,6,6,2,2,1,6,6,1,1,1,1,2,2,1,1,2,2,6,6,2,2,1,1,1,2,2,6,6,6,1,1,2,2,6,1,1,2,6,6,6,6,1,1,2,2]
       - [5,7,7,2,2,3,3,5,5,5,2,2,3,3,3,3,2,2,7,7,7,5,5,5,5,2,3,3,3,5,2,2,3,3,7,7,7,7,5,5,5,3,3,3,3,5,7,7,7]
   - name: cascade4
-    inheritance: prev
     RespinAction: cascade3
     Probability: 230
     ReelsetId: 31
@@ -892,6 +942,65 @@ EngineDefs:
       - [5,7,7,6,7,5,7,5,7,5,7,5,7,6,6,7,6,6,5,5,6,7,7,5,5,5,6,6,6,5,5,6,7,6,5,6,7,5,6,5,7,6,5,7,7,7,5,6,6]
       - [6,5,6,6,6,5,5,5,5,6,7,5,6,5,6,7,7,7,5,6,6,7,5,7,7,7,7,5,6,7,6,7,5,5,5,5,5,6,5,7,6,6,7,6,6,7,7,5,7]
       - [6,7,7,6,7,6,5,6,7,5,7,7,5,5,6,7,5,7,6,6,5,6,7,6,5,5,5,6,6,5,6,5,5,7,7,7,5,6,7,7,5,5,6,5,5,6,7,6,7]
+    Features:
+      - Type: TriggerLawOfGilgamesh
+        Params:
+          Collated: true
+          Levels: [20, 40, 60]
+          Triggers:
+             - gilgamesh
+             - ishtar
+             - enkidu
+        Features:
+          - Type: TriggerOrdered
+            params:
+              Triggers:
+                 - gilgamesh
+                 - enkidu              
+            Features:
+              - Type: TriggerWins
+                Params:
+                  Condition: noneFeature
+                Features:
+                  - Type: TriggerLawOfGilgameshGilgamesh
+                    Params:
+                      WildId: 8
+                      KeepIds: [8,9,10]
+                      NumWilds: [2,3,4,5,6,7,8,9,10]
+                      NumProbabilities: [100,1600,2200,2200,1700,900,700,400,200]
+                      RetryFactor: 3
+                      ReelProbabilities: [1666,1666,1667,1667,1667,1667]
+                      RowProbabilities: [1666,1666,1667,1667,1667,1667]
+                    Features:
+                      - Type: Activation
+                        Id: 1
+                        Params:
+                          ActivationParams:
+                            Feature: "gilgamesh"
+                          MultiplierIncrement: 1
+                      - Type: ReplaceTile
+                        Id: 1
+                        Params:
+                          ReplaceWithId: 8
+              - Type: TriggerWins
+                Params:
+                  Condition: noneFeature
+                Features:
+                  - Type: TriggerLawOfGilgameshEnkidu
+                    Params:
+                      RemovePositions: [0, 30, 7, 25, 14, 20, 15, 21, 10, 28, 5, 35]
+                      KeepIds: [8,9,10]
+                    Features:
+                      - Type: Respin
+                        Params:
+                          Action: cascade
+                          Amount: 1
+                      - Type: Activation
+                        Id: 3
+                        Params:
+                          ActivationParams:
+                            Feature: "enkidu"
+                          MultiplierIncrement: 1
   - name: cascade4
     inheritance: prev
     Probability: 230

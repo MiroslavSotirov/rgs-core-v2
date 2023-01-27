@@ -52,7 +52,7 @@ func (f TriggerLawOfGilgameshFreespinScatter) Trigger(state *feature.FeatureStat
 
 	gridh := len(state.SourceGrid[0])
 	positions := []int{}
-	isFreespin := state.Action == "freespin"
+	isFreespin := state.Action == "freespin" || state.Action == "cascade3" || state.Action == "cascade4"
 	for reel, r := range state.SymbolGrid {
 		for row, s := range r {
 			if s == tileId {
@@ -137,7 +137,7 @@ func (f TriggerLawOfGilgameshFreespinScatter) Trigger(state *feature.FeatureStat
 	}
 
 	numPlaced := len(newPositions)
-	if numPlaced > 0 && state.Action == "freespin" {
+	if numPlaced > 0 && isFreespin {
 		numFreespins = numPlaced
 	}
 
