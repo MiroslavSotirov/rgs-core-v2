@@ -489,19 +489,7 @@ func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParam
 	featureWins, featureRelPayout, featureNextActions := engine.convertFeaturePrizes(featureState.Wins)
 	relativePayout += featureRelPayout
 	wins = append(wins, featureWins...)
-	if func() bool {
-		for _, w := range featureWins {
-			if strings.Contains(w.Index, "finish") {
-				return true
-			}
-		}
-		return false
-	}() {
-		logger.Debugf("feature win found of type finish. end round")
-		nextActions = []string{}
-	} else {
-		nextActions = append(nextActions, featureNextActions...)
-	}
+	nextActions = append(nextActions, featureNextActions...)
 
 	// for now, do a bit of a hack to get the cascade positions. as soon as we need to implement cascade with variable
 	// win lines, this will need to be adjusted to be added into a new field in the gamestate message
@@ -648,6 +636,7 @@ func (engine EngineDef) convertFeaturePrizes(featureWins []feature.FeatureWin) (
 				Winline:         -1, // until features have prizes associated with lines
 			}
 			wins = append(wins, prize)
+			logger.Debugf("Adding normal payout: %#v", prize)
 		} else {
 			prize := Prize{
 				Payout: Payout{

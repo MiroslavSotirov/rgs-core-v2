@@ -1,6 +1,6 @@
 version: 2.0
-# rtp: ??
-# volatility: ??
+rtp: .955213
+volatility: 12.47
 
 EngineDefs:
   - name: base
@@ -100,22 +100,16 @@ EngineDefs:
                   KeepIds: [8, 9, 10]
                   RetryFactor: 3
                   BonusThreshold: 3
-                  WinsLevels:
-                    - [5,-1,7,-1,10,-1,7,-1,5,-1]
-                    - [15,-1,20,-1,25,-1,20,-1,15,-1]
-                    - [50,-1,75,-1,100,-1]
-                    - [150,200,250,300,400,500]
-                  ProbabilitiesLevels:
-                    - [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
-                    - [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
-                    - [1666,1666,1667,1667,1667,1667]
-                    - [1666,1666,1667,1667,1667,1667]
                 Features:
                   - Type: TriggerConditional
                     Params:
                       ConditionalFlag: TriggerTower
                     Features:
-                      - Type: InstaWin
+                      - Type: Activation
+                        Id: 4
+                        Params:
+                          ActivationParams:
+                            Feature: "tower"
                   - Type: ReplaceTile
                     Id: 2
                     Params:
@@ -131,7 +125,8 @@ EngineDefs:
                   NumProbabilities: [7780,2200,20]
                   ReelProbabilities: [1666,1666,1667,1667,1667,1667]
                   RowProbabilities: [1666,1666,1667,1667,1667,1667]
-                  KeepIds: [8, 9, 10]
+                  KeepIds: [8, 10]
+                  UntriggerIds: [9]
                   RetryFactor: 3
                   BonusThreshold: 3
                   Freespins: 7
@@ -201,13 +196,33 @@ EngineDefs:
                     Features:
                       - Type: Respin
                         Params:
-                          Action: cascade
+                          Action: cascade1
                           Amount: 1
                       - Type: Activation
                         Id: 3
                         Params:
                           ActivationParams:
                             Feature: "enkidu"
+          - Type: TriggerWins
+            Params:
+              Condition: noneFeature
+            Features:
+              - Type: TriggerLawOfGilgameshTowerBonus
+                Params:
+                  TileId: 9
+                  BonusThreshold: 3
+                  WinsLevels:
+                    - [5,-1,7,-1,10,-1,7,-1,5,-1]
+                    - [15,-1,20,-1,25,-1,20,-1,15,-1]
+                    - [50,-1,75,-1,100,-1]
+                    - [150,200,250,300,400,500]
+                  ProbabilitiesLevels:
+                    - [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
+                    - [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
+                    - [1666,1666,1667,1667,1667,1667]
+                    - [1666,1666,1667,1667,1667,1667]
+                Features:
+                  - Type: InstaWin
   - name: base
     Probability: 1300
     ReelsetId: 1
@@ -303,22 +318,16 @@ EngineDefs:
                   UntriggerIds: [10]
                   RetryFactor: 3
                   BonusThreshold: 3
-                  WinsLevels:
-                    - [5,-1,7,-1,10,-1,7,-1,5,-1]
-                    - [15,-1,20,-1,25,-1,20,-1,15,-1]
-                    - [50,-1,75,-1,100,-1]
-                    - [150,200,250,300,400,500]
-                  ProbabilitiesLevels:
-                    - [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
-                    - [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
-                    - [1666,1666,1667,1667,1667,1667]
-                    - [1666,1666,1667,1667,1667,1667]
                 Features:
                   - Type: TriggerConditional
                     Params:
                       ConditionalFlag: TriggerTower
                     Features:
-                      - Type: InstaWin
+                      - Type: Activation
+                        Id: 4
+                        Params:
+                          ActivationParams:
+                            Feature: "tower"
                   - Type: ReplaceTile
                     Id: 2
                     Params:
@@ -336,7 +345,7 @@ EngineDefs:
                   UntriggerIds: [9]
                   RetryFactor: 3
                   BonusThreshold: 3
-                  Freespins: 10
+                  Freespins: 7
                   Additional: 2
                 Features:
                   - Type: TriggerConditional
@@ -403,16 +412,36 @@ EngineDefs:
                     Features:
                       - Type: Respin
                         Params:
-                          Action: cascade
+                          Action: cascade1
                           Amount: 1
                       - Type: Activation
                         Id: 3
                         Params:
                           ActivationParams:
                             Feature: "enkidu"
+          - Type: TriggerWins
+            Params:
+              Condition: noneFeature
+            Features:
+              - Type: TriggerLawOfGilgameshTowerBonus
+                Params:
+                  TileId: 9
+                  BonusThreshold: 3
+                  WinsLevels:
+                    - [5,-1,7,-1,10,-1,7,-1,5,-1]
+                    - [15,-1,20,-1,25,-1,20,-1,15,-1]
+                    - [50,-1,75,-1,100,-1]
+                    - [150,200,250,300,400,500]
+                  ProbabilitiesLevels:
+                    - [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
+                    - [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
+                    - [1666,1666,1667,1667,1667,1667]
+                    - [1666,1666,1667,1667,1667,1667]
+                Features:
+                  - Type: InstaWin
   - name: cascade1
     inheritance: prev
-    RespinAction: cascade
+    RespinAction: cascade1
     Probability: 1500
     ReelsetId: 8
     Reels:
@@ -424,7 +453,7 @@ EngineDefs:
       - [3,7,7,4,4,4,3,3,3,6,6,1,1,2,2,2,2,2,3,3,1,1,1,1,1,5,5,5,2,2,4,4,4,4,2,2,5,5,5,1,1,1,6,6,6,7,7,3,3]
   - name: cascade1
     inheritance: prev
-    RespinAction: cascade
+    RespinAction: cascade1
     Probability: 1400
     ReelsetId: 9
     Reels:
@@ -436,7 +465,7 @@ EngineDefs:
       - [3,3,7,7,2,2,5,5,2,2,5,5,7,7,3,3,5,5,7,7,3,3,2,2,5,5,3,3,2,2,7,7,3,3,2,2,5,5,7,7,5,5,3,3,7,7,2,2,5]
   - name: cascade1
     inheritance: prev
-    RespinAction: cascade
+    RespinAction: cascade1
     Probability: 1400
     ReelsetId: 10
     Reels:
@@ -448,7 +477,7 @@ EngineDefs:
       - [2,2,5,5,3,3,4,4,3,3,4,4,5,5,2,2,4,4,5,5,2,2,3,3,4,4,2,2,3,3,5,5,2,2,3,3,4,4,5,5,4,4,2,2,5,5,3,3,4]
   - name: cascade1
     inheritance: prev
-    RespinAction: cascade
+    RespinAction: cascade1
     Probability: 1400
     ReelsetId: 11
     Reels:
@@ -460,7 +489,7 @@ EngineDefs:
       - [5,5,1,1,6,6,3,3,6,6,3,3,1,1,5,5,3,3,1,1,5,5,6,6,3,3,5,5,6,6,1,1,5,5,6,6,3,3,1,1,3,3,5,5,1,1,6,6,3]
   - name: cascade1
     inheritance: prev
-    RespinAction: cascade
+    RespinAction: cascade1
     Probability: 1400
     ReelsetId: 12
     Reels:
@@ -472,7 +501,7 @@ EngineDefs:
       - [1,3,3,4,4,6,6,1,1,1,4,4,6,6,6,6,4,4,3,3,3,1,1,1,1,4,6,6,6,1,4,4,6,6,3,3,3,3,1,1,1,6,6,6,6,1,3,3,3]
   - name: cascade1
     inheritance: prev
-    RespinAction: cascade
+    RespinAction: cascade1
     Probability: 1400
     ReelsetId: 13
     Reels:
@@ -483,7 +512,7 @@ EngineDefs:
       - [1,1,1,6,6,6,2,2,1,6,6,1,1,1,1,2,2,1,1,2,2,6,6,2,2,1,1,1,2,2,6,6,6,1,1,2,2,6,1,1,2,6,6,6,6,1,1,2,2]
       - [5,7,7,2,2,3,3,5,5,5,2,2,3,3,3,3,2,2,7,7,7,5,5,5,5,2,3,3,3,5,2,2,3,3,7,7,7,7,5,5,5,3,3,3,3,5,7,7,7]
   - name: cascade2
-    Probability: 50000
+    Probability: 5000
     ReelsetId: 14
     Reels:
       - [7,7,7,5,5,5,6,7,6,5,6,6,6,5,6,7,5,7,5,5,7,5,6,7,6,5,7,6,7,6,5,5,7,7,5,6,5,6,5,6,5,6,5,7,6,6,7,7,7]
@@ -542,15 +571,36 @@ EngineDefs:
                     Features:
                       - Type: Respin
                         Params:
-                          Action: cascade
+                          Action: cascade1
                           Amount: 1
                       - Type: Activation
                         Id: 3
                         Params:
                           ActivationParams:
                             Feature: "enkidu"
+          - Type: TriggerWins
+            Params:
+              Condition: noneFeature
+            Features:
+              - Type: TriggerLawOfGilgameshTowerBonus
+                Params:
+                  TileId: 9
+                  BonusThreshold: 3
+                  WinsLevels:
+                    - [5,-1,7,-1,10,-1,7,-1,5,-1]
+                    - [15,-1,20,-1,25,-1,20,-1,15,-1]
+                    - [50,-1,75,-1,100,-1]
+                    - [150,200,250,300,400,500]
+                  ProbabilitiesLevels:
+                    - [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
+                    - [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
+                    - [1666,1666,1667,1667,1667,1667]
+                    - [1666,1666,1667,1667,1667,1667]
+                Features:
+                  - Type: InstaWin                            
   - name: cascade2
-    Probability: 50000
+    inheritance: prev
+    Probability: 5000
     ReelsetId: 15
     Reels:
       - [5,5,6,6,6,5,6,6,5,5,6,6,5,5,6,5,6,6,6,6,5,6,5,6,5,5,6,6,6,5,6,6,5,5,6,5,6,6,6,6,5,5,6,5,5,6,5,5,6]
@@ -582,7 +632,7 @@ EngineDefs:
         Features:
           - Type: TriggerRandom
             Params:
-              Probability: 1900
+              Probability: 700
             Features:
               - Type: TriggerLawOfGilgameshFreespinScatter
                 Params:
@@ -591,11 +641,10 @@ EngineDefs:
                   NumProbabilities: [9600,300,50]
                   ReelProbabilities: [1666,1666,1667,1667,1667,1667]
                   RowProbabilities: [1666,1666,1667,1667,1667,1667]
-                  KeepIds: [8, 9, 10]
+                  KeepIds: [8, 10]
                   RetryFactor: 3
                   BonusThreshold: 3
-                  Freespins: 7
-                  Additional: 2
+                  Freespins: 1
                 Features:
                   - Type: TriggerConditional
                     Params:
@@ -663,7 +712,7 @@ EngineDefs:
                     Features:
                       - Type: Respin
                         Params:
-                          Action: cascade
+                          Action: cascade3
                           Amount: 1
                       - Type: Activation
                         Id: 3
@@ -771,7 +820,7 @@ EngineDefs:
         Features:
           - Type: TriggerRandom
             Params:
-              Probability: 1000
+              Probability: 790
             Features:
               - Type: TriggerLawOfGilgameshFreespinScatter
                 Params:
@@ -779,11 +828,9 @@ EngineDefs:
                   NumScatters: [1,2]
                   NumProbabilities: [9900,100]
                   KeepIds: [8, 10]
-                  UntriggerIds: [9]
                   RetryFactor: 3
                   BonusThreshold: 3
-                  Freespins: 10
-                  Additional: 2
+                  Freespins: 1
                 Features:
                   - Type: TriggerConditional
                     Params:
@@ -851,7 +898,7 @@ EngineDefs:
                     Features:
                       - Type: Respin
                         Params:
-                          Action: cascade
+                          Action: cascade3
                           Amount: 1
                       - Type: Activation
                         Id: 3
@@ -967,7 +1014,7 @@ EngineDefs:
                       WildId: 8
                       KeepIds: [8,9,10]
                       NumWilds: [2,3,4,5,6,7,8,9,10]
-                      NumProbabilities: [100,1600,2200,2200,1700,900,700,400,200]
+                      NumProbabilities: [100,2000,2500,2300,1500,700,500,300,100]
                       RetryFactor: 3
                       ReelProbabilities: [1666,1666,1667,1667,1667,1667]
                       RowProbabilities: [1666,1666,1667,1667,1667,1667]
@@ -993,7 +1040,7 @@ EngineDefs:
                     Features:
                       - Type: Respin
                         Params:
-                          Action: cascade
+                          Action: cascade3
                           Amount: 1
                       - Type: Activation
                         Id: 3

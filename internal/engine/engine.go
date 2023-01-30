@@ -1344,8 +1344,8 @@ func calculatePayoutWins(wins []Prize) int {
 	for i, win := range wins {
 		relativeWin := win.Payout.Multiplier * win.Multiplier
 		relativePayout += relativeWin
-		logger.Debugf("Calculate payout for win: %d payout: %#v", relativeWin, win)
 		wins[i].Win = NewFixedFromInt(relativeWin)
+		logger.Debugf("Calculate payout for win: %d payout: %#v", relativeWin, wins[i])
 	}
 	return relativePayout
 }

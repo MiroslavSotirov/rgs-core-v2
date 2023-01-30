@@ -36,11 +36,6 @@ type TriggerLawOfGilgameshFreespinScatter struct {
 
 func (f TriggerLawOfGilgameshFreespinScatter) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
 
-	if params.HasKey(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_TOWER_SCATTERS) {
-		logger.Debugf("skipping freespin scatter due to tower scatters")
-		return
-	}
-
 	tileId := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_TILE_ID)
 	retryFactor := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_RETRY_FACTOR)
 	bonusThreshold := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_BONUS_THRESHOLD)
@@ -121,24 +116,24 @@ func (f TriggerLawOfGilgameshFreespinScatter) Trigger(state *feature.FeatureStat
 				ns--
 			}
 		}
-
-		if len(positions) >= bonusThreshold {
-
-			freespins := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_FREESPINS)
-			additional := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_ADDITIONAL)
-
-			numFreespins = freespins
-			if len(positions) > bonusThreshold {
-				numFreespins += len(positions) * additional
-			}
-
-		}
-
 	}
 
 	numPlaced := len(newPositions)
-	if numPlaced > 0 && isFreespin {
-		numFreespins = numPlaced
+	if numPlaced > 0 {
+		if isFreespin {
+			numFreespins = numPlaced
+		} else {
+			if len(positions) >= bonusThreshold {
+
+				freespins := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_FREESPINS)
+				additional := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_SCATTER_ADDITIONAL)
+
+				numFreespins = freespins
+				if len(positions) > bonusThreshold {
+					numFreespins += (len(positions) - bonusThreshold) * additional
+				}
+			}
+		}
 	}
 
 	if numFreespins > 0 {
