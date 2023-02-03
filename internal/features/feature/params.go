@@ -481,3 +481,10 @@ func (p FeatureParams) GetForceFloat64(force string) (v float64, ok bool) {
 	}
 	return
 }
+
+func (p FeatureParams) GetStringOrDefault(name string, defaultvalue string) string {
+	if p.HasKey(name) {
+		return p.GetString(name)
+	}
+	return defaultvalue
+}

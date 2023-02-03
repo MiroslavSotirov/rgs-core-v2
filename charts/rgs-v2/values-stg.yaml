@@ -303,6 +303,16 @@ gameConfig:
       - name: law-of-gilgamesh
         item: 33649
         flags: campaign
+  - engineID: mvgEngineGodot9_94
+    games:
+      - name: law-of-gilgamesh-94
+        item: 33568
+        flags: campaign
+  - engineID: mvgEngineGodot9_90
+    games:
+      - name: law-of-gilgamesh-90
+        item: 33567
+        flags: campaign
 
 # production item_id while relax testing in staging. remove
 gameConfig_prod:

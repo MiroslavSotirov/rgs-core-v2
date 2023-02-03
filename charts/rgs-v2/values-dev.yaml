@@ -291,6 +291,14 @@ gameConfig:
     games:
       - name: law-of-gilgamesh
         flags: campaign
+  - engineID: mvgEngineGodot9_94
+    games:
+      - name: law-of-gilgamesh-94
+        flags: campaign
+  - engineID: mvgEngineGodot9_90
+    games:
+      - name: law-of-gilgamesh-90
+        flags: campaign
 
 gamification:
   a-fairy-tale:

@@ -25,7 +25,7 @@ func (f TriggerOrdered) Trigger(state *feature.FeatureState, params feature.Feat
 		triggers := params.GetStringSlice(PARAM_ID_TRIGGER_ORDERED_TRIGGERS)
 		order := params.GetStringSlice(PARAM_ID_TRIGGER_ORDERED_ORDER)
 
-		logger.Debugf("trigger in order: %v", order)
+		logger.Debugf("trigger in order: %v out of %v", order, triggers)
 
 		for _, o := range order {
 
@@ -38,6 +38,8 @@ func (f TriggerOrdered) Trigger(state *feature.FeatureState, params feature.Feat
 			}
 			if idx < 0 {
 				panic(fmt.Sprintf("unknown ordered trigger: %s", o))
+			} else {
+				logger.Debugf("trigger ordered index %d", idx)
 			}
 
 			matchidx := func(i int, d feature.FeatureDef, s *feature.FeatureState, p feature.FeatureParams) bool {
