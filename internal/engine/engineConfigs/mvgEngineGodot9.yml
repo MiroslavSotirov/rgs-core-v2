@@ -661,7 +661,8 @@ EngineDefs:
             Features:
               - Type: TriggerWins
                 Params:
-                  Condition: noneFeature
+                  Condition: noneFeatureExcept
+                  ExceptIndices: ["freespin:1", "freespin:2", "freespin:3"]
                 Features:
                   - Type: TriggerLawOfGilgameshGilgamesh
                     Params:
@@ -685,7 +686,8 @@ EngineDefs:
                           ReplaceWithId: 8
               - Type: TriggerWins
                 Params:
-                  Condition: noneFeature
+                  Condition: noneFeatureExcept
+                  ExceptIndices: ["freespin:1", "freespin:2", "freespin:3"]
                 Features:
                   - Type: TriggerLawOfGilgameshIshtar
                     Params:
@@ -703,7 +705,8 @@ EngineDefs:
                           MultiplierIncrement: 1
               - Type: TriggerWins
                 Params:
-                  Condition: noneFeature
+                  Condition: noneFeatureExcept
+                  ExceptIndices: ["freespin:1", "freespin:2", "freespin:3"]
                 Features:
                   - Type: TriggerLawOfGilgameshEnkidu
                     Params:
@@ -847,7 +850,8 @@ EngineDefs:
             Features:
               - Type: TriggerWins
                 Params:
-                  Condition: noneFeature
+                  Condition: noneFeatureExcept
+                  ExceptIndices: ["freespin:1", "freespin:2", "freespin:3"]
                 Features:
                   - Type: TriggerLawOfGilgameshGilgamesh
                     Params:
@@ -871,7 +875,8 @@ EngineDefs:
                           ReplaceWithId: 8
               - Type: TriggerWins
                 Params:
-                  Condition: noneFeature
+                  Condition: noneFeatureExcept
+                  ExceptIndices: ["freespin:1", "freespin:2", "freespin:3"]
                 Features:
                   - Type: TriggerLawOfGilgameshIshtar
                     Params:
@@ -889,7 +894,8 @@ EngineDefs:
                           MultiplierIncrement: 1
               - Type: TriggerWins
                 Params:
-                  Condition: noneFeature
+                  Condition: noneFeatureExcept
+                  ExceptIndices: ["freespin:1", "freespin:2", "freespin:3"]
                 Features:
                   - Type: TriggerLawOfGilgameshEnkidu
                     Params:
