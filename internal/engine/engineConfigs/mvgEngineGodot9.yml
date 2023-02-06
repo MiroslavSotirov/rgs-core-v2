@@ -128,17 +128,7 @@ EngineDefs:
                   KeepIds: [8, 10]
                   UntriggerIds: [9]
                   RetryFactor: 3
-                  BonusThreshold: 3
-                  Freespins: 7
-                  Additional: 2
                 Features:
-                  - Type: TriggerConditional
-                    Params:
-                      ConditionalFlag: TriggerFreespins
-                    Features:
-                      - Type: Respin
-                        Params:
-                          Action: freespin
                   - Type: ReplaceTile
                     Id: 3
                     Params:
@@ -223,6 +213,20 @@ EngineDefs:
                     - [1666,1666,1667,1667,1667,1667]
                 Features:
                   - Type: InstaWin
+          - Type: TriggerWins
+            Params:
+              Condition: noneFeature
+            Features:
+              - Type: TriggerLawOfGilgameshFreespinBonus
+                Params:
+                  TileId: 10
+                  BonusThreshold: 3
+                  Freespins: 7
+                  Additional: 2
+                Features:
+                  - Type: Respin
+                    Params:
+                      Action: freespin
   - name: base
     Probability: 1300
     ReelsetId: 1
@@ -439,6 +443,20 @@ EngineDefs:
                     - [1666,1666,1667,1667,1667,1667]
                 Features:
                   - Type: InstaWin
+          - Type: TriggerWins
+            Params:
+              Condition: noneFeature
+            Features:
+              - Type: TriggerLawOfGilgameshFreespinBonus
+                Params:
+                  TileId: 10
+                  BonusThreshold: 3
+                  Freespins: 7
+                  Additional: 2
+                Features:
+                  - Type: Respin
+                    Params:
+                      Action: freespin
   - name: cascade1
     inheritance: prev
     RespinAction: cascade1
@@ -597,7 +615,20 @@ EngineDefs:
                     - [1666,1666,1667,1667,1667,1667]
                     - [1666,1666,1667,1667,1667,1667]
                 Features:
-                  - Type: InstaWin                            
+                  - Type: InstaWin
+          - Type: TriggerWins
+            Params:
+              Condition: noneFeature
+            Features:
+              - Type: TriggerLawOfGilgameshFreespinBonus
+                Params:
+                  BonusThreshold: 3
+                  Freespins: 7
+                  Additional: 2
+                Features:
+                  - Type: Respin
+                    Params:
+                      Action: freespin
   - name: cascade2
     inheritance: prev
     Probability: 5000
