@@ -33,9 +33,8 @@ type TriggerLawOfGilgameshTowerScatter struct {
 func (f TriggerLawOfGilgameshTowerScatter) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
 
 	tileId := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_TILE_ID)
-	retryFactor := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_RETRY_FACTOR)
 	bonusThreshold := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_BONUS_THRESHOLD)
-	var untriggerIds []int
+	untriggerIds := []int{}
 	if params.HasKey(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_UNTRIGGER_IDS) {
 		untriggerIds = params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_UNTRIGGER_IDS)
 	}
@@ -48,12 +47,10 @@ func (f TriggerLawOfGilgameshTowerScatter) Trigger(state *feature.FeatureState, 
 			if s == tileId {
 				positions = append(positions, reel*gridh+row)
 			}
-			if isRespin {
-				for _, u := range untriggerIds {
-					if s == u {
-						logger.Debugf("untrigger tower scatter due to presence of symbols %v", untriggerIds)
-						return
-					}
+			for _, u := range untriggerIds {
+				if s == u {
+					logger.Debugf("untrigger tower scatter due to presence of symbols %v", untriggerIds)
+					return
 				}
 			}
 		}
@@ -72,23 +69,19 @@ func (f TriggerLawOfGilgameshTowerScatter) Trigger(state *feature.FeatureState, 
 	if isRespin {
 
 		candidates := state.GetCandidatePositions()
-		if len(positions) < bonusThreshold {
-			for i := 0; i < ns && len(candidates) > 0; i++ {
-				ic := rng.RandFromRange(len(candidates))
-				p := candidates[ic]
-				candidates = append(candidates[:ic], candidates[ic+1:]...)
 
-				reel := p / gridh
-				row := p % gridh
-				//				state.SourceGrid[reel][row] = tileId
-				state.SymbolGrid[reel][row] = tileId
-				positions = append(positions, p)
-				newPositions = append(newPositions, p)
-			}
+		for i := 0; i < ns && len(candidates) > 0; i++ {
+			ic := rng.RandFromRange(len(candidates))
+			p := candidates[ic]
+			candidates = append(candidates[:ic], candidates[ic+1:]...)
+			// state.SymbolGrid[p / gridh][p % gridh] = tileId
+			positions = append(positions, p)
+			newPositions = append(newPositions, p)
 		}
 
 	} else {
 
+		retryFactor := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_RETRY_FACTOR)
 		keepIds := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_KEEP_IDS)
 		reelProbs := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_REEL_PROBABILITIES)
 		rowProbs := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_TOWER_SCATTER_ROW_PROBABILITIES)

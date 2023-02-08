@@ -112,26 +112,47 @@ func (f TriggerLawOfGilgamesh) Trigger(state *feature.FeatureState, params featu
 	stateless[STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_COUNTER] = counter
 	stateless[STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_ORDER] = ord
 	stateless[STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_LEVEL] = level
+	/*
+		wins := state.CalculateWins(state.SymbolGrid, nil)
+		if len(wins) > 0 {
 
+			for _, w := range wins {
+				counter += len(w.SymbolPositions)
+				logger.Debugf("increased counter by %d to %d", len(w.SymbolPositions), counter)
+			}
+			stateless[STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_COUNTER] = counter
+			//		feature.SetStatelessMap(stateless, params)
+		}
+	*/
 	feature.SetStatelessMap(stateless, params)
 	feature.ActivateFeatures(f.FeatureDef, state, params)
+	/*
+		if func() bool {
+			for _, f := range state.Features {
+				if f.DefPtr().Type == "Activation" {
+					return true
+				}
+			}
+			return false
+		}() {
+			wins := state.CalculateWins(state.SymbolGrid, nil)
+			if len(wins) > 0 {
 
-	wins := state.CalculateWins(state.SymbolGrid, nil)
-	if len(wins) > 0 {
-
-		for _, w := range wins {
-			counter += len(w.SymbolPositions)
-			logger.Debugf("increased counter by %d to %d", len(w.SymbolPositions), counter)
+				for _, w := range wins {
+					counter += len(w.SymbolPositions)
+					logger.Debugf("increased counter after bonus activation by %d to %d", len(w.SymbolPositions), counter)
+				}
+				stateless[STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_COUNTER] = counter
+				feature.SetStatelessMap(stateless, params)
+			}
 		}
-		stateless[STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_COUNTER] = counter
-		feature.SetStatelessMap(stateless, params)
-	}
-
-	//	state.Features = append(state.Features{
-	statelessMap := feature.MakeFeature(feature.FEATURE_ID_STATELESS_MAP)
-	statelessMap.Init(feature.FeatureDef{Type: "StatelessMap"})
-	statelessMap.Trigger(state, params)
-
+	*/
+	/*
+		//	state.Features = append(state.Features{
+		statelessMap := feature.MakeFeature(feature.FEATURE_ID_STATELESS_MAP)
+		statelessMap.Init(feature.FeatureDef{Type: "StatelessMap"})
+		statelessMap.Trigger(state, params)
+	*/
 	return
 }
 
@@ -147,8 +168,10 @@ func (f *TriggerLawOfGilgamesh) Deserialize(data []byte) (err error) {
 	return feature.DeserializeTriggerFromBytes(f, data)
 }
 
+/*
 func incLawOfGilgameshLevel(state *feature.FeatureState, params feature.FeatureParams) {
 	stateless := feature.GetParamStatelessMap(params)
 	stateless[STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_LEVEL] = stateless.GetInt(STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_LEVEL) + 1
 	feature.SetStatelessMap(stateless, params)
 }
+*/

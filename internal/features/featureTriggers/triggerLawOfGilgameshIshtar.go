@@ -3,7 +3,6 @@ package featureTriggers
 import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/featureProducts"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 const (
@@ -19,10 +18,6 @@ type TriggerLawOfGilgameshIshtar struct {
 }
 
 func (f TriggerLawOfGilgameshIshtar) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
-
-	if len(state.CalculateWins(state.SymbolGrid, nil)) != 0 {
-		logger.Debugf("postponing feature due to wins")
-	}
 
 	removeIds := params.GetIntSlice(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_ISHTAR_REMOVE_IDS)
 
@@ -46,10 +41,11 @@ func (f TriggerLawOfGilgameshIshtar) Trigger(state *feature.FeatureState, params
 	}
 
 	if len(positions) > 0 {
-		incLawOfGilgameshLevel(state, params)
 		params[featureProducts.PARAM_ID_RESPIN_POSITIONS] = positions
 		feature.ActivateFeatures(f.FeatureDef, state, params)
 	}
+
+	incLawOfGilgameshLevel(state, params)
 
 	return
 }
