@@ -1,11 +1,7 @@
 package featureTriggers
 
 import (
-	"strconv"
-	"strings"
-
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 const (
@@ -47,13 +43,8 @@ func countLawOfGilgameshWin(state *feature.FeatureState) int {
 	counter := 0
 	wins := state.CalculateWins(state.SymbolGrid, nil)
 	for _, w := range wins {
-		num, err := strconv.ParseInt(strings.Split(w.Index, ":")[1], 10, 64)
-		if err != nil {
-			panic("could not parse win for cluser size determination")
-		}
-		logger.Debugf("cluster size %d from win %#v", num, w)
-		counter += int(num)                                                           // len(w.SymbolPositions)
-		logger.Debugf("increased counter after activation by %d to %d", num, counter) //len(w.SymbolPositions), counter)
+		num := len(w.SymbolPositions)
+		counter += num
 	}
 	return counter
 }

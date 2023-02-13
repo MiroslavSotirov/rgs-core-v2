@@ -42,7 +42,6 @@ func (f TriggerLawOfGilgameshGilgamesh) Trigger(state *feature.FeatureState, par
 	gridh := len(state.SymbolGrid[0])
 	nw := numWilds[feature.WeightedRandomIndex(numProbs)]
 	tries := nw * retryFactor
-	logger.Debugf("gilgamesh feature placing %d wilds", nw)
 	for i := 0; i < tries && len(positions) < nw; i++ {
 		reel := feature.WeightedRandomIndex(reelProbs)
 		row := feature.WeightedRandomIndex(rowProbs)
@@ -60,14 +59,14 @@ func (f TriggerLawOfGilgameshGilgamesh) Trigger(state *feature.FeatureState, par
 		}
 	}
 
-	if len(positions) > 0 {
-		params[featureProducts.PARAM_ID_REPLACE_TILE_TILE_ID] = wildId
-		params[featureProducts.PARAM_ID_REPLACE_TILE_REPLACE_WITH_ID] = wildId
-		params[featureProducts.PARAM_ID_REPLACE_TILE_POSITIONS] = positions
-		feature.ActivateFeatures(f.FeatureDef, state, params)
-	}
+	params[featureProducts.PARAM_ID_REPLACE_TILE_TILE_ID] = wildId
+	params[featureProducts.PARAM_ID_REPLACE_TILE_REPLACE_WITH_ID] = wildId
+	params[featureProducts.PARAM_ID_REPLACE_TILE_POSITIONS] = positions
+	feature.ActivateFeatures(f.FeatureDef, state, params)
 
 	incLawOfGilgameshLevel(state, params)
+
+	logger.Debugf("gilgamesh feature placed %d out of %d wilds", len(positions), nw)
 
 	return
 }

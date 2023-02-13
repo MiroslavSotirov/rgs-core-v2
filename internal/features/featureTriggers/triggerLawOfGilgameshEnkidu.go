@@ -38,10 +38,9 @@ func (f TriggerLawOfGilgameshEnkidu) Trigger(state *feature.FeatureState, params
 			positions = append(positions, pos)
 		}
 	}
-	if len(positions) > 0 {
-		params[featureProducts.PARAM_ID_RESPIN_POSITIONS] = positions
-		feature.ActivateFeatures(f.FeatureDef, state, params)
-	}
+
+	params[featureProducts.PARAM_ID_RESPIN_POSITIONS] = positions
+	feature.ActivateFeatures(f.FeatureDef, state, params)
 
 	incLawOfGilgameshLevel(state, params)
 

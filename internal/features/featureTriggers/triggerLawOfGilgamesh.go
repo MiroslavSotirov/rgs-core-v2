@@ -64,7 +64,6 @@ func (f TriggerLawOfGilgamesh) Trigger(state *feature.FeatureState, params featu
 			})
 		return
 	} else if state.Action == "base" || state.Action == "freespin" {
-
 		bonuses := feature.RandomPermutation([]int{1, 2, 3})
 		stateless[STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_ORDER] = encodeOrd(bonuses[0], bonuses[1], bonuses[2])
 		stateless[STATELESS_ID_TRIGGER_LAW_OF_GILGAMESH_LEVEL] = 0

@@ -1,6 +1,6 @@
 version: 2.0
-rtp: .908177
-volatility: 13.05
+rtp: .932130
+volatility: 13.015
 
 EngineDefs:
   - name: base
@@ -8,7 +8,7 @@ EngineDefs:
     StakeDivisor: 10
     function: FeatureCascade
     ViewSize: [6,6,6,6,6,6]
-    RespinAction: cascade1
+    RespinAction: cascade5
     Probability: 1300
     ReelsetId: 0 
     Reels:
@@ -290,7 +290,7 @@ EngineDefs:
       - [1,1,1,6,6,6,2,2,1,6,6,1,1,1,1,2,2,1,1,2,2,6,6,2,2,1,1,1,2,2,6,6,6,1,1,2,2,6,1,1,2,6,6,6,6,1,1,2,2]
       - [5,7,7,2,2,3,3,5,5,5,2,2,3,3,3,3,2,2,7,7,7,5,5,5,5,2,3,3,3,5,2,2,3,3,7,7,7,7,5,5,5,3,3,3,3,5,7,7,7]
   - name: cascade1
-    RespinAction: cascade1
+    RespinAction: cascade5
     Probability: 1500
     ReelsetId: 7
     Reels:
@@ -310,53 +310,6 @@ EngineDefs:
              - ishtar
              - enkidu
         Features:
-          - Type: TriggerRandom
-            Params:
-              Probability: 1200
-            Features:
-              - Type: TriggerLawOfGilgameshTowerScatter
-                Id: 4
-                Params:
-                  TileId: 9
-                  NumScatters: [1]
-                  NumProbabilities: [10000]
-                  KeepIds: [8, 9]
-                  UntriggerIds: [10]
-                  BonusThreshold: 3
-                Features:
-                  - Type: TriggerConditional
-                    Params:
-                      ConditionalFlag: TriggerTower
-                    Features:
-                      - Type: Activation
-                        Id: 4
-                        Params:
-                          ActivationParams:
-                            Feature: "tower"
-                  - Type: ReplaceTile
-                    Id: 2
-                    Params:
-                      ReplaceWithId: 9
-          - Type: TriggerRandom
-            Params:
-              Probability: 943
-            Features:
-              - Type: TriggerLawOfGilgameshFreespinScatter
-                Params:
-                  TileId: 10
-                  NumScatters: [1,2]
-                  NumProbabilities: [9750,250]
-                  KeepIds: [8, 10]
-                  UntriggerIds: [9]
-                  RetryFactor: 3
-                  BonusThreshold: 3
-                  Freespins: 7
-                  Additional: 2
-                Features:
-                  - Type: ReplaceTile
-                    Id: 3
-                    Params:
-                      ReplaceWithId: 10  
           - Type: TriggerLawOfGilgameshProgress
             Features:
               - Type: TriggerOrdered
@@ -521,7 +474,7 @@ EngineDefs:
       - [1,1,1,6,6,6,2,2,1,6,6,1,1,1,1,2,2,1,1,2,2,6,6,2,2,1,1,1,2,2,6,6,6,1,1,2,2,6,1,1,2,6,6,6,6,1,1,2,2]
       - [5,7,7,2,2,3,3,5,5,5,2,2,3,3,3,3,2,2,7,7,7,5,5,5,5,2,3,3,3,5,2,2,3,3,7,7,7,7,5,5,5,3,3,3,3,5,7,7,7]
   - name: cascade2
-    RespinAction: cascade1
+    RespinAction: cascade5
     Probability: 5000
     ReelsetId: 14
     Reels:
@@ -635,8 +588,235 @@ EngineDefs:
       - [6,6,5,5,6,5,5,6,6,5,5,6,6,5,5,6,5,5,6,5,5,6,5,5,6,6,5,5,6,5,5,6,6,5,6,5,5,6,6,5,5,6,6,5,5,6,6,5,5]
       - [5,7,7,5,5,7,5,5,7,7,5,7,5,7,7,5,7,5,5,7,7,5,7,5,5,7,7,5,7,7,5,5,7,5,5,7,7,5,7,5,7,7,5,7,5,5,7,7,5]
       - [7,6,6,7,7,6,7,7,6,6,7,6,7,6,6,7,6,7,7,6,6,7,6,7,7,6,6,7,6,6,7,7,6,7,7,6,6,7,6,7,6,6,7,6,7,7,6,6,7]
+  - name: cascade5
+    RespinAction: cascade5
+    Probability: 1500
+    ReelsetId: 7
+    Reels:
+      - [4,1,2,2,6,6,2,1,2,3,7,7,1,4,4,1,3,5,5,1,2,6,3,1,2,2,1,4,5,3,1,1,5,3,6,5,5,2,3,7,7,1,3,6,4,4,4,2,3]
+      - [3,1,1,1,4,3,1,5,4,2,1,1,1,3,3,4,2,5,5,7,7,1,4,6,2,2,4,1,1,3,2,2,2,3,5,4,7,6,5,5,6,6,6,7,2,2,3,4,3]
+      - [4,4,6,3,3,1,2,3,3,2,2,6,4,2,2,7,7,2,3,1,1,5,1,5,4,4,1,2,6,1,4,4,5,5,5,1,1,3,6,7,7,1,5,2,3,1,3,6,2]
+      - [7,7,1,2,2,3,1,1,4,1,3,2,3,2,6,2,1,1,1,3,3,3,4,4,4,6,2,2,5,7,7,2,2,5,1,1,5,6,6,4,5,5,3,3,1,4,4,6,5]
+      - [4,1,5,3,1,5,1,2,1,3,3,6,4,4,1,2,2,4,3,7,7,7,7,1,5,1,2,1,1,3,2,1,2,4,4,4,2,2,5,5,6,2,5,3,3,3,6,6,6]
+      - [3,7,7,5,1,1,4,4,3,3,3,6,6,4,1,1,2,2,2,1,3,3,1,5,2,2,4,4,4,1,2,5,6,2,5,5,5,1,1,6,6,1,2,4,2,7,7,3,3]
+    Features:
+      - Type: TriggerLawOfGilgamesh
+        Params:
+          Collated: true
+          Levels: [20, 40, 60]
+          Triggers:
+             - gilgamesh
+             - ishtar
+             - enkidu
+        Features:
+          - Type: TriggerRandom
+            Params:
+              Probability: 1200
+            Features:
+              - Type: TriggerLawOfGilgameshTowerScatter
+                Id: 4
+                Params:
+                  TileId: 9
+                  NumScatters: [1]
+                  NumProbabilities: [10000]
+                  KeepIds: [8, 9]
+                  UntriggerIds: [10]
+                  BonusThreshold: 3
+                Features:
+                  - Type: TriggerConditional
+                    Params:
+                      ConditionalFlag: TriggerTower
+                    Features:
+                      - Type: Activation
+                        Id: 4
+                        Params:
+                          ActivationParams:
+                            Feature: "tower"
+                  - Type: ReplaceTile
+                    Id: 2
+                    Params:
+                      ReplaceWithId: 9
+          - Type: TriggerRandom
+            Params:
+              Probability: 943
+            Features:
+              - Type: TriggerLawOfGilgameshFreespinScatter
+                Params:
+                  TileId: 10
+                  NumScatters: [1,2]
+                  NumProbabilities: [9750,250]
+                  KeepIds: [8, 10]
+                  UntriggerIds: [9]
+                Features:
+                  - Type: ReplaceTile
+                    Id: 3
+                    Params:
+                      ReplaceWithId: 10  
+          - Type: TriggerLawOfGilgameshProgress
+            Features:
+              - Type: TriggerOrdered
+                Features:
+                  - Type: TriggerWins
+                    Params:
+                      Condition: noneFeature
+                    Features:
+                      - Type: TriggerLawOfGilgameshGilgamesh
+                        Params:
+                          WildId: 8
+                          KeepIds: [8,9,10]
+                          NumWilds: [2,3,4,5,6,7,8,9,10]
+                          NumProbabilities: [100,1600,2200,2200,1700,900,700,400,200]
+                          RetryFactor: 3
+                          ReelProbabilities: [1666,1666,1667,1667,1667,1667]
+                          RowProbabilities: [1666,1666,1667,1667,1667,1667]
+                        Features:
+                          - Type: Activation
+                            Id: 1
+                            Params:
+                              ActivationParams:
+                                Feature: "gilgamesh"
+                          - Type: ReplaceTile
+                            Id: 1
+                            Params:
+                              ReplaceWithId: 8
+                  - Type: TriggerWins
+                    Params:
+                      Condition: noneFeature
+                    Features:
+                      - Type: TriggerLawOfGilgameshIshtar
+                        Params:
+                          RemoveIds: [1,2,3,4]
+                        Features:
+                          - Type: Respin
+                            Params:
+                              Action: cascade2
+                              Amount: 1
+                          - Type: Activation
+                            Id: 2
+                            Params:
+                              ActivationParams:
+                                Feature: "ishtar"
+                  - Type: TriggerWins
+                    Params:
+                      Condition: noneFeature
+                    Features:
+                      - Type: TriggerLawOfGilgameshEnkidu
+                        Params:
+                          RemovePositions: [0, 30, 7, 25, 14, 20, 15, 21, 10, 28, 5, 35]
+                          KeepIds: [8,9,10]
+                        Features:
+                          - Type: Respin
+                            Params:
+                              Action: cascade1
+                              Amount: 1
+                          - Type: Activation
+                            Id: 3
+                            Params:
+                              ActivationParams:
+                                Feature: "enkidu"
+              - Type: TriggerWins
+                Params:
+                  Condition: noneFeature
+                Features:
+                  - Type: TriggerLawOfGilgameshTowerBonus
+                    Params:
+                      TileId: 9
+                      BonusThreshold: 3
+                      WinsLevels:
+                        - [5,-1,7,-1,10,-1,7,-1,5,-1]
+                        - [15,-1,20,-1,25,-1,20,-1,15,-1]
+                        - [50,-1,75,-1,100,-1]
+                        - [150,200,250,300,400,500]
+                      ProbabilitiesLevels:
+                        - [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
+                        - [1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
+                        - [1666,1666,1667,1667,1667,1667]
+                        - [1666,1666,1667,1667,1667,1667]
+                    Features:
+                      - Type: InstaWin
+              - Type: TriggerWins
+                Params:
+                  Condition: noneFeature
+                Features:
+                  - Type: TriggerLawOfGilgameshFreespinBonus
+                    Params:
+                      TileId: 10
+                      BonusThreshold: 3
+                      Freespins: 7
+                      Additional: 2
+                    Features:
+                      - Type: Respin
+                        Params:
+                          Action: freespin
+          - Type: StatelessMap
+  - name: cascade5
+    inheritance: prev
+    Probability: 1500
+    ReelsetId: 8
+    Reels:
+      - [4,4,1,1,2,2,6,6,2,2,3,3,3,7,7,4,4,1,1,1,1,5,5,2,2,2,2,2,1,1,1,1,5,5,3,3,6,6,6,5,5,7,7,4,4,4,3,3,3]
+      - [3,3,3,3,3,1,1,1,1,1,4,4,4,4,4,2,2,4,4,1,1,1,5,5,5,7,7,6,6,2,2,1,1,2,2,2,5,5,5,6,6,6,7,7,2,2,3,3,3]
+      - [4,4,4,6,6,3,3,1,1,3,3,2,2,2,2,2,2,7,7,1,1,5,5,5,4,4,6,6,6,1,1,4,4,5,5,5,1,1,1,1,7,7,3,3,3,3,2,2,2]
+      - [7,7,1,1,2,2,1,1,1,4,4,3,3,3,2,2,2,6,6,1,1,1,3,3,3,4,4,4,2,2,7,7,2,2,1,1,5,5,6,6,6,5,5,3,3,4,4,5,5]
+      - [4,4,5,5,1,1,1,1,1,2,2,6,6,4,4,2,2,3,3,7,7,7,7,5,5,1,1,1,1,1,2,2,4,4,4,2,2,2,5,5,3,3,3,3,3,3,6,6,6]
+      - [3,7,7,4,4,4,3,3,3,6,6,1,1,2,2,2,2,2,3,3,1,1,1,1,1,5,5,5,2,2,4,4,4,4,2,2,5,5,5,1,1,1,6,6,6,7,7,3,3]
+  - name: cascade5
+    inheritance: prev
+    Probability: 1400
+    ReelsetId: 9
+    Reels:
+      - [1,1,4,4,6,6,2,2,1,1,2,2,4,4,6,6,2,2,6,6,1,1,4,4,6,6,4,4,2,2,1,1,6,6,1,1,2,2,4,4,2,2,1,1,4,4,6,6,2]
+      - [4,4,7,7,5,5,1,1,4,4,5,5,1,1,7,7,5,5,4,4,7,7,1,1,7,7,5,5,1,1,4,4,7,7,1,1,4,4,5,5,4,4,7,7,5,5,1,1,7]
+      - [3,3,7,7,2,2,5,5,2,2,5,5,7,7,3,3,5,5,7,7,3,3,2,2,5,5,3,3,2,2,7,7,3,3,2,2,5,5,7,7,5,5,3,3,7,7,2,2,5]
+      - [1,1,4,4,6,6,2,2,1,1,2,2,4,4,6,6,2,2,6,6,1,1,4,4,6,6,4,4,2,2,1,1,6,6,1,1,2,2,4,4,2,2,1,1,4,4,6,6,2]
+      - [4,4,7,7,5,5,1,1,4,4,5,5,1,1,7,7,5,5,4,4,7,7,1,1,7,7,5,5,1,1,4,4,7,7,1,1,4,4,5,5,4,4,7,7,5,5,1,1,7]
+      - [3,3,7,7,2,2,5,5,2,2,5,5,7,7,3,3,5,5,7,7,3,3,2,2,5,5,3,3,2,2,7,7,3,3,2,2,5,5,7,7,5,5,3,3,7,7,2,2,5]
+  - name: cascade5
+    inheritance: prev
+    Probability: 1400
+    ReelsetId: 10
+    Reels:
+      - [6,6,1,1,7,7,3,3,6,6,3,3,1,1,7,7,3,3,7,7,6,6,1,1,7,7,1,1,3,3,6,6,7,7,6,6,3,3,1,1,3,3,6,6,1,1,7,7,3]
+      - [1,1,5,5,4,4,6,6,1,1,4,4,6,6,5,5,4,4,1,1,5,5,6,6,5,5,4,4,6,6,1,1,5,5,6,6,1,1,4,4,1,1,5,5,4,4,6,6,5]
+      - [2,2,5,5,3,3,4,4,3,3,4,4,5,5,2,2,4,4,5,5,2,2,3,3,4,4,2,2,3,3,5,5,2,2,3,3,4,4,5,5,4,4,2,2,5,5,3,3,4]
+      - [6,6,1,1,7,7,3,3,6,6,3,3,1,1,7,7,3,3,7,7,6,6,1,1,7,7,1,1,3,3,6,6,7,7,6,6,3,3,1,1,3,3,6,6,1,1,7,7,3]
+      - [1,1,5,5,4,4,6,6,1,1,4,4,6,6,5,5,4,4,1,1,5,5,6,6,5,5,4,4,6,6,1,1,5,5,6,6,1,1,4,4,1,1,5,5,4,4,6,6,5]
+      - [2,2,5,5,3,3,4,4,3,3,4,4,5,5,2,2,4,4,5,5,2,2,3,3,4,4,2,2,3,3,5,5,2,2,3,3,4,4,5,5,4,4,2,2,5,5,3,3,4]
+  - name: cascade5
+    inheritance: prev
+    Probability: 1400
+    ReelsetId: 11
+    Reels:
+      - [2,2,7,7,4,4,6,6,2,2,6,6,7,7,4,4,6,6,4,4,2,2,7,7,4,4,7,7,6,6,2,2,4,4,2,2,6,6,7,7,6,6,2,2,7,7,4,4,6]
+      - [7,7,1,1,3,3,2,2,7,7,3,3,2,2,1,1,3,3,7,7,1,1,2,2,1,1,3,3,2,2,7,7,1,1,2,2,7,7,3,3,7,7,1,1,3,3,2,2,1]
+      - [5,5,1,1,6,6,3,3,6,6,3,3,1,1,5,5,3,3,1,1,5,5,6,6,3,3,5,5,6,6,1,1,5,5,6,6,3,3,1,1,3,3,5,5,1,1,6,6,3]
+      - [2,2,7,7,4,4,6,6,2,2,6,6,7,7,4,4,6,6,4,4,2,2,7,7,4,4,7,7,6,6,2,2,4,4,2,2,6,6,7,7,6,6,2,2,7,7,4,4,6]
+      - [7,7,1,1,3,3,2,2,7,7,3,3,2,2,1,1,3,3,7,7,1,1,2,2,1,1,3,3,2,2,7,7,1,1,2,2,7,7,3,3,7,7,1,1,3,3,2,2,1]
+      - [5,5,1,1,6,6,3,3,6,6,3,3,1,1,5,5,3,3,1,1,5,5,6,6,3,3,5,5,6,6,1,1,5,5,6,6,3,3,1,1,3,3,5,5,1,1,6,6,3]
+  - name: cascade5
+    inheritance: prev
+    Probability: 1400
+    ReelsetId: 12
+    Reels:
+      - [3,3,5,5,1,7,7,7,1,1,3,3,3,3,5,7,7,3,5,5,5,5,1,1,3,3,3,7,5,5,5,3,3,7,7,7,7,3,1,1,5,3,3,5,5,7,3,3,5]
+      - [1,1,2,2,6,4,4,4,2,2,4,6,6,6,6,2,1,1,2,2,4,4,6,6,6,1,2,1,1,4,4,4,4,6,6,6,6,1,1,2,2,4,4,1,1,2,2,6,6]
+      - [2,3,3,5,5,2,2,7,7,5,5,5,2,2,3,3,5,5,5,5,7,7,2,2,5,5,3,5,5,5,2,2,7,3,3,7,7,5,7,7,2,2,5,5,5,5,2,7,7]
+      - [1,1,1,1,3,3,7,7,6,6,6,1,7,7,1,1,3,3,6,7,7,1,1,1,3,6,6,6,6,3,3,1,1,1,7,7,6,6,3,3,6,6,6,6,1,1,1,3,3]
+      - [2,2,2,5,5,5,4,4,2,5,5,2,2,2,2,4,4,2,2,4,4,5,5,4,4,2,2,2,4,4,5,5,5,2,2,4,4,5,2,2,4,5,5,5,5,2,2,4,4]
+      - [1,3,3,4,4,6,6,1,1,1,4,4,6,6,6,6,4,4,3,3,3,1,1,1,1,4,6,6,6,1,4,4,6,6,3,3,3,3,1,1,1,6,6,6,6,1,3,3,3]
+  - name: cascade5
+    inheritance: prev
+    Probability: 1400
+    ReelsetId: 13
+    Reels:
+      - [7,7,6,6,5,4,4,4,5,5,7,7,7,7,6,4,4,7,6,6,6,6,5,5,7,7,7,4,6,6,6,7,7,4,4,4,4,7,5,5,6,7,7,6,6,4,7,7,6]
+      - [5,5,1,1,3,2,2,2,1,1,2,3,3,3,3,1,5,5,1,1,2,2,3,3,3,5,1,5,5,2,2,2,2,3,3,3,3,5,5,1,1,2,2,5,5,1,1,3,3]
+      - [1,7,7,6,6,1,1,4,4,6,6,6,1,1,7,7,6,6,6,6,4,4,1,1,6,6,7,6,6,6,1,1,4,7,7,4,4,6,4,4,1,1,6,6,6,6,1,4,4]
+      - [5,5,5,5,7,7,4,4,3,3,3,5,4,4,5,5,7,7,3,4,4,5,5,5,7,3,3,3,3,7,7,5,5,5,4,4,3,3,7,7,3,3,3,3,5,5,5,7,7]
+      - [1,1,1,6,6,6,2,2,1,6,6,1,1,1,1,2,2,1,1,2,2,6,6,2,2,1,1,1,2,2,6,6,6,1,1,2,2,6,1,1,2,6,6,6,6,1,1,2,2]
+      - [5,7,7,2,2,3,3,5,5,5,2,2,3,3,3,3,2,2,7,7,7,5,5,5,5,2,3,3,3,5,2,2,3,3,7,7,7,7,5,5,5,3,3,3,3,5,7,7,7]
   - name: freespin
-    RespinAction: cascade3
+    RespinAction: cascade6
     Probability: 520
     ReelsetId: 16 
     Reels:
@@ -664,13 +844,11 @@ EngineDefs:
                 Params:
                   TileId: 10
                   NumScatters: [1,2,3]
-                  NumProbabilities: [9600,300,50]
+                  NumProbabilities: [9650,300,50]
                   ReelProbabilities: [1666,1666,1667,1667,1667,1667]
                   RowProbabilities: [1666,1666,1667,1667,1667,1667]
                   KeepIds: [8, 10]
                   RetryFactor: 3
-                  BonusThreshold: 3
-                  Freespins: 1
                 Features:
                   - Type: ReplaceTile
                     Id: 3
@@ -834,7 +1012,7 @@ EngineDefs:
       - [1,1,7,7,7,7,4,4,7,7,7,7,7,1,1,7,7,7,7,7,7,4,4,7,7,7,7,7,7,7,1,1,7,7,7,7,4,4,7,7,7,7,7,4,4,7,7,7,7]
       - [2,2,7,7,7,7,3,3,7,7,7,7,7,2,2,7,7,7,7,7,7,3,3,7,7,7,7,7,7,7,2,2,7,7,7,7,3,3,7,7,7,7,7,3,3,7,7,7,7]
   - name: cascade3
-    RespinAction: cascade3
+    RespinAction: cascade6
     Probability: 400
     ReelsetId: 24
     Reels:
@@ -854,24 +1032,6 @@ EngineDefs:
              - ishtar
              - enkidu
         Features:
-          - Type: TriggerRandom
-            Params:
-              Probability: 790
-            Features:
-              - Type: TriggerLawOfGilgameshFreespinScatter
-                Params:
-                  TileId: 10
-                  NumScatters: [1,2]
-                  NumProbabilities: [9900,100]
-                  KeepIds: [8, 10]
-                  RetryFactor: 3
-                  BonusThreshold: 3
-                  Freespins: 1
-                Features:
-                  - Type: ReplaceTile
-                    Id: 3
-                    Params:
-                      ReplaceWithId: 10
           - Type: TriggerLawOfGilgameshProgress
             Features:
               - Type: TriggerOrdered
@@ -1019,7 +1179,7 @@ EngineDefs:
       - [1,1,1,6,6,6,2,2,1,6,6,1,1,1,1,2,2,1,1,2,2,6,6,2,2,1,1,1,2,2,6,6,6,1,1,2,2,6,1,1,2,6,6,6,6,1,1,2,2]
       - [5,7,7,2,2,3,3,5,5,5,2,2,3,3,3,3,2,2,7,7,7,5,5,5,5,2,3,3,3,5,2,2,3,3,7,7,7,7,5,5,5,3,3,3,3,5,7,7,7]
   - name: cascade4
-    RespinAction: cascade3
+    RespinAction: cascade6
     Probability: 230
     ReelsetId: 31
     Reels:
@@ -1138,6 +1298,188 @@ EngineDefs:
       - [6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6]
       - [5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5,7,5]
       - [5,6,7,6,5,7,5,7,6,7,6,5,6,7,5,7,5,6,5,6,7,6,5,7,5,7,6,7,6,5,6,7,5,7,5,6,5,6,7,6,5,7,5,7,6,7,6,5,6]
+  - name: cascade6
+    RespinAction: cascade6
+    Probability: 400
+    ReelsetId: 24
+    Reels:
+      - [4,1,2,2,6,6,2,1,2,3,7,7,1,4,4,1,3,5,5,1,2,6,3,1,2,2,1,4,5,3,1,1,5,3,6,5,5,2,3,7,7,1,3,6,4,4,4,2,3]
+      - [3,1,1,1,4,3,1,5,4,2,1,1,1,3,3,4,2,5,5,7,7,1,4,6,2,2,4,1,1,3,2,2,2,3,5,4,7,6,5,5,6,6,6,7,2,2,3,4,3]
+      - [4,4,6,3,3,1,2,3,3,2,2,6,4,2,2,7,7,2,3,1,1,5,1,5,4,4,1,2,6,1,4,4,5,5,5,1,1,3,6,7,7,1,5,2,3,1,3,6,2]
+      - [7,7,1,2,2,3,1,1,4,1,3,2,3,2,6,2,1,1,1,3,3,3,4,4,4,6,2,2,5,7,7,2,2,5,1,1,5,6,6,4,5,5,3,3,1,4,4,6,5]
+      - [4,1,5,3,1,5,1,2,1,3,3,6,4,4,1,2,2,4,3,7,7,7,7,1,5,1,2,1,1,3,2,1,2,4,4,4,2,2,5,5,6,2,5,3,3,3,6,6,6]
+      - [3,7,7,5,1,1,4,4,3,3,3,6,6,4,1,1,2,2,2,1,3,3,1,5,2,2,4,4,4,1,2,5,6,2,5,5,5,1,1,6,6,1,2,4,2,7,7,3,3]
+    Features:
+      - Type: TriggerLawOfGilgamesh
+        Params:
+          Collated: true
+          Levels: [20, 40, 60]
+          Triggers:
+             - gilgamesh
+             - ishtar
+             - enkidu
+        Features:
+          - Type: TriggerRandom
+            Params:
+              Probability: 790
+            Features:
+              - Type: TriggerLawOfGilgameshFreespinScatter
+                Params:
+                  TileId: 10
+                  NumScatters: [1,2]
+                  NumProbabilities: [9900,100]
+                  KeepIds: [8, 10]
+                Features:
+                  - Type: ReplaceTile
+                    Id: 3
+                    Params:
+                      ReplaceWithId: 10
+          - Type: TriggerLawOfGilgameshProgress
+            Features:
+              - Type: TriggerOrdered
+                Features:
+                  - Type: TriggerWins
+                    Params:
+                      Condition: noneFeature
+                    Features:
+                      - Type: TriggerLawOfGilgameshGilgamesh
+                        Params:
+                          WildId: 8
+                          KeepIds: [8,9,10]
+                          NumWilds: [2,3,4,5,6,7,8,9,10]
+                          NumProbabilities: [100,2000,2500,2300,1500,700,500,300,100]
+                          RetryFactor: 3
+                          ReelProbabilities: [1666,1666,1667,1667,1667,1667]
+                          RowProbabilities: [1666,1666,1667,1667,1667,1667]
+                        Features:
+                          - Type: Activation
+                            Id: 1
+                            Params:
+                              ActivationParams:
+                                Feature: "gilgamesh"
+                              MultiplierIncrement: 1
+                          - Type: ReplaceTile
+                            Id: 1
+                            Params:
+                              ReplaceWithId: 8
+                  - Type: TriggerWins
+                    Params:
+                      Condition: noneFeature
+                    Features:
+                      - Type: TriggerLawOfGilgameshIshtar
+                        Params:
+                          RemoveIds: [1,2,3,4]
+                        Features:
+                          - Type: Respin
+                            Params:
+                              Action: cascade4
+                              Amount: 1
+                          - Type: Activation
+                            Id: 2
+                            Params:
+                              ActivationParams:
+                                Feature: "ishtar"
+                              MultiplierIncrement: 1
+                  - Type: TriggerWins
+                    Params:
+                      Condition: noneFeature
+                    Features:
+                      - Type: TriggerLawOfGilgameshEnkidu
+                        Params:
+                          RemovePositions: [0, 30, 7, 25, 14, 20, 15, 21, 10, 28, 5, 35]
+                          KeepIds: [8,9,10]
+                        Features:
+                          - Type: Respin
+                            Params:
+                              Action: cascade3
+                              Amount: 1
+                          - Type: Activation
+                            Id: 3
+                            Params:
+                              ActivationParams:
+                                Feature: "enkidu"
+                              MultiplierIncrement: 1
+              - Type: TriggerWins
+                Params:
+                  Condition: noneFeature
+                Features:
+                  - Type: TriggerLawOfGilgameshFreespinBonus
+                    Params:
+                      TileId: 10
+                      BonusThreshold: 0
+                      Freespins: 0
+                      Additional: 1
+                    Features:
+                      - Type: Respin
+                        Params:
+                          Action: freespin
+          - Type: StatelessMap
+  - name: cascade6
+    inheritance: prev
+    Probability: 400
+    ReelsetId: 25
+    Reels:
+      - [4,4,1,1,2,2,6,6,2,2,3,3,3,7,7,4,4,1,1,1,1,5,5,2,2,2,2,2,1,1,1,1,5,5,3,3,6,6,6,5,5,7,7,4,4,4,3,3,3]
+      - [3,3,3,3,3,1,1,1,1,1,4,4,4,4,4,2,2,4,4,1,1,1,5,5,5,7,7,6,6,2,2,1,1,2,2,2,5,5,5,6,6,6,7,7,2,2,3,3,3]
+      - [4,4,4,6,6,3,3,1,1,3,3,2,2,2,2,2,2,7,7,1,1,5,5,5,4,4,6,6,6,1,1,4,4,5,5,5,1,1,1,1,7,7,3,3,3,3,2,2,2]
+      - [7,7,1,1,2,2,1,1,1,4,4,3,3,3,2,2,2,6,6,1,1,1,3,3,3,4,4,4,2,2,7,7,2,2,1,1,5,5,6,6,6,5,5,3,3,4,4,5,5]
+      - [4,4,5,5,1,1,1,1,1,2,2,6,6,4,4,2,2,3,3,7,7,7,7,5,5,1,1,1,1,1,2,2,4,4,4,2,2,2,5,5,3,3,3,3,3,3,6,6,6]
+      - [3,7,7,4,4,4,3,3,3,6,6,1,1,2,2,2,2,2,3,3,1,1,1,1,1,5,5,5,2,2,4,4,4,4,2,2,5,5,5,1,1,1,6,6,6,7,7,3,3]
+  - name: cascade6
+    inheritance: prev
+    Probability: 1840
+    ReelsetId: 26
+    Reels:
+      - [1,1,4,4,6,6,2,2,1,1,2,2,4,4,6,6,2,2,6,6,1,1,4,4,6,6,4,4,2,2,1,1,6,6,1,1,2,2,4,4,2,2,1,1,4,4,6,6,2]
+      - [4,4,7,7,5,5,1,1,4,4,5,5,1,1,7,7,5,5,4,4,7,7,1,1,7,7,5,5,1,1,4,4,7,7,1,1,4,4,5,5,4,4,7,7,5,5,1,1,7]
+      - [3,3,7,7,2,2,5,5,2,2,5,5,7,7,3,3,5,5,7,7,3,3,2,2,5,5,3,3,2,2,7,7,3,3,2,2,5,5,7,7,5,5,3,3,7,7,2,2,5]
+      - [1,1,4,4,6,6,2,2,1,1,2,2,4,4,6,6,2,2,6,6,1,1,4,4,6,6,4,4,2,2,1,1,6,6,1,1,2,2,4,4,2,2,1,1,4,4,6,6,2]
+      - [4,4,7,7,5,5,1,1,4,4,5,5,1,1,7,7,5,5,4,4,7,7,1,1,7,7,5,5,1,1,4,4,7,7,1,1,4,4,5,5,4,4,7,7,5,5,1,1,7]
+      - [3,3,7,7,2,2,5,5,2,2,5,5,7,7,3,3,5,5,7,7,3,3,2,2,5,5,3,3,2,2,7,7,3,3,2,2,5,5,7,7,5,5,3,3,7,7,2,2,5]
+  - name: cascade6
+    inheritance: prev
+    Probability: 1840
+    ReelsetId: 27
+    Reels:
+      - [6,6,1,1,7,7,3,3,6,6,3,3,1,1,7,7,3,3,7,7,6,6,1,1,7,7,1,1,3,3,6,6,7,7,6,6,3,3,1,1,3,3,6,6,1,1,7,7,3]
+      - [1,1,5,5,4,4,6,6,1,1,4,4,6,6,5,5,4,4,1,1,5,5,6,6,5,5,4,4,6,6,1,1,5,5,6,6,1,1,4,4,1,1,5,5,4,4,6,6,5]
+      - [2,2,5,5,3,3,4,4,3,3,4,4,5,5,2,2,4,4,5,5,2,2,3,3,4,4,2,2,3,3,5,5,2,2,3,3,4,4,5,5,4,4,2,2,5,5,3,3,4]
+      - [6,6,1,1,7,7,3,3,6,6,3,3,1,1,7,7,3,3,7,7,6,6,1,1,7,7,1,1,3,3,6,6,7,7,6,6,3,3,1,1,3,3,6,6,1,1,7,7,3]
+      - [1,1,5,5,4,4,6,6,1,1,4,4,6,6,5,5,4,4,1,1,5,5,6,6,5,5,4,4,6,6,1,1,5,5,6,6,1,1,4,4,1,1,5,5,4,4,6,6,5]
+      - [2,2,5,5,3,3,4,4,3,3,4,4,5,5,2,2,4,4,5,5,2,2,3,3,4,4,2,2,3,3,5,5,2,2,3,3,4,4,5,5,4,4,2,2,5,5,3,3,4]
+  - name: cascade6
+    inheritance: prev
+    Probability: 1840
+    ReelsetId: 28
+    Reels:
+      - [2,2,7,7,4,4,6,6,2,2,6,6,7,7,4,4,6,6,4,4,2,2,7,7,4,4,7,7,6,6,2,2,4,4,2,2,6,6,7,7,6,6,2,2,7,7,4,4,6]
+      - [7,7,1,1,3,3,2,2,7,7,3,3,2,2,1,1,3,3,7,7,1,1,2,2,1,1,3,3,2,2,7,7,1,1,2,2,7,7,3,3,7,7,1,1,3,3,2,2,1]
+      - [5,5,1,1,6,6,3,3,6,6,3,3,1,1,5,5,3,3,1,1,5,5,6,6,3,3,5,5,6,6,1,1,5,5,6,6,3,3,1,1,3,3,5,5,1,1,6,6,3]
+      - [2,2,7,7,4,4,6,6,2,2,6,6,7,7,4,4,6,6,4,4,2,2,7,7,4,4,7,7,6,6,2,2,4,4,2,2,6,6,7,7,6,6,2,2,7,7,4,4,6]
+      - [7,7,1,1,3,3,2,2,7,7,3,3,2,2,1,1,3,3,7,7,1,1,2,2,1,1,3,3,2,2,7,7,1,1,2,2,7,7,3,3,7,7,1,1,3,3,2,2,1]
+      - [5,5,1,1,6,6,3,3,6,6,3,3,1,1,5,5,3,3,1,1,5,5,6,6,3,3,5,5,6,6,1,1,5,5,6,6,3,3,1,1,3,3,5,5,1,1,6,6,3]
+  - name: cascade6
+    inheritance: prev
+    Probability: 1840
+    ReelsetId: 29
+    Reels:
+      - [3,3,5,5,1,7,7,7,1,1,3,3,3,3,5,7,7,3,5,5,5,5,1,1,3,3,3,7,5,5,5,3,3,7,7,7,7,3,1,1,5,3,3,5,5,7,3,3,5]
+      - [1,1,2,2,6,4,4,4,2,2,4,6,6,6,6,2,1,1,2,2,4,4,6,6,6,1,2,1,1,4,4,4,4,6,6,6,6,1,1,2,2,4,4,1,1,2,2,6,6]
+      - [2,3,3,5,5,2,2,7,7,5,5,5,2,2,3,3,5,5,5,5,7,7,2,2,5,5,3,5,5,5,2,2,7,3,3,7,7,5,7,7,2,2,5,5,5,5,2,7,7]
+      - [1,1,1,1,3,3,7,7,6,6,6,1,7,7,1,1,3,3,6,7,7,1,1,1,3,6,6,6,6,3,3,1,1,1,7,7,6,6,3,3,6,6,6,6,1,1,1,3,3]
+      - [2,2,2,5,5,5,4,4,2,5,5,2,2,2,2,4,4,2,2,4,4,5,5,4,4,2,2,2,4,4,5,5,5,2,2,4,4,5,2,2,4,5,5,5,5,2,2,4,4]
+      - [1,3,3,4,4,6,6,1,1,1,4,4,6,6,6,6,4,4,3,3,3,1,1,1,1,4,6,6,6,1,4,4,6,6,3,3,3,3,1,1,1,6,6,6,6,1,3,3,3]
+  - name: cascade6
+    inheritance: prev
+    Probability: 1840
+    ReelsetId: 30
+    Reels:
+      - [7,7,6,6,5,4,4,4,5,5,7,7,7,7,6,4,4,7,6,6,6,6,5,5,7,7,7,4,6,6,6,7,7,4,4,4,4,7,5,5,6,7,7,6,6,4,7,7,6]
+      - [5,5,1,1,3,2,2,2,1,1,2,3,3,3,3,1,5,5,1,1,2,2,3,3,3,5,1,5,5,2,2,2,2,3,3,3,3,5,5,1,1,2,2,5,5,1,1,3,3]
+      - [1,7,7,6,6,1,1,4,4,6,6,6,1,1,7,7,6,6,6,6,4,4,1,1,6,6,7,6,6,6,1,1,4,7,7,4,4,6,4,4,1,1,6,6,6,6,1,4,4]
+      - [5,5,5,5,7,7,4,4,3,3,3,5,4,4,5,5,7,7,3,4,4,5,5,5,7,3,3,3,3,7,7,5,5,5,4,4,3,3,7,7,3,3,3,3,5,5,5,7,7]
+      - [1,1,1,6,6,6,2,2,1,6,6,1,1,1,1,2,2,1,1,2,2,6,6,2,2,1,1,1,2,2,6,6,6,1,1,2,2,6,1,1,2,6,6,6,6,1,1,2,2]
+      - [5,7,7,2,2,3,3,5,5,5,2,2,3,3,3,3,2,2,7,7,7,5,5,5,5,2,3,3,3,5,2,2,3,3,7,7,7,7,5,5,5,3,3,3,3,5,7,7,7]
   - name: init
     Probability: 5000
     ReelsetId: 35
@@ -1148,6 +1490,10 @@ EngineDefs:
       - [5,5,5,5,7,7,4,4,3,3,3,5,4,4,5,5,7,7,3,4,4,5,5,5,7,3,3,3,3,7,7,5,5,5,4,4,3,3,7,7,3,3,3,3,5,5,5,7,7]
       - [1,1,1,6,6,6,2,2,1,6,6,1,1,1,1,2,2,1,1,2,2,6,6,2,2,1,1,1,2,2,6,6,6,1,1,2,2,6,1,1,2,6,6,6,6,1,1,2,2]
       - [5,7,7,2,2,3,3,5,5,5,2,2,3,3,3,3,2,2,7,7,7,5,5,5,5,2,3,3,3,5,2,2,3,3,7,7,7,7,5,5,5,3,3,3,3,5,7,7,7]
+    Features:
+      - Type: TriggerLawOfGilgamesh
+        Params:
+          Levels: [20, 40, 60]
   - name: init
     Probability: 5000
     ReelsetId: 36
