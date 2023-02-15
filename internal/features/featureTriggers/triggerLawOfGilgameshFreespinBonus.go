@@ -23,7 +23,7 @@ type TriggerLawOfGilgameshFreespinBonus struct {
 
 func (f TriggerLawOfGilgameshFreespinBonus) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
 
-	tileId := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_BONUS_TILE_ID)
+	tileId := 10
 	bonusThreshold := params.GetInt(PARAM_ID_TRIGGER_LAW_OF_GILGAMESH_FREESPIN_BONUS_THRESHOLD)
 
 	gridh := len(state.SourceGrid[0])
