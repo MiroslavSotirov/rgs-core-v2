@@ -247,7 +247,9 @@ func playV2(request *http.Request) (GameplayResponseV2, rgse.RGSErr) {
 		return GameplayResponseV2{}, rgse.Create(rgse.UnexpectedWalletStatus)
 	}
 
-	return getRoundResults(data, previousGamestate, txStore)
+	var res GameplayResponseV2
+	res, err = getRoundResults(data, previousGamestate, txStore)
+	return res, err
 }
 
 func lastTransaction(token store.Token, wallet string, game string) (store.TransactionStore, rgse.RGSErr) {
@@ -575,8 +577,8 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 		if freeGameRef != "" {
 			gamestate.CampaignWin = previousGamestate.CampaignWin + gamestate.GetPrizeAmount()
 			gamestate.CampaignRef = freeGameRef
+			logger.Infof("Campaign %v continues total win %s", freeGameRef, gamestate.CampaignWin.ValueAsString())
 		}
-		logger.Infof("Campaign %v continues total win %s", freeGameRef, gamestate.CampaignWin.ValueAsString())
 	}
 
 	autoClose := false

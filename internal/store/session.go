@@ -47,7 +47,6 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 				CompanyId:           newPlayer.CompanyId,
 				FreeGames: FreeGamesStore{
 					NoOfFreeSpins: ctFS,
-					CampaignRef:   playerID,
 					TotalWagerAmt: waFS,
 				}}
 			newPlayer, err = ServLocal.PlayerSave(newPlayer.Token, ModeDemo, newPlayer)

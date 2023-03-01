@@ -313,7 +313,7 @@ func fillGameInitPreviousGameplay(previousGamestate engine.Gamestate, balance st
 	lastRound[action] = fillGamestateResponseV2(previousGamestate, balance)
 
 	// if last round was not base round, get triggering round ( for now no dashur api support for this, so show default round)
-	if !strings.Contains(previousGamestate.Action, "base") {
+	if !(strings.Contains(previousGamestate.Action, "base") || strings.Contains(previousGamestate.Action, "init")) {
 		baseround := store.CreateInitGS(store.PlayerStore{PlayerId: balance.PlayerId, Balance: balance.Balance}, previousGamestate.Game)
 		lastRound["base"] = fillGamestateResponseV2(baseround, balance)
 	}

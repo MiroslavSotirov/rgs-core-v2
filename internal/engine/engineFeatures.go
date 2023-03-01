@@ -363,9 +363,9 @@ func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams)
 }
 
 func genFeatureCascade(gen GenerateRound, engine EngineDef, parameters GameParams) Gamestate {
-	var reelsetId string
 	var cascadePositions []int
 	var featureState feature.FeatureState
+	reelsetId := engine.ReelsetId
 	symbolGrid, stopList := engine.Spin()
 	cascade := strings.Contains(parameters.Action, "cascade")
 	if cascade {

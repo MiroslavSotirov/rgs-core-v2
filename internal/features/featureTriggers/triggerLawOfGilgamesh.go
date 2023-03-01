@@ -160,11 +160,13 @@ func (f TriggerLawOfGilgamesh) ForceTrigger(state *feature.FeatureState, params 
 }
 
 func (f *TriggerLawOfGilgamesh) Serialize() ([]byte, error) {
-	return feature.SerializeTriggerToBytes(f)
+	return feature.SerializeFeatureToBytes(f)
+	//	return feature.SerializeTriggerToBytes(f)
 }
 
 func (f *TriggerLawOfGilgamesh) Deserialize(data []byte) (err error) {
-	return feature.DeserializeTriggerFromBytes(f, data)
+	//	return feature.DeserializeTriggerFromBytes(f, data)
+	return feature.DeserializeFeatureFromBytes(f, data)
 }
 
 /*
