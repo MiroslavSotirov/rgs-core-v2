@@ -33,7 +33,7 @@ func (gen GenerateFeatureRound) FeatureRound(engine EngineDef, parameters GamePa
 
 func (gen GenerateFeatureRound) TriggerFeatures(engine EngineDef, symbolGrid [][]int,
 	stopList []int, parameters GameParams, state *feature.FeatureState) feature.FeatureState {
-	return triggerConfiguredFeatures(engine, symbolGrid, stopList, parameters, state)
+	return triggerConfiguredFeatures(engine, symbolGrid, stopList, parameters, state, nil)
 }
 
 type GenerateFeatureCascade struct {
@@ -49,7 +49,7 @@ func (gen GenerateFeatureCascade) FeatureRound(engine EngineDef, parameters Game
 
 func (gen GenerateFeatureCascade) TriggerFeatures(engine EngineDef, symbolGrid [][]int,
 	stopList []int, parameters GameParams, state *feature.FeatureState) feature.FeatureState {
-	return triggerConfiguredFeatures(engine, symbolGrid, stopList, parameters, state)
+	return triggerConfiguredFeatures(engine, symbolGrid, stopList, parameters, state, nil)
 }
 
 type GenerateFeatureCascadeMultiply struct {
@@ -65,7 +65,7 @@ func (gen GenerateFeatureCascadeMultiply) FeatureRound(engine EngineDef, paramet
 
 func (gen GenerateFeatureCascadeMultiply) TriggerFeatures(engine EngineDef, symbolGrid [][]int,
 	stopList []int, parameters GameParams, state *feature.FeatureState) feature.FeatureState {
-	return triggerConfiguredFeatures(engine, symbolGrid, stopList, parameters, state)
+	return triggerConfiguredFeatures(engine, symbolGrid, stopList, parameters, state, nil)
 }
 
 type GenerateStatefulRound struct {
@@ -81,7 +81,7 @@ func (gen GenerateStatefulRound) FeatureRound(engine EngineDef, parameters GameP
 
 func (gen GenerateStatefulRound) TriggerFeatures(engine EngineDef, symbolGrid [][]int,
 	stopList []int, parameters GameParams, state *feature.FeatureState) feature.FeatureState {
-	return triggerStatefulFeatures(engine, symbolGrid, stopList, parameters, state)
+	return triggerStatefulFeatures(engine, symbolGrid, stopList, parameters, state, nil)
 }
 
 type GenerateStatefulCascade struct {
@@ -97,7 +97,7 @@ func (gen GenerateStatefulCascade) FeatureRound(engine EngineDef, parameters Gam
 
 func (gen GenerateStatefulCascade) TriggerFeatures(engine EngineDef, symbolGrid [][]int,
 	stopList []int, parameters GameParams, state *feature.FeatureState) feature.FeatureState {
-	return triggerStatefulFeatures(engine, symbolGrid, stopList, parameters, state)
+	return triggerStatefulFeatures(engine, symbolGrid, stopList, parameters, state, nil)
 }
 
 type GenerateStatefulCascadeMultiply struct {
@@ -113,10 +113,26 @@ func (gen GenerateStatefulCascadeMultiply) FeatureRound(engine EngineDef, parame
 
 func (gen GenerateStatefulCascadeMultiply) TriggerFeatures(engine EngineDef, symbolGrid [][]int,
 	stopList []int, parameters GameParams, state *feature.FeatureState) feature.FeatureState {
-	return triggerStatefulFeatures(engine, symbolGrid, stopList, parameters, state)
+	return triggerStatefulFeatures(engine, symbolGrid, stopList, parameters, state, nil)
 }
 
-func triggerFeatures(engine EngineDef, fs *feature.FeatureState, parameters GameParams) error {
+type GenerateReplayRound struct {
+}
+
+func (gen GenerateReplayRound) ForceRound(engine EngineDef, parameters GameParams) Gamestate {
+	panic("force used with ReplayRound")
+}
+
+func (gen GenerateReplayRound) FeatureRound(engine EngineDef, parameters GameParams) Gamestate {
+	return genReplayRound(gen, engine, parameters)
+}
+
+func (gen GenerateReplayRound) TriggerFeatures(engine EngineDef, symbolGrid [][]int,
+	stopList []int, parameters GameParams, state *feature.FeatureState) feature.FeatureState {
+	return triggerReplayFeatures(engine, symbolGrid, stopList, parameters, state)
+}
+
+func triggerFeatures(engine EngineDef, fs *feature.FeatureState, parameters GameParams, inParams feature.FeatureParams) error {
 	fs.CalculateWins = func(symbolGrid [][]int, payouts []feature.FeaturePayout) []feature.FeatureWin {
 		var wins []Prize
 		if len(payouts) == 0 {
@@ -152,6 +168,9 @@ func triggerFeatures(engine EngineDef, fs *feature.FeatureState, parameters Game
 	featureparams := feature.FeatureParams{
 		"Engine": engine.ID,
 	}
+	if inParams != nil {
+		featureparams.Merge(inParams)
+	}
 	if config.GlobalConfig.DevMode == true && parameters.Force != "" {
 		logger.Debugf("trigger configured features using force %s", parameters.Force)
 		featureparams["force"] = parameters.Force
@@ -161,41 +180,96 @@ func triggerFeatures(engine EngineDef, fs *feature.FeatureState, parameters Game
 	return nil
 }
 
-func triggerConfiguredFeatures(engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams, state *feature.FeatureState) feature.FeatureState {
+func triggerConfiguredFeatures(engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams, state *feature.FeatureState, inParams feature.FeatureParams) feature.FeatureState {
 	logger.Debugf("Trigger configured features")
 	var fs, prevfs feature.FeatureState
 	if state != nil {
 		fs = *state
 	}
 	prevfs.SymbolGrid = parameters.previousGamestate.FeatureView
+	if prevfs.SymbolGrid == nil {
+		prevfs.SymbolGrid = parameters.previousGamestate.SymbolGrid
+	}
 	prevfs.Features = parameters.previousGamestate.Features
 	if parameters.Action != "base" {
 		fs.Stateless = &prevfs
+		logger.Debugf("statless is: %#v", *fs.Stateless)
 	}
 	fs.SetGrid(symbolGrid)
 	fs.StopList = stopList
-	if err := triggerFeatures(engine, &fs, parameters); err != nil {
+	if err := triggerFeatures(engine, &fs, parameters, inParams); err != nil {
 		logger.Errorf("%v", err)
 		return feature.FeatureState{}
 	}
 	return fs
 }
 
-func triggerStatefulFeatures(engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams, state *feature.FeatureState) feature.FeatureState {
+func triggerStatefulFeatures(engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams, state *feature.FeatureState, inParams feature.FeatureParams) feature.FeatureState {
 	logger.Debugf("Trigger stateful from previous features %#v", parameters.previousGamestate.Features)
 	var fs, prevfs feature.FeatureState
 	if state != nil {
 		fs = *state
 	}
 	prevfs.SymbolGrid = parameters.previousGamestate.FeatureView
+	if prevfs.SymbolGrid == nil {
+		prevfs.SymbolGrid = parameters.previousGamestate.SymbolGrid
+	}
 	prevfs.Features = parameters.previousGamestate.Features
 	fs.Stateful = &prevfs
 	fs.SetGrid(symbolGrid)
 	fs.StopList = stopList
-	if err := triggerFeatures(engine, &fs, parameters); err != nil {
+	if err := triggerFeatures(engine, &fs, parameters, inParams); err != nil {
 		logger.Errorf("%v", err)
 		return feature.FeatureState{}
 	}
+	return fs
+}
+
+func triggerReplayFeatures(engine EngineDef, symbolGrid [][]int, stopList []int, parameters GameParams, state *feature.FeatureState) feature.FeatureState {
+	var fs feature.FeatureState
+	if state != nil {
+		fs = *state
+	}
+
+	fsPointer := &fs
+	for _, gs := range parameters.Replay {
+		fsReplay := feature.FeatureState{
+			SourceGrid: gs.SymbolGrid,
+			SymbolGrid: gs.FeatureView,
+			Wins: func(prizes []Prize) []feature.FeatureWin {
+				wins := make([]feature.FeatureWin, len(prizes))
+				for i := range wins {
+					wins[i] = feature.FeatureWin{
+						Index:      prizes[i].Index,
+						Multiplier: prizes[i].Multiplier,
+						Symbols: func() []int {
+							symbols := make([]int, len(prizes[i].SymbolPositions))
+							symbol64, _ := strconv.ParseInt(strings.Split(prizes[i].Index, ":")[0], 10, 64)
+							for is := range symbols {
+								symbols[is] = int(symbol64)
+							}
+							return symbols
+						}(),
+						SymbolPositions: func() []int {
+							positions := make([]int, len(prizes[i].SymbolPositions))
+							for ip, p := range prizes[i].SymbolPositions {
+								positions[ip] = p
+							}
+							return positions
+						}(),
+					}
+				}
+				return wins
+			}(gs.Prizes),
+		}
+		fsPointer.NextReplay = &fsReplay
+		fsPointer = fsPointer.NextReplay
+	}
+	fsPointer.NextReplay = nil
+
+	fs = triggerConfiguredFeatures(engine, symbolGrid, stopList, parameters, &fs, parameters.ReplayParams)
+	//	fs.ReplayTries = parameters.ReplayTries
+	//	fs.ReplayParams = parameters.ReplayParams
 	return fs
 }
 
@@ -357,6 +431,66 @@ func genFeatureRound(gen GenerateRound, engine EngineDef, parameters GameParams)
 		Features:         featurestate.Features,
 		FeatureView:      featurestate.SymbolGrid,
 		ReelsetID:        featurestate.ReelsetId,
+	}
+
+	return gamestate
+}
+
+func genReplayRound(gen GenerateRound, engine EngineDef, parameters GameParams) Gamestate {
+
+	var wl []int
+	wl, engine = engine.ProcessWinLines(parameters.SelectedWinLines)
+
+	// spin
+	symbolGrid, stopList := engine.Spin()
+
+	// replace any symbols with sticky wilds
+	symbolGrid = engine.addStickyWilds(parameters.previousGamestate, symbolGrid)
+
+	featurestate := gen.TriggerFeatures(engine, symbolGrid, stopList, parameters, nil)
+	logger.Debugf("symbolGrid= %v featureGrid= %v", symbolGrid, featurestate.SymbolGrid)
+	engine.Reels = featurestate.Reels
+
+	var nextActions []string
+	wins, relativePayout := engine.DetermineWins(featurestate.SymbolGrid)
+	featureWins, featureRelPayout, featureNextActions := engine.convertFeaturePrizes(featurestate.Wins)
+	relativePayout += featureRelPayout
+	wins = append(wins, featureWins...)
+	nextActions = append(featureNextActions, nextActions...)
+	// calculate specialWin
+	specialWin := DetermineSpecialWins(featurestate.SymbolGrid, engine.SpecialPayouts)
+	if specialWin.Index != "" {
+		var specialPayout int
+		specialPayout, nextActions = engine.CalculatePayoutSpecialWin(&specialWin)
+		relativePayout += specialPayout
+		wins = append(wins, specialWin)
+	}
+	logger.Debugf("got %v wins: %v", len(wins), wins)
+	// get Multiplier
+	multiplier := 1
+	if len(engine.Multiplier.Multipliers) > 0 {
+		multiplier = SelectFromWeightedOptions(engine.Multiplier.Multipliers, engine.Multiplier.Probabilities)
+	}
+	// if no features were generated then no need to store a featureview
+	if len(featurestate.Features) == 0 {
+		featurestate.SymbolGrid = nil
+	}
+
+	// Build gamestate
+	gamestate := Gamestate{
+		DefID:            engine.Index,
+		Prizes:           wins,
+		SymbolGrid:       symbolGrid,
+		RelativePayout:   relativePayout,
+		Multiplier:       multiplier,
+		StopList:         stopList,
+		NextActions:      nextActions,
+		SelectedWinLines: wl,
+		Features:         featurestate.Features,
+		FeatureView:      featurestate.SymbolGrid,
+		ReelsetID:        featurestate.ReelsetId,
+		Replay:           featurestate.Replay,
+		ReplayParams:     featurestate.ReplayParams,
 	}
 
 	return gamestate
@@ -574,6 +708,10 @@ func (engine EngineDef) StatefulCascade(parameters GameParams) Gamestate {
 
 func (engine EngineDef) StatefulCascadeMultiply(parameters GameParams) Gamestate {
 	return GenerateStatefulCascadeMultiply{}.ForceRound(engine, parameters)
+}
+
+func (engine EngineDef) ReplayRound(parameters GameParams) Gamestate {
+	return GenerateReplayRound{}.FeatureRound(engine, parameters)
 }
 
 func (engine EngineDef) InitRound(parameters GameParams) (state Gamestate) {

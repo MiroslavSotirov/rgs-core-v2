@@ -488,3 +488,9 @@ func (p FeatureParams) GetStringOrDefault(name string, defaultvalue string) stri
 	}
 	return defaultvalue
 }
+
+func (p1 *FeatureParams) Merge(p2 FeatureParams) {
+	for k, v := range p2 {
+		(*p1)[k] = v
+	}
+}

@@ -44,6 +44,10 @@ func (gamestate Gamestate) ExpectedReelValue(reelIndex int) Fixed {
 	reel := def.Reels[reelIndex]
 	viewSize := def.ViewSize[reelIndex]
 	reel = append(reel, reel[:viewSize]...)
+	compounding := compounding_none
+	if def.Compounding {
+		compounding = compounding_multiplication
+	}
 
 	var potentialWinValue Fixed
 
@@ -58,7 +62,7 @@ func (gamestate Gamestate) ExpectedReelValue(reelIndex int) Fixed {
 		case "ways":
 			wins = DetermineWaysWins(view, def.Payouts, def.Wilds)
 		case "lines":
-			wins = DetermineLineWins(view, def.WinLines, def.Payouts, def.Wilds, def.Compounding, false)
+			wins = DetermineLineWins(view, def.WinLines, def.Payouts, def.Wilds, compounding, false)
 		}
 		for _, win := range wins {
 			// add win amount (multipliers are relative to betPerLine)

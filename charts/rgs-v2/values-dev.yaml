@@ -299,7 +299,11 @@ gameConfig:
     games:
       - name: law-of-gilgamesh-90
         flags: campaign
-
+  - engineID: mvgEngineGodot10
+    games:
+      - name: tipsy-charms
+        flags: campaign
+        
 gamification:
   a-fairy-tale:
     function: Increment

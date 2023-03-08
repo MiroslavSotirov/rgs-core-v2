@@ -48,9 +48,11 @@ func GetSymbolGridFromStopList(reels [][]int, viewSize []int, stopList []int) []
 	return symbolGrid
 }
 
-func getNewWildMultiplier(previousMultiplier int, newMultiplier int, compounding bool) int {
-	if compounding {
+func getNewWildMultiplier(previousMultiplier int, newMultiplier int, compounding int) int {
+	if compounding == compounding_multiplication {
 		return previousMultiplier * newMultiplier
+	} else if compounding == compounding_addition {
+		return previousMultiplier + newMultiplier
 	} else {
 		if newMultiplier > previousMultiplier {
 			return newMultiplier
@@ -60,7 +62,7 @@ func getNewWildMultiplier(previousMultiplier int, newMultiplier int, compounding
 	}
 }
 
-func DetermineLineWinsAnywhere(symbolGrid [][]int, WinLines [][]int, linePayouts []Payout, wilds []wild, compounding bool) (lineWins []Prize) {
+func DetermineLineWinsAnywhere(symbolGrid [][]int, WinLines [][]int, linePayouts []Payout, wilds []wild, compounding int) (lineWins []Prize) {
 	// this function determines line wins not necessarily starting at the first symbol
 	// only one win per symbol per line is permitted
 
@@ -109,7 +111,7 @@ func DetermineLineWinsAnywhere(symbolGrid [][]int, WinLines [][]int, linePayouts
 	return lineWins
 }
 
-func GetWinInLine(lineContent []int, wilds []wild, linePayouts []Payout, compounding bool, wildMultipliers map[int]int) (prize Prize) {
+func GetWinInLine(lineContent []int, wilds []wild, linePayouts []Payout, compounding int, wildMultipliers map[int]int) (prize Prize) {
 	// wildMultipliers is the list of multipliers already defined for variable wilds. if each wild multiplier is meant
 	// to be determined independently regardless of previous setting, wildMultipliers should be empty
 
@@ -211,7 +213,7 @@ func GetWinInLineKeepWilds(lineContent []int, wilds []wild, linePayouts []Payout
    then wilds should not be converted to regular symbols when it will generate a smaller win. To avoid changing the legacy
    way to count, this function can be used with game requiering this.
 */
-func GetHighestWinInLine(lineContent []int, wilds []wild, linePayouts []Payout, compounding bool, wildMultipliers map[int]int) (prize Prize) {
+func GetHighestWinInLine(lineContent []int, wilds []wild, linePayouts []Payout, compounding int, wildMultipliers map[int]int) (prize Prize) {
 	prize = GetWinInLine(lineContent, wilds, linePayouts, compounding, wildMultipliers)
 	prizeWilds := GetWinInLineKeepWilds(lineContent, wilds, linePayouts)
 	if prizeWilds.Payout.Multiplier > prize.Payout.Multiplier {
@@ -220,7 +222,7 @@ func GetHighestWinInLine(lineContent []int, wilds []wild, linePayouts []Payout, 
 	return
 }
 
-func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payout, wilds []wild, compounding bool, keepWilds bool) (lineWins []Prize) {
+func DetermineLineWins(symbolGrid [][]int, WinLines [][]int, linePayouts []Payout, wilds []wild, compounding int, keepWilds bool) (lineWins []Prize) {
 	// determines prizes from line wins including wilds with multipliers
 	// highest wild multiplier takes precedence for multiple wilds on the same line (i.e. wild multipliers do not compound)
 
@@ -280,8 +282,12 @@ func determineBarLineWins(symbolGrid [][]int, winLines [][]int, payouts []Payout
 			adjustedSymbolGrid[i] = adjustedRow
 		}
 	}
-	lineWinsWithBar := DetermineLineWins(adjustedSymbolGrid, winLines, payouts, wilds, compoundingMultipliers, false)
-	lineWinsWithoutBar := DetermineLineWins(symbolGrid, winLines, payouts, wilds, compoundingMultipliers, false)
+	compounding := compounding_none
+	if compoundingMultipliers {
+		compounding = compounding_multiplication
+	}
+	lineWinsWithBar := DetermineLineWins(adjustedSymbolGrid, winLines, payouts, wilds, compounding, false)
+	lineWinsWithoutBar := DetermineLineWins(symbolGrid, winLines, payouts, wilds, compounding, false)
 	var highestWinsPerLine []Prize
 
 	for _, barWin := range lineWinsWithBar {
@@ -927,12 +933,24 @@ func (gamestate *Gamestate) PrepareActions(previousActions []string) {
 func (engine EngineDef) DetermineWins(symbolGrid [][]int) ([]Prize, int) {
 	// calculate wins
 	var wins []Prize
+	compounding := compounding_none
+	if engine.Compounding {
+		compounding = compounding_multiplication
+	}
 	switch engine.WinType {
 	case "ways":
 		wins = DetermineWaysWins(symbolGrid, engine.Payouts, engine.Wilds)
 	case "lines":
 		keepWilds := strings.Contains(engine.WinConfig.Flags, "keep_wilds")
-		wins = DetermineLineWins(symbolGrid, engine.WinLines, engine.Payouts, engine.Wilds, engine.Compounding, keepWilds)
+		compounding := compounding_none
+		if engine.Compounding {
+			if strings.Contains(engine.WinConfig.Flags, "compounding_addition") {
+				compounding = compounding_addition
+			} else {
+				compounding = compounding_multiplication
+			}
+		}
+		wins = DetermineLineWins(symbolGrid, engine.WinLines, engine.Payouts, engine.Wilds, compounding, keepWilds)
 	case "barLines":
 		wins = determineBarLineWins(symbolGrid, engine.WinLines, engine.Payouts, engine.Bars, engine.Wilds, engine.Compounding)
 	case "blazeLines":
@@ -943,10 +961,10 @@ func (engine EngineDef) DetermineWins(symbolGrid [][]int) ([]Prize, int) {
 			logger.Errorf("Requesting vertical and horizontal line win calculation on non-standard grid size")
 			return []Prize{}, 0
 		}
-		wins = DetermineLineWinsAnywhere(symbolGrid, engine.WinLines, engine.Payouts, engine.Wilds, engine.Compounding)
+		wins = DetermineLineWinsAnywhere(symbolGrid, engine.WinLines, engine.Payouts, engine.Wilds, compounding)
 		// transpose grid
 		sGTransposed := TransposeGrid(symbolGrid)
-		vWins := DetermineLineWinsAnywhere(sGTransposed, engine.WinLines, engine.Payouts, engine.Wilds, engine.Compounding)
+		vWins := DetermineLineWinsAnywhere(sGTransposed, engine.WinLines, engine.Payouts, engine.Wilds, compounding)
 		for w := 0; w < len(vWins); w++ {
 			// add prefix to index and adjust line number
 			// get base ref which is i reel first symbol

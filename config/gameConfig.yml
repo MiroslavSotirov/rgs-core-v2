@@ -193,3 +193,6 @@
     - name: law-of-gilgamesh-90
       item: 8803
       flags: campaign
+- engineID: mvgEngineGodot10
+  games:
+    - name: tipsy-charms

@@ -226,6 +226,9 @@ message GamestatePB {
   LAW_OF_GILGAMESH=62;
   LAW_OF_GILGAMESH_94=63;
   LAW_OF_GILGAMESH_90=64;
+  TIPSY_CHARMS=65;
+  TIPSY_CHARMS_94=66;
+  TIPSY_CHARMS_90=67;
   }
   GameID game_id = 1;
   int32 engine_def = 2;

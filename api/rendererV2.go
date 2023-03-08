@@ -139,6 +139,7 @@ type SpinResponse struct {
 	Win              engine.Fixed      `json:"win"`
 	View             [][]int           `json:"view"`
 	Prizes           []engine.Prize    `json:"wins"`
+	Multiplier       int               `json:"multiplier"`
 	CascadePositions []int             `json:"cascadePositions,omitempty"`
 	Features         []feature.Feature `json:"features,omitempty"`
 	FeatureView      [][]int           `json:"featureview,omitempty"`

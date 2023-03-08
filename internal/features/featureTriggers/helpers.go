@@ -25,3 +25,15 @@ func setGrid(dst [][]int, src [][]int) {
 		}
 	}
 }
+
+func countSymbols(symbol int, grid [][]int) int {
+	num := 0
+	for _, r := range grid {
+		for _, s := range r {
+			if s == symbol {
+				num++
+			}
+		}
+	}
+	return num
+}

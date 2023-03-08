@@ -30,6 +30,10 @@ type FeatureState struct {
 	ReelsetId        string
 	CascadePositions []int
 	Multiplier       int
+	NextReplay       *FeatureState
+	Replay           bool
+	ReplayTries      int
+	ReplayParams     FeatureParams
 }
 
 func (fs *FeatureState) SetGrid(symbolgrid [][]int) {

@@ -212,17 +212,21 @@ func NewFixedFromInt(num int) Fixed {
 }
 
 type GameParams struct {
-	Stake             Fixed     `json:"stake"`
-	TotalStake        Fixed     `json:"totalStake"`
-	SelectedWinLines  []int     `json:"selectedWinLines"`
-	Selection         string    `json:"selectedFeature"`
-	RespinReel        int       `json:"respinReel"`
-	Action            string    `json:"action"`
-	Game              string    `json:"game"`
-	Wallet            string    `json:"wallet"`
-	PreviousID        string    `json:"previousID"`
-	Force             string    `json:"force"`
-	AutoClose         bool      `json:"autoClose"`
+	Stake            Fixed  `json:"stake"`
+	TotalStake       Fixed  `json:"totalStake"`
+	SelectedWinLines []int  `json:"selectedWinLines"`
+	Selection        string `json:"selectedFeature"`
+	RespinReel       int    `json:"respinReel"`
+	Action           string `json:"action"`
+	Game             string `json:"game"`
+	Wallet           string `json:"wallet"`
+	PreviousID       string `json:"previousID"`
+	Force            string `json:"force"`
+	AutoClose        bool   `json:"autoClose"`
+	//	Replay            bool      `json:"replay"`
+	Replay            []Gamestate
+	ReplayTries       int
+	ReplayParams      feature.FeatureParams
 	previousGamestate Gamestate // this cannot be passed in
 	//stopPostitions    []int     // this can also not be passed in from outside the package (only for testing)
 }

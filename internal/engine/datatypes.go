@@ -36,10 +36,17 @@ type bar struct {
 }
 
 const (
+	compounding_none = iota
+	compounding_multiplication
+	compounding_addition
+)
+
+const (
 	winconf_none                 = "none"
 	winconf_anchor_left          = "anchor_left"
 	winconf_anchor_right         = "anchor_right"
 	winconf_anchor_left_or_right = "anchor_left_or_right"
+	winconf_compounding_addition = "compounding_addition"
 )
 
 const (
@@ -215,6 +222,8 @@ type Gamestate struct {
 	RoundID           string                    `json:"round_id"`
 	Features          []feature.Feature         `json:"features,omitempty"`
 	FeatureView       [][]int                   `json:"feature_view,omitempty"`
+	Replay            bool
+	ReplayParams      feature.FeatureParams
 }
 
 func (gamestate Gamestate) Engine() (engine EngineConfig, err rgserror.RGSErr) {
