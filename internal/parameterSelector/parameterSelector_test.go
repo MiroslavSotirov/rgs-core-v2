@@ -71,7 +71,7 @@ func TestBetLimit(t *testing.T) {
 		if s == ds {
 			found = true
 		}
-		if s > mx {
+		if mx > 0 && s > mx {
 			t.Errorf("Bet limit allowed bet %f to exeed maxbet %f", s.ValueAsFloat(), mx.ValueAsFloat())
 			break
 		}

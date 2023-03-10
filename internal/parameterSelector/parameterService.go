@@ -85,6 +85,10 @@ func CreateLocalParameterService() *LocalParameterService {
 		logger.Errorf("could not parse bet config")
 		return nil
 	}
+	return createLocalParameterService(betConf)
+}
+
+func createLocalParameterService(betConf betConfig) *LocalParameterService {
 	multipliers := make(map[ccyKey]ccyValue, len(betConf.CcyMultipliers))
 	for c, m := range betConf.CcyMultipliers {
 		for k, v := range m {
@@ -114,9 +118,6 @@ func (i *LocalParameterService) CurrencyMultiplier(ccy string, company string) (
 	value, ok := i.ccyMultipliers[ccyKey{Ccy: ccy, Company: company}]
 	if !ok && company != LOCAL_DEFAULT_COMPANY {
 		value, ok = i.ccyMultipliers[ccyKey{Ccy: ccy, Company: LOCAL_DEFAULT_COMPANY}]
-		logger.Infof("using local default ccy multiplier for currency [%s]", ccy)
-	} else {
-		logger.Debugf("using local override ccy multiplier for currency and company [%s]-[%s]", ccy, company)
 	}
 	if !ok {
 		logger.Errorf("unknown currency and company pair [%s]-[%s]", ccy, company)

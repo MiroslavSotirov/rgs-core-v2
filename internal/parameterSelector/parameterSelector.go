@@ -37,6 +37,7 @@ type stakeConfig struct {
 	DefaultBet  float32   `yaml:"defaultBet"`
 	MinBet      float32   `yaml:"minBet"`
 	MaxBet      float32   `yaml:"maxBet"`
+	MaxLimit    float32   `yaml:"maxLimit"`
 }
 
 var cachedConfig atomic.Value = atomic.Value{}
@@ -99,9 +100,33 @@ func readBetConfig() (betConfig, rgse.RGSErr) {
 	if err != nil {
 		logger.Fatalf("Error unmarshaling %v", err)
 		return betConfig{}, rgse.Create(rgse.YamlError)
-
+	}
+	err = validateBetConfig(conf)
+	if err != nil {
+		logger.Fatalf("Error validating bet config")
+		return betConfig{}, rgse.Create(rgse.BadConfigError)
 	}
 	return conf, nil
+}
+
+func validateBetConfig(betConf betConfig) rgse.RGSErr {
+	//	GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string, companyId string)
+	paramService := createLocalParameterService(betConf)
+	for _, gc := range config.GlobalGameConfig {
+		for ccy, _ := range betConf.CcyMultipliers["default"] {
+			sv, _, _, _, err := getGameplayParameters(engine.Money{0, ccy}, "", gc.Games[0].Name, "", betConf, paramService)
+			if err != nil {
+				logger.Fatalf("Error validating %s: %v", gc.EngineID, err)
+				return err
+			}
+			if len(sv) == 0 {
+				logger.Fatalf("Error validating, %s has no stakes", gc.EngineID)
+				return rgse.Create(rgse.BadConfigError)
+			}
+		}
+	}
+	logger.Infof("betConfig validation is OK")
+	return nil
 }
 
 func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode string, playerID string, companyId string) (walletInitBal engine.Money, ctFS int, waFS engine.Fixed, err rgse.RGSErr) {
@@ -122,7 +147,6 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 	if len(EC.EngineDefs) == 0 {
 		logger.Debugf("  EC.EngineDefs has zero length")
 	}
-	logger.Debugf("stakeValues has %d length", len(stakeValues))
 	if confErr != nil {
 		err = confErr
 		return
@@ -149,20 +173,23 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 }
 
 func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string, companyId string) (
-	stakeValues []engine.Fixed, defaultBet engine.Fixed, minBet engine.Fixed, maxBet engine.Fixed, rgserr rgse.RGSErr) { // ([]engine.Fixed, engine.Fixed, rgse.RGSErr) {
-	// returns stakeValues and defaultBet based on host and player configuration
-	logger.Debugf("getting %v stake params for company [%v] and config [%v] (lastbet %#v)", gameID, companyId, betSettingsCode, lastBet)
+	stakeValues []engine.Fixed, defaultBet engine.Fixed, minBet engine.Fixed, maxBet engine.Fixed, rgserr rgse.RGSErr) {
 	betConf, err := parseBetConfig()
-	//logger.Debugf("Bet Configuration: %#v", betConf)
 	if err != nil {
-		//		return []engine.Fixed{}, engine.Fixed(0), err
 		rgserr = err
 		return
 	}
+	return getGameplayParameters(lastBet, betSettingsCode, gameID, companyId, betConf, GetParameterService())
+}
+
+func getGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID string, companyId string, betConf betConfig, paramService ParameterService) (
+	stakeValues []engine.Fixed, defaultBet engine.Fixed, minBet engine.Fixed, maxBet engine.Fixed, rgserr rgse.RGSErr) { // ([]engine.Fixed, engine.Fixed, rgse.RGSErr) {
+	// returns stakeValues and defaultBet based on host and player configuration
+	// logger.Debugf("getting %v stake params for company [%v] and config [%v] (lastbet %#v)", gameID, companyId, betSettingsCode, lastBet)
 	// get stakevalues based on host config
 	baseStakeValues := betConf.StakeValues
 
-	ccyMult, ok := GetParameterService().CurrencyMultiplier(lastBet.Currency, companyId)
+	ccyMult, ok := paramService.CurrencyMultiplier(lastBet.Currency, companyId)
 	if !ok {
 		//		return []engine.Fixed{}, engine.Fixed(0), rgse.Create(rgse.BetConfigError)
 		rgserr = rgse.Create(rgse.BetConfigError)
@@ -218,24 +245,20 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 		}
 	}
 	if ok {
-		var mult, standard engine.Fixed
+		var mult engine.Fixed
 		stakeconf, ok := override[lastBet.Currency]
 		if ok {
 			mult = engine.NewFixedFromInt(1)
-			standard = mult
 		} else {
 			stakeconf, ok = override["credits"]
 			mult = engine.NewFixedFromFloat(ccyMult)
-			standard = engine.NewFixedFromFloat(0.01)
 		}
 		if ok {
+
 			defaultStake = engine.NewFixedFromFloat(stakeconf.DefaultBet).Mul(mult)
 			minBet = engine.NewFixedFromFloat(stakeconf.MinBet).Mul(mult)
 			maxBet = engine.NewFixedFromFloat(stakeconf.MaxBet).Mul(mult)
-			maxLimit := engine.NewFixedFromFloat(stakeconf.MaxBet).Mul(standard)
-			if maxLimit > 0 {
-				logger.Debugf("Limiting stakes to within %f %s", maxLimit.ValueAsFloat(), lastBet.Currency)
-			}
+			maxLimit := engine.NewFixedFromFloat(stakeconf.MaxLimit).Mul(mult)
 			fixedStakeValues = make([]engine.Fixed, len(stakeconf.StakeValues))
 			ovrStakeValues := []engine.Fixed{}
 			for _, s := range stakeconf.StakeValues {
@@ -246,14 +269,13 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 				ovrStakeValues = append(ovrStakeValues, stake)
 			}
 			if len(ovrStakeValues) == 0 {
-				logger.Errorf("Max bet limiter %f disallowed all %s stakes (ccyMult %f)", maxLimit.ValueAsFloat(), lastBet.Currency, ccyMult)
+				logger.Errorf("Max bet limiter %f disallowed all %s stakes", maxLimit.ValueAsFloat(), lastBet.Currency)
 				sentry.CaptureMessage("Max bet limiter disallowed all stakes")
 				rgserr = rgse.Create(rgse.BetConfigError)
 				return
 			}
 
 			fixedStakeValues = ovrStakeValues
-			logger.Debugf("overriding stake values: stakes= %v, defaultbet= %v min= %v max= %v", fixedStakeValues, defaultStake, minBet, maxBet)
 		}
 	}
 
@@ -261,7 +283,6 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 	case "mvgEngineX":
 		// select minimum parameter for this game
 		baseVal := fixedStakeValues[0]
-		logger.Infof("stakevals: %v", fixedStakeValues)
 		if len(fixedStakeValues) > 6 {
 			// if possible, take a higher value
 			baseVal = fixedStakeValues[6]
@@ -289,9 +310,6 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 		logger.Warnf("defaultStake too high, setting to max stakeValue")
 		defaultStake = fixedStakeValues[len(fixedStakeValues)-1]
 	}
-
-	logger.Debugf("stake values: %v; default stake: %v", fixedStakeValues, defaultStake)
-	//	return fixedStakeValues, defaultStake, nil
 
 	stakeValues = fixedStakeValues
 	defaultBet = defaultStake
