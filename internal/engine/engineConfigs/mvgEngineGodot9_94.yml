@@ -1,6 +1,6 @@
 version: 2.0
-rtp: .954056
-volatility: 13.439
+rtp: .932130
+volatility: 13.015
 
 EngineDefs:
   - name: base
@@ -638,7 +638,7 @@ EngineDefs:
                       ReplaceWithId: 9
           - Type: TriggerRandom
             Params:
-              Probability: 1000
+              Probability: 943
             Features:
               - Type: TriggerLawOfGilgameshFreespinScatter
                 Params:

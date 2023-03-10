@@ -269,7 +269,7 @@ func TestPrepareTransactions(t *testing.T) {
 func TestDetermineLineWins(t *testing.T) {
 	testGrid := [][]int{{1, 1, 1}, {1, 1, 1}, {1, 1, 1}, {1, 1, 1}, {1, 1, 1}}
 
-	wins := DetermineLineWins(testGrid, testWinLines, testPayouts, []wild{}, false, false)
+	wins := DetermineLineWins(testGrid, testWinLines, testPayouts, []wild{}, compounding_none, false)
 	want := []Prize{{Payout: testPayouts[0], Index: "1:5", Multiplier: 1, SymbolPositions: []int{0, 3, 6, 9, 12}, Winline: 0}, {Payout: testPayouts[0], Index: "1:5", Multiplier: 1, SymbolPositions: []int{0, 4, 8, 10, 12}, Winline: 1}}
 	if wins[0].Winline != want[0].Winline || wins[1].Winline != want[1].Winline { // todo: add more criteria for pass
 		t.Errorf("first :\n %v \n %v \n second :\n %v \n %v", wins[0], want[0], wins[1], want[1])
@@ -277,21 +277,21 @@ func TestDetermineLineWins(t *testing.T) {
 
 	// test multiple wilds, highest multiplier only
 	testGrid = [][]int{{0, 1, 0}, {0, 7, 0}, {0, 8, 0}, {0, 1, 0}, {0, 1, 0}}
-	wins = DetermineLineWins(testGrid, [][]int{{1, 1, 1, 1, 1}}, testPayouts, testWilds, false, false)
+	wins = DetermineLineWins(testGrid, [][]int{{1, 1, 1, 1, 1}}, testPayouts, testWilds, compounding_none, false)
 	if len(wins) != 1 || wins[0].Index != "1:5" || wins[0].Multiplier != 7 || wins[0].Winline != 0 {
 		t.Fail()
 	}
 
 	// test multiple wilds, highest multiplier only different order
 	testGrid = [][]int{{0, 1, 0}, {0, 8, 0}, {0, 7, 0}, {0, 1, 0}, {0, 1, 0}}
-	wins = DetermineLineWins(testGrid, [][]int{{1, 1, 1, 1, 1}}, testPayouts, testWilds, false, false)
+	wins = DetermineLineWins(testGrid, [][]int{{1, 1, 1, 1, 1}}, testPayouts, testWilds, compounding_none, false)
 	if len(wins) != 1 || wins[0].Index != "1:5" || wins[0].Multiplier != 7 || wins[0].Winline != 0 {
 		t.Fail()
 	}
 
 	// test 5 wilds no prize set
 	testGrid = [][]int{{0, 7, 0}, {0, 7, 0}, {0, 7, 0}, {0, 7, 0}, {0, 7, 0}}
-	wins = DetermineLineWins(testGrid, [][]int{{1, 1, 1, 1, 1}}, testPayouts, testWilds, false, false)
+	wins = DetermineLineWins(testGrid, [][]int{{1, 1, 1, 1, 1}}, testPayouts, testWilds, compounding_none, false)
 	if len(wins) != 0 {
 		// prize must be explicitly set
 		t.Fail()
@@ -299,7 +299,7 @@ func TestDetermineLineWins(t *testing.T) {
 
 	// test 5 wilds prize set
 	testGrid = [][]int{{0, 7, 0}, {0, 7, 0}, {0, 7, 0}, {0, 7, 0}, {0, 7, 0}}
-	wins = DetermineLineWins(testGrid, [][]int{{1, 1, 1, 1, 1}}, []Payout{{Symbol: 7, Count: 5, Multiplier: 10}}, testWilds, false, false)
+	wins = DetermineLineWins(testGrid, [][]int{{1, 1, 1, 1, 1}}, []Payout{{Symbol: 7, Count: 5, Multiplier: 10}}, testWilds, compounding_none, false)
 	if len(wins) != 1 || wins[0].Index != "7:5" || wins[0].Multiplier != 1 {
 		// multiplier should not be counted
 		t.Fail()
@@ -307,7 +307,7 @@ func TestDetermineLineWins(t *testing.T) {
 
 	// test 4 wilds, only last symbol normal
 	testGrid = [][]int{{0, 7, 0}, {0, 7, 0}, {0, 7, 0}, {0, 7, 0}, {0, 1, 0}}
-	wins = DetermineLineWins(testGrid, [][]int{{1, 1, 1, 1, 1}}, testPayouts, testWilds, false, false)
+	wins = DetermineLineWins(testGrid, [][]int{{1, 1, 1, 1, 1}}, testPayouts, testWilds, compounding_none, false)
 	if len(wins) != 1 || wins[0].Index != "1:5" || wins[0].Multiplier != 5 || wins[0].Winline != 0 {
 		t.Fail()
 	}
@@ -318,7 +318,7 @@ func TestDetermineLineWins(t *testing.T) {
 		Multiplier: weightedMultiplier{[]int{1, 2, 3, 4, 5, 6}, []int{1, 1, 1, 1, 1, 1}},
 	}}
 	testGrid = [][]int{{1, 0, 5}, {0, 1, 5}, {0, 1, 5}, {1, 0, 5}, {1, 1, 5}}
-	wins = DetermineLineWins(testGrid, [][]int{{0, 0, 0, 0, 0}, {1, 1, 1, 1, 1}}, testPayouts, wilds, false, false)
+	wins = DetermineLineWins(testGrid, [][]int{{0, 0, 0, 0, 0}, {1, 1, 1, 1, 1}}, testPayouts, wilds, compounding_none, false)
 	if len(wins) != 2 || wins[0].Multiplier != wins[1].Multiplier {
 		t.Errorf("the wild multipliers were not properly stored between instances; %v, %v", wins[0], wins[1])
 		t.Fail()

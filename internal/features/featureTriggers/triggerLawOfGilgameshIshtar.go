@@ -2,6 +2,7 @@ package featureTriggers
 
 import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/featureProducts"
 )
 
 const (
@@ -39,14 +40,11 @@ func (f TriggerLawOfGilgameshIshtar) Trigger(state *feature.FeatureState, params
 		}
 	}
 
-	if len(positions) > 0 {
-		state.Wins = append(state.Wins, feature.FeatureWin{
-			Index:           "cascade:1",
-			SymbolPositions: positions,
-		})
-	}
-
+	params[featureProducts.PARAM_ID_RESPIN_POSITIONS] = positions
 	feature.ActivateFeatures(f.FeatureDef, state, params)
+
+	incLawOfGilgameshLevel(state, params)
+
 	return
 }
 

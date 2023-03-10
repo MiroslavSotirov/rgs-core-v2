@@ -1,6 +1,8 @@
 package featureTriggers
 
-import "gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
+import (
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
+)
 
 // init function to import package and evaluate static variable feature factories
 func Register() {
@@ -22,4 +24,16 @@ func setGrid(dst [][]int, src [][]int) {
 			dst[ir][is] = s
 		}
 	}
+}
+
+func countSymbols(symbol int, grid [][]int) int {
+	num := 0
+	for _, r := range grid {
+		for _, s := range r {
+			if s == symbol {
+				num++
+			}
+		}
+	}
+	return num
 }

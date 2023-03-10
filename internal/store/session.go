@@ -47,7 +47,6 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 				CompanyId:           newPlayer.CompanyId,
 				FreeGames: FreeGamesStore{
 					NoOfFreeSpins: ctFS,
-					CampaignRef:   playerID,
 					TotalWagerAmt: waFS,
 				}}
 			newPlayer, err = ServLocal.PlayerSave(newPlayer.Token, ModeDemo, newPlayer)
@@ -110,9 +109,10 @@ func CreateInitGS(player PlayerStore, gameName string) (latestGamestate engine.G
 		DefID:         defId,
 		ReelsetID:     reelsetId,
 		Id:            gsID,
+		RoundID:       gsID,
 		BetPerLine:    engine.Money{0, player.Balance.Currency},
 		NextActions:   []string{"finish"},
-		Action:        "base",
+		Action:        "init",
 		Gamification:  &engine.GamestatePB_Gamification{},
 		SymbolGrid:    view,
 		Features:      features,

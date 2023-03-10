@@ -11,6 +11,7 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
@@ -247,7 +248,9 @@ func playV2(request *http.Request) (GameplayResponseV2, rgse.RGSErr) {
 		return GameplayResponseV2{}, rgse.Create(rgse.UnexpectedWalletStatus)
 	}
 
-	return getRoundResults(data, previousGamestate, txStore)
+	var res GameplayResponseV2
+	res, err = getRoundResults(data, previousGamestate, txStore)
+	return res, err
 }
 
 func lastTransaction(token store.Token, wallet string, game string) (store.TransactionStore, rgse.RGSErr) {
@@ -292,7 +295,8 @@ func playRound(request *http.Request) (RoundResponse, rgse.RGSErr) {
 		return RoundResponse{}, betValidationErr
 	}
 
-	previousGamestate := store.DeserializeGamestateFromBytes(txStore.GameState)
+	lastGamestate := store.DeserializeGamestateFromBytes(txStore.GameState)
+	previousGamestate := lastGamestate
 	// check if the gsID passed in by the client matches that retrieved from the wallet
 	if data.PreviousID != previousGamestate.Id {
 		logger.Debugf("Previous ID doesn't match: %v, %v", data.PreviousID, previousGamestate.Id)
@@ -317,22 +321,85 @@ func playRound(request *http.Request) (RoundResponse, rgse.RGSErr) {
 		}
 	}
 
+	type ReplayPoint struct {
+		NumSpins        int
+		NumTransactions int
+		NumTries        int
+		Params          feature.FeatureParams
+	}
+
 	spins := []SpinResponse{}
+	states := []engine.Gamestate{}
 	transactions := []store.TransactionStore{}
+	replayPoints := []ReplayPoint{}
 	var gamestate engine.Gamestate
+
 	for nextAction != "finish" {
 
-		//		var EC engine.EngineConfig
 		data.Action = nextAction
+		data.Replay = nil
+
+		logger.Debugf("PREVIOUS GAMESTATE: %#v", previousGamestate)
 		gamestate, _, err = engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
 		if err != nil {
 			return RoundResponse{}, err
 		}
 
-		for p := 0; p < len(gamestate.Prizes); p++ {
-			gamestate.Prizes[p].Win = engine.NewFixedFromInt(gamestate.Prizes[p].Payout.Multiplier * gamestate.Prizes[p].Multiplier * gamestate.Multiplier).Mul(gamestate.BetPerLine.Amount)
+		if gamestate.Replay {
+			replayPoints = append(replayPoints, ReplayPoint{
+				NumSpins:        len(spins),
+				NumTransactions: len(transactions),
+				NumTries:        1,
+				Params:          gamestate.ReplayParams,
+			})
 		}
 
+		if gamestate.NextActions[0] == "finish" {
+			if len(replayPoints) > 0 {
+				point := replayPoints[len(replayPoints)-1]
+				logger.Debugf("Replaying at point %#v", point)
+				if point.NumSpins > 0 {
+					previousGamestate = states[point.NumSpins-1]
+				} else {
+					previousGamestate = lastGamestate
+				}
+
+				var replaystate engine.Gamestate
+				data.Action = previousGamestate.NextActions[0]
+				if data.Action == "finish" {
+					logger.Debugf("Replaying from first spin in round")
+					data.Action = "base"
+				}
+				data.Replay = states[point.NumSpins:]
+				data.ReplayTries = point.NumTries
+				data.ReplayParams = point.Params
+				if point.Params != nil {
+					logger.Debugf("replay params %#v", point.Params)
+				}
+				replaystate, _, err = engine.Play(previousGamestate, data.Stake, previousGamestate.BetPerLine.Currency, data)
+
+				if replaystate.Replay {
+					logger.Debugf("replaying state %d in a sequence of length %d", point.NumSpins, len(states))
+					gamestate = replaystate
+					spins = spins[point.NumSpins:]
+					states = states[point.NumSpins:]
+					transactions = transactions[point.NumTransactions:]
+
+					nextAction = previousGamestate.NextActions[0]
+				} else {
+					logger.Debugf("replaying state %d was completed at replay point %d", point.NumSpins, len(replayPoints)-1)
+					replayPoints = replayPoints[1:]
+				}
+			}
+		}
+
+		states = append(states, gamestate)
+
+		/*	TODO: remove the campaign accumulator that required this
+			for p := 0; p < len(gamestate.Prizes); p++ {
+				gamestate.Prizes[p].Win = engine.NewFixedFromInt(gamestate.Prizes[p].Payout.Multiplier * gamestate.Prizes[p].Multiplier * gamestate.Multiplier).Mul(gamestate.BetPerLine.Amount)
+			}
+		*/
 		if len(transactions) == 0 {
 			lineBet = gamestate.BetPerLine.Amount
 			roundId = gamestate.RoundID
@@ -389,13 +456,14 @@ func playRound(request *http.Request) (RoundResponse, rgse.RGSErr) {
 			Win:              win,
 			View:             gamestate.SymbolGrid,
 			Prizes:           gamestate.Prizes,
+			Multiplier:       gamestate.Multiplier,
 			CascadePositions: getCascadePositions(gamestate),
 			Features:         gamestate.Features,
 			FeatureView:      gamestate.FeatureView,
 		})
 
-		previousGamestate = gamestate
 		nextAction = gamestate.NextActions[0]
+		previousGamestate = gamestate
 	}
 
 	//	gamestate.NextActions = []string{"base"}
@@ -422,7 +490,7 @@ func playRound(request *http.Request) (RoundResponse, rgse.RGSErr) {
 		History:             txStore.History,
 	})
 
-	logger.Debugf("playround spins: %#v", spins)
+	//	logger.Debugf("playround spins: %#v", spins)
 
 	balance, err := store.GetService(mode).MultiTransaction(token, mode, transactions)
 
@@ -574,8 +642,8 @@ func getRoundResults(data engine.GameParams, previousGamestate engine.Gamestate,
 		if freeGameRef != "" {
 			gamestate.CampaignWin = previousGamestate.CampaignWin + gamestate.GetPrizeAmount()
 			gamestate.CampaignRef = freeGameRef
+			logger.Infof("Campaign %v continues total win %s", freeGameRef, gamestate.CampaignWin.ValueAsString())
 		}
-		logger.Infof("Campaign %v continues total win %s", freeGameRef, gamestate.CampaignWin.ValueAsString())
 	}
 
 	autoClose := false

@@ -93,7 +93,7 @@ func DefaultTitleName(name string) string {
 }
 
 func getCascadePositions(state engine.Gamestate) []int {
-	if state.Action == "cascade" || state.Action == "pushreels" {
+	if strings.Contains(state.Action, "cascade") || state.Action == "pushreels" {
 		// this is a hack for now, needed for recovery. potentially in the future we add a proper cascade positions field to the gamestate message
 		return state.SelectedWinLines
 	}

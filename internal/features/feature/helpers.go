@@ -33,3 +33,33 @@ func RandomPermutation(arr []int) []int {
 	}
 	return ret
 }
+
+func (state FeatureState) GetCascadePositions() []int {
+
+	if len(state.CascadePositions) > 0 {
+		return state.CascadePositions
+	} else {
+		cascadePositions := make([]int, len(state.SymbolGrid))
+		for r := range cascadePositions {
+			cascadePositions[r] = len(state.SymbolGrid[r])
+		}
+		return cascadePositions
+	}
+}
+
+func (state FeatureState) GetCandidatePositions() []int {
+
+	cascadePos := state.GetCascadePositions()
+	p := 0
+	pos := []int{}
+	for i, r := range state.SourceGrid {
+		for j := range r {
+			if j < cascadePos[i] {
+				pos = append(pos, p)
+			}
+			p++
+		}
+	}
+
+	return pos
+}

@@ -7,7 +7,8 @@ import (
 const (
 	FEATURE_ID_ACTIVATION = "Activation"
 
-	PARAM_ID_ACTIVATION_PARAMS = "ActivationParams"
+	PARAM_ID_ACTIVATION_PARAMS               = "ActivationParams"
+	PARAM_ID_ACTIVATION_MULTIPLIER_INCREMENT = "MultiplierIncrement"
 )
 
 var _ feature.Factory = feature.RegisterFeature(FEATURE_ID_ACTIVATION, func() feature.Feature { return new(Activation) })
@@ -25,6 +26,10 @@ func (f Activation) Trigger(state *feature.FeatureState, params feature.FeatureP
 	activationParams := feature.FeatureParams{}
 	if params.HasKey(PARAM_ID_ACTIVATION_PARAMS) {
 		activationParams = params.GetParams(PARAM_ID_ACTIVATION_PARAMS)
+	}
+	if params.HasKey(PARAM_ID_ACTIVATION_MULTIPLIER_INCREMENT) {
+		inc := params.GetInt(PARAM_ID_ACTIVATION_MULTIPLIER_INCREMENT)
+		state.Multiplier += inc
 	}
 	state.Features = append(state.Features,
 		&Activation{

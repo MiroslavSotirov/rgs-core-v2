@@ -186,6 +186,19 @@ func ReadEngineDefs(engineID string) EngineConfig {
 		if c.EngineDefs[i].ReelsetId != "" {
 			completeDef.ReelsetId = c.EngineDefs[i].ReelsetId
 		}
+		if c.EngineDefs[i].RespinAction != "" {
+			completeDef.RespinAction = c.EngineDefs[i].RespinAction
+		}
+		if len(c.EngineDefs[i].NextMultiplierActions) != 0 {
+			completeDef.NextMultiplierActions = c.EngineDefs[i].NextMultiplierActions
+		}
+		if len(c.EngineDefs[i].HoldMultiplierActions) != 0 {
+			completeDef.HoldMultiplierActions = c.EngineDefs[i].HoldMultiplierActions
+		}
+		if len(c.EngineDefs[i].FeatureStages) != 0 {
+			completeDef.FeatureStages = c.EngineDefs[i].FeatureStages
+		}
+
 		// respin must be explicitly set to true if it is intended to be true, no inheritance from base
 		completeDef.RespinAllowed = c.EngineDefs[i].RespinAllowed
 		// same for variable winlines because it is a boolean and no way to tell if false or omitted

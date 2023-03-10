@@ -201,6 +201,27 @@ func ConvertIntSlice(in interface{}) []int {
 	return val
 }
 
+func ConvertStringSlice(in interface{}) []string {
+	val, ok := in.([]string)
+	if !ok {
+		var val2 []interface{}
+		val2, ok = in.([]interface{})
+		if !ok {
+			panic("not a slize")
+		}
+		val = make([]string, len(val2))
+		for i, av := range val2 {
+			var v string
+			v, ok = av.(string)
+			if !ok {
+				panic("not an string slize")
+			}
+			val[i] = v
+		}
+	}
+	return val
+}
+
 func ConvertSlice(in interface{}) []interface{} {
 	val, ok := in.([]interface{})
 	if !ok {
@@ -395,6 +416,11 @@ func (p FeatureParams) GetIntSlice(name string) []int {
 	return ConvertIntSlice(p.Get(name))
 }
 
+func (p FeatureParams) GetStringSlice(name string) []string {
+	defer paramconvertpanic(name)
+	return ConvertStringSlice(p.Get(name))
+}
+
 func (p FeatureParams) GetSlice(name string) []interface{} {
 	defer paramconvertpanic(name)
 	return ConvertSlice(p.Get(name))
@@ -454,4 +480,17 @@ func (p FeatureParams) GetForceFloat64(force string) (v float64, ok bool) {
 		v = val
 	}
 	return
+}
+
+func (p FeatureParams) GetStringOrDefault(name string, defaultvalue string) string {
+	if p.HasKey(name) {
+		return p.GetString(name)
+	}
+	return defaultvalue
+}
+
+func (p1 *FeatureParams) Merge(p2 FeatureParams) {
+	for k, v := range p2 {
+		(*p1)[k] = v
+	}
 }

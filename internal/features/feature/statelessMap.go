@@ -69,6 +69,14 @@ func GetStatelessMap(state FeatureState) (statelessMap FeatureParams) {
 	return
 }
 
+func GetParamStatelessMap(params FeatureParams) (statelessMap FeatureParams) {
+	if params.HasKey(FEATURE_ID_STATELESS_MAP) {
+		statelessMap = params.GetParams(FEATURE_ID_STATELESS_MAP)
+	}
+	return
+}
+
 func SetStatelessMap(statelessMap FeatureParams, params FeatureParams) {
+	logger.Debugf("stateless map: %#v", statelessMap)
 	params["StatelessMap"] = statelessMap
 }

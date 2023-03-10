@@ -3,6 +3,7 @@ package featureTriggers
 import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/feature"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/features/featureProducts"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/utils/logger"
 )
 
 const (
@@ -40,7 +41,8 @@ func (f TriggerLawOfGilgameshGilgamesh) Trigger(state *feature.FeatureState, par
 	positions := []int{}
 	gridh := len(state.SymbolGrid[0])
 	nw := numWilds[feature.WeightedRandomIndex(numProbs)]
-	for i := 0; i < nw*retryFactor && len(positions) < nw; i++ {
+	tries := nw * retryFactor
+	for i := 0; i < tries && len(positions) < nw; i++ {
 		reel := feature.WeightedRandomIndex(reelProbs)
 		row := feature.WeightedRandomIndex(rowProbs)
 		pos := reel*gridh + row
@@ -50,24 +52,22 @@ func (f TriggerLawOfGilgameshGilgamesh) Trigger(state *feature.FeatureState, par
 					return false
 				}
 			}
-			for _, p := range positions {
-				if p == pos {
-					return false
-				}
-			}
 			return true
 		}(state.SymbolGrid[reel][row]) {
+			state.SymbolGrid[reel][row] = wildId
 			positions = append(positions, pos)
-			state.SourceGrid[reel][row] = wildId
 		}
 	}
 
-	if len(positions) > 0 {
-		params[featureProducts.PARAM_ID_REPLACE_TILE_TILE_ID] = wildId
-		params[featureProducts.PARAM_ID_REPLACE_TILE_REPLACE_WITH_ID] = wildId
-		params[featureProducts.PARAM_ID_REPLACE_TILE_POSITIONS] = positions
-		feature.ActivateFeatures(f.FeatureDef, state, params)
-	}
+	params[featureProducts.PARAM_ID_REPLACE_TILE_TILE_ID] = wildId
+	params[featureProducts.PARAM_ID_REPLACE_TILE_REPLACE_WITH_ID] = wildId
+	params[featureProducts.PARAM_ID_REPLACE_TILE_POSITIONS] = positions
+	feature.ActivateFeatures(f.FeatureDef, state, params)
+
+	incLawOfGilgameshLevel(state, params)
+
+	logger.Debugf("gilgamesh feature placed %d out of %d wilds", len(positions), nw)
+
 	return
 }
 

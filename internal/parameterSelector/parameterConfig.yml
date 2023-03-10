@@ -81,7 +81,7 @@ ccyMultipliers:
     KGS: .8
     KRW: 13
     KWD: 0.01
-    KHR: 40
+    KHR: 40git commit -m "ADD max bet limiter and company max bet overrides for Gamingtec and BetWarrior"
     KZT: 4
     LBP: 25
     LKR: 1.5
