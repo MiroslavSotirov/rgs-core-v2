@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/getsentry/sentry-go"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgse "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
@@ -23,10 +24,10 @@ type betConfig struct {
 	StakeValues []int `yaml:"stakeValues"`
 	DefaultBet  int   `yaml:"defaultBet"`
 	//	CcyMultipliers map[string]float32        `yaml:"ccyMultipliers"`
-	CcyMultipliers map[string]map[string]float32 `yaml:"ccyMultipliers"`
-	Profiles       map[string]map[string]int     `yaml:"profiles"`
-	HostProfiles   map[string]string             `yaml:"hostProfiles"`
-	Override       map[string]stakeConfigs       `yaml:"override`
+	CcyMultipliers map[string]map[string]float32      `yaml:"ccyMultipliers"`
+	Profiles       map[string]map[string]int          `yaml:"profiles"`
+	HostProfiles   map[string]string                  `yaml:"hostProfiles"`
+	Override       map[string]map[string]stakeConfigs `yaml:"override`
 }
 
 type stakeConfigs map[string]stakeConfig
@@ -96,7 +97,7 @@ func readBetConfig() (betConfig, rgse.RGSErr) {
 
 	err = yaml.Unmarshal(yamlFile, &conf)
 	if err != nil {
-		logger.Fatalf("Error unmarshaling parameter yaml")
+		logger.Fatalf("Error unmarshaling %v", err)
 		return betConfig{}, rgse.Create(rgse.YamlError)
 
 	}
@@ -208,27 +209,50 @@ func GetGameplayParameters(lastBet engine.Money, betSettingsCode string, gameID 
 		return
 	}
 
-	override, ok := betConf.Override[engineID]
+	overrideId := companyId
+	override, ok := betConf.Override[overrideId][engineID]
 	if !ok {
-		override, ok = betConf.Override[gameID]
+		override, ok = betConf.Override["default"][engineID]
+		if !ok {
+			override, ok = betConf.Override["default"][gameID]
+		}
 	}
 	if ok {
-		var mult engine.Fixed
+		var mult, standard engine.Fixed
 		stakeconf, ok := override[lastBet.Currency]
 		if ok {
 			mult = engine.NewFixedFromInt(1)
+			standard = mult
 		} else {
 			stakeconf, ok = override["credits"]
 			mult = engine.NewFixedFromFloat(ccyMult)
+			standard = engine.NewFixedFromFloat(0.01)
 		}
 		if ok {
-			fixedStakeValues = make([]engine.Fixed, len(stakeconf.StakeValues))
-			for i, s := range stakeconf.StakeValues {
-				fixedStakeValues[i] = engine.NewFixedFromFloat(s).Mul(mult)
-			}
 			defaultStake = engine.NewFixedFromFloat(stakeconf.DefaultBet).Mul(mult)
 			minBet = engine.NewFixedFromFloat(stakeconf.MinBet).Mul(mult)
 			maxBet = engine.NewFixedFromFloat(stakeconf.MaxBet).Mul(mult)
+			maxLimit := engine.NewFixedFromFloat(stakeconf.MaxBet).Mul(standard)
+			if maxLimit > 0 {
+				logger.Debugf("Limiting stakes to within %f %s", maxLimit.ValueAsFloat(), lastBet.Currency)
+			}
+			fixedStakeValues = make([]engine.Fixed, len(stakeconf.StakeValues))
+			ovrStakeValues := []engine.Fixed{}
+			for _, s := range stakeconf.StakeValues {
+				stake := engine.NewFixedFromFloat(s).Mul(mult)
+				if maxLimit > 0 && stake > maxLimit {
+					continue
+				}
+				ovrStakeValues = append(ovrStakeValues, stake)
+			}
+			if len(ovrStakeValues) == 0 {
+				logger.Errorf("Max bet limiter %f disallowed all %s stakes (ccyMult %f)", maxLimit.ValueAsFloat(), lastBet.Currency, ccyMult)
+				sentry.CaptureMessage("Max bet limiter disallowed all stakes")
+				rgserr = rgse.Create(rgse.BetConfigError)
+				return
+			}
+
+			fixedStakeValues = ovrStakeValues
 			logger.Debugf("overriding stake values: stakes= %v, defaultbet= %v min= %v max= %v", fixedStakeValues, defaultStake, minBet, maxBet)
 		}
 	}

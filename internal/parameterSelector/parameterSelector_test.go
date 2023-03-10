@@ -11,6 +11,7 @@ import (
 var testGameID = "the-year-of-zhu"
 var testBetLimitCode = "maverick"
 var testCcy = "USD"
+var testCompany = "2625894"
 
 func TestLowLastBet(t *testing.T) {
 	_, ds, _, _, _ := GetGameplayParameters(engine.Money{engine.Fixed(0), testCcy}, testBetLimitCode, testGameID, "")
@@ -53,5 +54,41 @@ func TestBadCcy(t *testing.T) {
 	sv, ds, _, _, err := GetGameplayParameters(engine.Money{engine.Fixed(0), "NIL"}, testBetLimitCode, testGameID, "")
 	if err == nil {
 		t.Error(fmt.Sprintf("Should have gotten error for nil currency. sv: %v; ds: %v", sv, ds))
+	}
+}
+
+func TestBetLimit(t *testing.T) {
+	game := "battle-of-myths"
+	sv, ds, _, mx, err := GetGameplayParameters(engine.Money{engine.Fixed(0), testCcy}, testBetLimitCode, game, testCompany)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if len(sv) < 4 {
+		t.Errorf("Bet limit generated too few valid stakes")
+	}
+	found := false
+	for _, s := range sv {
+		if s == ds {
+			found = true
+		}
+		if s > mx {
+			t.Errorf("Bet limit allowed bet %f to exeed maxbet %f", s.ValueAsFloat(), mx.ValueAsFloat())
+			break
+		}
+	}
+	if !found {
+		t.Errorf("Bet limit did not allow the default bet")
+	}
+
+	testBetLimitNumStakes("battle-of-myths", "189931772", 14, t)
+}
+
+func testBetLimitNumStakes(game string, company string, numStakes int, t *testing.T) {
+	sv, _, _, _, err := GetGameplayParameters(engine.Money{engine.Fixed(0), testCcy}, testBetLimitCode, game, company)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if len(sv) != numStakes {
+		t.Errorf("Bet limit for company %s did not allow the correct number of stakes %d", company, numStakes)
 	}
 }
