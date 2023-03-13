@@ -99,3 +99,22 @@ func getCascadePositions(state engine.Gamestate) []int {
 	}
 	return nil
 }
+
+func countFreespinsRemaining(gamestate engine.Gamestate) int {
+	fsr := 0
+	for i := 0; i < len(gamestate.NextActions); i++ {
+		if strings.Contains(gamestate.NextActions[i], "freespin") || strings.Contains(gamestate.NextActions[i], "shuffle") {
+			fsr++
+		}
+	}
+	return fsr
+}
+
+func adjustPrizes(gamestate engine.Gamestate) []engine.Prize {
+	prizes := make([]engine.Prize, len(gamestate.Prizes))
+	for p := 0; p < len(gamestate.Prizes); p++ {
+		prizes[p] = gamestate.Prizes[p]
+		prizes[p].Win = engine.NewFixedFromInt(gamestate.Prizes[p].Payout.Multiplier * gamestate.Prizes[p].Multiplier * gamestate.Multiplier).Mul(gamestate.BetPerLine.Amount)
+	}
+	return prizes
+}

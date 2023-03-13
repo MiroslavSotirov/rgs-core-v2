@@ -290,17 +290,21 @@ func playRound(request *http.Request) (RoundResponse, rgse.RGSErr) {
 		return RoundResponse{}, err
 	}
 
-	data, betValidationErr := validateBet(data, txStore, data.Game)
-	if betValidationErr != nil {
-		return RoundResponse{}, betValidationErr
-	}
-
 	lastGamestate := store.DeserializeGamestateFromBytes(txStore.GameState)
 	previousGamestate := lastGamestate
 	// check if the gsID passed in by the client matches that retrieved from the wallet
 	if data.PreviousID != previousGamestate.Id {
 		logger.Debugf("Previous ID doesn't match: %v, %v", data.PreviousID, previousGamestate.Id)
 		return RoundResponse{}, rgse.Create(rgse.SpinSequenceError)
+	}
+
+	data, betValidationErr := validateBet(data, txStore, data.Game)
+	if betValidationErr != nil {
+		return RoundResponse{}, betValidationErr
+	}
+
+	if txStore.Amount.Currency == "" {
+		txStore.Amount.Currency = previousGamestate.BetPerLine.Currency
 	}
 
 	nextAction := "base"
@@ -454,8 +458,9 @@ func playRound(request *http.Request) (RoundResponse, rgse.RGSErr) {
 			DefID:            gamestate.DefID,
 			ReelsetID:        gamestate.ReelsetID,
 			Win:              win,
+			Freespins:        countFreespinsRemaining(gamestate),
 			View:             gamestate.SymbolGrid,
-			Prizes:           gamestate.Prizes,
+			Prizes:           adjustPrizes(gamestate), // gamestate.Prizes),
 			Multiplier:       gamestate.Multiplier,
 			CascadePositions: getCascadePositions(gamestate),
 			Features:         gamestate.Features,

@@ -137,6 +137,7 @@ type SpinResponse struct {
 	DefID            int               `json:"reelset"`
 	ReelsetID        string            `json:"reelsetId,omitempty"`
 	Win              engine.Fixed      `json:"win"`
+	Freespins        int               `json:"freespins"`
 	View             [][]int           `json:"view"`
 	Prizes           []engine.Prize    `json:"wins"`
 	Multiplier       int               `json:"multiplier"`
@@ -218,14 +219,7 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 			win += tx.Amount.Amount
 		}
 	}
-	var fsRemaining *int
-	fsr := 0
-	for i := 0; i < len(gamestate.NextActions); i++ {
-		if strings.Contains(gamestate.NextActions[i], "freespin") || strings.Contains(gamestate.NextActions[i], "shuffle") {
-			fsr++
-		}
-	}
-	fsRemaining = &fsr
+	fsRemaining := countFreespinsRemaining(gamestate)
 
 	// artificially set cumulative win not to include spin win during cascade action unless it is the final round
 	if gamestate.NextActions[0] == "cascade" {
@@ -243,10 +237,12 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 	}
 
 	level, stage := gamestate.Gamification.GetLevelAndStage()
-	for p := 0; p < len(gamestate.Prizes); p++ {
-		gamestate.Prizes[p].Win = engine.NewFixedFromInt(gamestate.Prizes[p].Payout.Multiplier * gamestate.Prizes[p].Multiplier * gamestate.Multiplier).Mul(gamestate.BetPerLine.Amount)
+	/*
+		for p := 0; p < len(gamestate.Prizes); p++ {
+			gamestate.Prizes[p].Win = engine.NewFixedFromInt(gamestate.Prizes[p].Payout.Multiplier * gamestate.Prizes[p].Multiplier * gamestate.Multiplier).Mul(gamestate.BetPerLine.Amount)
 
-	}
+		}
+	*/
 
 	var fsresp FreespinResponse
 
@@ -279,14 +275,14 @@ func fillGamestateResponseV2(gamestate engine.Gamestate, balance store.BalanceSt
 		RoundWin:      gamestate.CumulativeWin,
 		SpinWin:       gamestate.SpinWin,
 		NextAction:    nextAction,
-		FSRemaining:   fsRemaining,
+		FSRemaining:   &fsRemaining,
 		Balance: BalanceResponseV2{
 			Amount:       balance.Balance,
 			FreeGames:    balance.FreeGames.NoOfFreeSpins, // todo: deprecate once moved over to new fw completely
 			FreeSpinInfo: &fsresp,
 		},
 		View:            gamestate.SymbolGrid,
-		Prizes:          gamestate.Prizes,
+		Prizes:          adjustPrizes(gamestate), // gamestate.Prizes),
 		RoundMultiplier: gamestate.Multiplier,
 		Closed:          gamestate.Closed,
 		Gamification: &GamificationRespV2{
