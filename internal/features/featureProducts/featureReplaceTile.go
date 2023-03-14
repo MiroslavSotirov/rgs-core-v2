@@ -17,8 +17,8 @@ var _ feature.Factory = feature.RegisterFeature(FEATURE_ID_REPLACE_TILE, func() 
 
 type ReplaceTileData struct {
 	Positions      []int `json:"positions"`
-	TileId         int   `json:"tileid,omitempty"`
-	ReplaceWithId  int   `json:"replacewithid,omitempty"`
+	TileId         int   `json:"tileid"`
+	ReplaceWithId  int   `json:"replacewithid"`
 	ReplaceWithIds []int `json:"replacewithids,omitempty"`
 }
 
