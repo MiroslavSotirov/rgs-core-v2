@@ -52,7 +52,7 @@ func main() {
 		os.Exit(3)
 	}
 
-	rng.Init()
+	rng.InitPool()
 	featureProducts.Register()
 	featureTriggers.Register()
 	logger.Infof("API INIT: OK")

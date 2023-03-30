@@ -38,7 +38,7 @@ var almostFeatureGS = Gamestate{
 }
 
 func TestRespin(t *testing.T) {
-	rng.Init()
+	rng.InitPool()
 
 	//params := GameParams{
 	//	Stake:             1,

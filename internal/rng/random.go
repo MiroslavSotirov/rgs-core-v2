@@ -10,10 +10,13 @@ import (
 
 var rngPool = Pool{}
 
-func Init() {
+func InitPool() {
 	rngPool.Put(rngPool.Get())
 	go CyclePool(&rngPool)
 }
+
+/*
+// These are declared in mt19937.go - do not remove them from there unless we are ready for recertification.
 
 var runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
 
@@ -29,7 +32,7 @@ func RandFromRange(n int) int {
 	rng := rngPool.Get()
 	defer rngPool.Put(rng)
 	return randFromRange(rng, n)
-}
+}*/
 
 func Uuid() string {
 	return strings.ReplaceAll(base64.StdEncoding.EncodeToString(uuid.NewV4().Bytes()), "/", "_")
