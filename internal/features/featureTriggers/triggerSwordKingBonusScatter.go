@@ -33,7 +33,7 @@ func (f TriggerSwordKingBonusScatter) Trigger(state *feature.FeatureState, param
 	}
 
 	Probability := params.GetInt(PARAM_ID_TRIGGER_SWORD_KING_BONUS_SCATTER_PROBABILITY)
-	if rng.RandFromRange(10000) < Probability {
+	if rng.RandFromRangePool(10000) < Probability {
 
 		activate := false
 		positions := []int{}
@@ -48,7 +48,7 @@ func (f TriggerSwordKingBonusScatter) Trigger(state *feature.FeatureState, param
 
 			for s := 0; s < numScatters; s++ {
 				reel := reels[s]
-				row := rng.RandFromRange(4)
+				row := rng.RandFromRangePool(4)
 				pos := reel*gridh + row
 				positions = append(positions, pos)
 			}

@@ -53,7 +53,7 @@ func (f TriggerElysiumVipStickyWilds) Trigger(state *feature.FeatureState, param
 	}
 	probabilityLevels := params.GetIntSlice(PARAM_ID_TRIGGER_ELYSIUM_VIP_STICKY_WILDS_PROBABILITY_LEVELS)
 
-	if rng.RandFromRange(10000) < probabilityLevels[level] {
+	if rng.RandFromRangePool(10000) < probabilityLevels[level] {
 
 		gridw := len(state.SymbolGrid)
 		gridh := len(state.SymbolGrid[0])
@@ -134,7 +134,7 @@ func (f TriggerElysiumVipStickyWilds) Trigger(state *feature.FeatureState, param
 
 		for try := 0; len(positions) < numWilds && try < numTries; try++ {
 			reelidx := feature.WeightedRandomIndex(reelProbabilities)
-			rowidx := rng.RandFromRange(3)
+			rowidx := rng.RandFromRangePool(3)
 			pos := reelidx*gridh + rowidx
 			if !isWild(reelidx, rowidx) {
 				positions = append(positions, pos)

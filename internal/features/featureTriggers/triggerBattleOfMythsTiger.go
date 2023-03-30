@@ -33,7 +33,7 @@ func (f TriggerBattleOfMythsTiger) Trigger(state *feature.FeatureState, params f
 	reelidx := feature.WeightedRandomIndex(feature.ConvertIntSlice(reelProbs[sizeidx]))
 	rowidx := 0
 	if sizes[sizeidx] < len(state.SymbolGrid[0]) {
-		rowidx = rng.RandFromRange(len(state.SymbolGrid[0]) - sizes[sizeidx])
+		rowidx = rng.RandFromRangePool(len(state.SymbolGrid[0]) - sizes[sizeidx])
 	}
 
 	params[featureProducts.PARAM_ID_FAT_TILE_W] = sizes[sizeidx]

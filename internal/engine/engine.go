@@ -25,7 +25,7 @@ func (engine EngineDef) Spin() ([][]int, []int) {
 
 	for index, reel := range engine.Reels {
 		// choose a random index on the reel
-		reelIndex := rng.RandFromRange(len(reel))
+		reelIndex := rng.RandFromRangePool(len(reel))
 		stopList[index] = reelIndex
 	}
 	if config.GlobalConfig.DevMode == true && len(engine.force) == len(engine.ViewSize) {
@@ -1469,7 +1469,7 @@ func (engine EngineDef) DynamicWildWaysRound(parameters GameParams) Gamestate {
 		}, // for 3 wilds
 	}
 
-	wildLocations := potentialWildLocations[numWilds][rng.RandFromRange(len(potentialWildLocations[numWilds]))]
+	wildLocations := potentialWildLocations[numWilds][rng.RandFromRangePool(len(potentialWildLocations[numWilds]))]
 
 	logger.Debugf("Wild locations: %v", wildLocations)
 

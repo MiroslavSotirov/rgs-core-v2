@@ -19,7 +19,7 @@ type TriggerRandom struct {
 
 func (f TriggerRandom) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
 	probability := params.GetInt(PARAM_ID_TRIGGER_RANDOM_PROBABILITY)
-	rand := rng.RandFromRange(10000)
+	rand := rng.RandFromRangePool(10000)
 	if rand < probability {
 		feature.ActivateFeatures(f.FeatureDef, state, params)
 	}

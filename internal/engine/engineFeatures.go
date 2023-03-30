@@ -324,7 +324,7 @@ func genForcedRound(gen GenerateRound, engine EngineDef, parameters GameParams) 
 					stopList := make([]int, len(engine.Reels))
 					for i, s := range stopStrs {
 						rl := len(engine.Reels[i])
-						p := rng.RandFromRange(rl)
+						p := rng.RandFromRangePool(rl)
 						if s != "" {
 							p64, err := strconv.ParseInt(s, 10, 64)
 							if err != nil {
@@ -717,7 +717,7 @@ func (engine EngineDef) ReplayRound(parameters GameParams) Gamestate {
 func (engine EngineDef) InitRound(parameters GameParams) (state Gamestate) {
 	stopList := make([]int, len(engine.ViewSize))
 	for i := range stopList {
-		stopList[i] = rng.RandFromRange(len(engine.Reels[i]))
+		stopList[i] = rng.RandFromRangePool(len(engine.Reels[i]))
 	}
 	state.SymbolGrid = GetSymbolGridFromStopList(engine.Reels, engine.ViewSize, stopList)
 	engine.InitRoundFeatures(parameters, stopList, &state)

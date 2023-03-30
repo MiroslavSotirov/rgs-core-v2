@@ -40,9 +40,9 @@ func (f TriggerBattleOfMyths) Trigger(state *feature.FeatureState, params featur
 	params[PARAM_ID_TRIGGER_BATTLE_OF_MYTHS_RUN_PRINCESS] = runPrincess
 	if !runPrincess {
 		featureProb := params.GetInt(PARAM_ID_TRIGGER_BATTLE_OF_MYTHS_FEATURE_PROBABILITY)
-		random := rng.RandFromRange(10000)
+		random := rng.RandFromRangePool(10000)
 		if random < featureProb {
-			random = rng.RandFromRange(2)
+			random = rng.RandFromRangePool(2)
 			if random == 0 {
 				params[PARAM_ID_TRIGGER_BATTLE_OF_MYTHS_RUN_TIGER] = true
 			} else {

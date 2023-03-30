@@ -35,7 +35,7 @@ func (f TriggerSpiritHuntersBonus) Trigger(state *feature.FeatureState, params f
 	}
 	if len(positions) >= 3 {
 		prizes := params.GetIntSlice(PARAM_ID_TRIGGER_SPIRIT_HUNTERS_BONUS_PRIZES)
-		ran := rng.RandFromRange(len(prizes))
+		ran := rng.RandFromRangePool(len(prizes))
 		params[featureProducts.PARAM_ID_INSTA_WIN_TYPE] = featureProducts.PARAM_VALUE_INSTA_WIN_BONUS
 		params[featureProducts.PARAM_ID_INSTA_WIN_SOURCE_ID] = f.FeatureDef.Id
 		params[featureProducts.PARAM_ID_INSTA_WIN_AMOUNT] = prizes[ran]

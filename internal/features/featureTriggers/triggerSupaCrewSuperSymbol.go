@@ -32,7 +32,7 @@ func (f TriggerSupaCrewSuperSymbol) Trigger(state *feature.FeatureState, params 
 	}
 
 	random := params.GetInt(PARAM_ID_TRIGGER_SUPA_CREW_SUPER_SYMBOL_RANDOM)
-	ran15 := rng.RandFromRange(15)
+	ran15 := rng.RandFromRangePool(15)
 	ran9 := random / 9
 	if ran9 >= 30 && ran9 <= 39 {
 		x := ran15 / 5
@@ -49,11 +49,11 @@ func (f TriggerSupaCrewSuperSymbol) Trigger(state *feature.FeatureState, params 
 }
 
 func (f TriggerSupaCrewSuperSymbol) ForceTrigger(state *feature.FeatureState, params feature.FeatureParams) {
-	params[featureProducts.PARAM_ID_FAT_TILE_X] = rng.RandFromRange(3)
-	params[featureProducts.PARAM_ID_FAT_TILE_Y] = rng.RandFromRange(5) - 2
+	params[featureProducts.PARAM_ID_FAT_TILE_X] = rng.RandFromRangePool(3)
+	params[featureProducts.PARAM_ID_FAT_TILE_Y] = rng.RandFromRangePool(5) - 2
 	params[featureProducts.PARAM_ID_FAT_TILE_W] = 3
 	params[featureProducts.PARAM_ID_FAT_TILE_H] = 3
-	params[featureProducts.PARAM_ID_FAT_TILE_TILE_ID] = rng.RandFromRange(9)
+	params[featureProducts.PARAM_ID_FAT_TILE_TILE_ID] = rng.RandFromRangePool(9)
 
 	feature.ActivateFeatures(f.FeatureDef, state, params)
 }

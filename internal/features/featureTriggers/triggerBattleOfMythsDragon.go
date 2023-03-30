@@ -42,7 +42,7 @@ func (f TriggerBattleOfMythsDragon) Trigger(state *feature.FeatureState, params 
 	reels := feature.ConvertIntSlice(params.GetSlice(PARAM_ID_TRIGGER_BATTLE_OF_MYTHS_DRAGON_REEL_POSITIONS)[numIdx].([]interface{})[reelsIdx])
 
 	patterns := params.GetSlice(PARAM_ID_TRIGGER_BATTLE_OF_MYTHS_DRAGON_PATTERNS)
-	patternIdx := rng.RandFromRange(len(patterns))
+	patternIdx := rng.RandFromRangePool(len(patterns))
 	pattern := feature.ConvertIntSlice(patterns[patternIdx])
 
 	gridh := len(state.SymbolGrid[0])

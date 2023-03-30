@@ -176,7 +176,7 @@ func NewFeedTransaction(v RestTransactiondata, gameId string) (FeedTransaction, 
 
 func GenerateToken() Token {
 	bt, _ := time.Now().MarshalBinary()
-	b64token := rng.RandStringRunes(16) + base64.StdEncoding.EncodeToString(bt)
+	b64token := rng.RandStringRunesPool(16) + base64.StdEncoding.EncodeToString(bt)
 	return Token(strings.ReplaceAll(b64token, "/", "-"))
 }
 

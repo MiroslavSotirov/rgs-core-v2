@@ -38,7 +38,7 @@ func (f TriggerSwordKingFreespin) Trigger(state *feature.FeatureState, params fe
 	}
 
 	Probability := params.GetInt(PARAM_ID_TRIGGER_SWORD_KING_FREESPIN_PROBABILITY)
-	if rng.RandFromRange(10000) < Probability {
+	if rng.RandFromRangePool(10000) < Probability {
 		numIdx := feature.WeightedRandomIndex(params.GetIntSlice(PARAM_ID_TRIGGER_SWORD_KING_FREESPIN_NUM_PROBABILITIES))
 		numScatters := params.GetIntSlice(PARAM_ID_TRIGGER_SWORD_KING_FREESPIN_NUM_SCATTERS)[numIdx]
 		positions := []int{}
@@ -48,7 +48,7 @@ func (f TriggerSwordKingFreespin) Trigger(state *feature.FeatureState, params fe
 
 		for s := 0; s < numScatters; s++ {
 			reel := reels[s]
-			row := rng.RandFromRange(4)
+			row := rng.RandFromRangePool(4)
 			pos := reel*gridh + row
 			positions = append(positions, pos)
 		}

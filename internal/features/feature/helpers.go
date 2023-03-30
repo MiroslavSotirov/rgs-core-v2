@@ -7,7 +7,7 @@ func WeightedRandomIndex(weights []int) int {
 	for _, w = range weights {
 		sum += w
 	}
-	r := rng.RandFromRange(sum)
+	r := rng.RandFromRangePool(sum)
 	sum = 0
 	for i, w = range weights {
 		sum += w
@@ -25,7 +25,7 @@ func RandomPermutation(arr []int) []int {
 	}
 	ret := []int{}
 	for len(a) > 0 {
-		i := rng.RandFromRange(len(a))
+		i := rng.RandFromRangePool(len(a))
 		ret = append(ret, a[i])
 		a0 := a[:i]
 		a1 := a[i+1:]

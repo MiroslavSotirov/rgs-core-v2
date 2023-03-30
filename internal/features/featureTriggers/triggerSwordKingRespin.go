@@ -31,7 +31,7 @@ func (f TriggerSwordKingRespin) Trigger(state *feature.FeatureState, params feat
 	}
 
 	Probability := params.GetInt(PARAM_ID_TRIGGER_SWORD_KING_RESPIN_PROBABILITY)
-	if rng.RandFromRange(10000) < Probability {
+	if rng.RandFromRangePool(10000) < Probability {
 
 		fstype := params.GetString(PARAM_ID_TRIGGER_SWORD_KING_RESPIN_FSTYPE)
 		numFreespins := params.GetInt(PARAM_ID_TRIGGER_SWORD_KING_RESPIN_NUM_FREESPINS)

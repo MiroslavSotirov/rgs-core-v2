@@ -116,7 +116,7 @@ func VolumeTestEngine(engineID string, numPlays int, chunks int, perSpin bool) (
 			params.Action = "base" // change this to maxBase or to any other special function for a particular wallet to see special RTP
 			//} else {
 			//	params.Action = "respin"
-			//	params.RespinReel = rng.RandFromRange(5)
+			//	params.RespinReel = rng.RandFromRangePool(5)
 			//	logger.Warnf("Need to uncomment the next line and the SetPG function for this to work for respin engine")
 			//	//params.SetPG(previousGamestate)
 			//}
@@ -354,7 +354,7 @@ func Gen3x3MData(max int) error {
 
 		for j := 1; j <= 3000000; j++ {
 			// add one line to the file
-			err = writer.Write([]string{fmt.Sprintf("%v", rng.RandFromRange(max+1))})
+			err = writer.Write([]string{fmt.Sprintf("%v", rng.RandFromRangePool(max+1))})
 			if err != nil {
 				logger.Errorf("error writing to csv: %v", err)
 				return err
@@ -382,7 +382,7 @@ func ShuffleDeck() (shuffledDeck []string) {
 	}
 	for i := 0; i < 52; i++ {
 		// choose randomly a card from the remaining cards and add to the new deck
-		chosenCard := rng.RandFromRange(len(deck))
+		chosenCard := rng.RandFromRangePool(len(deck))
 		shuffledDeck = append(shuffledDeck, deck[chosenCard])
 		logger.Debugf("shuffledDeck: %v", shuffledDeck)
 		// remove from the old deck
@@ -443,7 +443,7 @@ func Generate3x3MHex() error {
 			// add one line to the file
 			hexes := []string{}
 			for k := 0; k < 16; k++ {
-				hexes = append(hexes, fmt.Sprintf("%02x", rng.RandFromRange(256)))
+				hexes = append(hexes, fmt.Sprintf("%02x", rng.RandFromRangePool(256)))
 			}
 			err = writer.Write(hexes)
 			if err != nil {

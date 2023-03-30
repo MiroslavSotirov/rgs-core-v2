@@ -86,7 +86,7 @@ func (f TriggerBattleOfMythsFreespin) Trigger(state *feature.FeatureState, param
 				(params.HasKey(PARAM_ID_TRIGGER_BATTLE_OF_MYTHS_RUN_PRINCESS) && params.GetBool(PARAM_ID_TRIGGER_BATTLE_OF_MYTHS_RUN_PRINCESS)) {
 				// logger.Debugf("skipping placing scatters due to conflicting features")
 			} else {
-				if rng.RandFromRange(10000) > params.GetInt("ScatterProbability") {
+				if rng.RandFromRangePool(10000) > params.GetInt("ScatterProbability") {
 					// logger.Debugf("skipping placing scatters dues to activation probability")
 				} else {
 					Abs := func(x int) int {
@@ -106,7 +106,7 @@ func (f TriggerBattleOfMythsFreespin) Trigger(state *feature.FeatureState, param
 					absCounter := Abs(counter)
 					if absCounter < len(sameTypeProbs) {
 						sameProb := sameTypeProbs[absCounter]
-						if rng.RandFromRange(10000) > sameProb {
+						if rng.RandFromRangePool(10000) > sameProb {
 							scatterType = scatterType ^ 1
 						}
 					}
@@ -129,8 +129,8 @@ func (f TriggerBattleOfMythsFreespin) Trigger(state *feature.FeatureState, param
 						var reel, symb, pos int
 						cont := true
 						for cont {
-							reel = rng.RandFromRange(gridw)
-							symb = rng.RandFromRange(gridh)
+							reel = rng.RandFromRangePool(gridw)
+							symb = rng.RandFromRangePool(gridh)
 							pos = reel*gridh + symb
 							tile := state.SymbolGrid[reel][symb]
 							cont = func() bool {

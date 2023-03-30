@@ -95,7 +95,7 @@ func (f TriggerWizardzWorldBonus) Trigger(state *feature.FeatureState, params fe
 	}
 
 	if len(limited) > 1 {
-		inudge := rng.RandFromRange(len(limited))
+		inudge := rng.RandFromRangePool(len(limited))
 		tileId := tileIds[inudge]
 		logger.Infof("Nudge on %s (symbol %d) due to both counters reaching limit", counterName(inudge), tileId)
 		for x, r := range state.SymbolGrid {
@@ -107,7 +107,7 @@ func (f TriggerWizardzWorldBonus) Trigger(state *feature.FeatureState, params fe
 				}
 			}
 			if full {
-				ofs := []int{-2, -1, 1, 2}[rng.RandFromRange(4)]
+				ofs := []int{-2, -1, 1, 2}[rng.RandFromRangePool(4)]
 				num := len(state.Reels[x])
 				if ofs < 0 {
 					ofs += len(state.Reels[x])

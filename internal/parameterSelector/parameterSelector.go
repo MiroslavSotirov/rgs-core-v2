@@ -157,7 +157,7 @@ func GetDemoWalletDefaults(currency string, gameID string, betSettingsCode strin
 	if playerID == "lowbalance" {
 		walletInitBal = engine.Money{0, currency}
 	} else if playerID == "" {
-		playerID = rng.RandStringRunes(8)
+		playerID = rng.RandStringRunesPool(8)
 	} else if strings.Contains(playerID, "campaign") {
 		ctFS = 10
 		waFS = stakeValues[0].Mul(engine.NewFixedFromInt(EC.EngineDefs[0].StakeDivisor))

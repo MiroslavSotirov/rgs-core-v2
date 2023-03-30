@@ -15,37 +15,32 @@ func InitPool() {
 	go CyclePool(&rngPool)
 }
 
-/*
-// These are declared in mt19937.go - do not remove them from there unless we are ready for recertification.
-
-var runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
-
-// RandStringRunes ...
-func RandStringRunes(n int) string {
+// RandStringRunesPool ...
+func RandStringRunesPool(n int) string {
 	rng := rngPool.Get()
 	defer rngPool.Put(rng)
-	return randStringRunes(rng, n)
+	return randStringRunesPool(rng, n)
 }
 
-// RandFromRange
-func RandFromRange(n int) int {
+// RandFromRangePool
+func RandFromRangePool(n int) int {
 	rng := rngPool.Get()
 	defer rngPool.Put(rng)
-	return randFromRange(rng, n)
-}*/
+	return randFromRangePool(rng, n)
+}
 
 func Uuid() string {
 	return strings.ReplaceAll(base64.StdEncoding.EncodeToString(uuid.NewV4().Bytes()), "/", "_")
 }
 
-func randStringRunes(rng *rand.Rand, n int) string {
+func randStringRunesPool(rng *rand.Rand, n int) string {
 	b := make([]byte, n-n/4)
 	rng.Read(b)
 	return base64.StdEncoding.EncodeToString(b)
 }
 
 /*
-func (rng *MT19937) randStringRunes(n int) string {
+func (rng *MT19937) RandStringRunesPool(n int) string {
 	t := time.Now()
 	b := make([]rune, n)
 
@@ -54,12 +49,12 @@ func (rng *MT19937) randStringRunes(n int) string {
 		b[i] = runes[randomIndex]
 	}
 	d := time.Now().Sub(t)
-	logger.Infof("randStringRunes: \"%s\" with length %d in %.4fms", string(b), len(string(b)), float64(d)/1000000.0)
+	logger.Infof("RandStringRunesPool: \"%s\" with length %d in %.4fms", string(b), len(string(b)), float64(d)/1000000.0)
 	return string(b)
 }
 */
 
-func randFromRange(rng *rand.Rand, n int) int {
+func randFromRangePool(rng *rand.Rand, n int) int {
 	// returns a random integer from 0 to n-1
 	return int(rng.Uint64() % uint64(n))
 }

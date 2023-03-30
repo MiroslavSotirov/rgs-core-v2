@@ -62,11 +62,11 @@ func (f TriggerSupaCrewActionSymbol) ForceTrigger(state *feature.FeatureState, p
 		}
 	}
 	state.Features = []feature.Feature{}
-	num := rng.RandFromRange(15) + 1
+	num := rng.RandFromRangePool(15) + 1
 	tileid := params.GetInt(PARAM_ID_TRIGGER_SUPA_CREW_ACTION_SYMBOL_TILE_ID)
 	for i := 0; i < num; i++ {
-		x := rng.RandFromRange(5)
-		y := rng.RandFromRange(3)
+		x := rng.RandFromRangePool(5)
+		y := rng.RandFromRangePool(3)
 		state.SourceGrid[x][y] = tileid
 		state.SymbolGrid[x][y] = tileid
 	}

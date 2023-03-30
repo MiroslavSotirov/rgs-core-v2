@@ -48,7 +48,7 @@ func (f TriggerClashOfHeroesSwapSymbols) Trigger(state *feature.FeatureState, pa
 	if len(juniors) > 0 {
 
 		wildId := params.GetInt(PARAM_ID_TRIGGER_CLASH_OF_HEROES_SWAP_SYMBOLS_WILD_ID)
-		junior := juniors[rng.RandFromRange(len(juniors))]
+		junior := juniors[rng.RandFromRangePool(len(juniors))]
 
 		symbols := make([][]int, len(state.SymbolGrid))
 		for ir, r := range state.SymbolGrid {
@@ -84,7 +84,7 @@ func (f TriggerClashOfHeroesSwapSymbols) Trigger(state *feature.FeatureState, pa
 				}
 			}
 
-			senior := seniors[rng.RandFromRange(len(seniors))]
+			senior := seniors[rng.RandFromRangePool(len(seniors))]
 			params[featureProducts.PARAM_ID_REPLACE_TILE_POSITIONS] = positions
 			params[featureProducts.PARAM_ID_REPLACE_TILE_REPLACE_WITH_ID] = senior
 			params[featureProducts.PARAM_ID_REPLACE_TILE_TILE_ID] = junior

@@ -51,7 +51,7 @@ func (f TriggerTipsyCharmsReorderWilds) Trigger(state *feature.FeatureState, par
 		if nc == 0 {
 			panic("no candidate destination")
 		}
-		ic := rng.RandFromRange(nc)
+		ic := rng.RandFromRangePool(nc)
 		destinations[i] = candidates[ic]
 		candidates = append(candidates[:ic], candidates[ic+1:]...)
 	}

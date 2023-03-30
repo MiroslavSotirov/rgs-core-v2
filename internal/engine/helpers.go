@@ -42,7 +42,7 @@ func GetWeightedIndex(weights []int) int {
 	for _, weight := range weights {
 		weightsSum += weight
 	}
-	random := rng.RandFromRange(weightsSum) + 1 // number is in range [1,weightsSum], inclusive
+	random := rng.RandFromRangePool(weightsSum) + 1 // number is in range [1,weightsSum], inclusive
 	var optionIndex int
 	for p := weights[0]; p < random; p += weights[optionIndex] {
 		optionIndex++
@@ -351,7 +351,7 @@ func GetHashMd5(file io.Reader) (string, error) {
 
 func randomRangeInt32(min, max int) int32 {
 	// cast to int32
-	return int32(rng.RandFromRange(max-min+1) + min)
+	return int32(rng.RandFromRangePool(max-min+1) + min)
 }
 
 func (gamestate Gamestate) isFreespin() bool {

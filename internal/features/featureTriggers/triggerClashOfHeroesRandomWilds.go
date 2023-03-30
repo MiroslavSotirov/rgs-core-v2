@@ -32,7 +32,7 @@ func (f TriggerClashOfHeroesRandomWilds) Trigger(state *feature.FeatureState, pa
 	for try := 0; len(positions) < numWilds && try < numTries+1; try++ {
 		reelidx := feature.WeightedRandomIndex(
 			params.GetIntSlice(PARAM_ID_TRIGGER_CLASH_OF_HEROES_RANDOM_WILDS_REEL_PROBABILITIES))
-		rowidx := rng.RandFromRange(3)
+		rowidx := rng.RandFromRangePool(3)
 		pos := reelidx*gridh + rowidx
 		if func() bool {
 			if state.SymbolGrid[reelidx][rowidx] == wildId {

@@ -66,7 +66,7 @@ func (f TriggerLawOfGilgameshFreespinScatter) Trigger(state *feature.FeatureStat
 		candidates := state.GetCandidatePositions()
 
 		for i := 0; i < numPicks && len(candidates) > 0; i++ {
-			ic := rng.RandFromRange(len(candidates))
+			ic := rng.RandFromRangePool(len(candidates))
 			p := candidates[ic]
 			candidates = append(candidates[:ic], candidates[ic+1:]...)
 			// state.SymbolGrid[p / gridh][p % gridh] = tileId

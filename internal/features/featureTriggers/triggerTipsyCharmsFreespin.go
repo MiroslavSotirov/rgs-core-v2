@@ -44,8 +44,8 @@ func (f TriggerTipsyCharmsFreespin) Trigger(state *feature.FeatureState, params 
 	ns := countSymbols(scatterId, state.SymbolGrid)
 
 	for i := 0; i < tries && len(positions) < numScatters; i++ {
-		reel := rng.RandFromRange(gridw)
-		row := rng.RandFromRange(gridh)
+		reel := rng.RandFromRangePool(gridw)
+		row := rng.RandFromRangePool(gridh)
 		pos := reel*gridh + row
 		if func() bool {
 			if state.SymbolGrid[reel][row] == scatterId {

@@ -30,7 +30,7 @@ func (f TriggerTipsyCharmsWilds) Trigger(state *feature.FeatureState, params fea
 	probabilityLevels := params.GetIntSlice(PARAM_ID_TRIGGER_TIPSY_CHARMS_WILDS_PROBABILITY_LEVELS)
 	level := 0
 
-	if probabilityLevels[0] < rng.RandFromRange(10000) {
+	if probabilityLevels[0] < rng.RandFromRangePool(10000) {
 
 		numWildsLevels := feature.ConvertIntSlice(params.GetSlice(PARAM_ID_TRIGGER_TIPSY_CHARMS_WILDS_NUM_WILDS_LEVELS)[level])
 		numProbabilitiesLevels := feature.ConvertIntSlice(params.GetSlice(PARAM_ID_TRIGGER_TIPSY_CHARMS_WILDS_NUM_PROBABILITIES_LEVELS)[level])
@@ -46,7 +46,7 @@ func (f TriggerTipsyCharmsWilds) Trigger(state *feature.FeatureState, params fea
 		for i := 0; i < tries && len(positions) < numWilds; i++ {
 			wild := wilds[feature.WeightedRandomIndex(wildProbabilities)]
 			reel := feature.WeightedRandomIndex(reelProbabilities)
-			row := rng.RandFromRange(gridh)
+			row := rng.RandFromRangePool(gridh)
 			positions = append(positions, reel*gridh+row)
 			replaceids = append(replaceids, wild)
 		}

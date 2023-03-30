@@ -29,7 +29,7 @@ func (f *TriggerSwordKingRandomWilds) DataPtr() interface{} {
 
 func (f TriggerSwordKingRandomWilds) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
 	Probability := params.GetInt(PARAM_ID_TRIGGER_SWORD_KING_RANDOM_WILDS_PROBABILITY)
-	if rng.RandFromRange(10000) < Probability {
+	if rng.RandFromRangePool(10000) < Probability {
 
 		numWilds := params.GetIntSlice(PARAM_ID_TRIGGER_SWORD_KING_RANDOM_WILDS_NUM_WILDS)[feature.WeightedRandomIndex(
 			params.GetIntSlice(PARAM_ID_TRIGGER_SWORD_KING_RANDOM_WILDS_NUM_PROBABILITIES))]

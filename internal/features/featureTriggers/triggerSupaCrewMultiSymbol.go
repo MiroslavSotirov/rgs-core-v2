@@ -35,14 +35,14 @@ func (f TriggerSupaCrewMultiSymbol) Trigger(state *feature.FeatureState, params 
 	random := params.GetInt(PARAM_ID_TRIGGER_SUPA_CREW_MULTI_SYMBOL_RANDOM)
 	randiv := random / 9
 	if randiv < 30 {
-		ran8 := rng.RandFromRange(8)
+		ran8 := rng.RandFromRangePool(8)
 		y := ran8 / 4
 		x := ran8 % 4
 
 		params[featureProducts.PARAM_ID_FAT_TILE_X] = x
 		params[featureProducts.PARAM_ID_FAT_TILE_Y] = y
 
-		ran12 := rng.RandFromRange(12)
+		ran12 := rng.RandFromRangePool(12)
 		params[featureProducts.PARAM_ID_INSTA_WIN_TYPE] = PARAM_VALUE_TRIGGER_SUPA_CREW_MULTI_SYMBOL_SPINNING_COIN
 		params[featureProducts.PARAM_ID_INSTA_WIN_SOURCE_ID] = f.FeatureDef.Id
 		params[featureProducts.PARAM_ID_INSTA_WIN_AMOUNT] = []int{
@@ -56,9 +56,9 @@ func (f TriggerSupaCrewMultiSymbol) Trigger(state *feature.FeatureState, params 
 }
 
 func (f TriggerSupaCrewMultiSymbol) ForceTrigger(state *feature.FeatureState, params feature.FeatureParams) {
-	params[featureProducts.PARAM_ID_FAT_TILE_X] = rng.RandFromRange(4)
-	params[featureProducts.PARAM_ID_FAT_TILE_Y] = rng.RandFromRange(2)
-	ran12 := rng.RandFromRange(12)
+	params[featureProducts.PARAM_ID_FAT_TILE_X] = rng.RandFromRangePool(4)
+	params[featureProducts.PARAM_ID_FAT_TILE_Y] = rng.RandFromRangePool(2)
+	ran12 := rng.RandFromRangePool(12)
 	params[featureProducts.PARAM_ID_INSTA_WIN_TYPE] = PARAM_VALUE_TRIGGER_SUPA_CREW_MULTI_SYMBOL_SPINNING_COIN
 	params[featureProducts.PARAM_ID_INSTA_WIN_SOURCE_ID] = f.FeatureDef.Id
 	params[featureProducts.PARAM_ID_INSTA_WIN_AMOUNT] = []int{

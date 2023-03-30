@@ -19,7 +19,7 @@ type TriggerFoxTale struct {
 }
 
 func (f TriggerFoxTale) Trigger(state *feature.FeatureState, params feature.FeatureParams) {
-	params[PARAM_ID_TRIGGER_FOX_TALE_RANDOM] = rng.RandFromRange(f.FeatureDef.Params[PARAM_ID_TRIGGER_FOX_TALE_RANDOM_RANGE].(int))
+	params[PARAM_ID_TRIGGER_FOX_TALE_RANDOM] = rng.RandFromRangePool(f.FeatureDef.Params[PARAM_ID_TRIGGER_FOX_TALE_RANDOM_RANGE].(int))
 	feature.ActivateFeatures(f.FeatureDef, state, params)
 	return
 }

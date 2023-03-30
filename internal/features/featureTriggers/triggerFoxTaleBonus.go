@@ -34,7 +34,7 @@ func (f TriggerFoxTaleBonus) Trigger(state *feature.FeatureState, params feature
 		index += gridh
 	}
 	if len(positions) >= 3 {
-		ran8 := rng.RandFromRange(8)
+		ran8 := rng.RandFromRangePool(8)
 		params[featureProducts.PARAM_ID_INSTA_WIN_TYPE] = featureProducts.PARAM_VALUE_INSTA_WIN_BONUS
 		params[featureProducts.PARAM_ID_INSTA_WIN_SOURCE_ID] = f.FeatureDef.Id
 		params[featureProducts.PARAM_ID_INSTA_WIN_AMOUNT] = []int{

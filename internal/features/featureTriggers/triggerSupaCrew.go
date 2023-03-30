@@ -22,7 +22,7 @@ func (f TriggerSupaCrew) Trigger(state *feature.FeatureState, params feature.Fea
 	if f.ForceTrigger(state, params) {
 		return
 	}
-	params[PARAM_ID_TRIGGER_SUPA_CREW_RANDOM] = rng.RandFromRange(
+	params[PARAM_ID_TRIGGER_SUPA_CREW_RANDOM] = rng.RandFromRangePool(
 		f.FeatureDef.Params[PARAM_ID_TRIGGER_SUPA_CREW_RANDOM_RANGE].(int))
 	feature.ActivateFeatures(f.FeatureDef, state, params)
 	return
