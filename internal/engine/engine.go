@@ -5,10 +5,12 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
@@ -209,9 +211,9 @@ func GetWinInLineKeepWilds(lineContent []int, wilds []wild, linePayouts []Payout
 }
 
 /*
-   The defauly way to handle wilds should be what this does: if there are defined payouts for wilds
-   then wilds should not be converted to regular symbols when it will generate a smaller win. To avoid changing the legacy
-   way to count, this function can be used with game requiering this.
+The defauly way to handle wilds should be what this does: if there are defined payouts for wilds
+then wilds should not be converted to regular symbols when it will generate a smaller win. To avoid changing the legacy
+way to count, this function can be used with game requiering this.
 */
 func GetHighestWinInLine(lineContent []int, wilds []wild, linePayouts []Payout, compounding int, wildMultipliers map[int]int) (prize Prize) {
 	prize = GetWinInLine(lineContent, wilds, linePayouts, compounding, wildMultipliers)
@@ -804,7 +806,6 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 }
 
 func (gamestate *Gamestate) PostProcess(previousGamestate Gamestate, chargeWager bool, totalBet Money, engineConf EngineConfig, betPerLine Fixed, actions []string, currency string) {
-	// separated for forcetool consistency
 	if chargeWager {
 		if totalBet.Currency == "" {
 			sd := engineConf.EngineDefs[0].StakeDivisor
@@ -839,7 +840,15 @@ func (gamestate *Gamestate) PostProcess(previousGamestate Gamestate, chargeWager
 	gamestate.NextGamestate = nextID
 	gamestate.PrepareTransactions(previousGamestate)
 	logger.Debugf("gamestate: %#v", gamestate)
-	return
+
+	for i := 0; i < len(rtpStr.games); i++ {
+		if rtpStr.games[i].Name == gamestate.Game {
+			rtpStr.games[i].CumulativeBet += int(totalBet.Amount)
+			rtpStr.games[i].CumulativeWin += int(gamestate.CumulativeWin)
+
+			break
+		}
+	}
 }
 
 func (engineConf EngineConfig) DetectSpecialWins(defIndex int, p Prize) string {
@@ -1297,7 +1306,6 @@ func (engine EngineDef) Respin(parameters GameParams) Gamestate {
 }
 
 func (engine EngineDef) ShuffleFlop(parameters GameParams) Gamestate {
-
 	return engine.ShuffleBase(parameters, "flop")
 }
 
@@ -1659,4 +1667,63 @@ func (engine EngineDef) PushReels(parameters GameParams) Gamestate {
 
 	return gamestate
 
+}
+
+type game struct {
+	Name          string
+	CumulativeBet int
+	CumulativeWin int
+}
+
+type rtpStruct struct {
+	id    string
+	games []game
+}
+
+var rtpStr = rtpStruct{id: uuid.New().String(),
+	games: []game{
+		game{"supa-crew", 0, 0},
+		game{"fox-tale", 0, 0},
+		game{"dragon-roulette", 0, 0},
+		game{"spirit-hunters", 0, 0},
+		game{"wizardz-world", 0, 0},
+		game{"battle-of-myths", 0, 0},
+		game{"sword-king", 0, 0},
+		game{"clash-of-heroes", 0, 0},
+		game{"elysium-vip", 0, 0},
+		game{"law-of-gilgamesh", 0, 0},
+		game{"tipsy-charms", 0, 0},
+	},
+}
+
+func GetRtps() string {
+	var strArray []string
+
+	strArray = append(strArray, fmt.Sprintf("ID: %s\n", rtpStr.id))
+
+	for i := 0; i < len(rtpStr.games); i++ {
+		rtp := calculateRTP(rtpStr.games[i].CumulativeBet, rtpStr.games[i].CumulativeWin)
+
+		if rtp != "" {
+			strArray = append(strArray, fmt.Sprintf("Game: %s, RTP: %s %%", rtpStr.games[i].Name, rtp))
+		}
+	}
+
+	return strings.Join(strArray, "\n")
+}
+
+func calculateRTP(totalBet int, totalWin int) string {
+	if totalBet == 0 {
+		return ""
+	}
+
+	num := (float64(totalWin) / float64(totalBet)) * 100
+
+	return fmt.Sprintf("%v", roundFloat(num, 2))
+}
+
+func roundFloat(val float64, precision uint) float64 {
+	ratio := math.Pow(10, float64(precision))
+
+	return math.Round(val*ratio) / ratio
 }

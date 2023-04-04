@@ -2,6 +2,7 @@ package api
 
 import (
 	"compress/flate"
+	"embed"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -17,10 +18,12 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 
 	//	"gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/parameterSelector"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/store"
@@ -36,6 +39,9 @@ const (
 	RegexPlayerId = "[a-zA-Z0-9-_+]+"
 	RegexId       = "[A-Za-z0-9-_+=.,:;/%]+"
 )
+
+//go:embed dist/*
+var dist embed.FS
 
 func Routes() *chi.Mux {
 	router := chi.NewRouter()
@@ -67,7 +73,16 @@ func Routes() *chi.Mux {
 	// Prometheus metrics endpoint
 	router.Handle("/metrics", promhttp.Handler())
 
+	router.Handle("/dist/*", http.FileServer(http.FS(dist)))
+
+	router.Handle("/rtpmon", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(engine.GetRtps()))
+	}))
+
 	router.Route("/v2/rgs", func(r chi.Router) {
+		// r.Get("/rtpmon", func(w http.ResponseWriter, r *http.Request) {
+		// 	w.Write([]byte(engine.GetRtps()))
+		// })
 
 		// TODO: These endpoints will be deprecated with new client release
 		r.Get("/init/{gameSlug:"+RegexGameSlug+"}/{wallet:"+RegexWallet+"}", func(w http.ResponseWriter, r *http.Request) {
