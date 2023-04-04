@@ -20,7 +20,6 @@ import (
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 
 	//	"gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
-
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"

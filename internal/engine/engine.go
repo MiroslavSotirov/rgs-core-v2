@@ -211,9 +211,9 @@ func GetWinInLineKeepWilds(lineContent []int, wilds []wild, linePayouts []Payout
 }
 
 /*
-The defauly way to handle wilds should be what this does: if there are defined payouts for wilds
-then wilds should not be converted to regular symbols when it will generate a smaller win. To avoid changing the legacy
-way to count, this function can be used with game requiering this.
+   The defauly way to handle wilds should be what this does: if there are defined payouts for wilds
+   then wilds should not be converted to regular symbols when it will generate a smaller win. To avoid changing the legacy
+   way to count, this function can be used with game requiering this.
 */
 func GetHighestWinInLine(lineContent []int, wilds []wild, linePayouts []Payout, compounding int, wildMultipliers map[int]int) (prize Prize) {
 	prize = GetWinInLine(lineContent, wilds, linePayouts, compounding, wildMultipliers)
@@ -1307,7 +1307,7 @@ func (engine EngineDef) Respin(parameters GameParams) Gamestate {
 }
 
 func (engine EngineDef) ShuffleFlop(parameters GameParams) Gamestate {
-	git 
+
 	return engine.ShuffleBase(parameters, "flop")
 }
 
