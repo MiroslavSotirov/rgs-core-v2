@@ -73,8 +73,6 @@ func Routes() *chi.Mux {
 	// Prometheus metrics endpoint
 	router.Handle("/metrics", promhttp.Handler())
 
-	router.Handle("/dist/*", http.FileServer(http.FS(dist)))
-
 	router.Handle("/rtpmon", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(engine.GetRtps()))
 	}))
