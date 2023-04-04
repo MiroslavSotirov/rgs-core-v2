@@ -806,6 +806,7 @@ func Play(previousGamestate Gamestate, betPerLine Fixed, currency string, parame
 }
 
 func (gamestate *Gamestate) PostProcess(previousGamestate Gamestate, chargeWager bool, totalBet Money, engineConf EngineConfig, betPerLine Fixed, actions []string, currency string) {
+	// separated for forcetool consistency
 	if chargeWager {
 		if totalBet.Currency == "" {
 			sd := engineConf.EngineDefs[0].StakeDivisor
@@ -1306,6 +1307,7 @@ func (engine EngineDef) Respin(parameters GameParams) Gamestate {
 }
 
 func (engine EngineDef) ShuffleFlop(parameters GameParams) Gamestate {
+	git 
 	return engine.ShuffleBase(parameters, "flop")
 }
 

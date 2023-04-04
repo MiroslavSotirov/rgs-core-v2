@@ -2,7 +2,6 @@ package api
 
 import (
 	"compress/flate"
-	"embed"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -18,10 +17,10 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 
 	//	"gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 
-	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/engine"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/forceTool"
@@ -39,9 +38,6 @@ const (
 	RegexPlayerId = "[a-zA-Z0-9-_+]+"
 	RegexId       = "[A-Za-z0-9-_+=.,:;/%]+"
 )
-
-//go:embed dist/*
-var dist embed.FS
 
 func Routes() *chi.Mux {
 	router := chi.NewRouter()
