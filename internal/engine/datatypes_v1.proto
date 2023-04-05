@@ -139,6 +139,16 @@ enum Ccy {
   PKR = 120;
   SOS = 121;
   XDR = 122;
+  MET = 123;
+  GGP = 124;
+  IMP = 125;
+  JEP = 126;
+  DOG = 127;
+  TRX = 128;
+  LRD = 129;
+  UET = 130;
+  FTN = 131;
+  TTH = 132;
 }
 
 message WalletTransactionPB {

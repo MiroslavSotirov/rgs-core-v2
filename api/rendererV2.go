@@ -18,15 +18,16 @@ type GameInitResponseV2 struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 	//Balance     engine.Money                  `json:"balance"`
-	Wallet       string                        `json:"wallet"`
-	StakeValues  []engine.Fixed                `json:"stakeValues"`
-	TotalStakes  []engine.Fixed                `json:"totalStakes"`
-	DefaultBet   engine.Fixed                  `json:"defaultBet"`
-	DefaultTotal engine.Fixed                  `json:"defaultTotal"`
-	LastRound    map[string]GameplayResponseV2 `json:"lastRound"`
-	ReelSets     map[string]ReelResponse       `json:"reelSets,omitempty"` // base, freeSpin, etc. as keys  might want to have this as ReelSetResponse
-	BetMult      int                           `json:"betMultiplier"`
-	Features     []feature.Feature             `json:"featureConfigs,omitempty"`
+	Wallet           string                        `json:"wallet"`
+	StakeValues      []engine.Fixed                `json:"stakeValues"`
+	TotalStakes      []engine.Fixed                `json:"totalStakes"`
+	DefaultBet       engine.Fixed                  `json:"defaultBet"`
+	DefaultTotal     engine.Fixed                  `json:"defaultTotal"`
+	CurrencyDecimals int                           `json:"currencyDecimals"`
+	LastRound        map[string]GameplayResponseV2 `json:"lastRound"`
+	ReelSets         map[string]ReelResponse       `json:"reelSets,omitempty"` // base, freeSpin, etc. as keys  might want to have this as ReelSetResponse
+	BetMult          int                           `json:"betMultiplier"`
+	Features         []feature.Feature             `json:"featureConfigs,omitempty"`
 }
 
 func (gi GameInitResponseV2) Render(w http.ResponseWriter, r *http.Request) error {

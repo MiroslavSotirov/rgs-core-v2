@@ -173,6 +173,10 @@ func (f *Fixed) MarshalYAML() ([]byte, error) {
 	return yaml.Marshal(&s)
 }
 
+func (f Fixed) String() string {
+	return fmt.Sprintf("%f", f.ValueAsFloat())
+}
+
 type Money struct {
 	Amount   Fixed  `json:"amount"`
 	Currency string `json:"currency"`
