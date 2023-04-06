@@ -31,7 +31,6 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 		if wallet == "demo" {
 			// todo : allow setting of betlimitsettignscode
 			balance, ctFS, waFS, err := parameterSelector.GetDemoWalletDefaults(currency, gameName, "", playerID, newPlayer.BetSettingId)
-
 			if err != nil {
 				return engine.Gamestate{}, PlayerStore{}, err
 			}
@@ -53,7 +52,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 		}
 		latestGamestate = CreateInitGS(newPlayer, gameName)
 		txamount := engine.Money{0, newPlayer.Balance.Currency}
-		txtype := CategoryWager
+		txtype := CategoryPayout
 		latestGamestate.Transactions = []engine.WalletTransaction{
 			engine.WalletTransaction{
 				Id:     latestGamestate.Id,
