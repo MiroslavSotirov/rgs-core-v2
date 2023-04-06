@@ -166,7 +166,7 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 	giResp.Wallet = wallet
 	// set stakevalues, links,
 
-	stakeValues, defaultBet, _, _, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine, player.BetLimitSettingCode, data.Game, player.CompanyId)
+	stakeValues, defaultBet, _, _, err := parameterSelector.GetGameplayParameters(latestGamestate.BetPerLine, player.BetLimitSettingCode, data.Game, player.BetSettingId)
 	if err != nil {
 		logger.Debugf("error: %v", err)
 		return GameInitResponseV2{}, err
@@ -176,6 +176,11 @@ func initV2(request *http.Request) (GameInitResponseV2, rgse.RGSErr) {
 	giResp.DefaultTotal = defaultBet.Mul(sd)
 	giResp.StakeValues = stakeValues
 	giResp.TotalStakes = make([]engine.Fixed, len(stakeValues))
+	giResp.CurrencyDecimals, err = parameterSelector.GetCurrencyMinorUnit(latestGamestate.BetPerLine.Currency)
+	if err != nil {
+		logger.Debugf("could not get currency minor unit: %v", err)
+		return GameInitResponseV2{}, err
+	}
 	for i := range giResp.TotalStakes {
 		giResp.TotalStakes[i] = stakeValues[i].Mul(sd)
 	}

@@ -80,6 +80,7 @@ type (
 		Balance             engine.Money
 		BetLimitSettingCode string
 		CompanyId           string
+		BetSettingId        string
 		FreeGames           FreeGamesStore
 	}
 
@@ -111,6 +112,7 @@ type (
 		TxTime              time.Time
 		BetLimitSettingCode string
 		CompanyId           string
+		BetSettingId        string
 		GameState           []byte
 		FreeGames           FreeGamesStore
 		WalletStatus        int
@@ -292,13 +294,14 @@ type (
 		Token string `json:"token"`
 		//		ResponseCode string       `json:"code"`
 		//		Message      string       `json:"message"`
-		Id        string       `json:"id"`
-		Username  string       `json:"username"`
-		BetLimit  string       `json:"bet_limit"`
-		CompanyId int64        `json:"company_id"`
-		FreeGames restFreeGame `json:"free_games"`
-		Balance   int64        `json:"balance"`
-		Currency  string       `json:"currency"`
+		Id           string       `json:"id"`
+		Username     string       `json:"username"`
+		BetLimit     string       `json:"bet_limit"`
+		CompanyId    int64        `json:"company_id"`
+		BetSettingId string       `json:"bet_setting_id"`
+		FreeGames    restFreeGame `json:"free_games"`
+		Balance      int64        `json:"balance"`
+		Currency     string       `json:"currency"`
 		//LastGameState   string            `json:"last_game_state"`
 		PlayerMessage restPlayerMessage `json:"player_message"`
 		Urls          map[string]string `json:"urls"`
@@ -439,6 +442,7 @@ type (
 		//		Message       string            `json:"message"`
 		BetLimit      string            `json:"bet_limit"`
 		CompanyId     int64             `json:"company_id"`
+		BetSettingId  string            `json:"bet_setting_id"`
 		PlayerId      string            `json:"player_id"`
 		Balance       int64             `json:"balance"`
 		Currency      string            `json:"currency"`
@@ -477,9 +481,10 @@ type (
 		//Round          string       `json:"round"`
 		//TxRef          string       `json:"tx_ref"`
 		//Description    string       `json:"description"`
-		BetLimit  string       `json:"bet_limit"`
-		CompanyId int64        `json:"company_id"`
-		FreeGames restFreeGame `json:"free_games"`
+		BetLimit     string       `json:"bet_limit"`
+		CompanyId    int64        `json:"company_id"`
+		BetSettingId string       `json:"bet_setting_id"`
+		FreeGames    restFreeGame `json:"free_games"`
 		//InternalStatus int          `json:"internal_status"`
 		LastTx restTransactionRequest `json:"last_tx"`
 	}
@@ -632,6 +637,7 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 				FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef, player.FreeGames.TotalWagerAmt},
 				BetLimitSettingCode: player.BetLimitSettingCode,
 				CompanyId:           player.CompanyId,
+				BetSettingId:        player.BetSettingId,
 			}
 			gs = GameStateStore{GameState: tx.GameState, WalletInternalStatus: 1}
 			return
@@ -650,6 +656,7 @@ func (i *LocalServiceImpl) PlayerByToken(token Token, mode Mode, gameId string) 
 				FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef, player.FreeGames.TotalWagerAmt},
 				BetLimitSettingCode: player.BetLimitSettingCode,
 				CompanyId:           player.CompanyId,
+				BetSettingId:        player.BetSettingId,
 			}
 			return
 		}
@@ -833,6 +840,7 @@ func (i *RemoteServiceImpl) PlayerByToken(token Token, mode Mode, gameId string)
 			FreeGames:           balance.FreeGames,
 			BetLimitSettingCode: authResp.BetLimit,
 			CompanyId:           fmt.Sprintf("%v", authResp.CompanyId),
+			BetSettingId:        authResp.BetSettingId,
 		},
 		GameStateStore{GameState: gameState, WalletInternalStatus: lastTransaction.InternalStatus},
 		nil
@@ -946,6 +954,7 @@ func (i *LocalServiceImpl) PlayerSave(token Token, mode Mode, player PlayerStore
 		FreeGames:           FreeGamesStore{player.FreeGames.NoOfFreeSpins, player.FreeGames.CampaignRef, player.FreeGames.TotalWagerAmt},
 		BetLimitSettingCode: player.BetLimitSettingCode,
 		CompanyId:           player.CompanyId,
+		BetSettingId:        player.BetSettingId,
 	}, nil
 }
 
@@ -1319,6 +1328,7 @@ func (i *LocalServiceImpl) TransactionByGameId(token Token, mode Mode, gameId st
 		GameState:           transaction.GameState,
 		BetLimitSettingCode: player.BetLimitSettingCode,
 		CompanyId:           player.CompanyId,
+		BetSettingId:        player.BetSettingId,
 		FreeGames:           player.FreeGames,
 		WalletStatus:        1,
 		Ttl:                 transaction.Ttl,
@@ -1422,6 +1432,7 @@ func (i *RemoteServiceImpl) TransactionByGameId(token Token, mode Mode, gameId s
 		GameState:           gameState,
 		BetLimitSettingCode: queryResp.BetLimit,
 		CompanyId:           fmt.Sprintf("%v", queryResp.CompanyId),
+		BetSettingId:        queryResp.BetSettingId,
 		FreeGames:           balance.FreeGames,
 		WalletStatus:        lastTx.InternalStatus,
 		Ttl:                 lastTx.Ttl,
@@ -1486,6 +1497,7 @@ func (i *LocalServiceImpl) CloseRound(token Token, mode Mode, gameId string, rou
 		TxTime:              time.Now(),
 		GameState:           gamestate,
 		CompanyId:           player.CompanyId,
+		BetSettingId:        player.BetSettingId,
 		FreeGames:           player.FreeGames,
 		Ttl:                 ttl,
 		History:             *history,

@@ -129,9 +129,14 @@ func initRoulette(player store.PlayerStore, engineId string, wallet string, body
 
 	playResponse := fillRoulettePlayResponse(gameState, balance)
 
-	stakeValues, defaultBet, minBet, maxBet, prmerr := parameterSelector.GetGameplayParameters(engine.Money{Currency: data.Ccy}, player.BetLimitSettingCode, data.Game, player.CompanyId)
+	stakeValues, defaultBet, minBet, maxBet, prmerr := parameterSelector.GetGameplayParameters(engine.Money{Currency: gameState.Currency}, player.BetLimitSettingCode, data.Game, player.BetSettingId)
 	if prmerr != nil {
 		rgserr = prmerr
+		return
+	}
+	mu, muerr := parameterSelector.GetCurrencyMinorUnit(gameState.Currency)
+	if muerr != nil {
+		rgserr = muerr
 		return
 	}
 
@@ -141,10 +146,11 @@ func initRoulette(player store.PlayerStore, engineId string, wallet string, body
 	}
 	response = &GameInitResponseRoulette{
 		GameInitResponseV3: GameInitResponseV3{
-			Name:        gameState.Game,
-			Wallet:      wallet,
-			StakeValues: stakeValues,
-			DefaultBet:  defaultBet,
+			Name:             gameState.Game,
+			Wallet:           wallet,
+			StakeValues:      stakeValues,
+			DefaultBet:       defaultBet,
+			CurrencyDecimals: mu,
 		},
 		LastRound: playResponse,
 		Reel:      engineDef.Reels[0],
@@ -163,7 +169,7 @@ func playRoulette(engineId string, wallet string, body []byte, txStore store.Tra
 
 	engineConf := engine.BuildEngineDefs(engineId)
 
-	stakeValues, _, minBet, maxBet, prmerr := parameterSelector.GetGameplayParameters(engine.Money{0, txStore.Amount.Currency}, txStore.BetLimitSettingCode, data.Game, txStore.CompanyId)
+	stakeValues, _, minBet, maxBet, prmerr := parameterSelector.GetGameplayParameters(engine.Money{0, txStore.Amount.Currency}, txStore.BetLimitSettingCode, data.Game, txStore.BetSettingId)
 	if prmerr != nil {
 		return nil, prmerr
 	}

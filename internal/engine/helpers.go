@@ -165,6 +165,10 @@ func (num1 Fixed) MulFloat(num2 Fixed) Fixed {
 	return Fixed(float64(num1) / float64(fixedExp) * float64(num2))
 }
 
+func (num1 Fixed) MulInt(num2 int64) Fixed {
+	return Fixed(int64(num1) * num2)
+}
+
 func (num1 Fixed) Div(num2 Fixed) Fixed {
 	// divide two fixed point numbers with e6 representation
 	// num1 = realnum1 * 10^6
@@ -197,6 +201,10 @@ func (num Fixed) Pow(exp int) Fixed {
 		res = res.Mul(num)
 	}
 	return res
+}
+
+func (num Fixed) Trunc() Fixed {
+	return NewFixedFromInt(int(num.ValueAsInt()))
 }
 
 func NewFixedFromFloat(num float32) Fixed {

@@ -11,12 +11,15 @@ IMAGE=harbor.inf01.activeops.io/maverick/mvg_rgs
 ifndef BUILDVERSION
 	BUILDVERSION=latest
 endif
-
+VPATH=internal/engine/
 # Dockerfile is not set up to run locally
 # add config file copy commands to enable this,
 # however this would conflict with the hosted setup
 
 .PHONY: build test start push run stop latest test_all
+
+buildandtest: build test
+
 all: test build docker rundocker
 
 test:
@@ -53,7 +56,10 @@ stop:
 	docker stop "${CONTAINER_NAME}-$(BUILDVERSION)"
 	docker rm "${CONTAINER_NAME}-$(BUILDVERSION)"
 
-build:
+datatypes_v1.pb.go: datatypes_v1.proto
+	protoc --go_out=paths=source_relative:. $<
+
+build:  datatypes_v1.pb.go
 	$(GOBUILD) -o rgs cmd/main.go
 
 run:

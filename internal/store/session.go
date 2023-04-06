@@ -30,7 +30,7 @@ func InitPlayerGS(refreshToken string, playerID string, gameName string, currenc
 		logger.Debugf("latest gamestate had length zero")
 		if wallet == "demo" {
 			// todo : allow setting of betlimitsettignscode
-			balance, ctFS, waFS, err := parameterSelector.GetDemoWalletDefaults(currency, gameName, "", playerID, newPlayer.CompanyId)
+			balance, ctFS, waFS, err := parameterSelector.GetDemoWalletDefaults(currency, gameName, "", playerID, newPlayer.BetSettingId)
 
 			if err != nil {
 				return engine.Gamestate{}, PlayerStore{}, err

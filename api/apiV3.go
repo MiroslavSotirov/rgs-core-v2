@@ -45,11 +45,12 @@ type IGameInitResponseV3 interface {
 }
 
 type GameInitResponseV3 struct {
-	Name        string         `json:"name"`
-	Version     string         `json:"version"`
-	Wallet      string         `json:"wallet"`
-	StakeValues []engine.Fixed `json:"stakeValues"`
-	DefaultBet  engine.Fixed   `json:"defaultBet"`
+	Name             string         `json:"name"`
+	Version          string         `json:"version"`
+	Wallet           string         `json:"wallet"`
+	StakeValues      []engine.Fixed `json:"stakeValues"`
+	DefaultBet       engine.Fixed   `json:"defaultBet"`
+	CurrencyDecimals int            `json:"currencyDecimals"`
 }
 
 func (resp *GameInitResponseV3) Base() *GameInitResponseV3 {
@@ -140,7 +141,7 @@ func initV3(request *http.Request) (response IGameInitResponseV3, rgserr rgse.RG
 			var balance engine.Money
 			var ctFS int
 			var waFS engine.Fixed
-			balance, ctFS, waFS, rgserr = parameterSelector.GetDemoWalletDefaults(data.Ccy, data.Game, "", authToken, player.CompanyId)
+			balance, ctFS, waFS, rgserr = parameterSelector.GetDemoWalletDefaults(data.Ccy, data.Game, "", authToken, player.BetSettingId)
 			if rgserr != nil {
 				return
 			}

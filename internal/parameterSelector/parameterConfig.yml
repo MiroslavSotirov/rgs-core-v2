@@ -22,24 +22,21 @@ defaultBet: 5 # index of stakeValues
 
 ccyMultipliers:
   default:
+    ## ISO 4217
     AED: 0.03
-    ALL: 1
+    ALL: 0.8 # 1
     AMD: 2
-    AOA: 3
+    AOA: 4 # 3
     ARS: 0.5
-    AUD: 0.01
-    ARX: 1.25
     AZN: 0.01
     BAM: 0.01
-    BCH: 0.001
     BDT: 0.8
     BGN: 0.01
-    BHD: 0.01
+    BHD: 0.004 # 0.01 
     BND: 0.01
-    BOB: 0.05
+    BOB: 0.06 # 0.05
     BRL: 0.05
-  #  BTC: 0.01 # CRYPTO BTC. use UBC instead
-    BWP: 0.05
+    BWP: 0.1 # 0.05
     BYN: 0.02
     CAD: 0.01
     CDF: 10
@@ -51,31 +48,28 @@ ccyMultipliers:
     CUP: 0.2
     CZK: 0.2
     DKK: 0.07
-    DOP: 0.5
+    DOP: 0.4 # 0.5
     DZD: 1.4
-    EGP: 0.25
+    EGP: 0.2 # 0.25
     ETB: 0.3
-    ETH: 0.001
     EUR: 0.01
     GBP: 0.01
     GEL: 0.02
-    GHS: 0.05
+    GHS: 0.1 # 0.05
     GIP: 0.01
-    GNF: 500
-    GTQ: 0.05
-    HKD: 0.05
+    GNF: 30 # 500
+    GTQ: 0.07 # 0.05
+    HKD: 0.08 # 0.05
     HNL: 0.1
-    HRK: 0.05
-    HTG: 0.5
+    HTG: 1 # 0.5
     HUF: 4
     IDR: 100
     ILS: 0.03
     INR: 0.6
     IQD: 14
-    IRR: 250
-    IRT: 0.1
+    IRR: 400 # 250
     ISK: 1
-    JOD: 0.01
+    JOD: 0.0075 # 0.01
     JPY: 1.5
     KES: 1
     KGS: .8
@@ -85,26 +79,24 @@ ccyMultipliers:
     KZT: 4
     LBP: 25
     LKR: 1.5
-    LSL: 0.1
-    LTC: 0.001
+    LRD: 1
+    LSL: 0.1      # DEMO mode currency
     LYD: 0.03
     MAD: 0.1
-  #  MBC: 0.04   # CRYPTO mBTC. MBC removed. use UBC instead
     MDL: 0.1
-    MGA: 30
-    MKD: 0.5
+    MKD: 0.4 # 0.5
     MMK: 20
     MNT: 30
-    MWK: 1
+    MWK: 4 # 1
     MXN: 0.2
     MYR: 0.04
-    MZN: 0.5
+    MZN: 0.4 # 0.5
     NAD: 0.05
     NGN: 1
     NOK: 0.1
     NPR: 1.3
     NZD: 0.01
-    OMR: 0.01
+    OMR: 0.004 # 0.01
     PAB: 0.01
     PEN: 0.02
     PKR: 2
@@ -112,10 +104,10 @@ ccyMultipliers:
     PYG: 70
     QAR: 0.03
     RON: 0.04
-    RSD: 1
+    RSD: 0.8 # 1
     RUB: 0.6
-    RWF: 5
-    SAR: 0.03
+    RWF: 4 # 5
+    SAR: 0.04 # 0.03
     SEK: 0.1
     SLL: 100
     SOS: 5.5
@@ -127,22 +119,79 @@ ccyMultipliers:
     TRY: 0.18
     TZS: 10
     UAH: 0.1
-    UBC: 1  # CRYPTO uBTC
-    UGX: 50
+    UGX: 30 # 50
     USD: 0.01
-    UST: 0.01
-    UYU: 0.4
+    UYU: 0.2 # 0.4
     UZS: 100
-    VES: 0.01
-    VEX: 2000
+    VES: 0.1 # 0.01
     VND: 200
-    XAF: 5
-    XBT: 0.001
-    XDR: 0.005
-    XOF: 5
+    XAF: 4 # 5
+    XOF: 4 # 5
     ZAR: 0.14
-    ZMK: 0.1
     ZMW: 0.15
+
+    ## NON ISO 4217
+    GGP: 0.01   # Guernsey Pound
+    HRK: 0.05   # Croatian Kuna, discontinued from 2023-01-01
+    IMP: 0.01   # Island of Man Pound
+    IRT: 0.1    # Iranian Rial Denomination
+    JEP: 0.01   # Jersey Pound
+
+    ## CRYPTO
+#   BTC: 0.01   # Bitcoin
+    DOG: 0.1    # Dogecoin
+#   ETH: 0.001  # Ethereum
+    FTN: 0.02   # Fasttoken
+#   LTC: 0.0001 # Litecoin
+#   MBC: 0.0004 # milliBitcoin
+    MET: 0.006  # milliEthereum
+    TTH: 0.01   # USDT/Tether
+    UBC: 0.3    # microBitcoin
+    UET: 4      # microEthereum
+    VEX: 2000   # Vexanium
+    XDR: 0.005  # XDrake?
+
+    ## Unsupported by Service Provider
+    AUD: 0.01   # Australian Dollar
+    ARX: 1.25   # CRYPTO?
+    BCH: 0.001  # CRYPTO Bitcoin cash
+    MGA: 30     # Malagasy Aiary
+    TRX: 0.1    # CRYPTO TRON?
+    UST: 0.01   # CRYPTO TerraUSD?
+#   XBT: 0.001  # CRYPTO Bitcoin
+    ZMK: 0.1    # Old Zambian Kwacha, discontinued from 2013-01-01
+
+## currencies not in this list have minor unit 2
+ccyMinorUnits:
+    BHD: 3
+    XOF: 0
+    XAF: 0
+    CLP: 0
+    GNF: 0
+    ISK: 0
+    IQD: 3
+    JPY: 0
+    JOD: 3
+    KRW: 0
+    KWD: 3
+    LYD: 3
+    OMR: 3
+    PYG: 0
+    RWF: 0
+    TND: 3
+    UGX: 0
+    VND: 0
+
+    # CRYPTO
+    BCH: 4
+    BTC: 4
+    MBC: 4
+    XBT: 4
+    ETH: 4
+    MET: 4
+    UET: 4
+    VEX: 4
+    XDR: 4
 
 profiles:
   low:
@@ -170,173 +219,166 @@ override:
         stakeValues: [2,4,6,10,20,40,60,100,200,400]
     mvgEngineRoulette1:
       credits:
+        stakeValues: [50,100,200,500,1000,2000,5000,10000,50000]
         defaultBet: 50
         minBet: 50
         maxBet: 200000
-        stakeValues: [50,100,200,500,1000,2000,5000,10000,50000]
       TND:
+        stakeValues: [0.1,0.2,0.4,1,2,4,10,20,100]
         defaultBet: 0.1
         minBet: 0.1
         maxBet: 100
-        stakeValues: [0.1,0.2,0.4,1,2,4,10,20,100]
+    mvgEngineGodot3:
+      credits:  # maxLimit: 200
+        stakeValues: [1,2,3,4,5,7,9,10,15,20,30,40,50,70,90,100,150,200]        
+        defaultBet: 5
     mvgEngineGodot4:
-      credits:
+      credits:  # maxLimit: 400
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400]
         defaultBet: 10
-        maxLimit: 400
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
     mvgEngineGodot5:
-      credits:
+      credits:  # maxLimit: 400
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400]
         defaultBet: 10
-        maxLimit: 400
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
     mvgEngineGodot6:
-      credits:
+      credits:  # maxLimit: 400
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400]
         defaultBet: 10
-        maxLimit: 400
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
     mvgEngineGodot7:
-      credits:
+      credits:  # maxLimit: 400
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400]
         defaultBet: 10
-        maxLimit: 400
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
     mvgEngineGodot8:
-      credits:
+      credits:  # maxLimit: 400
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400]
         defaultBet: 10
-        maxLimit: 400
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
     mvgEngineGodot8_94:
-      credits:
+      credits:  # maxLimit: 400
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400]
         defaultBet: 10
-        maxLimit: 400
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
     mvgEngineGodot9:
-      credits:
+      credits:  # maxLimit: 400
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400]
         defaultBet: 10
-        maxLimit: 400
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
     mvgEngineGodot9_94:
-      credits:
+      credits:  # maxLimit: 400
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400]
         defaultBet: 10
-        maxLimit: 400
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
     mvgEngineGodot9_90:
-      credits:
+      credits:  # maxLimit: 400
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400]
         defaultBet: 10
-        maxLimit: 400
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
     mvgEngineGodot10:
-      credits:
+      credits:  # maxLimit: 400
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400]
         defaultBet: 10
-        maxLimit: 400
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
   2625894: # Dashur test company
     # keep this config for validation:
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
-  254709057: # Dashur prod test company
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
+  456: # temporary test with the Dashur test company and bet setting id 456
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 100
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100]
+        defaultBet: 10  
   189931772: # GamingTec AZN
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   189931289: # GamingTec BRL
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   189931520: # GamingTec CAD
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   189932030: # GamingTec CZK
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   189932119: # GamingTec DKK
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   139062386: # GamingTec EUR
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   189932513: # GamingTec HUF
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   209411270: # GamingTec INR
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   187503907: # GamingTec JPY
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   141081560: # GamingTec KZT
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   189931649: # GamingTec MXN
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   141081636: # GamingTec NOK
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   189932297: # GamingTec NZD
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   189931913: # GamingTec PLN
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   141081161: # GamingTec RUB
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   141081454: # GamingTec SEK
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   139062151: # GamingTec TRY
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   139062556: # GamingTec USD
     mvgEngineGodot5:
-      credits:
-        maxLimit: 160
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+      credits:  # maxLimit: 160
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140]
+        defaultBet: 10
   430315004: # BetWarrior
     mvgEngineGodot5:
-      credits:
-        maxLimit: 40
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
-    mvgEngineGodot8:
-      credits:
+      credits:  # maxLimit: 40
+        stakeValues: [2,4,6,8,10,14,18,20,30,40]
         defaultBet: 10
-        maxLimit: 180
-        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100,140,180,200,300,400,800,1000]
+    mvgEngineGodot8:
+      credits:  # maxLimit: 180
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,80,100,140,180]
+        defaultBet: 10

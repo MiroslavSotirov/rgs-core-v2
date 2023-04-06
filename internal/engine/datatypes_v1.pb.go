@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.28.0
 // 	protoc        v3.12.4
-// source: datatypes_v1.proto
+// source: internal/engine/datatypes_v1.proto
 
 package engine
 
@@ -145,6 +145,16 @@ const (
 	Ccy_PKR     Ccy = 120
 	Ccy_SOS     Ccy = 121
 	Ccy_XDR     Ccy = 122
+	Ccy_MET     Ccy = 123
+	Ccy_GGP     Ccy = 124
+	Ccy_IMP     Ccy = 125
+	Ccy_JEP     Ccy = 126
+	Ccy_DOG     Ccy = 127
+	Ccy_TRX     Ccy = 128
+	Ccy_LRD     Ccy = 129
+	Ccy_UET     Ccy = 130
+	Ccy_FTN     Ccy = 131
+	Ccy_TTH     Ccy = 132
 )
 
 // Enum value maps for Ccy.
@@ -272,6 +282,16 @@ var (
 		120: "PKR",
 		121: "SOS",
 		122: "XDR",
+		123: "MET",
+		124: "GGP",
+		125: "IMP",
+		126: "JEP",
+		127: "DOG",
+		128: "TRX",
+		129: "LRD",
+		130: "UET",
+		131: "FTN",
+		132: "TTH",
 	}
 	Ccy_value = map[string]int32{
 		"DEFAULT": 0,
@@ -396,6 +416,16 @@ var (
 		"PKR":     120,
 		"SOS":     121,
 		"XDR":     122,
+		"MET":     123,
+		"GGP":     124,
+		"IMP":     125,
+		"JEP":     126,
+		"DOG":     127,
+		"TRX":     128,
+		"LRD":     129,
+		"UET":     130,
+		"FTN":     131,
+		"TTH":     132,
 	}
 )
 
@@ -410,11 +440,11 @@ func (x Ccy) String() string {
 }
 
 func (Ccy) Descriptor() protoreflect.EnumDescriptor {
-	return file_datatypes_v1_proto_enumTypes[0].Descriptor()
+	return file_internal_engine_datatypes_v1_proto_enumTypes[0].Descriptor()
 }
 
 func (Ccy) Type() protoreflect.EnumType {
-	return &file_datatypes_v1_proto_enumTypes[0]
+	return &file_internal_engine_datatypes_v1_proto_enumTypes[0]
 }
 
 func (x Ccy) Number() protoreflect.EnumNumber {
@@ -423,7 +453,7 @@ func (x Ccy) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Ccy.Descriptor instead.
 func (Ccy) EnumDescriptor() ([]byte, []int) {
-	return file_datatypes_v1_proto_rawDescGZIP(), []int{0}
+	return file_internal_engine_datatypes_v1_proto_rawDescGZIP(), []int{0}
 }
 
 type WalletTransactionPB_Type int32
@@ -462,11 +492,11 @@ func (x WalletTransactionPB_Type) String() string {
 }
 
 func (WalletTransactionPB_Type) Descriptor() protoreflect.EnumDescriptor {
-	return file_datatypes_v1_proto_enumTypes[1].Descriptor()
+	return file_internal_engine_datatypes_v1_proto_enumTypes[1].Descriptor()
 }
 
 func (WalletTransactionPB_Type) Type() protoreflect.EnumType {
-	return &file_datatypes_v1_proto_enumTypes[1]
+	return &file_internal_engine_datatypes_v1_proto_enumTypes[1]
 }
 
 func (x WalletTransactionPB_Type) Number() protoreflect.EnumNumber {
@@ -475,7 +505,7 @@ func (x WalletTransactionPB_Type) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WalletTransactionPB_Type.Descriptor instead.
 func (WalletTransactionPB_Type) EnumDescriptor() ([]byte, []int) {
-	return file_datatypes_v1_proto_rawDescGZIP(), []int{2, 0}
+	return file_internal_engine_datatypes_v1_proto_rawDescGZIP(), []int{2, 0}
 }
 
 type GamestatePB_GameID int32
@@ -703,11 +733,11 @@ func (x GamestatePB_GameID) String() string {
 }
 
 func (GamestatePB_GameID) Descriptor() protoreflect.EnumDescriptor {
-	return file_datatypes_v1_proto_enumTypes[2].Descriptor()
+	return file_internal_engine_datatypes_v1_proto_enumTypes[2].Descriptor()
 }
 
 func (GamestatePB_GameID) Type() protoreflect.EnumType {
-	return &file_datatypes_v1_proto_enumTypes[2]
+	return &file_internal_engine_datatypes_v1_proto_enumTypes[2]
 }
 
 func (x GamestatePB_GameID) Number() protoreflect.EnumNumber {
@@ -716,7 +746,7 @@ func (x GamestatePB_GameID) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use GamestatePB_GameID.Descriptor instead.
 func (GamestatePB_GameID) EnumDescriptor() ([]byte, []int) {
-	return file_datatypes_v1_proto_rawDescGZIP(), []int{4, 0}
+	return file_internal_engine_datatypes_v1_proto_rawDescGZIP(), []int{4, 0}
 }
 
 type GamestatePB_Action int32
@@ -920,11 +950,11 @@ func (x GamestatePB_Action) String() string {
 }
 
 func (GamestatePB_Action) Descriptor() protoreflect.EnumDescriptor {
-	return file_datatypes_v1_proto_enumTypes[3].Descriptor()
+	return file_internal_engine_datatypes_v1_proto_enumTypes[3].Descriptor()
 }
 
 func (GamestatePB_Action) Type() protoreflect.EnumType {
-	return &file_datatypes_v1_proto_enumTypes[3]
+	return &file_internal_engine_datatypes_v1_proto_enumTypes[3]
 }
 
 func (x GamestatePB_Action) Number() protoreflect.EnumNumber {
@@ -933,7 +963,7 @@ func (x GamestatePB_Action) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use GamestatePB_Action.Descriptor instead.
 func (GamestatePB_Action) EnumDescriptor() ([]byte, []int) {
-	return file_datatypes_v1_proto_rawDescGZIP(), []int{4, 1}
+	return file_internal_engine_datatypes_v1_proto_rawDescGZIP(), []int{4, 1}
 }
 
 type PayoutPB struct {
@@ -949,7 +979,7 @@ type PayoutPB struct {
 func (x *PayoutPB) Reset() {
 	*x = PayoutPB{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_datatypes_v1_proto_msgTypes[0]
+		mi := &file_internal_engine_datatypes_v1_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -962,7 +992,7 @@ func (x *PayoutPB) String() string {
 func (*PayoutPB) ProtoMessage() {}
 
 func (x *PayoutPB) ProtoReflect() protoreflect.Message {
-	mi := &file_datatypes_v1_proto_msgTypes[0]
+	mi := &file_internal_engine_datatypes_v1_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -975,7 +1005,7 @@ func (x *PayoutPB) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PayoutPB.ProtoReflect.Descriptor instead.
 func (*PayoutPB) Descriptor() ([]byte, []int) {
-	return file_datatypes_v1_proto_rawDescGZIP(), []int{0}
+	return file_internal_engine_datatypes_v1_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *PayoutPB) GetSymbol() int32 {
@@ -1013,7 +1043,7 @@ type PrizePB struct {
 func (x *PrizePB) Reset() {
 	*x = PrizePB{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_datatypes_v1_proto_msgTypes[1]
+		mi := &file_internal_engine_datatypes_v1_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1026,7 +1056,7 @@ func (x *PrizePB) String() string {
 func (*PrizePB) ProtoMessage() {}
 
 func (x *PrizePB) ProtoReflect() protoreflect.Message {
-	mi := &file_datatypes_v1_proto_msgTypes[1]
+	mi := &file_internal_engine_datatypes_v1_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1039,7 +1069,7 @@ func (x *PrizePB) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrizePB.ProtoReflect.Descriptor instead.
 func (*PrizePB) Descriptor() ([]byte, []int) {
-	return file_datatypes_v1_proto_rawDescGZIP(), []int{1}
+	return file_internal_engine_datatypes_v1_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *PrizePB) GetPayout() *PayoutPB {
@@ -1084,7 +1114,7 @@ type WalletTransactionPB struct {
 func (x *WalletTransactionPB) Reset() {
 	*x = WalletTransactionPB{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_datatypes_v1_proto_msgTypes[2]
+		mi := &file_internal_engine_datatypes_v1_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1097,7 +1127,7 @@ func (x *WalletTransactionPB) String() string {
 func (*WalletTransactionPB) ProtoMessage() {}
 
 func (x *WalletTransactionPB) ProtoReflect() protoreflect.Message {
-	mi := &file_datatypes_v1_proto_msgTypes[2]
+	mi := &file_internal_engine_datatypes_v1_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1110,7 +1140,7 @@ func (x *WalletTransactionPB) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WalletTransactionPB.ProtoReflect.Descriptor instead.
 func (*WalletTransactionPB) Descriptor() ([]byte, []int) {
-	return file_datatypes_v1_proto_rawDescGZIP(), []int{2}
+	return file_internal_engine_datatypes_v1_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *WalletTransactionPB) GetId() string {
@@ -1154,7 +1184,7 @@ type FeaturePB struct {
 func (x *FeaturePB) Reset() {
 	*x = FeaturePB{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_datatypes_v1_proto_msgTypes[3]
+		mi := &file_internal_engine_datatypes_v1_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1167,7 +1197,7 @@ func (x *FeaturePB) String() string {
 func (*FeaturePB) ProtoMessage() {}
 
 func (x *FeaturePB) ProtoReflect() protoreflect.Message {
-	mi := &file_datatypes_v1_proto_msgTypes[3]
+	mi := &file_internal_engine_datatypes_v1_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1180,7 +1210,7 @@ func (x *FeaturePB) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeaturePB.ProtoReflect.Descriptor instead.
 func (*FeaturePB) Descriptor() ([]byte, []int) {
-	return file_datatypes_v1_proto_rawDescGZIP(), []int{3}
+	return file_internal_engine_datatypes_v1_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *FeaturePB) GetId() int32 {
@@ -1241,7 +1271,7 @@ type GamestatePB struct {
 func (x *GamestatePB) Reset() {
 	*x = GamestatePB{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_datatypes_v1_proto_msgTypes[4]
+		mi := &file_internal_engine_datatypes_v1_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1254,7 +1284,7 @@ func (x *GamestatePB) String() string {
 func (*GamestatePB) ProtoMessage() {}
 
 func (x *GamestatePB) ProtoReflect() protoreflect.Message {
-	mi := &file_datatypes_v1_proto_msgTypes[4]
+	mi := &file_internal_engine_datatypes_v1_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1267,7 +1297,7 @@ func (x *GamestatePB) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GamestatePB.ProtoReflect.Descriptor instead.
 func (*GamestatePB) Descriptor() ([]byte, []int) {
-	return file_datatypes_v1_proto_rawDescGZIP(), []int{4}
+	return file_internal_engine_datatypes_v1_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GamestatePB) GetGameId() GamestatePB_GameID {
@@ -1470,7 +1500,7 @@ type GamestatePB_Reel struct {
 func (x *GamestatePB_Reel) Reset() {
 	*x = GamestatePB_Reel{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_datatypes_v1_proto_msgTypes[5]
+		mi := &file_internal_engine_datatypes_v1_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1483,7 +1513,7 @@ func (x *GamestatePB_Reel) String() string {
 func (*GamestatePB_Reel) ProtoMessage() {}
 
 func (x *GamestatePB_Reel) ProtoReflect() protoreflect.Message {
-	mi := &file_datatypes_v1_proto_msgTypes[5]
+	mi := &file_internal_engine_datatypes_v1_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1496,7 +1526,7 @@ func (x *GamestatePB_Reel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GamestatePB_Reel.ProtoReflect.Descriptor instead.
 func (*GamestatePB_Reel) Descriptor() ([]byte, []int) {
-	return file_datatypes_v1_proto_rawDescGZIP(), []int{4, 0}
+	return file_internal_engine_datatypes_v1_proto_rawDescGZIP(), []int{4, 0}
 }
 
 func (x *GamestatePB_Reel) GetSymbols() []int32 {
@@ -1521,7 +1551,7 @@ type GamestatePB_Gamification struct {
 func (x *GamestatePB_Gamification) Reset() {
 	*x = GamestatePB_Gamification{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_datatypes_v1_proto_msgTypes[6]
+		mi := &file_internal_engine_datatypes_v1_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1534,7 +1564,7 @@ func (x *GamestatePB_Gamification) String() string {
 func (*GamestatePB_Gamification) ProtoMessage() {}
 
 func (x *GamestatePB_Gamification) ProtoReflect() protoreflect.Message {
-	mi := &file_datatypes_v1_proto_msgTypes[6]
+	mi := &file_internal_engine_datatypes_v1_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1547,7 +1577,7 @@ func (x *GamestatePB_Gamification) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GamestatePB_Gamification.ProtoReflect.Descriptor instead.
 func (*GamestatePB_Gamification) Descriptor() ([]byte, []int) {
-	return file_datatypes_v1_proto_rawDescGZIP(), []int{4, 1}
+	return file_internal_engine_datatypes_v1_proto_rawDescGZIP(), []int{4, 1}
 }
 
 func (x *GamestatePB_Gamification) GetLevel() int32 {
@@ -1585,10 +1615,11 @@ func (x *GamestatePB_Gamification) GetTotalSpins() int32 {
 	return 0
 }
 
-var File_datatypes_v1_proto protoreflect.FileDescriptor
+var File_internal_engine_datatypes_v1_proto protoreflect.FileDescriptor
 
-var file_datatypes_v1_proto_rawDesc = []byte{
-	0x0a, 0x12, 0x64, 0x61, 0x74, 0x61, 0x74, 0x79, 0x70, 0x65, 0x73, 0x5f, 0x76, 0x31, 0x2e, 0x70,
+var file_internal_engine_datatypes_v1_proto_rawDesc = []byte{
+	0x0a, 0x22, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x65, 0x6e, 0x67, 0x69, 0x6e,
+	0x65, 0x2f, 0x64, 0x61, 0x74, 0x61, 0x74, 0x79, 0x70, 0x65, 0x73, 0x5f, 0x76, 0x31, 0x2e, 0x70,
 	0x72, 0x6f, 0x74, 0x6f, 0x12, 0x06, 0x65, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x22, 0x58, 0x0a, 0x08,
 	0x50, 0x61, 0x79, 0x6f, 0x75, 0x74, 0x50, 0x42, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x79, 0x6d, 0x62,
 	0x6f, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x73, 0x79, 0x6d, 0x62, 0x6f, 0x6c,
@@ -1842,7 +1873,7 @@ var file_datatypes_v1_proto_rawDesc = []byte{
 	0x63, 0x61, 0x64, 0x65, 0x36, 0x10, 0x38, 0x12, 0x0c, 0x0a, 0x08, 0x63, 0x61, 0x73, 0x63, 0x61,
 	0x64, 0x65, 0x37, 0x10, 0x39, 0x12, 0x0c, 0x0a, 0x08, 0x63, 0x61, 0x73, 0x63, 0x61, 0x64, 0x65,
 	0x38, 0x10, 0x3a, 0x12, 0x0c, 0x0a, 0x08, 0x63, 0x61, 0x73, 0x63, 0x61, 0x64, 0x65, 0x30, 0x10,
-	0x3b, 0x2a, 0xd3, 0x08, 0x0a, 0x03, 0x43, 0x63, 0x79, 0x12, 0x0b, 0x0a, 0x07, 0x44, 0x45, 0x46,
+	0x3b, 0x2a, 0xb2, 0x09, 0x0a, 0x03, 0x43, 0x63, 0x79, 0x12, 0x0b, 0x0a, 0x07, 0x44, 0x45, 0x46,
 	0x41, 0x55, 0x4c, 0x54, 0x10, 0x00, 0x12, 0x07, 0x0a, 0x03, 0x43, 0x4e, 0x59, 0x10, 0x01, 0x12,
 	0x07, 0x0a, 0x03, 0x55, 0x53, 0x44, 0x10, 0x02, 0x12, 0x07, 0x0a, 0x03, 0x47, 0x42, 0x50, 0x10,
 	0x03, 0x12, 0x07, 0x0a, 0x03, 0x45, 0x55, 0x52, 0x10, 0x04, 0x12, 0x07, 0x0a, 0x03, 0x4a, 0x50,
@@ -1911,28 +1942,34 @@ var file_datatypes_v1_proto_rawDesc = []byte{
 	0x74, 0x12, 0x07, 0x0a, 0x03, 0x43, 0x55, 0x50, 0x10, 0x75, 0x12, 0x07, 0x0a, 0x03, 0x4b, 0x48,
 	0x52, 0x10, 0x76, 0x12, 0x07, 0x0a, 0x03, 0x4e, 0x50, 0x52, 0x10, 0x77, 0x12, 0x07, 0x0a, 0x03,
 	0x50, 0x4b, 0x52, 0x10, 0x78, 0x12, 0x07, 0x0a, 0x03, 0x53, 0x4f, 0x53, 0x10, 0x79, 0x12, 0x07,
-	0x0a, 0x03, 0x58, 0x44, 0x52, 0x10, 0x7a, 0x42, 0x3e, 0x5a, 0x3c, 0x67, 0x69, 0x74, 0x6c, 0x61,
-	0x62, 0x2e, 0x6d, 0x61, 0x76, 0x65, 0x72, 0x69, 0x63, 0x6b, 0x2d, 0x6f, 0x70, 0x73, 0x2e, 0x63,
-	0x6f, 0x6d, 0x2f, 0x6d, 0x61, 0x76, 0x65, 0x72, 0x69, 0x63, 0x6b, 0x2f, 0x72, 0x67, 0x73, 0x2d,
-	0x63, 0x6f, 0x72, 0x65, 0x2d, 0x76, 0x32, 0x2f, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c,
-	0x2f, 0x65, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x0a, 0x03, 0x58, 0x44, 0x52, 0x10, 0x7a, 0x12, 0x07, 0x0a, 0x03, 0x4d, 0x45, 0x54, 0x10, 0x7b,
+	0x12, 0x07, 0x0a, 0x03, 0x47, 0x47, 0x50, 0x10, 0x7c, 0x12, 0x07, 0x0a, 0x03, 0x49, 0x4d, 0x50,
+	0x10, 0x7d, 0x12, 0x07, 0x0a, 0x03, 0x4a, 0x45, 0x50, 0x10, 0x7e, 0x12, 0x07, 0x0a, 0x03, 0x44,
+	0x4f, 0x47, 0x10, 0x7f, 0x12, 0x08, 0x0a, 0x03, 0x54, 0x52, 0x58, 0x10, 0x80, 0x01, 0x12, 0x08,
+	0x0a, 0x03, 0x4c, 0x52, 0x44, 0x10, 0x81, 0x01, 0x12, 0x08, 0x0a, 0x03, 0x55, 0x45, 0x54, 0x10,
+	0x82, 0x01, 0x12, 0x08, 0x0a, 0x03, 0x46, 0x54, 0x4e, 0x10, 0x83, 0x01, 0x12, 0x08, 0x0a, 0x03,
+	0x54, 0x54, 0x48, 0x10, 0x84, 0x01, 0x42, 0x3e, 0x5a, 0x3c, 0x67, 0x69, 0x74, 0x6c, 0x61, 0x62,
+	0x2e, 0x6d, 0x61, 0x76, 0x65, 0x72, 0x69, 0x63, 0x6b, 0x2d, 0x6f, 0x70, 0x73, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x6d, 0x61, 0x76, 0x65, 0x72, 0x69, 0x63, 0x6b, 0x2f, 0x72, 0x67, 0x73, 0x2d, 0x63,
+	0x6f, 0x72, 0x65, 0x2d, 0x76, 0x32, 0x2f, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f,
+	0x65, 0x6e, 0x67, 0x69, 0x6e, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
-	file_datatypes_v1_proto_rawDescOnce sync.Once
-	file_datatypes_v1_proto_rawDescData = file_datatypes_v1_proto_rawDesc
+	file_internal_engine_datatypes_v1_proto_rawDescOnce sync.Once
+	file_internal_engine_datatypes_v1_proto_rawDescData = file_internal_engine_datatypes_v1_proto_rawDesc
 )
 
-func file_datatypes_v1_proto_rawDescGZIP() []byte {
-	file_datatypes_v1_proto_rawDescOnce.Do(func() {
-		file_datatypes_v1_proto_rawDescData = protoimpl.X.CompressGZIP(file_datatypes_v1_proto_rawDescData)
+func file_internal_engine_datatypes_v1_proto_rawDescGZIP() []byte {
+	file_internal_engine_datatypes_v1_proto_rawDescOnce.Do(func() {
+		file_internal_engine_datatypes_v1_proto_rawDescData = protoimpl.X.CompressGZIP(file_internal_engine_datatypes_v1_proto_rawDescData)
 	})
-	return file_datatypes_v1_proto_rawDescData
+	return file_internal_engine_datatypes_v1_proto_rawDescData
 }
 
-var file_datatypes_v1_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_datatypes_v1_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
-var file_datatypes_v1_proto_goTypes = []interface{}{
+var file_internal_engine_datatypes_v1_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_internal_engine_datatypes_v1_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_internal_engine_datatypes_v1_proto_goTypes = []interface{}{
 	(Ccy)(0),                         // 0: engine.Ccy
 	(WalletTransactionPB_Type)(0),    // 1: engine.WalletTransactionPB.Type
 	(GamestatePB_GameID)(0),          // 2: engine.GamestatePB.GameID
@@ -1945,7 +1982,7 @@ var file_datatypes_v1_proto_goTypes = []interface{}{
 	(*GamestatePB_Reel)(nil),         // 9: engine.GamestatePB.Reel
 	(*GamestatePB_Gamification)(nil), // 10: engine.GamestatePB.Gamification
 }
-var file_datatypes_v1_proto_depIdxs = []int32{
+var file_internal_engine_datatypes_v1_proto_depIdxs = []int32{
 	4,  // 0: engine.PrizePB.payout:type_name -> engine.PayoutPB
 	1,  // 1: engine.WalletTransactionPB.type:type_name -> engine.WalletTransactionPB.Type
 	0,  // 2: engine.WalletTransactionPB.currency:type_name -> engine.Ccy
@@ -1967,13 +2004,13 @@ var file_datatypes_v1_proto_depIdxs = []int32{
 	0,  // [0:14] is the sub-list for field type_name
 }
 
-func init() { file_datatypes_v1_proto_init() }
-func file_datatypes_v1_proto_init() {
-	if File_datatypes_v1_proto != nil {
+func init() { file_internal_engine_datatypes_v1_proto_init() }
+func file_internal_engine_datatypes_v1_proto_init() {
+	if File_internal_engine_datatypes_v1_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_datatypes_v1_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_internal_engine_datatypes_v1_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PayoutPB); i {
 			case 0:
 				return &v.state
@@ -1985,7 +2022,7 @@ func file_datatypes_v1_proto_init() {
 				return nil
 			}
 		}
-		file_datatypes_v1_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_internal_engine_datatypes_v1_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PrizePB); i {
 			case 0:
 				return &v.state
@@ -1997,7 +2034,7 @@ func file_datatypes_v1_proto_init() {
 				return nil
 			}
 		}
-		file_datatypes_v1_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_internal_engine_datatypes_v1_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WalletTransactionPB); i {
 			case 0:
 				return &v.state
@@ -2009,7 +2046,7 @@ func file_datatypes_v1_proto_init() {
 				return nil
 			}
 		}
-		file_datatypes_v1_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+		file_internal_engine_datatypes_v1_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*FeaturePB); i {
 			case 0:
 				return &v.state
@@ -2021,7 +2058,7 @@ func file_datatypes_v1_proto_init() {
 				return nil
 			}
 		}
-		file_datatypes_v1_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+		file_internal_engine_datatypes_v1_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GamestatePB); i {
 			case 0:
 				return &v.state
@@ -2033,7 +2070,7 @@ func file_datatypes_v1_proto_init() {
 				return nil
 			}
 		}
-		file_datatypes_v1_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_internal_engine_datatypes_v1_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GamestatePB_Reel); i {
 			case 0:
 				return &v.state
@@ -2045,7 +2082,7 @@ func file_datatypes_v1_proto_init() {
 				return nil
 			}
 		}
-		file_datatypes_v1_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+		file_internal_engine_datatypes_v1_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GamestatePB_Gamification); i {
 			case 0:
 				return &v.state
@@ -2062,19 +2099,19 @@ func file_datatypes_v1_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_datatypes_v1_proto_rawDesc,
+			RawDescriptor: file_internal_engine_datatypes_v1_proto_rawDesc,
 			NumEnums:      4,
 			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_datatypes_v1_proto_goTypes,
-		DependencyIndexes: file_datatypes_v1_proto_depIdxs,
-		EnumInfos:         file_datatypes_v1_proto_enumTypes,
-		MessageInfos:      file_datatypes_v1_proto_msgTypes,
+		GoTypes:           file_internal_engine_datatypes_v1_proto_goTypes,
+		DependencyIndexes: file_internal_engine_datatypes_v1_proto_depIdxs,
+		EnumInfos:         file_internal_engine_datatypes_v1_proto_enumTypes,
+		MessageInfos:      file_internal_engine_datatypes_v1_proto_msgTypes,
 	}.Build()
-	File_datatypes_v1_proto = out.File
-	file_datatypes_v1_proto_rawDesc = nil
-	file_datatypes_v1_proto_goTypes = nil
-	file_datatypes_v1_proto_depIdxs = nil
+	File_internal_engine_datatypes_v1_proto = out.File
+	file_internal_engine_datatypes_v1_proto_rawDesc = nil
+	file_internal_engine_datatypes_v1_proto_goTypes = nil
+	file_internal_engine_datatypes_v1_proto_depIdxs = nil
 }
