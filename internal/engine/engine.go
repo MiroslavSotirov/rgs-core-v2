@@ -5,12 +5,15 @@ package engine
 import (
 	"errors"
 	"fmt"
-	"math"
+	"net/http"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/config"
 	rgserror "gitlab.maverick-ops.com/maverick/rgs-core-v2/errors"
 	"gitlab.maverick-ops.com/maverick/rgs-core-v2/internal/rng"
@@ -842,14 +845,7 @@ func (gamestate *Gamestate) PostProcess(previousGamestate Gamestate, chargeWager
 	gamestate.PrepareTransactions(previousGamestate)
 	logger.Debugf("gamestate: %#v", gamestate)
 
-	for i := 0; i < len(rtpStr.games); i++ {
-		if rtpStr.games[i].Name == gamestate.Game {
-			rtpStr.games[i].CumulativeBet += int(totalBet.Amount)
-			rtpStr.games[i].CumulativeWin += int(gamestate.CumulativeWin)
-
-			break
-		}
-	}
+	AccumulateGameData(gamestate.Game, int(totalBet.Amount), int(gamestate.CumulativeWin))
 }
 
 func (engineConf EngineConfig) DetectSpecialWins(defIndex int, p Prize) string {
@@ -1698,34 +1694,35 @@ var rtpStr = rtpStruct{id: uuid.New().String(),
 	},
 }
 
-func GetRtps() string {
-	var strArray []string
-
-	strArray = append(strArray, fmt.Sprintf("ID: %s\n", rtpStr.id))
-
+func AccumulateGameData(game string, CumulativeBet int, CumulativeWin int) {
 	for i := 0; i < len(rtpStr.games); i++ {
-		rtp := calculateRTP(rtpStr.games[i].CumulativeBet, rtpStr.games[i].CumulativeWin)
+		if rtpStr.games[i].Name == game {
+			rtpStr.games[i].CumulativeBet += CumulativeBet
+			rtpStr.games[i].CumulativeWin += CumulativeWin
 
-		if rtp != "" {
-			strArray = append(strArray, fmt.Sprintf("Game: %s, RTP: %s %%", rtpStr.games[i].Name, rtp))
+			break
 		}
 	}
-
-	return strings.Join(strArray, "\n")
 }
 
-func calculateRTP(totalBet int, totalWin int) string {
-	if totalBet == 0 {
-		return ""
+func RecordMetrics(w http.ResponseWriter, req *http.Request) {
+	cPid := promauto.NewCounter(prometheus.CounterOpts{
+		Name: "pid",
+		Help: "Current process id",
+	})
+	cPid.Add(float64(os.Getpid()))
+
+	for i := 0; i < len(rtpStr.games); i++ {
+		cumulativeBet := promauto.NewCounter(prometheus.CounterOpts{
+			Name: fmt.Sprintf("game_%s_total_bet", strings.ReplaceAll(rtpStr.games[i].Name, "-", "_")),
+			Help: fmt.Sprintf("A summary of CumulativeBet, ID: %s", rtpStr.id),
+		})
+		cumulativeWin := promauto.NewCounter(prometheus.CounterOpts{
+			Name: fmt.Sprintf("game_%s_total_win", strings.ReplaceAll(rtpStr.games[i].Name, "-", "_")),
+			Help: fmt.Sprintf("A summary of CumulativeWin, ID: %s", rtpStr.id),
+		})
+
+		cumulativeBet.Add(float64(rtpStr.games[i].CumulativeBet))
+		cumulativeWin.Add(float64(rtpStr.games[i].CumulativeWin))
 	}
-
-	num := (float64(totalWin) / float64(totalBet)) * 100
-
-	return fmt.Sprintf("%v", roundFloat(num, 2))
-}
-
-func roundFloat(val float64, precision uint) float64 {
-	ratio := math.Pow(10, float64(precision))
-
-	return math.Round(val*ratio) / ratio
 }
