@@ -66,6 +66,8 @@ func HoldToken(token string) {
 }
 
 func ReleaseToken(token string) {
+	EntryLock.Lock()
+	defer EntryLock.Unlock()
 	delete(Entries, token)
 }
 
@@ -164,7 +166,7 @@ func Routes() *chi.Mux {
 			gamestateResponse = renderGamestate(r, previousGamestate, balanceResponse, engineConfig, player)
 
 			engineDefs := engineConfig.EngineDefs
-			stakeValues, defaultBet, _, _, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine, player.BetLimitSettingCode, gameSlug, player.CompanyId)
+			stakeValues, defaultBet, _, _, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine, player.BetLimitSettingCode, gameSlug, player.BetSettingId)
 			if err != nil {
 				render.Render(w, r, ErrRender(err))
 				return
