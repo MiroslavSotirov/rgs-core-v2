@@ -431,3 +431,52 @@ override:
       credits:  # maxLimit: 100
         stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100]
         defaultBet: 10
+  430318693: # Olympcasino
+    mvgEngineUnity1:  # maxLimit: 100
+      credits:
+        defaultBet: 10
+        stakeValues: [2,4,6,10,20,40,60,100]
+    mvgEngineGodot3:
+      credits:  # maxLimit: 50
+        stakeValues: [1,2,3,4,5,7,9,10,15,20,30,40,50]        
+        defaultBet: 5
+    mvgEngineGodot4:
+      credits:  # maxLimit: 100
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100]
+        defaultBet: 10
+    mvgEngineGodot5:
+      credits:  # maxLimit: 100
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100]
+        defaultBet: 10
+    mvgEngineGodot6:
+      credits:  # maxLimit: 100
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100]
+        defaultBet: 10
+    mvgEngineGodot7:
+      credits:  # maxLimit: 100
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100]
+        defaultBet: 10
+    mvgEngineGodot8:
+      credits:  # maxLimit: 100
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100]
+        defaultBet: 10
+    mvgEngineGodot8_94:
+      credits:  # maxLimit: 100
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100]
+        defaultBet: 10
+    mvgEngineGodot9:
+      credits:  # maxLimit: 100
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100]
+        defaultBet: 10
+    mvgEngineGodot9_94:
+      credits:  # maxLimit: 100
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100]
+        defaultBet: 10
+    mvgEngineGodot9_90:
+      credits:  # maxLimit: 100
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100]
+        defaultBet: 10
+    mvgEngineGodot10:
+      credits:  # maxLimit: 100
+        stakeValues: [2,4,6,8,10,14,18,20,30,40,60,80,100]
+        defaultBet: 10
