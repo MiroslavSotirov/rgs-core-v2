@@ -32,6 +32,7 @@ var (
 	getHashes  bool
 	memProfile string
 	gameState  string
+	runRNG     bool
 )
 
 func main() {
@@ -44,6 +45,7 @@ func main() {
 	flag.BoolVar(&maxes, "maxes", false, "get max theoretical values per engine")
 	flag.BoolVar(&getHashes, "gethashes", true, "get hashes of engine files")
 	flag.StringVar(&gameState, "decodestate", "", "decode the base64 encoded gamestate to json")
+	flag.BoolVar(&runRNG, "rng", false, "Run RNG generator?")
 
 	config.InitConfig()
 	initerr := store.Init(getHashes)
@@ -56,6 +58,12 @@ func main() {
 	featureProducts.Register()
 	featureTriggers.Register()
 	logger.Infof("API INIT: OK")
+
+	if runRNG {
+		rng.PrintRandomBytes()
+		os.Exit(0)
+	}
+
 	//
 	// initial serve web
 	if runVT == true {

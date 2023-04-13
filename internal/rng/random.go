@@ -29,6 +29,12 @@ func RandFromRange(n int) int {
 	return randFromRange(rng, n)
 }
 
+func RandBytes(b []byte) {
+	rng := rngPool.Get()
+	defer rngPool.Put(rng)
+	randBytes(rng, b)
+}
+
 func Uuid() string {
 	return strings.ReplaceAll(base64.StdEncoding.EncodeToString(uuid.NewV4().Bytes()), "/", "_")
 }
@@ -42,4 +48,8 @@ func randStringRunes(rng *rand.Rand, n int) string {
 func randFromRange(rng *rand.Rand, n int) int {
 	// returns a random integer from 0 to n-1
 	return int(rng.Uint64() % uint64(n))
+}
+
+func randBytes(rng *rand.Rand, b []byte) {
+	rng.Read(b)
 }
