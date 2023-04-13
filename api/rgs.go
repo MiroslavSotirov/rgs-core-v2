@@ -11,6 +11,7 @@ import (
 	"net/http/pprof"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -35,7 +36,66 @@ const (
 	RegexWallet   = "[A-Za-z0-9-]+"
 	RegexPlayerId = "[a-zA-Z0-9-_+]+"
 	RegexId       = "[A-Za-z0-9-_+=.,:;/%]+"
+
+	RequestTimeout = 8 * time.Second
 )
+
+type Entry struct {
+	Timestamp time.Time
+}
+
+var (
+	Entries   = make(map[string]Entry)
+	EntryLock sync.Mutex
+)
+
+func IsTokenHeld(token string) bool {
+	entry, ok := Entries[token]
+	if ok {
+		if time.Now().Before(entry.Timestamp.Add(RequestTimeout)) {
+			return true
+		}
+	}
+	return false
+}
+
+func HoldToken(token string) {
+	Entries[token] = Entry{
+		Timestamp: time.Now(),
+	}
+}
+
+func ReleaseToken(token string) {
+	delete(Entries, token)
+}
+
+func VerifyAndHold(token string) bool {
+	EntryLock.Lock()
+	defer EntryLock.Unlock()
+	if IsTokenHeld(token) {
+		return false
+	}
+	HoldToken(token)
+	return true
+}
+
+func SingleEntryToken(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token, err := getAuth(r)
+		if err != nil || token == "" {
+			logger.Warnf("no authorization token")
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		if !VerifyAndHold(token) {
+			logger.Warnf("denying token \"%v\"", token)
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		defer ReleaseToken(token)
+		next.ServeHTTP(w, r)
+	})
+}
 
 func Routes() *chi.Mux {
 	router := chi.NewRouter()
@@ -104,7 +164,7 @@ func Routes() *chi.Mux {
 			gamestateResponse = renderGamestate(r, previousGamestate, balanceResponse, engineConfig, player)
 
 			engineDefs := engineConfig.EngineDefs
-			stakeValues, defaultBet, _, _, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine, player.BetLimitSettingCode, gameSlug, player.BetSettingId)
+			stakeValues, defaultBet, _, _, err := parameterSelector.GetGameplayParameters(previousGamestate.BetPerLine, player.BetLimitSettingCode, gameSlug, player.CompanyId)
 			if err != nil {
 				render.Render(w, r, ErrRender(err))
 				return
@@ -317,134 +377,155 @@ func Routes() *chi.Mux {
 				return
 			}
 		})
-		r.Post("/init2", func(w http.ResponseWriter, r *http.Request) {
-			initResp, err := initV2(r)
-			if err != nil {
-				logger.Errorf("Error initializing game %s", err.Error())
+		r.Route("/init2", func(r2 chi.Router) {
+			r2.Use(SingleEntryToken)
+			r2.Post("/", func(w http.ResponseWriter, r *http.Request) {
+				initResp, err := initV2(r)
+				if err != nil {
+					logger.Errorf("Error initializing game %s", err.Error())
 
-				switch t := err.(type) {
-				default:
-					_ = render.Render(w, r, ErrRender(err))
-				case *rgserror.RGSError:
-					logger.Debugf("%v", t)
-					_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
+					switch t := err.(type) {
+					default:
+						_ = render.Render(w, r, ErrRender(err))
+					case *rgserror.RGSError:
+						logger.Debugf("%v", t)
+						_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
 
+					}
+					return
 				}
-				return
-			}
 
-			if err := render.Render(w, r, initResp); err != nil {
-				_ = render.Render(w, r, ErrRender(err))
-				return
-			}
+				if err := render.Render(w, r, initResp); err != nil {
+					_ = render.Render(w, r, ErrRender(err))
+					return
+				}
+			})
 		})
-		r.Post("/play2", func(w http.ResponseWriter, r *http.Request) {
-			gamestate, err := playV2(r)
-			if err != nil {
-				logger.Errorf("Error initializing game %s", err.Error())
+		r.Route("/play2", func(r2 chi.Router) {
+			r2.Use(SingleEntryToken)
+			r2.Post("/", func(w http.ResponseWriter, r *http.Request) {
+				gamestate, err := playV2(r)
+				if err != nil {
+					logger.Errorf("Error initializing game %s", err.Error())
 
-				switch t := err.(type) {
-				default:
-					_ = render.Render(w, r, ErrRender(err))
-				case *rgserror.RGSError:
-					logger.Debugf("%v", t)
-					_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
+					switch t := err.(type) {
+					default:
+						_ = render.Render(w, r, ErrRender(err))
+					case *rgserror.RGSError:
+						logger.Debugf("%v", t)
+						_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
 
+					}
+					return
 				}
-				return
-			}
-			if err := render.Render(w, r, gamestate); err != nil {
-				_ = render.Render(w, r, ErrRender(err))
-				return
-			}
-		})
-		r.Post("/playround", func(w http.ResponseWriter, r *http.Request) {
-			round, err := playRound(r)
-			if err != nil {
-				logger.Errorf("Error initializing game %s", err.Error())
-
-				switch t := err.(type) {
-				default:
-					_ = render.Render(w, r, ErrRender(err))
-				case *rgserror.RGSError:
-					logger.Debugf("%v", t)
-					_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
-				}
-				return
-			}
-			if err := render.Render(w, r, round); err != nil {
-				_ = render.Render(w, r, ErrRender(err))
-				return
-			}
-		})
-		r.Post("/init3", func(w http.ResponseWriter, r *http.Request) {
-			initResp, err := initV3(r)
-			if err != nil {
-				logger.Errorf("Error initializing game %s", err.Error())
-
-				switch t := err.(type) {
-				default:
-					_ = render.Render(w, r, ErrRender(err))
-				case *rgserror.RGSError:
-					logger.Debugf("%v", t)
-					_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
-
-				}
-				return
-			}
-
-			if err := render.Render(w, r, initResp); err != nil {
-				_ = render.Render(w, r, ErrRender(err))
-				return
-			}
-		})
-		r.Post("/play3", func(w http.ResponseWriter, r *http.Request) {
-			gamestate, err := playV3(r)
-			if err != nil {
-				logger.Errorf("Error initializing game %s", err.Error())
-
-				switch t := err.(type) {
-				default:
-					_ = render.Render(w, r, ErrRender(err))
-				case *rgserror.RGSError:
-					logger.Debugf("%v", t)
-					_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
-
-				}
-				return
-			}
-			if gamestate != nil {
 				if err := render.Render(w, r, gamestate); err != nil {
 					_ = render.Render(w, r, ErrRender(err))
 					return
 				}
-			}
+			})
+		})
+		r.Route("/playround", func(r2 chi.Router) {
+			r2.Use(SingleEntryToken)
+			r2.Post("/", func(w http.ResponseWriter, r *http.Request) {
+				round, err := playRound(r)
+				if err != nil {
+					logger.Errorf("Error initializing game %s", err.Error())
+
+					switch t := err.(type) {
+					default:
+						_ = render.Render(w, r, ErrRender(err))
+					case *rgserror.RGSError:
+						logger.Debugf("%v", t)
+						_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
+					}
+					return
+				}
+				if err := render.Render(w, r, round); err != nil {
+					_ = render.Render(w, r, ErrRender(err))
+					return
+				}
+			})
+		})
+		r.Route("/init3", func(r2 chi.Router) {
+			r2.Use(SingleEntryToken)
+			r2.Post("/", func(w http.ResponseWriter, r *http.Request) {
+				initResp, err := initV3(r)
+				if err != nil {
+					logger.Errorf("Error initializing game %s", err.Error())
+
+					switch t := err.(type) {
+					default:
+						_ = render.Render(w, r, ErrRender(err))
+					case *rgserror.RGSError:
+						logger.Debugf("%v", t)
+						_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
+
+					}
+					return
+				}
+
+				if err := render.Render(w, r, initResp); err != nil {
+					_ = render.Render(w, r, ErrRender(err))
+					return
+				}
+			})
 		})
 
-		r.Put("/close", func(w http.ResponseWriter, r *http.Request) {
-			err := CloseGS(r)
-			if err != nil {
-				logger.Debugf("error on round close: %v", err)
-			}
-			if err != nil {
-				render.Render(w, r, ErrRender(err))
-				w.WriteHeader(400)
-				return
-			}
-			w.WriteHeader(200)
+		r.Route("/play3", func(r2 chi.Router) {
+			r2.Use(SingleEntryToken)
+			r2.Post("/", func(w http.ResponseWriter, r *http.Request) {
+				gamestate, err := playV3(r)
+				if err != nil {
+					logger.Errorf("Error initializing game %s", err.Error())
+
+					switch t := err.(type) {
+					default:
+						_ = render.Render(w, r, ErrRender(err))
+					case *rgserror.RGSError:
+						logger.Debugf("%v", t)
+						_ = render.Render(w, r, ErrBadRequestRender(err.(*rgserror.RGSError)))
+
+					}
+					return
+				}
+				if gamestate != nil {
+					if err := render.Render(w, r, gamestate); err != nil {
+						_ = render.Render(w, r, ErrRender(err))
+						return
+					}
+				}
+			})
+		})
+		r.Route("/close", func(r2 chi.Router) {
+			r2.Use(SingleEntryToken)
+			r2.Put("/", func(w http.ResponseWriter, r *http.Request) {
+				err := CloseGS(r)
+				if err != nil {
+					logger.Debugf("error on round close: %v", err)
+				}
+				if err != nil {
+					render.Render(w, r, ErrRender(err))
+					w.WriteHeader(400)
+					return
+				}
+				w.WriteHeader(200)
+			})
 		})
 
-		r.Put("/close3", func(w http.ResponseWriter, r *http.Request) {
-			err := closeV3(r)
-			if err != nil {
-				logger.Debugf("error on round close: %v", err)
-			}
-			if err != nil {
-				render.Render(w, r, ErrRender(err))
-				w.WriteHeader(400)
-				return
-			}
-			w.WriteHeader(200)
+		r.Route("/close3", func(r2 chi.Router) {
+			r2.Use(SingleEntryToken)
+			r2.Put("/", func(w http.ResponseWriter, r *http.Request) {
+				err := closeV3(r)
+				if err != nil {
+					logger.Debugf("error on round close: %v", err)
+				}
+				if err != nil {
+					render.Render(w, r, ErrRender(err))
+					w.WriteHeader(400)
+					return
+				}
+				w.WriteHeader(200)
+			})
 		})
 
 		r.Put("/clientstate/{token:"+RegexId+"}/{gameSlug:"+RegexGameSlug+"}/{wallet:"+RegexWallet+"}", func(w http.ResponseWriter, r *http.Request) {
