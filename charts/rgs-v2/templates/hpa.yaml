@@ -8,7 +8,7 @@ metadata:
     {{- include "rgs-v2.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
-    apiVersion: apps/v1
+    apiVersion: apps/v2beta2
     kind: Deployment
     name: {{ include "rgs-v2.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
