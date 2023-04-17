@@ -75,9 +75,9 @@ jobs:
       - name: Update RGS release in flux repo
         run: |
           cd infrastructure/
-          sed -i -e 's/version:.*/version: "${{ steps.tag.outputs.new_tag }}"/g' dev/apps-infra/deployments/rgs-v2/release.yaml
+          sed -i -e 's/version:.*/version: "${{ steps.tag.outputs.new_tag }}"/g' infra-cluster/elysium-dev/rgs-v2/release.yaml
           git config --global user.email "workflow@elysiumstudios.se"
           git config --global user.name "RGS-V2 Workflow"
-          git add dev/apps-infra/deployments/rgs-v2/release.yaml
+          git add infra-cluster/elysium-dev/rgs-v2/release.yaml
           git commit -m "Deploy RGS-v2 ${{ steps.tag.outputs.new_tag }}"
           git push
